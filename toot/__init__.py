@@ -10,7 +10,7 @@ DEFAULT_INSTANCE = 'mastodon.social'
 
 
 def create_app(base_url):
-    url = base_url + 'api/v1/apps'
+    url = base_url + '/api/v1/apps'
 
     response = requests.post(url, {
         'client_name': 'toot',
@@ -29,7 +29,7 @@ def create_app(base_url):
 
 
 def login(app, username, password):
-    url = app.base_url + 'oauth/token'
+    url = app.base_url + '/oauth/token'
 
     response = requests.post(url, {
         'grant_type': 'password',
