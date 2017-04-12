@@ -29,6 +29,7 @@ setup(
     ],
     packages=['toot'],
     install_requires=[
+        'requests>=2.0.0<3.0.0',
         'future'
     ],
     entry_points={
