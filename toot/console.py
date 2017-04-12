@@ -29,6 +29,8 @@ def create_app_interactive():
     print("App tokens saved to: {}".format(green(CONFIG_APP_FILE)))
     save_app(app)
 
+    return app
+
 
 def login_interactive(app):
     print("\nLog in to " + green(app.base_url))
@@ -55,12 +57,12 @@ def print_usage():
 
 def cmd_post_status(app, user):
     if len(sys.argv) < 3:
-        print red("No status text given")
+        print(red("No status text given"))
         return
 
     response = post_status(app, user, sys.argv[2])
 
-    print "Toot posted: " + green(response.get('url'))
+    print("Toot posted: " + green(response.get('url')))
 
 
 def cmd_auth(app, user):

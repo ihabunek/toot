@@ -7,10 +7,6 @@ CONFIG_APP_FILE = CONFIG_DIR + 'app.cfg'
 CONFIG_USER_FILE = CONFIG_DIR + 'user.cfg'
 
 
-def collapse(tuple):
-    return [v for k, v in tuple.__dict__.items()]
-
-
 def _load(file, tuple_class):
     if not os.path.exists(file):
         return None
@@ -29,7 +25,7 @@ def _save(file, named_tuple):
         os.makedirs(directory)
 
     with open(file, 'w') as f:
-        values = [v for k, v in named_tuple.__dict__.items()]
+        values = [v for v in named_tuple]
         return f.write("\n".join(values))
 
 
