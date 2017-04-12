@@ -25,4 +25,11 @@ Currently implements only posting a new status:
 
     toot post "Hello world!"
 
-On first use, will ask you to choose a Mastodon instance and log in.
+On first use, you will be asked to choose a Mastodon instance and log in.
+
+The app and user tokens are saved in two files in your home directory:
+
+* ``~/.config/toot/app.cfg``
+* ``~/.config/toot/user.cfg``
+
+To logout, delete these files.
