@@ -7,7 +7,7 @@ with open("README.rst") as readme:
 
 setup(
     name='toot',
-    version='0.2.1',
+    version='0.3.0',
     description='Interact with Mastodon social networks from the command line.',
     long_description=long_description,
     author='Ivan Habunek',

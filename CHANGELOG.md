@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.3.0 (2016-04-13)**
+
+* Add: view timeline
+* Require an explicit login
+
 **0.2.1 (2016-04-13)**
 
 * Fix invalid requirements in setup.py
