@@ -9,6 +9,26 @@ APP_NAME = 'toot'
 DEFAULT_INSTANCE = 'mastodon.social'
 
 
+def _get(app, user, url, params=None):
+    url = app.base_url + url
+    headers = {"Authorization": "Bearer " + user.access_token}
+
+    response = requests.get(url, params, headers=headers)
+    response.raise_for_status()
+
+    return response.json()
+
+
+def _post(app, user, url, data=None):
+    url = app.base_url + url
+    headers = {"Authorization": "Bearer " + user.access_token}
+
+    response = requests.post(url, data, headers=headers)
+    response.raise_for_status()
+
+    return response.json()
+
+
 def create_app(base_url):
     url = base_url + '/api/v1/apps'
 
@@ -49,10 +69,10 @@ def login(app, username, password):
 
 
 def post_status(app, user, status):
-    url = app.base_url + '/api/v1/statuses'
-    headers = {"Authorization": "Bearer " + user.access_token}
+    return _post(app, user, '/api/v1/statuses', {
+        'status': status
+    })
 
-    response = requests.post(url, {'status': status}, headers=headers)
-    response.raise_for_status()
 
-    return response.json()
+def timeline_home(app, user):
+    return _get(app, user, '/api/v1/timelines/home')

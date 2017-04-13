@@ -30,7 +30,8 @@ setup(
     packages=['toot'],
     install_requires=[
         'requests ~= 2.13',
-        'future'
+        'beautifulsoup4 ~= 4.5.3',
+        'future',
     ],
     entry_points={
         'console_scripts': [
