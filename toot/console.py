@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 from bs4 import BeautifulSoup
 from builtins import input
@@ -13,6 +14,10 @@ from .config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, C
 from . import create_app, login, post_status, timeline_home, DEFAULT_INSTANCE
 
 
+class ConsoleError(Exception):
+    pass
+
+
 def green(text):
     return "\033[92m{}\033[0m".format(text)
 
@@ -22,17 +27,20 @@ def red(text):
 
 
 def create_app_interactive():
-    instance = input("Choose an instance [{}]: ".format(DEFAULT_INSTANCE))
+    instance = input("Choose an instance [%s]: " % green(DEFAULT_INSTANCE))
     if not instance:
         instance = DEFAULT_INSTANCE
 
     base_url = 'https://{}'.format(instance)
 
-    print("Creating app with {}".format(base_url))
-    app = create_app(base_url)
+    print("Registering application with %s" % green(base_url))
+    try:
+        app = create_app(base_url)
+    except:
+        raise ConsoleError("Failed authenticating application. Did you enter a valid instance?")
 
-    print("App tokens saved to: {}".format(green(CONFIG_APP_FILE)))
     save_app(app)
+    print("Application tokens saved to: {}".format(green(CONFIG_APP_FILE)))
 
     return app
 
@@ -43,7 +51,10 @@ def login_interactive(app):
     password = getpass('Password: ')
 
     print("Authenticating...")
-    user = login(app, email, password)
+    try:
+        user = login(app, email, password)
+    except:
+        raise ConsoleError("Login failed")
 
     save_user(user)
     print("User token saved to " + green(CONFIG_USER_FILE))
@@ -55,8 +66,11 @@ def print_usage():
     print("toot - interact with Mastodon from the command line")
     print("")
     print("Usage:")
-    print("    toot post \"All your base are belong to us\"")
-    print("    toot timeline")
+    print("  toot login      - log into a Mastodon instance (saves access tokens to `~/.config/toot/`)")
+    print("  toot logout     - log out (delete saved access tokens)")
+    print("  toot auth       - shows currently logged in user and instance")
+    print("  toot post <msg> - toot a new post to your timeline")
+    print("  toot timeline   - shows your public timeline")
     print("")
     print("https://github.com/ihabunek/toot")
 
@@ -132,21 +146,52 @@ def cmd_auth(app, user):
         print("You are not logged in")
 
 
-def main():
-    command = sys.argv[1] if len(sys.argv) > 1 else None
+def cmd_logout(app, user):
+    os.unlink(CONFIG_APP_FILE)
+    os.unlink(CONFIG_USER_FILE)
+    print("You are now logged out")
 
-    if os.getenv('TOOT_DEBUG'):
-        import logging
-        logging.basicConfig(level=logging.DEBUG)
 
-    app = load_app() or create_app_interactive()
-    user = load_user() or login_interactive(app)
+def run_command(command):
+    app = load_app()
+    user = load_user()
+
+    # Commands which can run when not logged in
+    if command == 'login':
+        return login_interactive(create_app_interactive())
+
+    if command == 'auth':
+        return cmd_auth(app, user)
+
+    # Commands which require user to be logged in
+    if not app or not user:
+        print(red("You are not logged in."))
+        print(red("Please run `toot login` first."))
+        return
+
+    if command == 'logout':
+        return cmd_logout(app, user)
 
     if command == 'post':
-        cmd_post_status(app, user)
-    elif command == 'auth':
-        cmd_auth(app, user)
-    elif command == 'timeline':
-        cmd_timeline(app, user)
-    else:
-        print_usage()
+        return cmd_post_status(app, user)
+
+    if command == 'timeline':
+        return cmd_timeline(app, user)
+
+    print(red("Unknown command '{}'\n".format(command)))
+    print_usage()
+
+
+def main():
+    if os.getenv('TOOT_DEBUG'):
+        logging.basicConfig(level=logging.DEBUG)
+
+    command = sys.argv[1] if len(sys.argv) > 1 else None
+
+    if not command:
+        return print_usage()
+
+    try:
+        run_command(command)
+    except ConsoleError as e:
+        print(red(str(e)))

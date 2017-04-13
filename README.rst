@@ -25,18 +25,47 @@ Install using pip:
 Usage
 -----
 
-Currently implements only posting a new status:
-
+Firstly, you will need to login to a Mastodon instance:
 
 .. code-block::
 
-    toot post "Hello world!"
+    toot login
 
-On first use, you will be asked to choose a Mastodon instance and log in.
+You will be asked to chose an instance_ and enter your credentials.
 
-The app and user tokens are saved in two files in your home directory:
+.. _instance: https://github.com/tootsuite/documentation/blob/master/Using-Mastodon/List-of-Mastodon-instances.md
+
+The application and user access tokens will be saved in two files in your home directory:
 
 * ``~/.config/toot/app.cfg``
 * ``~/.config/toot/user.cfg``
 
-To logout, delete these files.
+You can check whether you are currently logged in:
+
+.. code-block::
+
+    toot auth
+
+And you can logout which will remove the stored access tokens:
+
+.. code-block::
+
+    toot logout
+
+Show timeline
+~~~~~~~~~~~~~
+
+To show recent items in your public timeline:
+
+.. code-block::
+
+    toot timeline
+
+Post status
+~~~~~~~~~~~
+
+To post a new status to your timeline:
+
+.. code-block::
+
+    toot post "Hello world!"
