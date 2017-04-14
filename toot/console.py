@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import logging
@@ -11,19 +13,27 @@ from textwrap import TextWrapper
 from future.moves.itertools import zip_longest
 
 from .config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
-from . import create_app, login, post_status, timeline_home, DEFAULT_INSTANCE
+from . import create_app, login, post_status, timeline_home, upload_media, DEFAULT_INSTANCE
 
 
 class ConsoleError(Exception):
     pass
 
 
-def green(text):
-    return "\033[92m{}\033[0m".format(text)
-
-
 def red(text):
-    return "\033[91m{}\033[0m".format(text)
+    return "\033[31m{}\033[0m".format(text)
+
+
+def green(text):
+    return "\033[32m{}\033[0m".format(text)
+
+
+def yellow(text):
+    return "\033[33m{}\033[0m".format(text)
+
+
+def print_error(text):
+    print(red(text), file=sys.stderr)
 
 
 def create_app_interactive():
@@ -152,6 +162,28 @@ def cmd_logout(app, user):
     print("You are now logged out")
 
 
+def cmd_upload(app, user):
+    if len(sys.argv) < 3:
+        print_error("No status text given")
+        return
+
+    path = sys.argv[2]
+
+    if not os.path.exists(path):
+        print_error("File does not exist: " + path)
+        return
+
+    with open(path, 'rb') as f:
+        print("Uploading {} ...".format(green(f.name)))
+        response = upload_media(app, user, f)
+
+    print("\nSuccessfully uploaded media ID {}, type '{}'".format(
+         yellow(response['id']),  yellow(response['type'])))
+    print("Original URL: " + green(response['url']))
+    print("Preview URL:  " + green(response['preview_url']))
+    print("Text URL:     " + green(response['text_url']))
+
+
 def run_command(command):
     app = load_app()
     user = load_user()
@@ -178,6 +210,9 @@ def run_command(command):
     if command == 'timeline':
         return cmd_timeline(app, user)
 
+    if command == 'upload':
+        return cmd_upload(app, user)
+
     print(red("Unknown command '{}'\n".format(command)))
     print_usage()
 
@@ -194,4 +229,4 @@ def main():
     try:
         run_command(command)
     except ConsoleError as e:
-        print(red(str(e)))
+        print_error(str(e))

@@ -19,11 +19,11 @@ def _get(app, user, url, params=None):
     return response.json()
 
 
-def _post(app, user, url, data=None):
+def _post(app, user, url, data=None, files=None):
     url = app.base_url + url
     headers = {"Authorization": "Bearer " + user.access_token}
 
-    response = requests.post(url, data, headers=headers)
+    response = requests.post(url, data, files=files, headers=headers)
     response.raise_for_status()
 
     return response.json()
@@ -76,3 +76,9 @@ def post_status(app, user, status):
 
 def timeline_home(app, user):
     return _get(app, user, '/api/v1/timelines/home')
+
+
+def upload_media(app, user, file):
+    return _post(app, user, '/api/v1/media', files={
+        'file': file
+    })
