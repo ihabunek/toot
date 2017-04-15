@@ -83,6 +83,9 @@ def print_usage():
     print("  toot post <msg> - toot a new post to your timeline")
     print("  toot timeline   - shows your public timeline")
     print("")
+    print("To get help for each command run:")
+    print("  toot <command> --help")
+    print("")
     print("https://github.com/ihabunek/toot")
 
 
@@ -119,7 +122,6 @@ def parse_timeline(item):
     time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
     return {
-        # "username": item['account']['username'],
         "name": name,
         "text": text,
         "time": time,
@@ -161,6 +163,9 @@ def cmd_post_status(app, user):
 
 
 def cmd_auth(app, user):
+    parser = OptionParser(usage='%prog auth')
+    parser.parse_args()
+
     if app and user:
         print("You are logged in to " + green(app.base_url))
         print("Username: " + green(user.username))
@@ -170,20 +175,34 @@ def cmd_auth(app, user):
         print("You are not logged in")
 
 
+def cmd_login():
+    parser = OptionParser(usage='%prog login')
+    parser.parse_args()
+
+    app = create_app_interactive()
+    user = login_interactive(app)
+
+    return app, user
+
+
 def cmd_logout(app, user):
+    parser = OptionParser(usage='%prog logout')
+    parser.parse_args()
+
     os.unlink(CONFIG_APP_FILE)
     os.unlink(CONFIG_USER_FILE)
     print("You are now logged out")
 
 
 def cmd_upload(app, user):
+    parser = OptionParser(usage='%prog upload <path_to_media>')
+    parser.parse_args()
+
     if len(sys.argv) < 3:
         print_error("No status text given")
         return
 
-    path = sys.argv[2]
-
-    response = do_upload(path)
+    response = do_upload(sys.argv[2])
 
     print("\nSuccessfully uploaded media ID {}, type '{}'".format(
          yellow(response['id']),  yellow(response['type'])))
@@ -207,7 +226,7 @@ def run_command(command):
 
     # Commands which can run when not logged in
     if command == 'login':
-        return login_interactive(create_app_interactive())
+        return cmd_login()
 
     if command == 'auth':
         return cmd_auth(app, user)
