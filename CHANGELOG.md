@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.4.0 (2016-04-15)**
+
+* Add `upload` command to post media
+* Add `--visibility` and `--media` options to `post` command
+
 **0.3.0 (2016-04-13)**
 
 * Add: view timeline
