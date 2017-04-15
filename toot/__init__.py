@@ -1,12 +1,29 @@
+import logging
 import requests
 
 from collections import namedtuple
+from requests import Request, Session
 
 App = namedtuple('App', ['base_url', 'client_id', 'client_secret'])
 User = namedtuple('User', ['username', 'access_token'])
 
 APP_NAME = 'toot'
 DEFAULT_INSTANCE = 'mastodon.social'
+
+
+logger = logging.getLogger('toot')
+
+
+def _log_request(request, prepared_request):
+    logger.debug(">>> \033[32m{} {}\033[0m".format(request.method, request.url))
+    logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
+    logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
+    logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(request.headers))
+
+
+def _log_response(response):
+    logger.debug("<<< \033[32m{}\033[0m".format(response))
+    logger.debug("<<< \033[33m{}\033[0m".format(response.json()))
 
 
 def _get(app, user, url, params=None):
@@ -23,7 +40,16 @@ def _post(app, user, url, data=None, files=None):
     url = app.base_url + url
     headers = {"Authorization": "Bearer " + user.access_token}
 
-    response = requests.post(url, data, files=files, headers=headers)
+    session = Session()
+    request = Request('POST', url, headers, files, data)
+    prepared_request = request.prepare()
+
+    _log_request(request, prepared_request)
+
+    response = session.send(prepared_request)
+
+    _log_response(response)
+
     response.raise_for_status()
 
     return response.json()
