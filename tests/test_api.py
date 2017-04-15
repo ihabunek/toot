@@ -1,4 +1,4 @@
-# import pytest
+# -*- coding: utf-8 -*-
 import requests
 
 from toot import App, User, create_app, login, CLIENT_NAME, CLIENT_WEB, SCOPES
