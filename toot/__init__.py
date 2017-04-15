@@ -7,9 +7,7 @@ from requests import Request, Session
 App = namedtuple('App', ['base_url', 'client_id', 'client_secret'])
 User = namedtuple('User', ['username', 'access_token'])
 
-APP_NAME = 'toot'
 DEFAULT_INSTANCE = 'mastodon.social'
-
 
 logger = logging.getLogger('toot')
 
@@ -94,10 +92,11 @@ def login(app, username, password):
     return User(username, access_token)
 
 
-def post_status(app, user, status, media_ids=None):
+def post_status(app, user, status, visibility='public', media_ids=None):
     return _post(app, user, '/api/v1/statuses', {
         'status': status,
         'media_ids[]': media_ids,
+        'visibility': visibility,
     })
 
 

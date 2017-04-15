@@ -145,11 +145,17 @@ def cmd_post_status(app, user):
     parser.add_option("-m", "--media", dest="media", type="string",
                       help="path to the media file to attach")
 
+    parser.add_option("-v", "--visibility", dest="visibility", type="string", default="public",
+                      help='post visibility, either "public" (default), "direct", "private", or "unlisted"')
+
     (options, args) = parser.parse_args()
 
     if len(args) < 2:
         parser.print_help()
         raise ConsoleError("No text given")
+
+    if options.visibility not in ['public', 'unlisted', 'private', 'direct']:
+        raise ConsoleError("Invalid visibility value given: '{}'".format(options.visibility))
 
     if options.media:
         media = do_upload(app, user, options.media)
@@ -157,7 +163,8 @@ def cmd_post_status(app, user):
     else:
         media_ids = None
 
-    response = post_status(app, user, args[1], media_ids=media_ids)
+    response = post_status(
+        app, user, args[1], media_ids=media_ids, visibility=options.visibility)
 
     print("Toot posted: " + green(response.get('url')))
 

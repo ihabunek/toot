@@ -73,3 +73,9 @@ To post a new status to your timeline:
 Optionally attach an image or video to the status:
 
     toot post "Hello world!" --media=path/to/world.jpg
+
+To set post visibility:
+
+    toot post "Hello world!" --visibility=unlisted
+
+Possible visibility values are: ``public`` (default), ``unlisted``, ``private``, ``direct``. They are documented  `here <https://github.com/tootsuite/documentation/blob/aa20089756c8cf9ff5a52fb35ad1a9472f10970c/Using-Mastodon/User-guide.md#toot-privacy>`_.
