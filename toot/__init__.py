@@ -9,6 +9,11 @@ User = namedtuple('User', ['username', 'access_token'])
 
 DEFAULT_INSTANCE = 'mastodon.social'
 
+CLIENT_NAME = 'toot - Mastodon CLI Interface'
+CLIENT_WEB = 'https://github.com/ihabunek/toot'
+
+SCOPES = 'read write follow'
+
 logger = logging.getLogger('toot')
 
 
@@ -59,7 +64,7 @@ def create_app(base_url):
     response = requests.post(url, {
         'client_name': 'toot - Mastodon CLI Interface',
         'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob',
-        'scopes': 'read write',
+        'scopes': SCOPES,
         'website': 'https://github.com/ihabunek/toot',
     })
 
@@ -81,7 +86,7 @@ def login(app, username, password):
         'client_secret': app.client_secret,
         'username': username,
         'password': password,
-        'scope': 'read write',
+        'scope': SCOPES,
     })
 
     response.raise_for_status()
