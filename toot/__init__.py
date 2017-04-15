@@ -57,7 +57,7 @@ def create_app(base_url):
     url = base_url + '/api/v1/apps'
 
     response = requests.post(url, {
-        'client_name': 'toot',
+        'client_name': 'toot - Mastodon CLI Interface',
         'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob',
         'scopes': 'read write',
         'website': 'https://github.com/ihabunek/toot',
