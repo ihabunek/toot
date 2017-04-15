@@ -94,9 +94,10 @@ def login(app, username, password):
     return User(username, access_token)
 
 
-def post_status(app, user, status):
+def post_status(app, user, status, media_ids=None):
     return _post(app, user, '/api/v1/statuses', {
-        'status': status
+        'status': status,
+        'media_ids[]': media_ids,
     })
 
 

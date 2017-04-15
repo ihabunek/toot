@@ -69,3 +69,7 @@ To post a new status to your timeline:
 .. code-block::
 
     toot post "Hello world!"
+
+Optionally attach an image or video to the status:
+
+    toot post "Hello world!" --media=path/to/world.jpg

@@ -7,10 +7,11 @@ import logging
 from bs4 import BeautifulSoup
 from builtins import input
 from datetime import datetime
+from future.moves.itertools import zip_longest
 from getpass import getpass
 from itertools import chain
+from optparse import OptionParser
 from textwrap import TextWrapper
-from future.moves.itertools import zip_longest
 
 from .config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
 from . import create_app, login, post_status, timeline_home, upload_media, DEFAULT_INSTANCE
@@ -137,11 +138,24 @@ def cmd_timeline(app, user):
 
 
 def cmd_post_status(app, user):
-    if len(sys.argv) < 3:
-        print(red("No status text given"))
-        return
+    parser = OptionParser(usage="toot post [options] TEXT")
 
-    response = post_status(app, user, sys.argv[2])
+    parser.add_option("-m", "--media", dest="media", type="string",
+                      help="path to the media file to attach")
+
+    (options, args) = parser.parse_args()
+
+    if len(args) < 2:
+        parser.print_help()
+        raise ConsoleError("No text given")
+
+    if options.media:
+        media = do_upload(app, user, options.media)
+        media_ids = [media['id']]
+    else:
+        media_ids = None
+
+    response = post_status(app, user, args[1], media_ids=media_ids)
 
     print("Toot posted: " + green(response.get('url')))
 
@@ -169,19 +183,22 @@ def cmd_upload(app, user):
 
     path = sys.argv[2]
 
-    if not os.path.exists(path):
-        print_error("File does not exist: " + path)
-        return
-
-    with open(path, 'rb') as f:
-        print("Uploading {} ...".format(green(f.name)))
-        response = upload_media(app, user, f)
+    response = do_upload(path)
 
     print("\nSuccessfully uploaded media ID {}, type '{}'".format(
          yellow(response['id']),  yellow(response['type'])))
     print("Original URL: " + green(response['url']))
     print("Preview URL:  " + green(response['preview_url']))
     print("Text URL:     " + green(response['text_url']))
+
+
+def do_upload(app, user, path):
+    if not os.path.exists(path):
+        raise ConsoleError("File does not exist: " + path)
+
+    with open(path, 'rb') as f:
+        print("Uploading media: {}".format(green(f.name)))
+        return upload_media(app, user, f)
 
 
 def run_command(command):
