@@ -12,7 +12,7 @@ from datetime import datetime
 from future.moves.itertools import zip_longest
 from getpass import getpass
 from itertools import chain
-from optparse import OptionParser
+from argparse import ArgumentParser, FileType
 from textwrap import TextWrapper
 
 from .config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
@@ -131,7 +131,13 @@ def parse_timeline(item):
     }
 
 
-def cmd_timeline(app, user):
+def cmd_timeline(app, user, args):
+    parser = ArgumentParser(prog="toot timeline",
+                            description="Show recent items in your public timeline",
+                            epilog="https://github.com/ihabunek/toot")
+
+    args = parser.parse_args(args)
+
     items = timeline_home(app, user)
     parsed_items = [parse_timeline(t) for t in items]
 
@@ -141,39 +147,41 @@ def cmd_timeline(app, user):
         print("─" * 31 + "┼" + "─" * 88)
 
 
-def cmd_post_status(app, user):
-    parser = OptionParser(usage="toot post [options] TEXT")
+def visibility(value):
+    if value not in ['public', 'unlisted', 'private', 'direct']:
+        raise ValueError("Invalid visibility value")
 
-    parser.add_option("-m", "--media", dest="media", type="string",
-                      help="path to the media file to attach")
+    return value
 
-    parser.add_option("-v", "--visibility", dest="visibility", type="string", default="public",
-                      help='post visibility, either "public" (default), "direct", "private", or "unlisted"')
 
-    (options, args) = parser.parse_args()
+def cmd_post_status(app, user, args):
+    parser = ArgumentParser(prog="toot post",
+                            description="Post a status text to the timeline",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.add_argument("text", help="The status text to post.")
+    parser.add_argument("-m", "--media", type=FileType('rb'),
+                        help="path to the media file to attach")
+    parser.add_argument("-v", "--visibility", type=visibility, default="public",
+                        help='post visibility, either "public" (default), "direct", "private", or "unlisted"')
 
-    if len(args) < 2:
-        parser.print_help()
-        raise ConsoleError("No text given")
+    args = parser.parse_args(args)
 
-    if options.visibility not in ['public', 'unlisted', 'private', 'direct']:
-        raise ConsoleError("Invalid visibility value given: '{}'".format(options.visibility))
-
-    if options.media:
-        media = do_upload(app, user, options.media)
+    if args.media:
+        media = do_upload(app, user, args.media)
         media_ids = [media['id']]
     else:
         media_ids = None
 
-    response = post_status(
-        app, user, args[1], media_ids=media_ids, visibility=options.visibility)
+    response = post_status(app, user, args.text, media_ids=media_ids, visibility=args.visibility)
 
     print("Toot posted: " + green(response.get('url')))
 
 
-def cmd_auth(app, user):
-    parser = OptionParser(usage='%prog auth')
-    parser.parse_args()
+def cmd_auth(app, user, args):
+    parser = ArgumentParser(prog="toot auth",
+                            description="Show login details",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.parse_args(args)
 
     if app and user:
         print("You are logged in to " + green(app.base_url))
@@ -185,7 +193,9 @@ def cmd_auth(app, user):
 
 
 def cmd_login():
-    parser = OptionParser(usage='%prog login')
+    parser = ArgumentParser(prog="toot login",
+                            description="Log into a Mastodon instance",
+                            epilog="https://github.com/ihabunek/toot")
     parser.parse_args()
 
     app = create_app_interactive()
@@ -194,24 +204,26 @@ def cmd_login():
     return app, user
 
 
-def cmd_logout(app, user):
-    parser = OptionParser(usage='%prog logout')
-    parser.parse_args()
+def cmd_logout(app, user, args):
+    parser = ArgumentParser(prog="toot logout",
+                            description="Log out, delete stored access keys",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.parse_args(args)
 
     os.unlink(CONFIG_APP_FILE)
     os.unlink(CONFIG_USER_FILE)
     print("You are now logged out")
 
 
-def cmd_upload(app, user):
-    parser = OptionParser(usage='%prog upload <path_to_media>')
-    parser.parse_args()
+def cmd_upload(app, user, args):
+    parser = ArgumentParser(prog="toot upload",
+                            description="Upload an image or video file",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.add_argument("file", help="Path to the file to upload", type=FileType('rb'))
 
-    if len(sys.argv) < 3:
-        print_error("No status text given")
-        return
+    args = parser.parse_args(args)
 
-    response = do_upload(sys.argv[2])
+    response = do_upload(app, user, args.file)
 
     print("\nSuccessfully uploaded media ID {}, type '{}'".format(
          yellow(response['id']),  yellow(response['type'])))
@@ -220,16 +232,12 @@ def cmd_upload(app, user):
     print("Text URL:     " + green(response['text_url']))
 
 
-def do_upload(app, user, path):
-    if not os.path.exists(path):
-        raise ConsoleError("File does not exist: " + path)
-
-    with open(path, 'rb') as f:
-        print("Uploading media: {}".format(green(f.name)))
-        return upload_media(app, user, f)
+def do_upload(app, user, file):
+    print("Uploading media: {}".format(green(file.name)))
+    return upload_media(app, user, file)
 
 
-def run_command(command):
+def run_command(command, args):
     app = load_app()
     user = load_user()
 
@@ -238,7 +246,7 @@ def run_command(command):
         return cmd_login()
 
     if command == 'auth':
-        return cmd_auth(app, user)
+        return cmd_auth(app, user, args)
 
     # Commands which require user to be logged in
     if not app or not user:
@@ -247,16 +255,16 @@ def run_command(command):
         return
 
     if command == 'logout':
-        return cmd_logout(app, user)
+        return cmd_logout(app, user, args)
 
     if command == 'post':
-        return cmd_post_status(app, user)
+        return cmd_post_status(app, user, args)
 
     if command == 'timeline':
-        return cmd_timeline(app, user)
+        return cmd_timeline(app, user, args)
 
     if command == 'upload':
-        return cmd_upload(app, user)
+        return cmd_upload(app, user, args)
 
     print(red("Unknown command '{}'\n".format(command)))
     print_usage()
@@ -267,11 +275,12 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     command = sys.argv[1] if len(sys.argv) > 1 else None
+    args = sys.argv[2:]
 
     if not command:
         return print_usage()
 
     try:
-        run_command(command)
+        run_command(command, args)
     except ConsoleError as e:
         print_error(str(e))

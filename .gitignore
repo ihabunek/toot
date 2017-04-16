@@ -6,3 +6,5 @@ dist/
 tmp/
 .pypirc
 /.env
+/.coverage
+/htmlcov

@@ -12,7 +12,10 @@ dist :
 	@echo "\nDone."
 
 clean :
-	rm -rf build dist *.egg-info MANIFEST
+	rm -rf build dist *.egg-info MANIFEST htmlcov
 
 publish :
 	twine upload dist/*
+
+coverage:
+	py.test --cov=toot --cov-report html tests/
