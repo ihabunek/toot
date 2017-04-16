@@ -25,15 +25,15 @@ class ConsoleError(Exception):
 
 
 def red(text):
-    return "\033[31m{}\033[0m".format(text)
+    return u"\033[31m{}\033[0m".format(text)
 
 
 def green(text):
-    return "\033[32m{}\033[0m".format(text)
+    return u"\033[32m{}\033[0m".format(text)
 
 
 def yellow(text):
-    return "\033[33m{}\033[0m".format(text)
+    return u"\033[33m{}\033[0m".format(text)
 
 
 def print_error(text):
