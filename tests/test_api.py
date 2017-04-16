@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import requests
 
-from toot import App, User, create_app, login, CLIENT_NAME, CLIENT_WEB, SCOPES
+from toot import App, User, CLIENT_NAME, CLIENT_WEBSITE
+from toot.api import create_app, login, SCOPES
 
 
 class MockResponse:
@@ -19,7 +20,7 @@ def test_create_app(monkeypatch):
     def mock_post(url, data):
         assert url == 'https://bigfish.software/api/v1/apps'
         assert data == {
-            'website': CLIENT_WEB,
+            'website': CLIENT_WEBSITE,
             'client_name': CLIENT_NAME,
             'scopes': SCOPES,
             'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob'

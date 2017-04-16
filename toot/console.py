@@ -15,8 +15,9 @@ from itertools import chain
 from argparse import ArgumentParser, FileType
 from textwrap import TextWrapper
 
-from .config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
-from . import create_app, login, post_status, timeline_home, upload_media, DEFAULT_INSTANCE
+from toot import DEFAULT_INSTANCE
+from toot.api import create_app, login, post_status, timeline_home, upload_media
+from toot.config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
 
 
 class ConsoleError(Exception):
