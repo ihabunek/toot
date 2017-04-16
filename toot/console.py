@@ -15,8 +15,8 @@ from itertools import chain
 from argparse import ArgumentParser, FileType
 from textwrap import TextWrapper
 
-from toot import DEFAULT_INSTANCE
-from toot.api import create_app, login, post_status, timeline_home, upload_media, search
+from toot import api, DEFAULT_INSTANCE
+from toot.api import ApiError
 from toot.config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
 
 
@@ -49,7 +49,7 @@ def create_app_interactive():
 
     print("Registering application with %s" % green(base_url))
     try:
-        app = create_app(base_url)
+        app = api.create_app(base_url)
     except:
         raise ConsoleError("Failed authenticating application. Did you enter a valid instance?")
 
@@ -66,7 +66,7 @@ def login_interactive(app):
 
     print("Authenticating...")
     try:
-        user = login(app, email, password)
+        user = api.login(app, email, password)
     except:
         raise ConsoleError("Login failed")
 
@@ -86,6 +86,8 @@ def print_usage():
     print("  toot post <msg> - toot a new post to your timeline")
     print("  toot search     - search for accounts or hashtags")
     print("  toot timeline   - shows your public timeline")
+    print("  toot follow     - follow an account")
+    print("  toot unfollow   - unfollow an account")
     print("")
     print("To get help for each command run:")
     print("  toot <command> --help")
@@ -140,7 +142,7 @@ def cmd_timeline(app, user, args):
 
     args = parser.parse_args(args)
 
-    items = timeline_home(app, user)
+    items = api.timeline_home(app, user)
     parsed_items = [parse_timeline(t) for t in items]
 
     print("─" * 31 + "┬" + "─" * 88)
@@ -174,7 +176,7 @@ def cmd_post_status(app, user, args):
     else:
         media_ids = None
 
-    response = post_status(app, user, args.text, media_ids=media_ids, visibility=args.visibility)
+    response = api.post_status(app, user, args.text, media_ids=media_ids, visibility=args.visibility)
 
     print("Toot posted: " + green(response.get('url')))
 
@@ -194,11 +196,11 @@ def cmd_auth(app, user, args):
         print("You are not logged in")
 
 
-def cmd_login():
+def cmd_login(args):
     parser = ArgumentParser(prog="toot login",
                             description="Log into a Mastodon instance",
                             epilog="https://github.com/ihabunek/toot")
-    parser.parse_args()
+    parser.parse_args(args)
 
     app = create_app_interactive()
     user = login_interactive(app)
@@ -264,7 +266,7 @@ def cmd_search(app, user, args):
 
     args = parser.parse_args(args)
 
-    response = search(app, user, args.query, args.resolve)
+    response = api.search(app, user, args.query, args.resolve)
 
     _print_accounts(response['accounts'])
     _print_hashtags(response['hashtags'])
@@ -272,7 +274,52 @@ def cmd_search(app, user, args):
 
 def do_upload(app, user, file):
     print("Uploading media: {}".format(green(file.name)))
-    return upload_media(app, user, file)
+    return api.upload_media(app, user, file)
+
+
+def _find_account(app, user, account_name):
+    """For a given account name, returns the Account object or None if not found."""
+    response = api.search(app, user, account_name, False)
+
+    for account in response['accounts']:
+        if account['acct'] == account_name:
+            return account
+
+
+def cmd_follow(app, user, args):
+    parser = ArgumentParser(prog="toot follow",
+                            description="Follow an account",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.add_argument("account", help="Account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'")
+    args = parser.parse_args(args)
+
+    account = _find_account(app, user, args.account)
+
+    if not account:
+        print_error("Account not found")
+        return
+
+    api.follow(app, user, account['id'])
+
+    print(green(u"✓ You are now following %s" % args.account))
+
+
+def cmd_unfollow(app, user, args):
+    parser = ArgumentParser(prog="toot unfollow",
+                            description="Unfollow an account",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.add_argument("account", help="Account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'")
+    args = parser.parse_args(args)
+
+    account = _find_account(app, user, args.account)
+
+    if not account:
+        print_error("Account not found")
+        return
+
+    api.unfollow(app, user, account['id'])
+
+    print(green(u"✓ You are no longer following %s" % args.account))
 
 
 def run_command(command, args):
@@ -281,7 +328,7 @@ def run_command(command, args):
 
     # Commands which can run when not logged in
     if command == 'login':
-        return cmd_login()
+        return cmd_login(args)
 
     if command == 'auth':
         return cmd_auth(app, user, args)
@@ -307,6 +354,12 @@ def run_command(command, args):
     if command == 'search':
         return cmd_search(app, user, args)
 
+    if command == 'follow':
+        return cmd_follow(app, user, args)
+
+    if command == 'unfollow':
+        return cmd_unfollow(app, user, args)
+
     print_error("Unknown command '{}'\n".format(command))
     print_usage()
 
@@ -324,4 +377,6 @@ def main():
     try:
         run_command(command, args)
     except ConsoleError as e:
+        print_error(str(e))
+    except ApiError as e:
         print_error(str(e))

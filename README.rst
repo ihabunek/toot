@@ -39,6 +39,8 @@ Running ``toot <command> -h`` shows the documentation for the given command.
  ``toot post``        Post a status to your timeline.
  ``toot search``      Search for accounts or hashtags.
  ``toot timeline``    Display recent items in your public timeline.
+ ``toot follow``      Follow an account.
+ ``toot unfollow``    Unfollow an account.
 ===================  ===============================================================
 
 Authentication

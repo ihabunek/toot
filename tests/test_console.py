@@ -2,8 +2,7 @@
 import pytest
 import requests
 
-from toot import User, App
-from toot.console import print_usage, cmd_post_status, cmd_timeline, cmd_upload, cmd_search
+from toot import console, User, App
 
 from tests.utils import MockResponse
 
@@ -12,7 +11,7 @@ user = User('ivan@habunek.com', 'xxx')
 
 
 def test_print_usagecap(capsys):
-    print_usage()
+    console.print_usage()
     out, err = capsys.readouterr()
     assert "toot - interact with Mastodon from the command line" in out
 
@@ -36,7 +35,7 @@ def test_post_status_defaults(monkeypatch, capsys):
     monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
     monkeypatch.setattr(requests.Session, 'send', mock_send)
 
-    cmd_post_status(app, user, ['Hello world'])
+    console.cmd_post_status(app, user, ['Hello world'])
 
     out, err = capsys.readouterr()
     assert "Toot posted" in out
@@ -63,7 +62,7 @@ def test_post_status_with_options(monkeypatch, capsys):
 
     args = ['"Hello world"', '--visibility', 'unlisted']
 
-    cmd_post_status(app, user, args)
+    console.cmd_post_status(app, user, args)
 
     out, err = capsys.readouterr()
     assert "Toot posted" in out
@@ -73,7 +72,7 @@ def test_post_status_invalid_visibility(monkeypatch, capsys):
     args = ['Hello world', '--visibility', 'foo']
 
     with pytest.raises(SystemExit):
-        cmd_post_status(app, user, args)
+        console.cmd_post_status(app, user, args)
 
     out, err = capsys.readouterr()
     assert "invalid visibility value: 'foo'" in err
@@ -83,7 +82,7 @@ def test_post_status_invalid_media(monkeypatch, capsys):
     args = ['Hello world', '--media', 'does_not_exist.jpg']
 
     with pytest.raises(SystemExit):
-        cmd_post_status(app, user, args)
+        console.cmd_post_status(app, user, args)
 
     out, err = capsys.readouterr()
     assert "can't open 'does_not_exist.jpg'" in err
@@ -107,7 +106,7 @@ def test_timeline(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    cmd_timeline(app, user, [])
+    console.cmd_timeline(app, user, [])
 
     out, err = capsys.readouterr()
     assert "The computer can't tell you the emotional story." in out
@@ -133,7 +132,7 @@ def test_upload(monkeypatch, capsys):
     monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
     monkeypatch.setattr(requests.Session, 'send', mock_send)
 
-    cmd_upload(app, user, [__file__])
+    console.cmd_upload(app, user, [__file__])
 
     out, err = capsys.readouterr()
     assert "Uploading media" in out
@@ -163,10 +162,104 @@ def test_search(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    cmd_search(app, user, ['freddy'])
+    console.cmd_search(app, user, ['freddy'])
 
     out, err = capsys.readouterr()
     assert "Hashtags:\n\033[32m#foo\033[0m, \033[32m#bar\033[0m, \033[32m#baz\033[0m" in out
     assert "Accounts:" in out
     assert "\033[32m@thequeen\033[0m Freddy Mercury" in out
     assert "\033[32m@thequeen@other.instance\033[0m Mercury Freddy" in out
+
+
+def test_follow(monkeypatch, capsys):
+    def mock_get(url, params, headers):
+        assert url == 'https://habunek.com/api/v1/search'
+        assert params == {'q': 'blixa', 'resolve': False}
+        assert headers == {'Authorization': 'Bearer xxx'}
+
+        return MockResponse({
+            'accounts': [
+                {'id': 123, 'acct': 'blixa@other.acc'},
+                {'id': 321, 'acct': 'blixa'},
+            ]
+        })
+
+    def mock_prepare(request):
+        assert request.url == 'https://habunek.com/api/v1/accounts/321/follow'
+
+    def mock_send(*args, **kwargs):
+        return MockResponse()
+
+    monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
+    monkeypatch.setattr(requests.Session, 'send', mock_send)
+    monkeypatch.setattr(requests, 'get', mock_get)
+
+    console.cmd_follow(app, user, ['blixa'])
+
+    out, err = capsys.readouterr()
+    assert "You are now following blixa" in out
+
+
+def test_follow_not_found(monkeypatch, capsys):
+    def mock_get(url, params, headers):
+        assert url == 'https://habunek.com/api/v1/search'
+        assert params == {'q': 'blixa', 'resolve': False}
+        assert headers == {'Authorization': 'Bearer xxx'}
+
+        return MockResponse({
+            'accounts': []
+        })
+
+    monkeypatch.setattr(requests, 'get', mock_get)
+
+    console.cmd_follow(app, user, ['blixa'])
+
+    out, err = capsys.readouterr()
+    assert "Account not found" in err
+
+
+def test_unfollow(monkeypatch, capsys):
+    def mock_get(url, params, headers):
+        assert url == 'https://habunek.com/api/v1/search'
+        assert params == {'q': 'blixa', 'resolve': False}
+        assert headers == {'Authorization': 'Bearer xxx'}
+
+        return MockResponse({
+            'accounts': [
+                {'id': 123, 'acct': 'blixa@other.acc'},
+                {'id': 321, 'acct': 'blixa'},
+            ]
+        })
+
+    def mock_prepare(request):
+        assert request.url == 'https://habunek.com/api/v1/accounts/321/unfollow'
+
+    def mock_send(*args, **kwargs):
+        return MockResponse()
+
+    monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
+    monkeypatch.setattr(requests.Session, 'send', mock_send)
+    monkeypatch.setattr(requests, 'get', mock_get)
+
+    console.cmd_unfollow(app, user, ['blixa'])
+
+    out, err = capsys.readouterr()
+    assert "You are no longer following blixa" in out
+
+
+def test_unfollow_not_found(monkeypatch, capsys):
+    def mock_get(url, params, headers):
+        assert url == 'https://habunek.com/api/v1/search'
+        assert params == {'q': 'blixa', 'resolve': False}
+        assert headers == {'Authorization': 'Bearer xxx'}
+
+        return MockResponse({
+            'accounts': []
+        })
+
+    monkeypatch.setattr(requests, 'get', mock_get)
+
+    console.cmd_unfollow(app, user, ['blixa'])
+
+    out, err = capsys.readouterr()
+    assert "Account not found" in err

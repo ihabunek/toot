@@ -4,12 +4,21 @@ import logging
 import requests
 
 from requests import Request, Session
+from future.moves.urllib.parse import quote_plus
 
 from toot import App, User, CLIENT_NAME, CLIENT_WEBSITE
 
 SCOPES = 'read write follow'
 
 logger = logging.getLogger('toot')
+
+
+class ApiError(Exception):
+    pass
+
+
+class NotFoundError(ApiError):
+    pass
 
 
 def _log_request(request, prepared_request):
@@ -20,8 +29,12 @@ def _log_request(request, prepared_request):
 
 
 def _log_response(response):
-    logger.debug("<<< \033[32m{}\033[0m".format(response))
-    logger.debug("<<< \033[33m{}\033[0m".format(response.json()))
+    if response.ok:
+        logger.debug("<<< \033[32m{}\033[0m".format(response))
+        logger.debug("<<< \033[33m{}\033[0m".format(response.json()))
+    else:
+        logger.debug("<<< \033[31m{}\033[0m".format(response))
+        logger.debug("<<< \033[31m{}\033[0m".format(response.content))
 
 
 def _get(app, user, url, params=None):
@@ -47,6 +60,17 @@ def _post(app, user, url, data=None, files=None):
     response = session.send(prepared_request)
 
     _log_response(response)
+
+    if not response.ok:
+        try:
+            error = response.json()['error']
+        except:
+            error = "Unknown error"
+
+        if response.status_code == 404:
+            raise NotFoundError(error)
+
+        raise ApiError(error)
 
     response.raise_for_status()
 
@@ -115,3 +139,15 @@ def search(app, user, query, resolve):
         'q': query,
         'resolve': resolve,
     })
+
+
+def follow(app, user, account):
+    url = '/api/v1/accounts/%d/follow' % account
+
+    return _post(app, user, url)
+
+
+def unfollow(app, user, account):
+    url = '/api/v1/accounts/%d/unfollow' % account
+
+    return _post(app, user, url)
