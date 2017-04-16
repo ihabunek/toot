@@ -3,7 +3,7 @@ import pytest
 import requests
 
 from toot import User, App
-from toot.console import print_usage, cmd_post_status, cmd_timeline, cmd_upload
+from toot.console import print_usage, cmd_post_status, cmd_timeline, cmd_upload, cmd_search
 
 from tests.utils import MockResponse
 
@@ -138,3 +138,35 @@ def test_upload(monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert "Uploading media" in out
     assert __file__ in out
+
+
+def test_search(monkeypatch, capsys):
+    def mock_get(url, params, headers=None):
+        assert url == 'https://habunek.com/api/v1/search'
+        assert headers == {'Authorization': 'Bearer xxx'}
+        assert params == {
+            'q': 'freddy',
+            'resolve': False,
+        }
+
+        return MockResponse({
+            'hashtags': ['foo', 'bar', 'baz'],
+            'accounts': [{
+                'acct': 'thequeen',
+                'display_name': 'Freddy Mercury'
+            }, {
+                'acct': 'thequeen@other.instance',
+                'display_name': 'Mercury Freddy'
+            }],
+            'statuses': [],
+        })
+
+    monkeypatch.setattr(requests, 'get', mock_get)
+
+    cmd_search(app, user, ['freddy'])
+
+    out, err = capsys.readouterr()
+    assert "Hashtags:\n\033[32m#foo\033[0m, \033[32m#bar\033[0m, \033[32m#baz\033[0m" in out
+    assert "Accounts:" in out
+    assert "\033[32m@thequeen\033[0m Freddy Mercury" in out
+    assert "\033[32m@thequeen@other.instance\033[0m Mercury Freddy" in out

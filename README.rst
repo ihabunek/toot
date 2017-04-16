@@ -4,6 +4,8 @@ Toot - Mastodon CLI interface
 
 Interact with Mastodon social networks from the command line.
 
+.. image:: https://img.shields.io/travis/ihabunek/toot.svg?maxAge=3600&style=flat-square
+   :target: https://travis-ci.org/ihabunek/toot
 .. image:: https://img.shields.io/badge/author-%40ihabunek-blue.svg?maxAge=3600&style=flat-square
    :target: https://mastodon.social/@ihabunek
 .. image:: https://img.shields.io/github/license/ihabunek/pdf417-py.svg?maxAge=3600&style=flat-square
@@ -21,11 +23,28 @@ Install using pip:
 
     pip install toot
 
-
 Usage
 -----
 
-Firstly, you will need to login to a Mastodon instance:
+Running ``toot`` displays a list of available commands.
+
+Running ``toot <command> -h`` shows the documentation for the given command.
+
+===================  ===============================================================
+ Command              Description
+===================  ===============================================================
+ ``toot login``       Log into a Mastodon instance, saves access keys for later use.
+ ``toot logout``      Log out, deletes stored access keys.
+ ``toot auth``        Display current login details.
+ ``toot post``        Post a status to your timeline.
+ ``toot search``      Search for accounts or hashtags.
+ ``toot timeline``    Display recent items in your public timeline.
+===================  ===============================================================
+
+Authentication
+--------------
+
+Before tooting, you need to login to a Mastodon instance:
 
 .. code-block::
 
@@ -51,31 +70,3 @@ And you can logout which will remove the stored access tokens:
 .. code-block::
 
     toot logout
-
-Show timeline
-~~~~~~~~~~~~~
-
-To show recent items in your public timeline:
-
-.. code-block::
-
-    toot timeline
-
-Post status
-~~~~~~~~~~~
-
-To post a new status to your timeline:
-
-.. code-block::
-
-    toot post "Hello world!"
-
-Optionally attach an image or video to the status:
-
-    toot post "Hello world!" --media=path/to/world.jpg
-
-To set post visibility:
-
-    toot post "Hello world!" --visibility=unlisted
-
-Possible visibility values are: ``public`` (default), ``unlisted``, ``private``, ``direct``. They are documented  `here <https://github.com/tootsuite/documentation/blob/aa20089756c8cf9ff5a52fb35ad1a9472f10970c/Using-Mastodon/User-guide.md#toot-privacy>`_.

@@ -16,7 +16,7 @@ from argparse import ArgumentParser, FileType
 from textwrap import TextWrapper
 
 from toot import DEFAULT_INSTANCE
-from toot.api import create_app, login, post_status, timeline_home, upload_media
+from toot.api import create_app, login, post_status, timeline_home, upload_media, search
 from toot.config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
 
 
@@ -84,6 +84,7 @@ def print_usage():
     print("  toot logout     - log out (delete saved access tokens)")
     print("  toot auth       - shows currently logged in user and instance")
     print("  toot post <msg> - toot a new post to your timeline")
+    print("  toot search     - search for accounts or hashtags")
     print("  toot timeline   - shows your public timeline")
     print("")
     print("To get help for each command run:")
@@ -233,6 +234,42 @@ def cmd_upload(app, user, args):
     print("Text URL:     " + green(response['text_url']))
 
 
+def _print_accounts(accounts):
+    if not accounts:
+        return
+
+    print("\nAccounts:")
+    for account in accounts:
+        acct = green("@{}".format(account['acct']))
+        display_name = account['display_name']
+        print("* {} {}".format(acct, display_name))
+
+
+def _print_hashtags(hashtags):
+    if not hashtags:
+        return
+
+    print("\nHashtags:")
+    print(", ".join([green("#" + t) for t in hashtags]))
+
+
+def cmd_search(app, user, args):
+    parser = ArgumentParser(prog="toot serach",
+                            description="Search for content",
+                            epilog="https://github.com/ihabunek/toot")
+
+    parser.add_argument("query", help="The search query")
+    parser.add_argument("-r", "--resolve", action='store_true', default=False,
+                        help="Whether to resolve non-local accounts")
+
+    args = parser.parse_args(args)
+
+    response = search(app, user, args.query, args.resolve)
+
+    _print_accounts(response['accounts'])
+    _print_hashtags(response['hashtags'])
+
+
 def do_upload(app, user, file):
     print("Uploading media: {}".format(green(file.name)))
     return upload_media(app, user, file)
@@ -251,8 +288,8 @@ def run_command(command, args):
 
     # Commands which require user to be logged in
     if not app or not user:
-        print(red("You are not logged in."))
-        print(red("Please run `toot login` first."))
+        print_error("You are not logged in.")
+        print_error("Please run `toot login` first.")
         return
 
     if command == 'logout':
@@ -267,7 +304,10 @@ def run_command(command, args):
     if command == 'upload':
         return cmd_upload(app, user, args)
 
-    print(red("Unknown command '{}'\n".format(command)))
+    if command == 'search':
+        return cmd_search(app, user, args)
+
+    print_error("Unknown command '{}'\n".format(command))
     print_usage()
 
 

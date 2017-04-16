@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.5.0 (2016-04-16)**
+
+* Add `search` command
+* Migrate from `optparse` to `argparse`
+
 **0.4.0 (2016-04-15)**
 
 * Add `upload` command to post media

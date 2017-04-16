@@ -108,3 +108,10 @@ def upload_media(app, user, file):
     return _post(app, user, '/api/v1/media', files={
         'file': file
     })
+
+
+def search(app, user, query, resolve):
+    return _get(app, user, '/api/v1/search', {
+        'q': query,
+        'resolve': resolve,
+    })
