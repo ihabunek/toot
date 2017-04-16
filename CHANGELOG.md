@@ -3,7 +3,7 @@ Changelog
 
 **0.5.0 (2016-04-16)**
 
-* Add `search` command
+* Add `search`, `follow` and `unfollow` commands
 * Migrate from `optparse` to `argparse`
 
 **0.4.0 (2016-04-15)**
