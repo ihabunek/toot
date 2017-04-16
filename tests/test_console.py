@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import requests
+import re
 
 from toot import console, User, App
 
@@ -8,6 +9,11 @@ from tests.utils import MockResponse
 
 app = App('https://habunek.com', 'foo', 'bar')
 user = User('ivan@habunek.com', 'xxx')
+
+
+def uncolorize(text):
+    """Remove ANSI color sequences from a string"""
+    return re.sub(r'\x1b[^m]*m', '', text)
 
 
 def test_print_usagecap(capsys):
@@ -263,3 +269,44 @@ def test_unfollow_not_found(monkeypatch, capsys):
 
     out, err = capsys.readouterr()
     assert "Account not found" in err
+
+
+def test_whoami(monkeypatch, capsys):
+    def mock_get(url, params, headers=None):
+        assert url == 'https://habunek.com/api/v1/accounts/verify_credentials'
+        assert headers == {'Authorization': 'Bearer xxx'}
+        assert params is None
+
+        return MockResponse({
+            'acct': 'ihabunek',
+            'avatar': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
+            'avatar_static': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
+            'created_at': '2017-04-04T13:23:09.777Z',
+            'display_name': 'Ivan Habunek',
+            'followers_count': 5,
+            'following_count': 9,
+            'header': '/headers/original/missing.png',
+            'header_static': '/headers/original/missing.png',
+            'id': 46103,
+            'locked': False,
+            'note': 'A developer.',
+            'statuses_count': 19,
+            'url': 'https://mastodon.social/@ihabunek',
+            'username': 'ihabunek'
+        })
+
+    monkeypatch.setattr(requests, 'get', mock_get)
+
+    console.cmd_whoami(app, user, [])
+
+    out, err = capsys.readouterr()
+    out = uncolorize(out)
+
+    assert "@ihabunek Ivan Habunek" in out
+    assert "A developer." in out
+    assert "https://mastodon.social/@ihabunek" in out
+    assert "ID: 46103" in out
+    assert "Since: 2017-04-04 @ 13:23:09" in out
+    assert "Followers: 5" in out
+    assert "Following: 9" in out
+    assert "Statuses: 19" in out

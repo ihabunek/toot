@@ -35,7 +35,8 @@ Running ``toot <command> -h`` shows the documentation for the given command.
 ===================  ===============================================================
  ``toot login``       Log into a Mastodon instance, saves access keys for later use.
  ``toot logout``      Log out, deletes stored access keys.
- ``toot auth``        Display current login details.
+ ``toot auth``        Display stored authenitication tokens.
+ ``toot whoami``      Display logged in user details.
  ``toot post``        Post a status to your timeline.
  ``toot search``      Search for accounts or hashtags.
  ``toot timeline``    Display recent items in your public timeline.

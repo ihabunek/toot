@@ -36,6 +36,10 @@ def yellow(text):
     return u"\033[33m{}\033[0m".format(text)
 
 
+def blue(text):
+    return u"\033[34m{}\033[0m".format(text)
+
+
 def print_error(text):
     print(red(text), file=sys.stderr)
 
@@ -80,10 +84,11 @@ def print_usage():
     print("toot - interact with Mastodon from the command line")
     print("")
     print("Usage:")
-    print("  toot login      - log into a Mastodon instance (saves access tokens to `~/.config/toot/`)")
-    print("  toot logout     - log out (delete saved access tokens)")
-    print("  toot auth       - shows currently logged in user and instance")
-    print("  toot post <msg> - toot a new post to your timeline")
+    print("  toot login      - log into a Mastodon instance (stores access tokens)")
+    print("  toot logout     - log out (delete stored access tokens)")
+    print("  toot auth       - display stored authentication tokens")
+    print("  toot whoami     - display logged in user details")
+    print("  toot post       - toot a new post to your timeline")
     print("  toot search     - search for accounts or hashtags")
     print("  toot timeline   - shows your public timeline")
     print("  toot follow     - follow an account")
@@ -322,6 +327,26 @@ def cmd_unfollow(app, user, args):
     print(green(u"✓ You are no longer following %s" % args.account))
 
 
+def cmd_whoami(app, user, args):
+    parser = ArgumentParser(prog="toot whoami",
+                            description="Display logged in user details",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.parse_args(args)
+
+    response = api.verify_credentials(app, user)
+
+    print("{} {}".format(green("@" + response['acct']), response['display_name']))
+    print(response['note'])
+    print(response['url'])
+    print("")
+    print("ID: " + green(response['id']))
+    print("Since: " + green(response['created_at'][:19].replace('T', ' @ ')))
+    print("")
+    print("Followers: " + yellow(response['followers_count']))
+    print("Following: " + yellow(response['following_count']))
+    print("Statuses: " + yellow(response['statuses_count']))
+
+
 def run_command(command, args):
     app = load_app()
     user = load_user()
@@ -359,6 +384,9 @@ def run_command(command, args):
 
     if command == 'unfollow':
         return cmd_unfollow(app, user, args)
+
+    if command == 'whoami':
+        return cmd_whoami(app, user, args)
 
     print_error("Unknown command '{}'\n".format(command))
     print_usage()

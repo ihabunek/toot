@@ -151,3 +151,7 @@ def unfollow(app, user, account):
     url = '/api/v1/accounts/%d/unfollow' % account
 
     return _post(app, user, url)
+
+
+def verify_credentials(app, user):
+    return _get(app, user, '/api/v1/accounts/verify_credentials')
