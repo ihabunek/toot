@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#
+from __future__ import unicode_literals
 from __future__ import print_function
 
 import os
@@ -25,19 +25,19 @@ class ConsoleError(Exception):
 
 
 def red(text):
-    return u"\033[31m{}\033[0m".format(text)
+    return "\033[31m{}\033[0m".format(text)
 
 
 def green(text):
-    return u"\033[32m{}\033[0m".format(text)
+    return "\033[32m{}\033[0m".format(text)
 
 
 def yellow(text):
-    return u"\033[33m{}\033[0m".format(text)
+    return "\033[33m{}\033[0m".format(text)
 
 
 def blue(text):
-    return u"\033[34m{}\033[0m".format(text)
+    return "\033[34m{}\033[0m".format(text)
 
 
 def print_error(text):
@@ -287,7 +287,7 @@ def _find_account(app, user, account_name):
     response = api.search(app, user, account_name, False)
 
     for account in response['accounts']:
-        if account['acct'] == account_name:
+        if account['acct'] == account_name or "@" + account['acct'] == account_name:
             return account
 
 
@@ -306,7 +306,7 @@ def cmd_follow(app, user, args):
 
     api.follow(app, user, account['id'])
 
-    print(green(u"✓ You are now following %s" % args.account))
+    print(green("✓ You are now following %s" % args.account))
 
 
 def cmd_unfollow(app, user, args):
@@ -324,7 +324,7 @@ def cmd_unfollow(app, user, args):
 
     api.unfollow(app, user, account['id'])
 
-    print(green(u"✓ You are no longer following %s" % args.account))
+    print(green("✓ You are no longer following %s" % args.account))
 
 
 def cmd_whoami(app, user, args):

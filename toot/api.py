@@ -4,7 +4,6 @@ import logging
 import requests
 
 from requests import Request, Session
-from future.moves.urllib.parse import quote_plus
 
 from toot import App, User, CLIENT_NAME, CLIENT_WEBSITE
 
