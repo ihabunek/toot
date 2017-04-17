@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.6.0 (2016-04-17)**
+
+* Add `whoami` command
+* Migrate from `optparse` to `argparse`
+
 **0.5.0 (2016-04-16)**
 
 * Add `search`, `follow` and `unfollow` commands
