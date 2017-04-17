@@ -20,11 +20,18 @@ class NotFoundError(ApiError):
     pass
 
 
-def _log_request(request, prepared_request):
+def _log_request(request):
     logger.debug(">>> \033[32m{} {}\033[0m".format(request.method, request.url))
-    logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
-    logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
     logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(request.headers))
+
+    if request.data:
+        logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
+
+    if request.files:
+        logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
+
+    if request.params:
+        logger.debug(">>> PARAMS:  \033[33m{}\033[0m".format(request.params))
 
 
 def _log_response(response):
@@ -36,28 +43,7 @@ def _log_response(response):
         logger.debug("<<< \033[31m{}\033[0m".format(response.content))
 
 
-def _get(app, user, url, params=None):
-    url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
-
-    response = requests.get(url, params, headers=headers)
-    response.raise_for_status()
-
-    return response.json()
-
-
-def _post(app, user, url, data=None, files=None):
-    url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
-
-    session = Session()
-    request = Request('POST', url, headers, files, data)
-    prepared_request = request.prepare()
-
-    _log_request(request, prepared_request)
-
-    response = session.send(prepared_request)
-
+def _process_response(response):
     _log_response(response)
 
     if not response.ok:
@@ -74,6 +60,32 @@ def _post(app, user, url, data=None, files=None):
     response.raise_for_status()
 
     return response.json()
+
+
+def _get(app, user, url, params=None):
+    url = app.base_url + url
+    headers = {"Authorization": "Bearer " + user.access_token}
+
+    _log_request(Request('GET', url, headers, params=params))
+
+    response = requests.get(url, params, headers=headers)
+
+    return _process_response(response)
+
+
+def _post(app, user, url, data=None, files=None):
+    url = app.base_url + url
+    headers = {"Authorization": "Bearer " + user.access_token}
+
+    session = Session()
+    request = Request('POST', url, headers, files, data)
+    prepared_request = request.prepare()
+
+    _log_request(request)
+
+    response = session.send(prepared_request)
+
+    return _process_response(response)
 
 
 def create_app(base_url):
@@ -137,6 +149,12 @@ def search(app, user, query, resolve):
     return _get(app, user, '/api/v1/search', {
         'q': query,
         'resolve': resolve,
+    })
+
+
+def search_accounts(app, user, query):
+    return _get(app, user, '/api/v1/accounts/search', {
+        'q': query,
     })
 
 
