@@ -244,7 +244,7 @@ def _print_accounts(accounts):
     for account in accounts:
         acct = green("@{}".format(account['acct']))
         display_name = account['display_name']
-        print("* {} {}".format(acct, display_name))
+        print("* {} {}".format(acct.encode("utf-8"), display_name.encode("utf-8")))
 
 
 def _print_hashtags(hashtags):
