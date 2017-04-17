@@ -261,7 +261,7 @@ def _print_hashtags(hashtags):
 
 
 def cmd_search(app, user, args):
-    parser = ArgumentParser(prog="toot serach",
+    parser = ArgumentParser(prog="toot search",
                             description="Search for content",
                             epilog="https://github.com/ihabunek/toot")
 
