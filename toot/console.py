@@ -120,7 +120,7 @@ def print_timeline(item):
         return zip_longest(left_column, right_column, fillvalue="")
 
     for left, right in timeline_rows(item):
-        print("{:30} │ {}".format(left, right))
+        print("{:30} │ {}".format(left.encode("utf-8"), right.encode("utf-8")))
 
 
 def parse_timeline(item):
@@ -249,7 +249,7 @@ def _print_accounts(accounts):
     for account in accounts:
         acct = green("@{}".format(account['acct']))
         display_name = account['display_name']
-        print("* {} {}".format(acct, display_name))
+        print("* {} {}".format(acct.encode("utf-8"), display_name.encode("utf-8")))
 
 
 def _print_hashtags(hashtags):
