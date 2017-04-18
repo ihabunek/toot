@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.7.0 (2016-04-18)**
+
+* Experimental 2FA support (#3)
+* Do not create a new application for each login
+
 **0.6.0 (2016-04-17)**
 
 * Add `whoami` command
