@@ -118,7 +118,7 @@ def login(app, username, password):
 
     # If auth fails, it redirects to the login page
     if response.is_redirect:
-        raise AuthenticationError("Login failed")
+        raise AuthenticationError()
 
     return _process_response(response)
 

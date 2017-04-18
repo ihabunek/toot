@@ -33,7 +33,8 @@ Running ``toot <command> -h`` shows the documentation for the given command.
 ===================  ===============================================================
  Command              Description
 ===================  ===============================================================
- ``toot login``       Log into a Mastodon instance, saves access keys for later use.
+ ``toot login``       Log into a Mastodon instance.
+ ``toot 2fa``         Log into a Mastodon instance using two factor authentication.
  ``toot logout``      Log out, deletes stored access keys.
  ``toot auth``        Display stored authenitication tokens.
  ``toot whoami``      Display logged in user details.
@@ -53,13 +54,19 @@ Before tooting, you need to login to a Mastodon instance:
 
     toot login
 
+**Two factor authentication** is supported experimentally, instead of ``login``, you should instead run:
+
+.. code-block::
+
+    toot 2fa
+
 You will be asked to chose an instance_ and enter your credentials.
 
 .. _instance: https://github.com/tootsuite/documentation/blob/master/Using-Mastodon/List-of-Mastodon-instances.md
 
 The application and user access tokens will be saved in two files in your home directory:
 
-* ``~/.config/toot/app.cfg``
+* ``~/.config/toot/instances/<name>`` - created for each mastodon instance once
 * ``~/.config/toot/user.cfg``
 
 You can check whether you are currently logged in:

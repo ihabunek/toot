@@ -2,17 +2,19 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import os
-import sys
+import json
 import logging
+import os
+import requests
+import sys
 
+from argparse import ArgumentParser, FileType
 from bs4 import BeautifulSoup
 from builtins import input
 from datetime import datetime
 from future.moves.itertools import zip_longest
 from getpass import getpass
 from itertools import chain
-from argparse import ArgumentParser, FileType
 from textwrap import TextWrapper
 
 from toot import api, config, DEFAULT_INSTANCE, User, App
@@ -89,11 +91,65 @@ def login_interactive(app):
     return user
 
 
+def two_factor_login_interactive(app):
+    """Hacky implementation of two factor authentication"""
+
+    print("Log in to " + green(app.instance))
+    email = input('Email: ')
+    password = getpass('Password: ')
+
+    sign_in_url = app.base_url + '/auth/sign_in'
+
+    session = requests.Session()
+
+    # Fetch sign in form
+    response = session.get(sign_in_url)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.content, "html.parser")
+    form = soup.find('form')
+    inputs = form.find_all('input')
+
+    data = {i.attrs.get('name'): i.attrs.get('value') for i in inputs}
+    data['user[email]'] = email
+    data['user[password]'] = password
+
+    # Submit form, get 2FA entry form
+    response = session.post(sign_in_url, data)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.content, "html.parser")
+    form = soup.find('form')
+    inputs = form.find_all('input')
+
+    data = {i.attrs.get('name'): i.attrs.get('value') for i in inputs}
+    data['user[otp_attempt]'] = input("2FA Token: ")
+
+    # Submit token
+    response = session.post(sign_in_url, data)
+    response.raise_for_status()
+
+    # Extract access token from response
+    soup = BeautifulSoup(response.content, "html.parser")
+    initial_state = soup.find('script', id='initial-state')
+
+    if not initial_state:
+        raise ConsoleError("Login failed: Invalid 2FA token?")
+
+    data = json.loads(initial_state.get_text())
+    access_token = data['meta']['access_token']
+
+    user = User(app.instance, email, access_token)
+    path = config.save_user(user)
+    print("Access token saved to: " + green(path))
+
+
 def print_usage():
     print("toot - interact with Mastodon from the command line")
     print("")
     print("Usage:")
-    print("  toot login      - log into a Mastodon instance (stores access tokens)")
+    print("  toot login      - log into a Mastodon instance")
+    print("  toot 2fa        - log into a Mastodon instance using 2FA (experimental)")
     print("  toot logout     - log out (delete stored access tokens)")
     print("  toot auth       - display stored authentication tokens")
     print("  toot whoami     - display logged in user details")
@@ -217,6 +273,24 @@ def cmd_login(args):
 
     app = create_app_interactive()
     user = login_interactive(app)
+
+    return app, user
+
+
+def cmd_2fa(args):
+    parser = ArgumentParser(prog="toot 2fa",
+                            description="Log into a Mastodon instance using 2 factor authentication (experimental)",
+                            epilog="https://github.com/ihabunek/toot")
+    parser.parse_args(args)
+
+    print()
+    print(yellow("Two factor authentication is experimental."))
+    print(yellow("If you have problems logging in, please open an issue:"))
+    print(yellow("https://github.com/ihabunek/toot/issues"))
+    print()
+
+    app = create_app_interactive()
+    user = two_factor_login_interactive(app)
 
     return app, user
 
@@ -362,6 +436,9 @@ def run_command(command, args):
     # Commands which can run when not logged in
     if command == 'login':
         return cmd_login(args)
+
+    if command == '2fa':
+        return cmd_2fa(args)
 
     if command == 'auth':
         return cmd_auth(app, user, args)
