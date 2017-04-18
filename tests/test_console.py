@@ -7,8 +7,8 @@ from toot import console, User, App
 
 from tests.utils import MockResponse
 
-app = App('https://habunek.com', 'foo', 'bar')
-user = User('ivan@habunek.com', 'xxx')
+app = App('habunek.com', 'https://habunek.com', 'foo', 'bar')
+user = User('habunek.com', 'ivan@habunek.com', 'xxx')
 
 
 def uncolorize(text):
@@ -16,7 +16,7 @@ def uncolorize(text):
     return re.sub(r'\x1b[^m]*m', '', text)
 
 
-def test_print_usagecap(capsys):
+def test_print_usage(capsys):
     console.print_usage()
     out, err = capsys.readouterr()
     assert "toot - interact with Mastodon from the command line" in out

@@ -1,8 +1,9 @@
 
 class MockResponse:
-    def __init__(self, response_data={}, ok=True):
-        self.ok = ok
+    def __init__(self, response_data={}, ok=True, is_redirect=False):
         self.response_data = response_data
+        self.ok = ok
+        self.is_redirect = is_redirect
 
     def raise_for_status(self):
         pass

@@ -15,9 +15,8 @@ from itertools import chain
 from argparse import ArgumentParser, FileType
 from textwrap import TextWrapper
 
-from toot import api, DEFAULT_INSTANCE
+from toot import api, config, DEFAULT_INSTANCE, User, App
 from toot.api import ApiError
-from toot.config import save_user, load_user, load_app, save_app, CONFIG_APP_FILE, CONFIG_USER_FILE
 
 
 class ConsoleError(Exception):
@@ -44,38 +43,48 @@ def print_error(text):
     print(red(text), file=sys.stderr)
 
 
+def register_app(instance):
+    print("Registering application with %s" % green(instance))
+
+    try:
+        response = api.create_app(instance)
+    except:
+        raise ConsoleError("Registration failed. Did you enter a valid instance?")
+
+    base_url = 'https://' + instance
+
+    app = App(instance, base_url, response['client_id'], response['client_secret'])
+    path = config.save_app(app)
+    print("Application tokens saved to: {}".format(green(path)))
+
+    return app
+
+
 def create_app_interactive():
     instance = input("Choose an instance [%s]: " % green(DEFAULT_INSTANCE))
     if not instance:
         instance = DEFAULT_INSTANCE
 
-    base_url = 'https://{}'.format(instance)
-
-    print("Registering application with %s" % green(base_url))
-    try:
-        app = api.create_app(base_url)
-    except:
-        raise ConsoleError("Failed authenticating application. Did you enter a valid instance?")
-
-    save_app(app)
-    print("Application tokens saved to: {}".format(green(CONFIG_APP_FILE)))
-
-    return app
+    return config.load_app(instance) or register_app(instance)
 
 
 def login_interactive(app):
-    print("\nLog in to " + green(app.base_url))
+    print("\nLog in to " + green(app.instance))
     email = input('Email: ')
     password = getpass('Password: ')
 
-    print("Authenticating...")
+    if not email or not password:
+        raise ConsoleError("Email and password cannot be empty.")
+
     try:
-        user = api.login(app, email, password)
-    except:
+        print("Authenticating...")
+        response = api.login(app, email, password)
+    except ApiError:
         raise ConsoleError("Login failed")
 
-    save_user(user)
-    print("User token saved to " + green(CONFIG_USER_FILE))
+    user = User(app.instance, email, response['access_token'])
+    path = config.save_user(user)
+    print("Access token saved to: " + green(path))
 
     return user
 
@@ -193,10 +202,9 @@ def cmd_auth(app, user, args):
     parser.parse_args(args)
 
     if app and user:
-        print("You are logged in to " + green(app.base_url))
-        print("Username: " + green(user.username))
-        print("App data:  " + green(CONFIG_APP_FILE))
-        print("User data: " + green(CONFIG_USER_FILE))
+        print("You are logged in to {} as {}".format(green(app.instance), green(user.username)))
+        print("User data: " + green(config.get_user_config_path()))
+        print("App data:  " + green(config.get_instance_config_path(app.instance)))
     else:
         print("You are not logged in")
 
@@ -219,9 +227,9 @@ def cmd_logout(app, user, args):
                             epilog="https://github.com/ihabunek/toot")
     parser.parse_args(args)
 
-    os.unlink(CONFIG_APP_FILE)
-    os.unlink(CONFIG_USER_FILE)
-    print("You are now logged out")
+    config.delete_user()
+
+    print(green("✓ You are now logged out"))
 
 
 def cmd_upload(app, user, args):
@@ -348,8 +356,8 @@ def cmd_whoami(app, user, args):
 
 
 def run_command(command, args):
-    app = load_app()
-    user = load_user()
+    user = config.load_user()
+    app = config.load_app(user.instance) if user else None
 
     # Commands which can run when not logged in
     if command == 'login':

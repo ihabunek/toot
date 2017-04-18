@@ -20,6 +20,10 @@ class NotFoundError(ApiError):
     pass
 
 
+class AuthenticationError(ApiError):
+    pass
+
+
 def _log_request(request):
     logger.debug(">>> \033[32m{} {}\033[0m".format(request.method, request.url))
     logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(request.headers))
@@ -57,8 +61,6 @@ def _process_response(response):
 
         raise ApiError(error)
 
-    response.raise_for_status()
-
     return response.json()
 
 
@@ -88,7 +90,8 @@ def _post(app, user, url, data=None, files=None):
     return _process_response(response)
 
 
-def create_app(base_url):
+def create_app(instance):
+    base_url = 'https://' + instance
     url = base_url + '/api/v1/apps'
 
     response = requests.post(url, {
@@ -98,13 +101,7 @@ def create_app(base_url):
         'website': CLIENT_WEBSITE,
     })
 
-    response.raise_for_status()
-
-    data = response.json()
-    client_id = data.get('client_id')
-    client_secret = data.get('client_secret')
-
-    return App(base_url, client_id, client_secret)
+    return _process_response(response)
 
 
 def login(app, username, password):
@@ -117,14 +114,13 @@ def login(app, username, password):
         'username': username,
         'password': password,
         'scope': SCOPES,
-    })
+    }, allow_redirects=False)
 
-    response.raise_for_status()
+    # If auth fails, it redirects to the login page
+    if response.is_redirect:
+        raise AuthenticationError("Login failed")
 
-    data = response.json()
-    access_token = data.get('access_token')
-
-    return User(username, access_token)
+    return _process_response(response)
 
 
 def post_status(app, user, status, visibility='public', media_ids=None):

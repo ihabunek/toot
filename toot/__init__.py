@@ -2,8 +2,8 @@
 
 from collections import namedtuple
 
-App = namedtuple('App', ['base_url', 'client_id', 'client_secret'])
-User = namedtuple('User', ['username', 'access_token'])
+App = namedtuple('App', ['instance', 'base_url', 'client_id', 'client_secret'])
+User = namedtuple('User', ['instance', 'username', 'access_token'])
 
 DEFAULT_INSTANCE = 'mastodon.social'
 
