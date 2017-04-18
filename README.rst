@@ -14,6 +14,10 @@ Interact with Mastodon social networks from the command line.
    :target: https://pypi.python.org/pypi/toot
 
 
+.. warning::
+   Upgrading to version ``0.7.0`` will require you to log in to your chosen Mastodon instance again.
+
+
 Installation
 ------------
 

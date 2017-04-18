@@ -5,6 +5,8 @@ Changelog
 
 * Experimental 2FA support (#3)
 * Do not create a new application for each login
+* **Warning**: Due to changes in configuration format, after upgrading to this
+  version, you will be required to log in to your Mastodon instance again.
 
 **0.6.0 (2016-04-17)**
 
