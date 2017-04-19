@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.8.0 (2016-04-19)**
+
+* Renamed command `2fa` to `login_2fa` **BC BREAK**
+* It is now possible to pipe text into `toot post`
+
 **0.7.0 (2016-04-18)**
 
 * Experimental 2FA support (#3)

@@ -58,6 +58,13 @@ Running ``toot <command> -h`` shows the documentation for the given command.
 
     https://github.com/ihabunek/toot
 
+It is possible to pipe status text into `toot post`, for example:
+
+.. code-block::
+
+    echo "Text to post" | toot post
+    cat mypost.txt | toot post
+
 
 Authentication
 --------------
