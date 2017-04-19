@@ -19,10 +19,10 @@ def uncolorize(text):
 def test_print_usage(capsys):
     console.print_usage()
     out, err = capsys.readouterr()
-    assert "toot - interact with Mastodon from the command line" in out
+    assert "toot - a Mastodon CLI client" in out
 
 
-def test_post_status_defaults(monkeypatch, capsys):
+def test_post_defaults(monkeypatch, capsys):
     def mock_prepare(request):
         assert request.method == 'POST'
         assert request.url == 'https://habunek.com/api/v1/statuses'
@@ -41,13 +41,13 @@ def test_post_status_defaults(monkeypatch, capsys):
     monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
     monkeypatch.setattr(requests.Session, 'send', mock_send)
 
-    console.cmd_post_status(app, user, ['Hello world'])
+    console.run_command(app, user, 'post', ['Hello world'])
 
     out, err = capsys.readouterr()
     assert "Toot posted" in out
 
 
-def test_post_status_with_options(monkeypatch, capsys):
+def test_post_with_options(monkeypatch, capsys):
     def mock_prepare(request):
         assert request.method == 'POST'
         assert request.url == 'https://habunek.com/api/v1/statuses'
@@ -68,27 +68,27 @@ def test_post_status_with_options(monkeypatch, capsys):
 
     args = ['"Hello world"', '--visibility', 'unlisted']
 
-    console.cmd_post_status(app, user, args)
+    console.run_command(app, user, 'post', args)
 
     out, err = capsys.readouterr()
     assert "Toot posted" in out
 
 
-def test_post_status_invalid_visibility(monkeypatch, capsys):
+def test_post_invalid_visibility(monkeypatch, capsys):
     args = ['Hello world', '--visibility', 'foo']
 
     with pytest.raises(SystemExit):
-        console.cmd_post_status(app, user, args)
+        console.run_command(app, user, 'post', args)
 
     out, err = capsys.readouterr()
     assert "invalid visibility value: 'foo'" in err
 
 
-def test_post_status_invalid_media(monkeypatch, capsys):
+def test_post_invalid_media(monkeypatch, capsys):
     args = ['Hello world', '--media', 'does_not_exist.jpg']
 
     with pytest.raises(SystemExit):
-        console.cmd_post_status(app, user, args)
+        console.run_command(app, user, 'post', args)
 
     out, err = capsys.readouterr()
     assert "can't open 'does_not_exist.jpg'" in err
@@ -112,7 +112,7 @@ def test_timeline(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_timeline(app, user, [])
+    console.run_command(app, user, 'timeline', [])
 
     out, err = capsys.readouterr()
     assert "The computer can't tell you the emotional story." in out
@@ -138,7 +138,7 @@ def test_upload(monkeypatch, capsys):
     monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
     monkeypatch.setattr(requests.Session, 'send', mock_send)
 
-    console.cmd_upload(app, user, [__file__])
+    console.run_command(app, user, 'upload', [__file__])
 
     out, err = capsys.readouterr()
     assert "Uploading media" in out
@@ -168,7 +168,7 @@ def test_search(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_search(app, user, ['freddy'])
+    console.run_command(app, user, 'search', ['freddy'])
 
     out, err = capsys.readouterr()
     assert "Hashtags:\n\033[32m#foo\033[0m, \033[32m#bar\033[0m, \033[32m#baz\033[0m" in out
@@ -200,7 +200,7 @@ def test_follow(monkeypatch, capsys):
     monkeypatch.setattr(requests.Session, 'send', mock_send)
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_follow(app, user, ['blixa'])
+    console.run_command(app, user, 'follow', ['blixa'])
 
     out, err = capsys.readouterr()
     assert "You are now following blixa" in out
@@ -218,7 +218,7 @@ def test_follow_not_found(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_follow(app, user, ['blixa'])
+    console.run_command(app, user, 'follow', ['blixa'])
 
     out, err = capsys.readouterr()
     assert "Account not found" in err
@@ -247,7 +247,7 @@ def test_unfollow(monkeypatch, capsys):
     monkeypatch.setattr(requests.Session, 'send', mock_send)
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_unfollow(app, user, ['blixa'])
+    console.run_command(app, user, 'unfollow', ['blixa'])
 
     out, err = capsys.readouterr()
     assert "You are no longer following blixa" in out
@@ -265,7 +265,7 @@ def test_unfollow_not_found(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_unfollow(app, user, ['blixa'])
+    console.run_command(app, user, 'unfollow', ['blixa'])
 
     out, err = capsys.readouterr()
     assert "Account not found" in err
@@ -297,7 +297,7 @@ def test_whoami(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.cmd_whoami(app, user, [])
+    console.run_command(app, user, 'whoami', [])
 
     out, err = capsys.readouterr()
     out = uncolorize(out)

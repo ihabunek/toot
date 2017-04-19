@@ -34,20 +34,30 @@ Running ``toot`` displays a list of available commands.
 
 Running ``toot <command> -h`` shows the documentation for the given command.
 
-===================  ===============================================================
- Command              Description
-===================  ===============================================================
- ``toot login``       Log into a Mastodon instance.
- ``toot 2fa``         Log into a Mastodon instance using two factor authentication.
- ``toot logout``      Log out, deletes stored access keys.
- ``toot auth``        Display stored authenitication tokens.
- ``toot whoami``      Display logged in user details.
- ``toot post``        Post a status to your timeline.
- ``toot search``      Search for accounts or hashtags.
- ``toot timeline``    Display recent items in your public timeline.
- ``toot follow``      Follow an account.
- ``toot unfollow``    Unfollow an account.
-===================  ===============================================================
+.. code-block::
+
+    $ toot
+
+    toot - a Mastodon CLI client
+
+    Usage:
+      toot login       Log into a Mastodon instance
+      toot login_2fa   Log in using two factor authentication (experimental)
+      toot logout      Log out, delete stored access keys
+      toot auth        Show stored credentials
+      toot whoami      Display logged in user details
+      toot post        Post a status text to your timeline
+      toot upload      Upload an image or video file
+      toot search      Search for users or hashtags
+      toot follow      Follow an account
+      toot unfollow    Unfollow an account
+      toot timeline    Show recent items in your public timeline
+
+    To get help for each command run:
+      toot <command> --help
+
+    https://github.com/ihabunek/toot
+
 
 Authentication
 --------------

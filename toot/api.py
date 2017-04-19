@@ -5,7 +5,7 @@ import requests
 
 from requests import Request, Session
 
-from toot import App, User, CLIENT_NAME, CLIENT_WEBSITE
+from toot import CLIENT_NAME, CLIENT_WEBSITE
 
 SCOPES = 'read write follow'
 
