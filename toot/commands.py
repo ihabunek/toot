@@ -11,7 +11,7 @@ from datetime import datetime
 from future.moves.itertools import zip_longest
 from getpass import getpass
 from itertools import chain
-from textwrap import TextWrapper
+from textwrap import TextWrapper, wrap
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
 from toot.output import green, yellow, print_error
@@ -260,12 +260,33 @@ def _do_upload(app, user, file):
 
 
 def _find_account(app, user, account_name):
-    """For a given account name, returns the Account object or None if not found."""
+    """For a given account name, returns the Account object or raises an exception if not found."""
     response = api.search(app, user, account_name, False)
 
     for account in response['accounts']:
         if account['acct'] == account_name or "@" + account['acct'] == account_name:
             return account
+
+    raise ConsoleError("Account not found")
+
+
+def _print_account(account):
+    print("{} {}".format(green("@" + account['acct']), account['display_name']))
+
+    if account['note']:
+        print("")
+        note = BeautifulSoup(account['note'], "html.parser")
+        print("\n".join(wrap(note.get_text())))
+
+    print("")
+    print("ID: " + green(account['id']))
+    print("Since: " + green(account['created_at'][:19].replace('T', ' @ ')))
+    print("")
+    print("Followers: " + yellow(account['followers_count']))
+    print("Following: " + yellow(account['following_count']))
+    print("Statuses: " + yellow(account['statuses_count']))
+    print("")
+    print(account['url'])
 
 
 def follow(app, user, args):
@@ -293,15 +314,10 @@ def unfollow(app, user, args):
 
 
 def whoami(app, user, args):
-    response = api.verify_credentials(app, user)
+    account = api.verify_credentials(app, user)
+    _print_account(account)
 
-    print("{} {}".format(green("@" + response['acct']), response['display_name']))
-    print(response['note'])
-    print(response['url'])
-    print("")
-    print("ID: " + green(response['id']))
-    print("Since: " + green(response['created_at'][:19].replace('T', ' @ ')))
-    print("")
-    print("Followers: " + yellow(response['followers_count']))
-    print("Following: " + yellow(response['following_count']))
-    print("Statuses: " + yellow(response['statuses_count']))
+
+def whois(app, user, args):
+    account = _find_account(app, user, args.account)
+    _print_account(account)

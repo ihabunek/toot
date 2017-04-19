@@ -58,6 +58,16 @@ COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="whois",
+        description="Display user details",
+        arguments=[
+            (["account"], {
+                "help": "account name or numeric ID"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
         name="post",
         description="Post a status text to your timeline",
         arguments=[
@@ -177,6 +187,9 @@ def run_command(app, user, name, args):
         return
 
     fn = commands.__dict__.get(name)
+
+    if not fn:
+        raise NotImplementedError("Command '{}' does not have an implementation.".format(name))
 
     return fn(app, user, parsed_args)
 
