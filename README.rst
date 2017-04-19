@@ -75,11 +75,11 @@ Before tooting, you need to login to a Mastodon instance:
 
     toot login
 
-**Two factor authentication** is supported experimentally, instead of ``login``, you should instead run:
+**Two factor authentication** is supported experimentally, instead of ``login``, you should instead run ``login_2fa``:
 
 .. code-block::
 
-    toot 2fa
+    toot login_2fa
 
 You will be asked to chose an instance_ and enter your credentials.
 
