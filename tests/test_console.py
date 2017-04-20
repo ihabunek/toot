@@ -3,7 +3,7 @@ import pytest
 import requests
 import re
 
-from toot import console, User, App
+from toot import console, User, App, ConsoleError
 
 from tests.utils import MockResponse
 
@@ -218,10 +218,9 @@ def test_follow_not_found(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.run_command(app, user, 'follow', ['blixa'])
-
-    out, err = capsys.readouterr()
-    assert "Account not found" in err
+    with pytest.raises(ConsoleError) as ex:
+        console.run_command(app, user, 'follow', ['blixa'])
+    assert "Account not found" == str(ex.value)
 
 
 def test_unfollow(monkeypatch, capsys):
@@ -265,10 +264,9 @@ def test_unfollow_not_found(monkeypatch, capsys):
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
-    console.run_command(app, user, 'unfollow', ['blixa'])
-
-    out, err = capsys.readouterr()
-    assert "Account not found" in err
+    with pytest.raises(ConsoleError) as ex:
+        console.run_command(app, user, 'unfollow', ['blixa'])
+    assert "Account not found" == str(ex.value)
 
 
 def test_whoami(monkeypatch, capsys):
