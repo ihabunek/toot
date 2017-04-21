@@ -138,6 +138,12 @@ COMMANDS = [
         arguments=[],
         require_auth=True,
     ),
+    Command(
+        name="curses",
+        description="An experimental timeline app.",
+        arguments=[],
+        require_auth=True,
+    ),
 ]
 
 

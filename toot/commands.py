@@ -15,6 +15,7 @@ from textwrap import TextWrapper, wrap
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
 from toot.output import green, yellow, print_error
+from toot.curses import TimelineApp
 
 
 def register_app(instance):
@@ -164,6 +165,11 @@ def timeline(app, user, args):
     for item in parsed_items:
         _print_timeline(item)
         print("─" * 31 + "┼" + "─" * 88)
+
+
+def curses(app, user, args):
+    generator = api.timeline_generator(app, user)
+    TimelineApp(generator).run()
 
 
 def post(app, user, args):
