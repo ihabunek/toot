@@ -14,10 +14,6 @@ Interact with Mastodon social networks from the command line.
    :target: https://pypi.python.org/pypi/toot
 
 
-.. warning::
-   Upgrading to version ``0.7.0`` will require you to log in to your chosen Mastodon instance again.
-
-
 Installation
 ------------
 
@@ -46,12 +42,14 @@ Running ``toot <command> -h`` shows the documentation for the given command.
       toot logout      Log out, delete stored access keys
       toot auth        Show stored credentials
       toot whoami      Display logged in user details
+      toot whois       Display user details
       toot post        Post a status text to your timeline
       toot upload      Upload an image or video file
       toot search      Search for users or hashtags
       toot follow      Follow an account
       toot unfollow    Unfollow an account
       toot timeline    Show recent items in your public timeline
+      toot curses      An experimental timeline app.
 
     To get help for each command run:
       toot <command> --help

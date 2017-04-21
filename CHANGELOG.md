@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.9.0 (2016-04-21)**
+
+* Add `whois` command
+* Add experimental `curses` app for viewing the timeline
+
 **0.8.0 (2016-04-19)**
 
 * Renamed command `2fa` to `login_2fa` **BC BREAK**
