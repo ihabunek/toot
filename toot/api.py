@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import re
 import requests
 
+from future.moves.urllib.parse import urlparse
 from requests import Request, Session
 
 from toot import CLIENT_NAME, CLIENT_WEBSITE
@@ -61,7 +63,7 @@ def _process_response(response):
 
         raise ApiError(error)
 
-    return response.json()
+    return response
 
 
 def _get(app, user, url, params=None):
@@ -101,7 +103,7 @@ def create_app(instance):
         'website': CLIENT_WEBSITE,
     })
 
-    return _process_response(response)
+    return _process_response(response).json()
 
 
 def login(app, username, password):
@@ -120,7 +122,7 @@ def login(app, username, password):
     if response.is_redirect:
         raise AuthenticationError()
 
-    return _process_response(response)
+    return _process_response(response).json()
 
 
 def post_status(app, user, status, visibility='public', media_ids=None):
@@ -128,43 +130,64 @@ def post_status(app, user, status, visibility='public', media_ids=None):
         'status': status,
         'media_ids[]': media_ids,
         'visibility': visibility,
-    })
+    }).json()
 
 
 def timeline_home(app, user):
-    return _get(app, user, '/api/v1/timelines/home')
+    return _get(app, user, '/api/v1/timelines/home').json()
+
+
+def _get_next_path(headers):
+    links = headers.get('Link', '')
+    matches = re.match('<([^>]+)>; rel="next"', links)
+    if matches:
+        url = matches.group(1)
+        return urlparse(url).path
+
+
+def timeline_generator(app, user):
+    next_path = '/api/v1/timelines/home'
+
+    while next_path:
+        response = _get(app, user, next_path)
+        yield response.json()
+        next_path = _get_next_path(response.headers)
 
 
 def upload_media(app, user, file):
     return _post(app, user, '/api/v1/media', files={
         'file': file
-    })
+    }).json()
 
 
 def search(app, user, query, resolve):
     return _get(app, user, '/api/v1/search', {
         'q': query,
         'resolve': resolve,
-    })
+    }).json()
 
 
 def search_accounts(app, user, query):
     return _get(app, user, '/api/v1/accounts/search', {
         'q': query,
-    })
+    }).json()
 
 
 def follow(app, user, account):
     url = '/api/v1/accounts/%d/follow' % account
 
-    return _post(app, user, url)
+    return _post(app, user, url).json()
 
 
 def unfollow(app, user, account):
     url = '/api/v1/accounts/%d/unfollow' % account
 
-    return _post(app, user, url)
+    return _post(app, user, url).json()
 
 
 def verify_credentials(app, user):
-    return _get(app, user, '/api/v1/accounts/verify_credentials')
+    return _get(app, user, '/api/v1/accounts/verify_credentials').json()
+
+
+def get_notifications(app, user):
+    return _get(app, user, '/api/v1/notifications').json()
