@@ -12,6 +12,7 @@ dist :
 	@echo "\nDone."
 
 clean :
+	find . -name "*pyc" | xargs rm -rf $1
 	rm -rf build dist *.egg-info MANIFEST htmlcov
 
 publish :
