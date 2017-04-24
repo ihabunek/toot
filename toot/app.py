@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import curses
-import re
 import webbrowser
 
-from bs4 import BeautifulSoup
 from textwrap import wrap
+
+from toot.utils import format_content
 
 
 class Color:
@@ -167,13 +167,12 @@ class TimelineApp:
         window.addstr(offset + 2, 2, date, color)
         window.addstr(offset + 3, 2, time, color)
 
-        window.addstr(offset + 2, 15, status['author']['acct'], color)
-        window.addstr(offset + 3, 15, status['author']['display_name'], color)
+        window.addstr(offset + 2, 15, status['account']['acct'], color)
+        window.addstr(offset + 3, 15, status['account']['display_name'], color)
 
         window.addstr(offset + 4, 1, '─' * (width - 2))
 
         window.refresh(0, 0, 2, 0, curses.LINES - 4, self.left_width)
-
 
     def draw_statuses(self, window):
         for index, status in enumerate(self.statuses):
@@ -185,22 +184,30 @@ class TimelineApp:
         window.erase()
         window.box()
 
-        acct = status['author']['acct']
-        name = status['author']['display_name']
+        acct = status['account']['acct']
+        name = status['account']['display_name']
 
         window.addstr(1, 2, "@" + acct, Color.green())
         window.addstr(2, 2, name, Color.yellow())
 
+        y = 4
         text_width = self.right_width - 4
 
-        y = 4
         for line in status['lines']:
-            for wrapped in wrap(line, text_width):
-                window.addstr(y, 2, wrapped.ljust(text_width))
-                y += 1
-            y += 1
+            wrapped_lines = wrap(line, text_width) if line else ['']
+            for wrapped_line in wrapped_lines:
+                window.addstr(y, 2, wrapped_line.ljust(text_width))
+                y = y + 1
 
-        window.addstr(y, 2, '─' * text_width)
+        if status['media_attachments']:
+            y += 1
+            for attachment in status['media_attachments']:
+                url = attachment['text_url'] or attachment['url']
+                for line in wrap(url, text_width):
+                    window.addstr(y, 2, line)
+                    y += 1
+
+        window.addstr(y, 1, '-' * (text_width + 2))
         y += 1
 
         window.addstr(y, 2, status['url'])
@@ -217,20 +224,20 @@ class TimelineApp:
 
 
 def parse_status(status):
-    content = status['reblog']['content'] if status['reblog'] else status['content']
-    account = parse_account(status['reblog']['account'] if status['reblog'] else status['account'])
-    boosted_by = parse_account(status['account']) if status['reblog'] else None
-
-    lines = parse_html(content)
+    _status = status.get('reblog') or status
+    account = parse_account(_status['account'])
+    lines = list(format_content(_status['content']))
 
     created_at = status['created_at'][:19].split('T')
+    boosted_by = parse_account(status['account']) if status['reblog'] else None
 
     return {
-        'author': account,
+        'account': account,
         'boosted_by': boosted_by,
-        'lines': lines,
-        'url': status['url'],
         'created_at': created_at,
+        'lines': lines,
+        'media_attachments': _status['media_attachments'],
+        'url': status['url'],
     }
 
 
@@ -240,12 +247,3 @@ def parse_account(account):
         'acct': account['acct'],
         'display_name': account['display_name'],
     }
-
-
-def parse_html(html):
-    """Attempt to convert html to plain text while keeping line breaks"""
-    return [
-        BeautifulSoup(l, "html.parser").get_text().replace('&apos;', "'")
-        for l in re.split("</?p[^>]*>", html)
-        if l
-    ]
