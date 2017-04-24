@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.9.1 (2016-04-24)**
+
+* Fix conflict with curses package name
+
 **0.9.0 (2016-04-21)**
 
 * Add `whois` command
