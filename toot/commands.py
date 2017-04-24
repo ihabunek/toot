@@ -15,7 +15,7 @@ from textwrap import TextWrapper, wrap
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
 from toot.output import green, yellow, print_error
-from toot.curses import TimelineApp
+from toot.app import TimelineApp
 
 
 def register_app(instance):
