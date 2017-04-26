@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.10.0 (2016-04-26)**
+
+* Add commands: `block`, `unblock`, `mute`, `unmute`
+* Internal improvements
+
 **0.9.1 (2016-04-24)**
 
 * Fix conflict with curses package name
