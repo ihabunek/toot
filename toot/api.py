@@ -92,6 +92,12 @@ def _post(app, user, url, data=None, files=None):
     return _process_response(response)
 
 
+def _account_action(app, user, account, action):
+    url = '/api/v1/accounts/%d/%s' % (account, action)
+
+    return _post(app, user, url).json()
+
+
 def create_app(instance):
     base_url = 'https://' + instance
     url = base_url + '/api/v1/apps'
@@ -174,15 +180,27 @@ def search_accounts(app, user, query):
 
 
 def follow(app, user, account):
-    url = '/api/v1/accounts/%d/follow' % account
-
-    return _post(app, user, url).json()
+    return _account_action(app, user, account, 'follow')
 
 
 def unfollow(app, user, account):
-    url = '/api/v1/accounts/%d/unfollow' % account
+    return _account_action(app, user, account, 'unfollow')
 
-    return _post(app, user, url).json()
+
+def mute(app, user, account):
+    return _account_action(app, user, account, 'mute')
+
+
+def unmute(app, user, account):
+    return _account_action(app, user, account, 'unmute')
+
+
+def block(app, user, account):
+    return _account_action(app, user, account, 'block')
+
+
+def unblock(app, user, account):
+    return _account_action(app, user, account, 'unblock')
 
 
 def verify_credentials(app, user):

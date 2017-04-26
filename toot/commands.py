@@ -297,26 +297,38 @@ def _print_account(account):
 
 def follow(app, user, args):
     account = _find_account(app, user, args.account)
-
-    if not account:
-        print_error("Account not found")
-        return
-
     api.follow(app, user, account['id'])
-
     print(green("✓ You are now following %s" % args.account))
 
 
 def unfollow(app, user, args):
     account = _find_account(app, user, args.account)
-
-    if not account:
-        print_error("Account not found")
-        return
-
     api.unfollow(app, user, account['id'])
-
     print(green("✓ You are no longer following %s" % args.account))
+
+
+def mute(app, user, args):
+    account = _find_account(app, user, args.account)
+    api.mute(app, user, account['id'])
+    print(green("✓ You have muted %s" % args.account))
+
+
+def unmute(app, user, args):
+    account = _find_account(app, user, args.account)
+    api.unmute(app, user, account['id'])
+    print(green("✓ %s is no longer muted" % args.account))
+
+
+def block(app, user, args):
+    account = _find_account(app, user, args.account)
+    api.block(app, user, account['id'])
+    print(green("✓ You are now blocking %s" % args.account))
+
+
+def unblock(app, user, args):
+    account = _find_account(app, user, args.account)
+    api.unblock(app, user, account['id'])
+    print(green("✓ %s is no longer blocked" % args.account))
 
 
 def whoami(app, user, args):

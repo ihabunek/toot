@@ -26,6 +26,12 @@ def visibility(value):
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
 
 
+# Some common arguments:
+account_arg = (["account"], {
+    "help": "account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'",
+})
+
+
 COMMANDS = [
     Command(
         name="login",
@@ -116,9 +122,7 @@ COMMANDS = [
         name="follow",
         description="Follow an account",
         arguments=[
-            (["account"], {
-                "help": "account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'",
-            }),
+            account_arg,
         ],
         require_auth=True,
     ),
@@ -126,9 +130,39 @@ COMMANDS = [
         name="unfollow",
         description="Unfollow an account",
         arguments=[
-            (["account"], {
-                "help": "account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'",
-            }),
+            account_arg,
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="mute",
+        description="Mute an account",
+        arguments=[
+            account_arg,
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="unmute",
+        description="Unmute an account",
+        arguments=[
+            account_arg,
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="block",
+        description="Block an account",
+        arguments=[
+            account_arg,
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="unblock",
+        description="Unblock an account",
+        arguments=[
+            account_arg,
         ],
         require_auth=True,
     ),
