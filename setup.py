@@ -5,6 +5,9 @@ from setuptools import setup
 with open("README.rst") as readme:
     long_description = readme.read()
 
+with open("requirements.txt") as f:
+    install_requires = f.read().split()
+
 setup(
     name='toot',
     version='0.9.1',
@@ -27,11 +30,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     packages=['toot'],
-    install_requires=[
-        'requests>=2.13,<3.0',
-        'beautifulsoup4>=4.5.0,<5.0',
-        'future>=0.16',
-    ],
+    install_requires=install_requires,
     entry_points={
         'console_scripts': [
             'toot=toot.console:main',
