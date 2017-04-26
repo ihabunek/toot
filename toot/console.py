@@ -32,7 +32,7 @@ account_arg = (["account"], {
 })
 
 
-COMMANDS = [
+AUTH_COMMANDS = [
     Command(
         name="login",
         description="Log into a Mastodon instance",
@@ -57,6 +57,9 @@ COMMANDS = [
         arguments=[],
         require_auth=False,
     ),
+]
+
+READ_COMMANDS = [
     Command(
         name="whoami",
         description="Display logged in user details",
@@ -65,7 +68,7 @@ COMMANDS = [
     ),
     Command(
         name="whois",
-        description="Display user details",
+        description="Display account details",
         arguments=[
             (["account"], {
                 "help": "account name or numeric ID"
@@ -73,6 +76,36 @@ COMMANDS = [
         ],
         require_auth=True,
     ),
+    Command(
+        name="search",
+        description="Search for users or hashtags",
+        arguments=[
+            (["query"], {
+                "help": "the search query",
+            }),
+            (["-r", "--resolve"], {
+                "action": 'store_true',
+                "default": False,
+                "help": "Resolve non-local accounts",
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="timeline",
+        description="Show recent items in your public timeline",
+        arguments=[],
+        require_auth=True,
+    ),
+    Command(
+        name="curses",
+        description="An experimental timeline app.",
+        arguments=[],
+        require_auth=True,
+    ),
+]
+
+POST_COMMANDS = [
     Command(
         name="post",
         description="Post a status text to your timeline",
@@ -103,21 +136,9 @@ COMMANDS = [
         ],
         require_auth=True,
     ),
-    Command(
-        name="search",
-        description="Search for users or hashtags",
-        arguments=[
-            (["query"], {
-                "help": "the search query",
-            }),
-            (["-r", "--resolve"], {
-                "action": 'store_true',
-                "default": False,
-                "help": "Resolve non-local accounts",
-            }),
-        ],
-        require_auth=True,
-    ),
+]
+
+ACCOUNTS_COMMANDS = [
     Command(
         name="follow",
         description="Follow an account",
@@ -166,30 +187,29 @@ COMMANDS = [
         ],
         require_auth=True,
     ),
-    Command(
-        name="timeline",
-        description="Show recent items in your public timeline",
-        arguments=[],
-        require_auth=True,
-    ),
-    Command(
-        name="curses",
-        description="An experimental timeline app.",
-        arguments=[],
-        require_auth=True,
-    ),
 ]
+
+COMMANDS = AUTH_COMMANDS + READ_COMMANDS + POST_COMMANDS + ACCOUNTS_COMMANDS
 
 
 def print_usage():
-    print(CLIENT_NAME)
-    print("")
-    print("Usage:")
-
     max_name_len = max(len(command.name) for command in COMMANDS)
 
-    for command in COMMANDS:
-        print("  toot", command.name.ljust(max_name_len + 2), command.description)
+    groups = [
+        ("Authentication", AUTH_COMMANDS),
+        ("Read", READ_COMMANDS),
+        ("Post", POST_COMMANDS),
+        ("Accounts", ACCOUNTS_COMMANDS),
+    ]
+
+    print(CLIENT_NAME)
+
+    for name, cmds in groups:
+        print("")
+        print(name + ":")
+
+        for cmd in cmds:
+            print("  toot", cmd.name.ljust(max_name_len + 2), cmd.description)
 
     print("")
     print("To get help for each command run:")

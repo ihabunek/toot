@@ -36,20 +36,30 @@ Running ``toot <command> -h`` shows the documentation for the given command.
 
     toot - a Mastodon CLI client
 
-    Usage:
+    Authentication:
       toot login       Log into a Mastodon instance
       toot login_2fa   Log in using two factor authentication (experimental)
       toot logout      Log out, delete stored access keys
       toot auth        Show stored credentials
+
+    Read:
       toot whoami      Display logged in user details
-      toot whois       Display user details
-      toot post        Post a status text to your timeline
-      toot upload      Upload an image or video file
+      toot whois       Display account details
       toot search      Search for users or hashtags
-      toot follow      Follow an account
-      toot unfollow    Unfollow an account
       toot timeline    Show recent items in your public timeline
       toot curses      An experimental timeline app.
+
+    Post:
+      toot post        Post a status text to your timeline
+      toot upload      Upload an image or video file
+
+    Accounts:
+      toot follow      Follow an account
+      toot unfollow    Unfollow an account
+      toot mute        Mute an account
+      toot unmute      Unmute an account
+      toot block       Block an account
+      toot unblock     Unblock an account
 
     To get help for each command run:
       toot <command> --help
