@@ -109,7 +109,7 @@ class TimelineApp:
 
     def fetch_next(self):
         try:
-            statuses = self.status_generator.__next__()
+            statuses = next(self.status_generator)
         except StopIteration:
             return None
 
