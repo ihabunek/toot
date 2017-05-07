@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+**0.11.0 (2016-05-07)**
+
+* Fix error when running toot from crontab (#11)
+* Minor tweaks
+
 **0.10.0 (2016-04-26)**
 
 * Add commands: `block`, `unblock`, `mute`, `unmute`
