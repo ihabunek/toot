@@ -260,7 +260,9 @@ def main():
 
     # If something is piped in, append it to commandline arguments
     if not sys.stdin.isatty():
-        sys.argv.append(sys.stdin.read())
+        stdin = sys.stdin.read()
+        if stdin:
+            sys.argv.append(stdin)
 
     command_name = sys.argv[1] if len(sys.argv) > 1 else None
     args = sys.argv[2:]
