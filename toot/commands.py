@@ -266,11 +266,20 @@ def _do_upload(app, user, file):
 
 
 def _find_account(app, user, account_name):
-    """For a given account name, returns the Account object or raises an exception if not found."""
-    response = api.search(app, user, account_name, False)
+    """For a given account name, returns the Account object.
 
-    for account in response['accounts']:
-        if account['acct'] == account_name or "@" + account['acct'] == account_name:
+    Raises an exception if not found.
+    """
+    if not account_name:
+        raise ConsoleError("Empty account name given")
+
+    accounts = api.search_accounts(app, user, account_name)
+
+    if account_name[0] == "@":
+        account_name = account_name[1:]
+
+    for account in accounts:
+        if account['acct'] == account_name:
             return account
 
     raise ConsoleError("Account not found")

@@ -179,16 +179,14 @@ def test_search(monkeypatch, capsys):
 
 def test_follow(monkeypatch, capsys):
     def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/search'
-        assert params == {'q': 'blixa', 'resolve': False}
+        assert url == 'https://habunek.com/api/v1/accounts/search'
+        assert params == {'q': 'blixa'}
         assert headers == {'Authorization': 'Bearer xxx'}
 
-        return MockResponse({
-            'accounts': [
-                {'id': 123, 'acct': 'blixa@other.acc'},
-                {'id': 321, 'acct': 'blixa'},
-            ]
-        })
+        return MockResponse([
+            {'id': 123, 'acct': 'blixa@other.acc'},
+            {'id': 321, 'acct': 'blixa'},
+        ])
 
     def mock_prepare(request):
         assert request.url == 'https://habunek.com/api/v1/accounts/321/follow'
@@ -208,13 +206,11 @@ def test_follow(monkeypatch, capsys):
 
 def test_follow_not_found(monkeypatch, capsys):
     def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/search'
-        assert params == {'q': 'blixa', 'resolve': False}
+        assert url == 'https://habunek.com/api/v1/accounts/search'
+        assert params == {'q': 'blixa'}
         assert headers == {'Authorization': 'Bearer xxx'}
 
-        return MockResponse({
-            'accounts': []
-        })
+        return MockResponse([])
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
@@ -225,16 +221,14 @@ def test_follow_not_found(monkeypatch, capsys):
 
 def test_unfollow(monkeypatch, capsys):
     def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/search'
-        assert params == {'q': 'blixa', 'resolve': False}
+        assert url == 'https://habunek.com/api/v1/accounts/search'
+        assert params == {'q': 'blixa'}
         assert headers == {'Authorization': 'Bearer xxx'}
 
-        return MockResponse({
-            'accounts': [
-                {'id': 123, 'acct': 'blixa@other.acc'},
-                {'id': 321, 'acct': 'blixa'},
-            ]
-        })
+        return MockResponse([
+            {'id': 123, 'acct': 'blixa@other.acc'},
+            {'id': 321, 'acct': 'blixa'},
+        ])
 
     def mock_prepare(request):
         assert request.url == 'https://habunek.com/api/v1/accounts/321/unfollow'
@@ -254,13 +248,11 @@ def test_unfollow(monkeypatch, capsys):
 
 def test_unfollow_not_found(monkeypatch, capsys):
     def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/search'
-        assert params == {'q': 'blixa', 'resolve': False}
+        assert url == 'https://habunek.com/api/v1/accounts/search'
+        assert params == {'q': 'blixa'}
         assert headers == {'Authorization': 'Bearer xxx'}
 
-        return MockResponse({
-            'accounts': []
-        })
+        return MockResponse([])
 
     monkeypatch.setattr(requests, 'get', mock_get)
 
