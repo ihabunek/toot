@@ -288,10 +288,11 @@ def _find_account(app, user, account_name):
 def _print_account(account):
     print("{} {}".format(green("@" + account['acct']), account['display_name']))
 
-    if account['note']:
+    note = BeautifulSoup(account['note'], "html.parser").get_text()
+
+    if note:
         print("")
-        note = BeautifulSoup(account['note'], "html.parser")
-        print("\n".join(wrap(note.get_text())))
+        print("\n".join(wrap(note)))
 
     print("")
     print("ID: " + green(account['id']))
