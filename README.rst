@@ -1,6 +1,6 @@
-=============================
-Toot - Mastodon CLI interface
-=============================
+============================
+Toot - a Mastodon CLI client
+============================
 
 Interact with Mastodon social networks from the command line.
 
@@ -109,3 +109,10 @@ And you can logout which will remove the stored access tokens:
 .. code-block::
 
     toot logout
+
+License
+-------
+
+Copyright © 2017 Ivan Habunek <ivan@habunek.com>
+
+Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html

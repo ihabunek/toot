@@ -20,7 +20,7 @@ setup(
     license='MIT',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
