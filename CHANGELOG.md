@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+**0.12.0 (2016-05-08)**
+
+* Add option to disable ANSI color in output (#15)
+* Return nonzero error code on error (#14)
+* Change license to GPLv3
+
 **0.11.0 (2016-05-07)**
 
 * Fix error when running toot from crontab (#11)

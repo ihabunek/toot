@@ -10,7 +10,7 @@ with open("requirements.txt") as f:
 
 setup(
     name='toot',
-    version='0.11.0',
+    version='0.12.0',
     description='Interact with Mastodon social networks from the command line.',
     long_description=long_description,
     author='Ivan Habunek',
