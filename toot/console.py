@@ -285,5 +285,7 @@ def main():
         run_command(app, user, command_name, args)
     except ConsoleError as e:
         print_err(str(e))
+        sys.exit(1)
     except api.ApiError as e:
         print_err(str(e))
+        sys.exit(1)
