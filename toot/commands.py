@@ -14,12 +14,12 @@ from itertools import chain
 from textwrap import TextWrapper, wrap
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
-from toot.output import green, yellow, print_error
+from toot.output import print_out
 from toot.app import TimelineApp
 
 
 def register_app(instance):
-    print("Registering application with %s" % green(instance))
+    print_out("Registering application with <green>{}</green>".format(instance))
 
     try:
         response = api.create_app(instance)
@@ -30,13 +30,15 @@ def register_app(instance):
 
     app = App(instance, base_url, response['client_id'], response['client_secret'])
     path = config.save_app(app)
-    print("Application tokens saved to: {}\n".format(green(path)))
+    print_out("Application tokens saved to: <green>{}</green>\n".format(path))
 
     return app
 
 
 def create_app_interactive():
-    instance = input("Choose an instance [%s]: " % green(DEFAULT_INSTANCE))
+    print_out("Choose an instance [<green>{}</green>]: ".format(DEFAULT_INSTANCE), end="")
+
+    instance = input()
     if not instance:
         instance = DEFAULT_INSTANCE
 
@@ -44,7 +46,8 @@ def create_app_interactive():
 
 
 def login_interactive(app):
-    print("\nLog in to " + green(app.instance))
+    print_out("\nLog in to <green>{}</green>".format(app.instance))
+
     email = input('Email: ')
     password = getpass('Password: ')
 
@@ -52,14 +55,15 @@ def login_interactive(app):
         raise ConsoleError("Email and password cannot be empty.")
 
     try:
-        print("Authenticating...")
+        print_out("Authenticating...")
         response = api.login(app, email, password)
     except api.ApiError:
         raise ConsoleError("Login failed")
 
     user = User(app.instance, email, response['access_token'])
     path = config.save_user(user)
-    print("Access token saved to: " + green(path))
+
+    print_out("Access token saved to: <green>{}</green>".format(path))
 
     return user
 
@@ -67,7 +71,7 @@ def login_interactive(app):
 def two_factor_login_interactive(app):
     """Hacky implementation of two factor authentication"""
 
-    print("Log in to " + green(app.instance))
+    print_out("Log in to {}".format(app.instance))
     email = input('Email: ')
     password = getpass('Password: ')
 
@@ -114,7 +118,7 @@ def two_factor_login_interactive(app):
 
     user = User(app.instance, email, access_token)
     path = config.save_user(user)
-    print("Access token saved to: " + green(path))
+    print_out("Access token saved to: <green>{}</green>".format(path))
 
 
 def _print_timeline(item):
@@ -137,7 +141,7 @@ def _print_timeline(item):
         return zip_longest(left_column, right_column, fillvalue="")
 
     for left, right in timeline_rows(item):
-        print("{:30} │ {}".format(left, right))
+        print_out("{:30} │ {}".format(left, right))
 
 
 def _parse_timeline(item):
@@ -161,10 +165,10 @@ def timeline(app, user, args):
     items = api.timeline_home(app, user)
     parsed_items = [_parse_timeline(t) for t in items]
 
-    print("─" * 31 + "┬" + "─" * 88)
+    print_out("─" * 31 + "┬" + "─" * 88)
     for item in parsed_items:
         _print_timeline(item)
-        print("─" * 31 + "┼" + "─" * 88)
+        print_out("─" * 31 + "┼" + "─" * 88)
 
 
 def curses(app, user, args):
@@ -181,76 +185,76 @@ def post(app, user, args):
 
     response = api.post_status(app, user, args.text, media_ids=media_ids, visibility=args.visibility)
 
-    print("Toot posted: " + green(response.get('url')))
+    print_out("Toot posted: <green>{}</green>".format(response.get('url')))
 
 
 def auth(app, user, args):
     if app and user:
-        print("You are logged in to {} as {}\n".format(
-            yellow(app.instance),
-            yellow(user.username)
-        ))
-        print("User data: " + green(config.get_user_config_path()))
-        print("App data:  " + green(config.get_instance_config_path(app.instance)))
+        print_out("You are logged in to <yellow>{}</yellow> as <yellow>{}</yellow>\n".format(
+            app.instance, user.username))
+        print_out("User data: <green>{}</green>".format(config.get_user_config_path()))
+        print_out("App data:  <green>{}</green>".format(config.get_instance_config_path(app.instance)))
     else:
-        print("You are not logged in")
+        print_out("You are not logged in")
 
 
 def login(app, user, args):
     app = create_app_interactive()
     login_interactive(app)
 
-    print()
-    print(green("✓ Successfully logged in."))
+    print_out()
+    print_out("<green>✓ Successfully logged in.</green>")
 
 
 def login_2fa(app, user, args):
-    print()
-    print(yellow("Two factor authentication is experimental."))
-    print(yellow("If you have problems logging in, please open an issue:"))
-    print(yellow("https://github.com/ihabunek/toot/issues"))
-    print()
+    print_out()
+    print_out("<yellow>Two factor authentication is experimental.</yellow>")
+    print_out("<yellow>If you have problems logging in, please open an issue:</yellow>")
+    print_out("<yellow>https://github.com/ihabunek/toot/issues</yellow>")
+    print_out()
 
     app = create_app_interactive()
     two_factor_login_interactive(app)
 
-    print()
-    print(green("✓ Successfully logged in."))
+    print_out()
+    print_out("<green>✓ Successfully logged in.</green>")
 
 
 def logout(app, user, args):
     config.delete_user()
 
-    print(green("✓ You are now logged out"))
+    print_out("<green>✓ You are now logged out.</green>")
 
 
 def upload(app, user, args):
     response = _do_upload(app, user, args.file)
 
-    print("\nSuccessfully uploaded media ID {}, type '{}'".format(
-         yellow(response['id']),  yellow(response['type'])))
-    print("Original URL: " + green(response['url']))
-    print("Preview URL:  " + green(response['preview_url']))
-    print("Text URL:     " + green(response['text_url']))
+    print_out()
+    print_out("Successfully uploaded media ID <yellow>{}</yellow>, type '<yellow>{}</yellow>'".format(
+         response['id'],  response['type']))
+    print_out("Original URL: <green>{}</green>".format(response['url']))
+    print_out("Preview URL:  <green>{}</green>".format(response['preview_url']))
+    print_out("Text URL:     <green>{}</green>".format(response['text_url']))
 
 
 def _print_accounts(accounts):
     if not accounts:
         return
 
-    print("\nAccounts:")
+    print_out("\nAccounts:")
     for account in accounts:
-        acct = green("@{}".format(account['acct']))
-        display_name = account['display_name']
-        print("* {} {}".format(acct, display_name))
+        print_out("* <green>@{}</green> {}".format(
+            account['acct'],
+            account['display_name']
+        ))
 
 
 def _print_hashtags(hashtags):
     if not hashtags:
         return
 
-    print("\nHashtags:")
-    print(", ".join([green("#" + t) for t in hashtags]))
+    print_out("\nHashtags:")
+    print_out(", ".join(["<green>#{}</green>".format(t) for t in hashtags]))
 
 
 def search(app, user, args):
@@ -261,7 +265,7 @@ def search(app, user, args):
 
 
 def _do_upload(app, user, file):
-    print("Uploading media: {}".format(green(file.name)))
+    print_out("Uploading media: <green>{}</green>".format(file.name))
     return api.upload_media(app, user, file)
 
 
@@ -286,59 +290,59 @@ def _find_account(app, user, account_name):
 
 
 def _print_account(account):
-    print("{} {}".format(green("@" + account['acct']), account['display_name']))
+    print_out("<green>@{}</green> {}".format(account['acct'], account['display_name']))
 
     note = BeautifulSoup(account['note'], "html.parser").get_text()
 
     if note:
-        print("")
-        print("\n".join(wrap(note)))
+        print_out("")
+        print_out("\n".join(wrap(note)))
 
-    print("")
-    print("ID: " + green(account['id']))
-    print("Since: " + green(account['created_at'][:19].replace('T', ' @ ')))
-    print("")
-    print("Followers: " + yellow(account['followers_count']))
-    print("Following: " + yellow(account['following_count']))
-    print("Statuses: " + yellow(account['statuses_count']))
-    print("")
-    print(account['url'])
+    print_out("")
+    print_out("ID: <green>{}</green>".format(account['id']))
+    print_out("Since: <green>{}</green>".format(account['created_at'][:19].replace('T', ' @ ')))
+    print_out("")
+    print_out("Followers: <yellow>{}</yellow>".format(account['followers_count']))
+    print_out("Following: <yellow>{}</yellow>".format(account['following_count']))
+    print_out("Statuses: <yellow>{}</yellow>".format(account['statuses_count']))
+    print_out("")
+    print_out(account['url'])
 
 
 def follow(app, user, args):
     account = _find_account(app, user, args.account)
     api.follow(app, user, account['id'])
-    print(green("✓ You are now following %s" % args.account))
+    print_out("<green>✓ You are now following {}</green>".format(args.account))
 
 
 def unfollow(app, user, args):
     account = _find_account(app, user, args.account)
     api.unfollow(app, user, account['id'])
-    print(green("✓ You are no longer following %s" % args.account))
+    print_out("<green>✓ You are no longer following {}</green>".format(args.account))
 
 
 def mute(app, user, args):
     account = _find_account(app, user, args.account)
     api.mute(app, user, account['id'])
-    print(green("✓ You have muted %s" % args.account))
+    print_out("<green>✓ You have muted {}</green>".format(args.account))
 
 
 def unmute(app, user, args):
     account = _find_account(app, user, args.account)
     api.unmute(app, user, account['id'])
-    print(green("✓ %s is no longer muted" % args.account))
+    print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
 def block(app, user, args):
     account = _find_account(app, user, args.account)
     api.block(app, user, account['id'])
-    print(green("✓ You are now blocking %s" % args.account))
+    print_out("<green>✓ You are now blocking {}</green>".format(args.account))
 
 
 def unblock(app, user, args):
     account = _find_account(app, user, args.account)
     api.unblock(app, user, account['id'])
-    print(green("✓ %s is no longer blocked" % args.account))
+    print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
 
 def whoami(app, user, args):

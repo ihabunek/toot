@@ -9,7 +9,7 @@ import logging
 from argparse import ArgumentParser, FileType
 from collections import namedtuple
 from toot import config, api, commands, ConsoleError, CLIENT_NAME, CLIENT_WEBSITE
-from toot.output import print_error
+from toot.output import print_out, print_err
 
 
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
@@ -26,7 +26,14 @@ def visibility(value):
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
 
 
-# Some common arguments:
+common_args = [
+    (["--no-color"], {
+        "help": "don't use ANSI colors in output",
+        "action": 'store_true',
+        "default": False,
+    })
+]
+
 account_arg = (["account"], {
     "help": "account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'",
 })
@@ -202,20 +209,21 @@ def print_usage():
         ("Accounts", ACCOUNTS_COMMANDS),
     ]
 
-    print(CLIENT_NAME)
+    print_out("<green>{}</green>".format(CLIENT_NAME))
 
     for name, cmds in groups:
-        print("")
-        print(name + ":")
+        print_out("")
+        print_out(name + ":")
 
         for cmd in cmds:
-            print("  toot", cmd.name.ljust(max_name_len + 2), cmd.description)
+            cmd_name = cmd.name.ljust(max_name_len + 2)
+            print_out("  <yellow>toot {}</yellow> {}".format(cmd_name, cmd.description))
 
-    print("")
-    print("To get help for each command run:")
-    print("  toot <command> --help")
-    print("")
-    print(CLIENT_WEBSITE)
+    print_out("")
+    print_out("To get help for each command run:")
+    print_out("  <yellow>toot <command> --help</yellow>")
+    print_out("")
+    print_out("<green>{}</green>".format(CLIENT_WEBSITE))
 
 
 def get_argument_parser(name, command):
@@ -224,7 +232,7 @@ def get_argument_parser(name, command):
         description=command.description,
         epilog=CLIENT_WEBSITE)
 
-    for args, kwargs in command.arguments:
+    for args, kwargs in command.arguments + common_args:
         parser.add_argument(*args, **kwargs)
 
     return parser
@@ -234,7 +242,7 @@ def run_command(app, user, name, args):
     command = next((c for c in COMMANDS if c.name == name), None)
 
     if not command:
-        print_error("Unknown command '{}'\n".format(name))
+        print_err("Unknown command '{}'\n".format(name))
         print_usage()
         return
 
@@ -242,8 +250,8 @@ def run_command(app, user, name, args):
     parsed_args = parser.parse_args(args)
 
     if command.require_auth and (not user or not app):
-        print_error("This command requires that you are logged in.")
-        print_error("Please run `toot login` first.")
+        print_err("This command requires that you are logged in.")
+        print_err("Please run `toot login` first.")
         return
 
     fn = commands.__dict__.get(name)
@@ -276,6 +284,6 @@ def main():
     try:
         run_command(app, user, command_name, args)
     except ConsoleError as e:
-        print_error(str(e))
+        print_err(str(e))
     except api.ApiError as e:
-        print_error(str(e))
+        print_err(str(e))

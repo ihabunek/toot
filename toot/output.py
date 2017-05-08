@@ -3,35 +3,53 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import sys
+import re
 
 
-def _color(text, color):
-    return "\033[3{}m{}\033[0m".format(color, text)
+START_CODES = {
+    'red':     '\033[31m',
+    'green':   '\033[32m',
+    'yellow':  '\033[33m',
+    'blue':    '\033[34m',
+    'magenta': '\033[35m',
+    'cyan':    '\033[36m',
+}
+
+END_CODE = '\033[0m'
+
+START_PATTERN = "<(" + "|".join(START_CODES.keys()) + ")>"
+
+END_PATTERN = "</(" + "|".join(START_CODES.keys()) + ")>"
 
 
-def red(text):
-    return _color(text, 1)
+def start_code(match):
+    name = match.group(1)
+    return START_CODES[name]
 
 
-def green(text):
-    return _color(text, 2)
+def colorize(text):
+    text = re.sub(START_PATTERN, start_code, text)
+    text = re.sub(END_PATTERN, END_CODE, text)
+
+    return text
 
 
-def yellow(text):
-    return _color(text, 3)
+def strip_tags(text):
+    text = re.sub(START_PATTERN, '', text)
+    text = re.sub(END_PATTERN, '', text)
+
+    return text
 
 
-def blue(text):
-    return _color(text, 4)
+USE_ANSI_COLOR = "--no-color" not in sys.argv
 
 
-def magenta(text):
-    return _color(text, 5)
+def print_out(*args, **kwargs):
+    args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
+    print(*args, **kwargs)
 
 
-def cyan(text):
-    return _color(text, 6)
-
-
-def print_error(text):
-    print(red(text), file=sys.stderr)
+def print_err(*args, **kwargs):
+    args = ["<red>{}</red>".format(a) for a in args]
+    args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
+    print(*args, file=sys.stderr, **kwargs)
