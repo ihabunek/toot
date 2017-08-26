@@ -4,6 +4,7 @@ Changelog
 **0.13.0 (TBA)**
 
 * Allow passing `--instance` and `--email` to login command
+* Add `login_browser` command for proper two factor authentication through the browser (#19, #23)
 
 **0.12.0 (2016-05-08)**
 

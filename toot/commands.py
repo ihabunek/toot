@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import json
 import requests
+import webbrowser
 
 from bs4 import BeautifulSoup
 from builtins import input
@@ -45,6 +46,15 @@ def create_app_interactive(instance=None):
     return config.load_app(instance) or register_app(instance)
 
 
+def create_user(app, email, access_token):
+    user = User(app.instance, email, access_token)
+    path = config.save_user(user)
+
+    print_out("Access token saved to: <green>{}</green>".format(path))
+
+    return user
+
+
 def login_interactive(app, email=None):
     print_out("Log in to <green>{}</green>".format(app.instance))
 
@@ -62,12 +72,7 @@ def login_interactive(app, email=None):
     except api.ApiError:
         raise ConsoleError("Login failed")
 
-    user = User(app.instance, email, response['access_token'])
-    path = config.save_user(user)
-
-    print_out("Access token saved to: <green>{}</green>".format(path))
-
-    return user
+    return create_user(app, email, response['access_token'])
 
 
 def two_factor_login_interactive(app):
@@ -118,9 +123,7 @@ def two_factor_login_interactive(app):
     data = json.loads(initial_state.get_text())
     access_token = data['meta']['access_token']
 
-    user = User(app.instance, email, access_token)
-    path = config.save_user(user)
-    print_out("Access token saved to: <green>{}</green>".format(path))
+    return create_user(app, email, access_token)
 
 
 def _print_timeline(item):
@@ -217,6 +220,46 @@ def login_2fa(app, user, args):
 
     app = create_app_interactive()
     two_factor_login_interactive(app)
+
+    print_out()
+    print_out("<green>✓ Successfully logged in.</green>")
+
+
+BROWSER_LOGIN_EXPLANATION = """
+This authentication method requires you to log into your Mastodon instance
+in your browser, where you will be asked to authorize <yellow>toot</yellow> to access
+your account. When you do, you will be given an <yellow>authorization code</yellow>
+which you need to paste here.
+"""
+
+
+def login_browser(app, user, args):
+    app = create_app_interactive(instance=args.instance)
+    url = api.get_browser_login_url(app)
+
+    print_out(BROWSER_LOGIN_EXPLANATION)
+
+    print_out("This is the login URL:")
+    print_out(url)
+    print_out("")
+
+    yesno = input("Open link in default browser? [Y/n]")
+    if not yesno or yesno.lower() == 'y':
+        webbrowser.open(url)
+
+    authorization_code = ""
+    while not authorization_code:
+        authorization_code = input("Authorization code: ")
+
+    print_out("\nRequesting access token...")
+    response = api.request_access_token(app, authorization_code)
+
+    # TODO: user email is not available in this workflow, maybe change the User
+    # to store the username instead? Currently set to "unknown" since it's not
+    # used anywhere.
+    email = "unknown"
+
+    create_user(app, email, response['access_token'])
 
     print_out()
     print_out("<green>✓ Successfully logged in.</green>")

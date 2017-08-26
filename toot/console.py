@@ -38,26 +38,33 @@ account_arg = (["account"], {
     "help": "account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'",
 })
 
+instance_arg = (["-i", "--instance"], {
+    "type": str,
+    "help": 'mastodon instance to log into e.g. "mastodon.social"',
+})
+
+email_arg = (["-e", "--email"], {
+    "type": str,
+    "help": 'email address to log in with',
+})
+
 
 AUTH_COMMANDS = [
     Command(
         name="login",
-        description="Log into a Mastodon instance",
-        arguments=[
-            (["-i", "--instance"], {
-                "type": str,
-                "help": 'mastodon instance to log into e.g. "mastodon.social"',
-            }),
-            (["-e", "--email"], {
-                "type": str,
-                "help": 'email address to log in with',
-            }),
-        ],
+        description="Log into a Mastodon instance, does NOT support two factor authentication",
+        arguments=[instance_arg, email_arg],
+        require_auth=False,
+    ),
+    Command(
+        name="login_browser",
+        description="Log in using your browser, supports regular and two factor authentication",
+        arguments=[instance_arg, email_arg],
         require_auth=False,
     ),
     Command(
         name="login_2fa",
-        description="Log in using two factor authentication (experimental)",
+        description="Log in using two factor authentication in the console (hacky, experimental)",
         arguments=[],
         require_auth=False,
     ),

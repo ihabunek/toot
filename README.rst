@@ -37,29 +37,30 @@ Running ``toot <command> -h`` shows the documentation for the given command.
     toot - a Mastodon CLI client
 
     Authentication:
-      toot login       Log into a Mastodon instance
-      toot login_2fa   Log in using two factor authentication (experimental)
-      toot logout      Log out, delete stored access keys
-      toot auth        Show stored credentials
+      toot login           Log into a Mastodon instance, does NOT support two factor authentication
+      toot login_browser   Log in using your browser, supports regular and two factor authentication
+      toot login_2fa       Log in using two factor authentication in the console (hacky, experimental)
+      toot logout          Log out, delete stored access keys
+      toot auth            Show stored credentials
 
     Read:
-      toot whoami      Display logged in user details
-      toot whois       Display account details
-      toot search      Search for users or hashtags
-      toot timeline    Show recent items in your public timeline
-      toot curses      An experimental timeline app.
+      toot whoami          Display logged in user details
+      toot whois           Display account details
+      toot search          Search for users or hashtags
+      toot timeline        Show recent items in your public timeline
+      toot curses          An experimental timeline app.
 
     Post:
-      toot post        Post a status text to your timeline
-      toot upload      Upload an image or video file
+      toot post            Post a status text to your timeline
+      toot upload          Upload an image or video file
 
     Accounts:
-      toot follow      Follow an account
-      toot unfollow    Unfollow an account
-      toot mute        Mute an account
-      toot unmute      Unmute an account
-      toot block       Block an account
-      toot unblock     Unblock an account
+      toot follow          Follow an account
+      toot unfollow        Unfollow an account
+      toot mute            Mute an account
+      toot unmute          Unmute an account
+      toot block           Block an account
+      toot unblock         Unblock an account
 
     To get help for each command run:
       toot <command> --help
@@ -77,19 +78,23 @@ It is possible to pipe status text into `toot post`, for example:
 Authentication
 --------------
 
-Before tooting, you need to login to a Mastodon instance:
+Before tooting, you need to login to a Mastodon instance.
+
+If you don't use two factor authentication you can log in directly from the command line:
 
 .. code-block::
 
     toot login
 
-**Two factor authentication** is supported experimentally, instead of ``login``, you should instead run ``login_2fa``:
+You will be asked to chose an instance_ and enter your credentials.
+
+If you do use **two factor authentication**, you need to log in through your browser:
 
 .. code-block::
 
-    toot login_2fa
+    toot login_browser
 
-You will be asked to chose an instance_ and enter your credentials.
+You will be redirected to your Mastodon instance to log in and authorize toot to access your account, and will be given an **authorization code** in return which you need to enter to log in.
 
 .. _instance: https://github.com/tootsuite/documentation/blob/master/Using-Mastodon/List-of-Mastodon-instances.md
 

@@ -4,7 +4,7 @@ import logging
 import re
 import requests
 
-from future.moves.urllib.parse import urlparse
+from future.moves.urllib.parse import urlparse, urlencode
 from requests import Request, Session
 
 from toot import CLIENT_NAME, CLIENT_WEBSITE
@@ -53,10 +53,16 @@ def _process_response(response):
     _log_response(response)
 
     if not response.ok:
+        error = "Unknown error"
+
         try:
-            error = response.json()['error']
+            data = response.json()
+            if "error_description" in data:
+                error = data['error_description']
+            elif "error" in data:
+                error = data['error']
         except:
-            error = "Unknown error"
+            pass
 
         if response.status_code == 404:
             raise NotFoundError(error)
@@ -127,6 +133,30 @@ def login(app, username, password):
     # If auth fails, it redirects to the login page
     if response.is_redirect:
         raise AuthenticationError()
+
+    return _process_response(response).json()
+
+
+def get_browser_login_url(app):
+    """Returns the URL for manual log in via browser"""
+    return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
+        "response_type": "code",
+        "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+        "scope": "read write follow",
+        "client_id": app.client_id,
+    }))
+
+
+def request_access_token(app, authorization_code):
+    url = app.base_url + '/oauth/token'
+
+    response = requests.post(url, {
+        'grant_type': 'authorization_code',
+        'client_id': app.client_id,
+        'client_secret': app.client_secret,
+        'code': authorization_code,
+        'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
+    }, allow_redirects=False)
 
     return _process_response(response).json()
 
