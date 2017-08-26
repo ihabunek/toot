@@ -30,7 +30,11 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     packages=['toot'],
-    install_requires=install_requires,
+    install_requires=[
+        "requests>=2.13,<3.0",
+        "beautifulsoup4>=4.5.0,<5.0",
+        "future>=0.16",
+    ],
     entry_points={
         'console_scripts': [
             'toot=toot.console:main',

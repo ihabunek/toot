@@ -2,9 +2,11 @@
 *.pyc
 .cache/
 build/
+deb_dist/
 dist/
 tmp/
 .pypirc
 /.env
 /.coverage
 /htmlcov
+/toot-*.tar.gz
