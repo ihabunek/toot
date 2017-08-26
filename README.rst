@@ -8,7 +8,7 @@ Interact with Mastodon social networks from the command line.
    :target: https://travis-ci.org/ihabunek/toot
 .. image:: https://img.shields.io/badge/author-%40ihabunek-blue.svg?maxAge=3600&style=flat-square
    :target: https://mastodon.social/@ihabunek
-.. image:: https://img.shields.io/github/license/ihabunek/pdf417-py.svg?maxAge=3600&style=flat-square
+.. image:: https://img.shields.io/github/license/ihabunek/toot.svg?maxAge=3600&style=flat-square
    :target: https://opensource.org/licenses/MIT
 .. image:: https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square
    :target: https://pypi.python.org/pypi/toot
