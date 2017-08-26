@@ -1,10 +1,16 @@
 Changelog
 ---------
 
+**0.14.0 (TBA)**
+
+* Add `--debug` option to enable debug logging instead of using the `TOOT_DEBUG`
+  environment variable.
+
 **0.13.0 (2017-08-26)**
 
 * Allow passing `--instance` and `--email` to login command
-* Add `login_browser` command for proper two factor authentication through the browser (#19, #23)
+* Add `login_browser` command for proper two factor authentication through the
+  browser (#19, #23)
 
 **0.12.0 (2017-05-08)**
 

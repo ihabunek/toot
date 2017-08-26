@@ -31,6 +31,11 @@ common_args = [
         "help": "don't use ANSI colors in output",
         "action": 'store_true',
         "default": False,
+    }),
+    (["--debug"], {
+        "help": "show debug log in console",
+        "action": 'store_true',
+        "default": False,
     })
 ]
 
@@ -279,7 +284,8 @@ def run_command(app, user, name, args):
 
 
 def main():
-    if os.getenv('TOOT_DEBUG'):
+    # Enable debug log if --debug is in args
+    if "--debug" in sys.argv:
         logging.basicConfig(level=logging.DEBUG)
 
     # If something is piped in, append it to commandline arguments
