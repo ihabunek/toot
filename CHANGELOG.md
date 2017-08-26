@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.13.0 (TBA)**
+
+* Allow passing `--instance` and `--email` to login command
+
 **0.12.0 (2016-05-08)**
 
 * Add option to disable ANSI color in output (#15)

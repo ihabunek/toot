@@ -35,24 +35,26 @@ def register_app(instance):
     return app
 
 
-def create_app_interactive():
-    print_out("Choose an instance [<green>{}</green>]: ".format(DEFAULT_INSTANCE), end="")
-
-    instance = input()
+def create_app_interactive(instance=None):
     if not instance:
-        instance = DEFAULT_INSTANCE
+        print_out("Choose an instance [<green>{}</green>]: ".format(DEFAULT_INSTANCE), end="")
+        instance = input()
+        if not instance:
+            instance = DEFAULT_INSTANCE
 
     return config.load_app(instance) or register_app(instance)
 
 
-def login_interactive(app):
-    print_out("\nLog in to <green>{}</green>".format(app.instance))
+def login_interactive(app, email=None):
+    print_out("Log in to <green>{}</green>".format(app.instance))
 
-    email = input('Email: ')
+    if email:
+        print_out("Email: <green>{}</green>".format(email))
+
+    while not email:
+        email = input('Email: ')
+
     password = getpass('Password: ')
-
-    if not email or not password:
-        raise ConsoleError("Email and password cannot be empty.")
 
     try:
         print_out("Authenticating...")
@@ -199,8 +201,8 @@ def auth(app, user, args):
 
 
 def login(app, user, args):
-    app = create_app_interactive()
-    login_interactive(app)
+    app = create_app_interactive(instance=args.instance)
+    login_interactive(app, args.email)
 
     print_out()
     print_out("<green>✓ Successfully logged in.</green>")

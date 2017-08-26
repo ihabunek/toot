@@ -43,7 +43,16 @@ AUTH_COMMANDS = [
     Command(
         name="login",
         description="Log into a Mastodon instance",
-        arguments=[],
+        arguments=[
+            (["-i", "--instance"], {
+                "type": str,
+                "help": 'mastodon instance to log into e.g. "mastodon.social"',
+            }),
+            (["-e", "--email"], {
+                "type": str,
+                "help": 'email address to log in with',
+            }),
+        ],
         require_auth=False,
     ),
     Command(
