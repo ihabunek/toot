@@ -17,7 +17,16 @@ Interact with Mastodon social networks from the command line.
 Installation
 ------------
 
-Install using pip:
+On Debian or Ubuntu running Python 3, download the .deb package from the
+`latest release <https://github.com/ihabunek/toot/releases/latest>`_ and install it
+using apt. This will also install the required prerequisites.
+
+.. code-block::
+
+    apt install ./python3-toot_0.13.0-1_all.deb
+
+
+Otherwise, install from PyPI using pip, preferably into a virtual environment:
 
 .. code-block::
 
