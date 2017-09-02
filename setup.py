@@ -5,9 +5,6 @@ from setuptools import setup
 with open("README.rst") as readme:
     long_description = readme.read()
 
-with open("requirements.txt") as f:
-    install_requires = f.read().split()
-
 setup(
     name='toot',
     version='0.13.0',
