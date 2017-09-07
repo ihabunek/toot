@@ -1,10 +1,12 @@
 Changelog
 ---------
 
-**0.14.0 (TBA)**
+**0.14.0 (2017-09-07)**
 
 * Add `--debug` option to enable debug logging instead of using the `TOOT_DEBUG`
   environment variable.
+* Fix: don't read requirements.txt from setup.py, this fails when packaging deb
+  and potentially in some other cases (see #18)
 
 **0.13.0 (2017-08-26)**
 
