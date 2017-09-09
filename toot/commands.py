@@ -16,7 +16,6 @@ from textwrap import TextWrapper, wrap
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
 from toot.output import print_out
-from toot.app import TimelineApp
 
 
 def register_app(instance):
@@ -177,6 +176,7 @@ def timeline(app, user, args):
 
 
 def curses(app, user, args):
+    from toot.app import TimelineApp
     generator = api.timeline_generator(app, user)
     TimelineApp(generator).run()
 

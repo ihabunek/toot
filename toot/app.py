@@ -2,12 +2,18 @@
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import curses
 import webbrowser
 
 from textwrap import wrap
 
+from toot import ConsoleError
 from toot.utils import format_content
+
+# Attempt to load curses, which is not available on windows
+try:
+    import curses
+except ImportError as e:
+    raise ConsoleError("Curses is not available on this platform")
 
 
 class Color:

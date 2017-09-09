@@ -127,7 +127,7 @@ READ_COMMANDS = [
     ),
     Command(
         name="curses",
-        description="An experimental timeline app.",
+        description="An experimental timeline app (doesn't work on Windows)",
         arguments=[],
         require_auth=True,
     ),
