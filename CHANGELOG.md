@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.15.0 (2017-09-09)**
+
+* Fix Windows compatibility (#18)
+
 **0.14.0 (2017-09-07)**
 
 * Add `--debug` option to enable debug logging instead of using the `TOOT_DEBUG`
