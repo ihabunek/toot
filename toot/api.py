@@ -99,7 +99,7 @@ def _post(app, user, url, data=None, files=None):
 
 
 def _account_action(app, user, account, action):
-    url = '/api/v1/accounts/%d/%s' % (account, action)
+    url = '/api/v1/accounts/{}/{}'.format(account, action)
 
     return _post(app, user, url).json()
 
