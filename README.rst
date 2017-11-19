@@ -2,7 +2,7 @@
 Toot - a Mastodon CLI client
 ============================
 
-Interact with Mastodon social networks from the command line.
+Interact with Mastodon social network from the command line.
 
 .. image:: https://img.shields.io/travis/ihabunek/toot.svg?maxAge=3600&style=flat-square
    :target: https://travis-ci.org/ihabunek/toot
@@ -28,7 +28,7 @@ Add the `bezdomni.net` repository:
 
 .. code-block::
 
-    echo "deb http://bezdomni.net/packages/ ./" | sudo tee /etc/apt/sources.list.d/bezomni.list
+    echo "deb http://bezdomni.net/packages/ ./" | sudo tee /etc/apt/sources.list.d/bezdomni.list
     curl https://keybase.io/ihabunek/pgp_keys.asc | sudo apt-key add -
 
 Install the package:
