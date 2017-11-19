@@ -142,6 +142,6 @@ And you can logout which will remove the stored access tokens:
 License
 -------
 
-Copyright © 2017 Ivan Habunek <ivan@habunek.com>
+Copyright 2017 Ivan Habunek <ivan@habunek.com>
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
