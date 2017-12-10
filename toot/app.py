@@ -216,8 +216,9 @@ class TimelineApp:
         window.addstr(y, 1, '-' * (text_width + 2))
         y += 1
 
-        window.addstr(y, 2, status['url'])
-        y += 1
+        if status['url'] is not None:
+            window.addstr(y, 2, status['url'])
+            y += 1
 
         if status['boosted_by']:
             acct = status['boosted_by']['acct']
