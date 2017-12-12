@@ -14,7 +14,7 @@ setup(
     author_email='ivan@habunek.com',
     url='https://github.com/ihabunek/toot/',
     keywords='mastodon toot',
-    license='MIT',
+    license='GPLv3',
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
