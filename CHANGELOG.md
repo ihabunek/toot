@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.15.1 (2017-12-12)**
+
+* Fix crash when toot's URL is None (#33), thanks @veer66
+
 **0.15.0 (2017-09-09)**
 
 * Fix Windows compatibility (#18)
