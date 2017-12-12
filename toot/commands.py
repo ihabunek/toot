@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from __future__ import print_function
 
 import json
 import requests
@@ -9,7 +7,7 @@ import webbrowser
 from bs4 import BeautifulSoup
 from builtins import input
 from datetime import datetime
-from future.moves.itertools import zip_longest
+from itertools import zip_longest
 from getpass import getpass
 from itertools import chain
 from textwrap import TextWrapper, wrap

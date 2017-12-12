@@ -4,7 +4,7 @@ import logging
 import re
 import requests
 
-from future.moves.urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse, urlencode
 from requests import Request, Session
 
 from toot import CLIENT_NAME, CLIENT_WEBSITE

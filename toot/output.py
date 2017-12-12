@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from __future__ import print_function
 
 import sys
 import re
-
 
 START_CODES = {
     'red':     '\033[31m',
