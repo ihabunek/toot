@@ -38,6 +38,22 @@ Install the package:
     sudo apt update
     sudo apt install python3-toot
 
+From OpenBSD ports:
+~~~~~~~~~~~~~~~~~~~
+
+Install the package:
+
+.. code-block::
+
+    pkg_add toot
+
+Build and install from sources:
+
+.. code-block::
+
+    cd /usr/ports/net/toot
+    make install
+
 From Python Package Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
