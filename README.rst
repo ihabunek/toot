@@ -54,7 +54,7 @@ Build and install from sources:
     cd /usr/ports/net/toot
     make install
 
-Thanks to `kl3@chaos.social <https://chaos.social/@kl3>`_ for handling the OpenBSD ports.
+Thanks to `Klemens Nanni <mailto:kl3@posteo.org>`_ for handling the OpenBSD ports.
 
 From Python Package Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~
