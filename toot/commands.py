@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
-import requests
 import webbrowser
 
 from bs4 import BeautifulSoup
@@ -70,57 +68,6 @@ def login_interactive(app, email=None):
         raise ConsoleError("Login failed")
 
     return create_user(app, email, response['access_token'])
-
-
-def two_factor_login_interactive(app):
-    """Hacky implementation of two factor authentication"""
-
-    print_out("Log in to {}".format(app.instance))
-    email = input('Email: ')
-    password = getpass('Password: ')
-
-    sign_in_url = app.base_url + '/auth/sign_in'
-
-    session = requests.Session()
-
-    # Fetch sign in form
-    response = session.get(sign_in_url)
-    response.raise_for_status()
-
-    soup = BeautifulSoup(response.content, "html.parser")
-    form = soup.find('form')
-    inputs = form.find_all('input')
-
-    data = {i.attrs.get('name'): i.attrs.get('value') for i in inputs}
-    data['user[email]'] = email
-    data['user[password]'] = password
-
-    # Submit form, get 2FA entry form
-    response = session.post(sign_in_url, data)
-    response.raise_for_status()
-
-    soup = BeautifulSoup(response.content, "html.parser")
-    form = soup.find('form')
-    inputs = form.find_all('input')
-
-    data = {i.attrs.get('name'): i.attrs.get('value') for i in inputs}
-    data['user[otp_attempt]'] = input("2FA Token: ")
-
-    # Submit token
-    response = session.post(sign_in_url, data)
-    response.raise_for_status()
-
-    # Extract access token from response
-    soup = BeautifulSoup(response.content, "html.parser")
-    initial_state = soup.find('script', id='initial-state')
-
-    if not initial_state:
-        raise ConsoleError("Login failed: Invalid 2FA token?")
-
-    data = json.loads(initial_state.get_text())
-    access_token = data['meta']['access_token']
-
-    return create_user(app, email, access_token)
 
 
 def _print_timeline(item):
@@ -204,20 +151,6 @@ def auth(app, user, args):
 def login(app, user, args):
     app = create_app_interactive(instance=args.instance)
     login_interactive(app, args.email)
-
-    print_out()
-    print_out("<green>✓ Successfully logged in.</green>")
-
-
-def login_2fa(app, user, args):
-    print_out()
-    print_out("<yellow>Two factor authentication is experimental.</yellow>")
-    print_out("<yellow>If you have problems logging in, please open an issue:</yellow>")
-    print_out("<yellow>https://github.com/ihabunek/toot/issues</yellow>")
-    print_out()
-
-    app = create_app_interactive()
-    two_factor_login_interactive(app)
 
     print_out()
     print_out("<green>✓ Successfully logged in.</green>")

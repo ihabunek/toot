@@ -79,9 +79,8 @@ Running ``toot <command> -h`` shows the documentation for the given command.
     toot - a Mastodon CLI client
 
     Authentication:
-      toot login           Log into a Mastodon instance, does NOT support two factor authentication
+      toot login           Log in from the console, does NOT support two factor authentication
       toot login_browser   Log in using your browser, supports regular and two factor authentication
-      toot login_2fa       Log in using two factor authentication in the console (hacky, experimental)
       toot logout          Log out, delete stored access keys
       toot auth            Show stored credentials
 
@@ -90,7 +89,7 @@ Running ``toot <command> -h`` shows the documentation for the given command.
       toot whois           Display account details
       toot search          Search for users or hashtags
       toot timeline        Show recent items in your public timeline
-      toot curses          An experimental timeline app.
+      toot curses          An experimental timeline app (doesn't work on Windows)
 
     Post:
       toot post            Post a status text to your timeline

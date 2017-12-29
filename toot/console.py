@@ -54,7 +54,7 @@ email_arg = (["-e", "--email"], {
 AUTH_COMMANDS = [
     Command(
         name="login",
-        description="Log into a Mastodon instance, does NOT support two factor authentication",
+        description="Log in from the console, does NOT support two factor authentication",
         arguments=[instance_arg, email_arg],
         require_auth=False,
     ),
@@ -62,12 +62,6 @@ AUTH_COMMANDS = [
         name="login_browser",
         description="Log in using your browser, supports regular and two factor authentication",
         arguments=[instance_arg, email_arg],
-        require_auth=False,
-    ),
-    Command(
-        name="login_2fa",
-        description="Log in using two factor authentication in the console (hacky, experimental)",
-        arguments=[],
         require_auth=False,
     ),
     Command(
