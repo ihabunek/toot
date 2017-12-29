@@ -4,7 +4,7 @@ import sys
 import re
 
 from textwrap import wrap
-from toot.utils import format_content
+from toot.utils import format_content, get_text
 
 START_CODES = {
     'red':     '\033[31m',
@@ -70,3 +70,43 @@ def print_instance(instance):
         for l in wrap(line.strip()):
             print(l)
         print()
+
+
+def print_account(account):
+    print_out("<green>@{}</green> {}".format(account['acct'], account['display_name']))
+
+    note = get_text(account['note'])
+
+    if note:
+        print_out("")
+        print_out("\n".join(wrap(note)))
+
+    print_out("")
+    print_out("ID: <green>{}</green>".format(account['id']))
+    print_out("Since: <green>{}</green>".format(account['created_at'][:19].replace('T', ' @ ')))
+    print_out("")
+    print_out("Followers: <yellow>{}</yellow>".format(account['followers_count']))
+    print_out("Following: <yellow>{}</yellow>".format(account['following_count']))
+    print_out("Statuses: <yellow>{}</yellow>".format(account['statuses_count']))
+    print_out("")
+    print_out(account['url'])
+
+
+def print_search_results(results):
+    accounts = results['accounts']
+    hashtags = results['hashtags']
+
+    if accounts:
+        print_out("\nAccounts:")
+        for account in accounts:
+            print_out("* <green>@{}</green> {}".format(
+                account['acct'],
+                account['display_name']
+            ))
+
+    if hashtags:
+        print_out("\nHashtags:")
+        print_out(", ".join(["<green>#{}</green>".format(t) for t in hashtags]))
+
+    if not accounts and not hashtags:
+        print_out("<yellow>Nothing found</yellow>")

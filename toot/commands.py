@@ -8,10 +8,10 @@ from datetime import datetime
 from itertools import zip_longest
 from getpass import getpass
 from itertools import chain
-from textwrap import TextWrapper, wrap
+from textwrap import TextWrapper
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
-from toot.output import print_out, print_instance
+from toot.output import print_out, print_instance, print_account, print_search_results
 
 
 def register_app(instance):
@@ -213,31 +213,9 @@ def upload(app, user, args):
     print_out("Text URL:     <green>{}</green>".format(response['text_url']))
 
 
-def _print_accounts(accounts):
-    if not accounts:
-        return
-
-    print_out("\nAccounts:")
-    for account in accounts:
-        print_out("* <green>@{}</green> {}".format(
-            account['acct'],
-            account['display_name']
-        ))
-
-
-def _print_hashtags(hashtags):
-    if not hashtags:
-        return
-
-    print_out("\nHashtags:")
-    print_out(", ".join(["<green>#{}</green>".format(t) for t in hashtags]))
-
-
 def search(app, user, args):
     response = api.search(app, user, args.query, args.resolve)
-
-    _print_accounts(response['accounts'])
-    _print_hashtags(response['hashtags'])
+    print_search_results(response)
 
 
 def _do_upload(app, user, file):
@@ -263,26 +241,6 @@ def _find_account(app, user, account_name):
             return account
 
     raise ConsoleError("Account not found")
-
-
-def _print_account(account):
-    print_out("<green>@{}</green> {}".format(account['acct'], account['display_name']))
-
-    note = BeautifulSoup(account['note'], "html.parser").get_text()
-
-    if note:
-        print_out("")
-        print_out("\n".join(wrap(note)))
-
-    print_out("")
-    print_out("ID: <green>{}</green>".format(account['id']))
-    print_out("Since: <green>{}</green>".format(account['created_at'][:19].replace('T', ' @ ')))
-    print_out("")
-    print_out("Followers: <yellow>{}</yellow>".format(account['followers_count']))
-    print_out("Following: <yellow>{}</yellow>".format(account['following_count']))
-    print_out("Statuses: <yellow>{}</yellow>".format(account['statuses_count']))
-    print_out("")
-    print_out(account['url'])
 
 
 def follow(app, user, args):
@@ -323,12 +281,12 @@ def unblock(app, user, args):
 
 def whoami(app, user, args):
     account = api.verify_credentials(app, user)
-    _print_account(account)
+    print_account(account)
 
 
 def whois(app, user, args):
     account = _find_account(app, user, args.account)
-    _print_account(account)
+    print_account(account)
 
 
 def instance(app, user, args):
