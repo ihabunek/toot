@@ -2,14 +2,18 @@
 
 from setuptools import setup
 
-with open("README.rst") as readme:
-    long_description = readme.read()
+long_description = """
+toot is a commandline tool for interacting with Mastodon social networks.
+Allows posting text and media to the timeline, searching, following, muting
+and blocking accounts and other actions.
+Contains an experimental curses application for reading the timeline.
+"""
 
 setup(
     name='toot',
     version='0.15.1',
-    description='Interact with Mastodon social networks from the command line.',
-    long_description=long_description,
+    description='Mastodon CLI client',
+    long_description=long_description.strip(),
     author='Ivan Habunek',
     author_email='ivan@habunek.com',
     url='https://github.com/ihabunek/toot/',
