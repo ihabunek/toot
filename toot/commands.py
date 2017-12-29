@@ -11,7 +11,7 @@ from itertools import chain
 from textwrap import TextWrapper, wrap
 
 from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
-from toot.output import print_out
+from toot.output import print_out, print_instance
 
 
 def register_app(instance):
@@ -329,3 +329,12 @@ def whoami(app, user, args):
 def whois(app, user, args):
     account = _find_account(app, user, args.account)
     _print_account(account)
+
+
+def instance(app, user, args):
+    name = args.instance or (app and app.instance)
+    if not name:
+        raise ConsoleError("Please specify instance name.")
+
+    instance = api.get_instance(app, user, name)
+    print_instance(instance)

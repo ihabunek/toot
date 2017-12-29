@@ -3,6 +3,9 @@
 import sys
 import re
 
+from textwrap import wrap
+from toot.utils import format_content
+
 START_CODES = {
     'red':     '\033[31m',
     'green':   '\033[32m',
@@ -50,3 +53,20 @@ def print_err(*args, **kwargs):
     args = ["<red>{}</red>".format(a) for a in args]
     args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
     print(*args, file=sys.stderr, **kwargs)
+
+
+def print_instance(instance):
+    print_out("<green>{}</green>".format(instance['title']))
+    print_out("<blue>{}</blue>".format(instance['uri']))
+    print_out("running Mastodon {}".format(instance['version']))
+    print_out("")
+
+    description = instance['description'].strip()
+    if not description:
+        return
+
+    lines = [line.strip() for line in format_content(description) if line.strip()]
+    for line in lines:
+        for l in wrap(line.strip()):
+            print(l)
+        print()

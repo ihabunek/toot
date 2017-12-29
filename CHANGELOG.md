@@ -3,9 +3,10 @@ Changelog
 
 **0.16.0 (TBA)**
 
-* **Dropped support for Python 2** because it's a pain to support and was
-  causing bugs with handling unicode.
+* **Drop support for Python 2** because it's a pain to support and caused bugs
+  with handling unicode.
 * Remove hacky `login_2fa` command, use `login_browser` instead
+* Add `instance` command
 
 **0.15.1 (2017-12-12)**
 

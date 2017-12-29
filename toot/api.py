@@ -4,10 +4,11 @@ import logging
 import re
 import requests
 
-from urllib.parse import urlparse, urlencode
 from requests import Request, Session
+from urllib.parse import urlparse, urlencode
 
 from toot import CLIENT_NAME, CLIENT_WEBSITE
+from toot.utils import domain_exists
 
 SCOPES = 'read write follow'
 
@@ -28,7 +29,9 @@ class AuthenticationError(ApiError):
 
 def _log_request(request):
     logger.debug(">>> \033[32m{} {}\033[0m".format(request.method, request.url))
-    logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(request.headers))
+
+    if request.headers:
+        logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(request.headers))
 
     if request.data:
         logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
@@ -79,6 +82,14 @@ def _get(app, user, url, params=None):
     _log_request(Request('GET', url, headers, params=params))
 
     response = requests.get(url, params, headers=headers)
+
+    return _process_response(response)
+
+
+def _unauthorized_get(url, params=None):
+    _log_request(Request('GET', url, None, params=params))
+
+    response = requests.get(url, params)
 
     return _process_response(response)
 
@@ -239,3 +250,18 @@ def verify_credentials(app, user):
 
 def get_notifications(app, user):
     return _get(app, user, '/api/v1/notifications').json()
+
+
+def get_instance(app, user, domain):
+    if not domain_exists(domain):
+        raise ApiError("Domain {} not found".format(domain))
+
+    url = "http://{}/api/v1/instance".format(domain)
+
+    try:
+        return _unauthorized_get(url).json()
+    except NotFoundError:
+        raise ApiError(
+            "Instance info not found at {}.\n"
+            "The given domain probably does not host a Mastodon instance.".format(url)
+        )

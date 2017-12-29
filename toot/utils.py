@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import socket
 
 from bs4 import BeautifulSoup
 
@@ -41,3 +42,11 @@ def format_content(content):
             yield line
 
         first = False
+
+
+def domain_exists(name):
+    try:
+        socket.gethostbyname(name)
+        return True
+    except OSError:
+        return False

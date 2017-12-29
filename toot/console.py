@@ -96,6 +96,18 @@ READ_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="instance",
+        description="Display instance details",
+        arguments=[
+            (["instance"], {
+                "help": "instance domain (e.g. 'mastodon.social') or blank to use current",
+                "nargs": "?",
+            }),
+
+        ],
+        require_auth=False,
+    ),
+    Command(
         name="search",
         description="Search for users or hashtags",
         arguments=[
