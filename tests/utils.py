@@ -10,3 +10,7 @@ class MockResponse:
 
     def json(self):
         return self.response_data
+
+
+def retval(val):
+    return lambda *args, **kwargs: val
