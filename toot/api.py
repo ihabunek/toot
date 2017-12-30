@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import re
 import requests
 
@@ -9,10 +8,9 @@ from urllib.parse import urlparse, urlencode
 
 from toot import CLIENT_NAME, CLIENT_WEBSITE
 from toot.utils import domain_exists
+from toot.logging import log_request, log_response
 
 SCOPES = 'read write follow'
-
-logger = logging.getLogger('toot')
 
 
 class ApiError(Exception):
@@ -27,33 +25,8 @@ class AuthenticationError(ApiError):
     pass
 
 
-def _log_request(request):
-    logger.debug(">>> \033[32m{} {}\033[0m".format(request.method, request.url))
-
-    if request.headers:
-        logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(request.headers))
-
-    if request.data:
-        logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
-
-    if request.files:
-        logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
-
-    if request.params:
-        logger.debug(">>> PARAMS:  \033[33m{}\033[0m".format(request.params))
-
-
-def _log_response(response):
-    if response.ok:
-        logger.debug("<<< \033[32m{}\033[0m".format(response))
-        logger.debug("<<< \033[33m{}\033[0m".format(response.json()))
-    else:
-        logger.debug("<<< \033[31m{}\033[0m".format(response))
-        logger.debug("<<< \033[31m{}\033[0m".format(response.content))
-
-
 def _process_response(response):
-    _log_response(response)
+    log_response(response)
 
     if not response.ok:
         error = "Unknown error"
@@ -79,7 +52,7 @@ def _get(app, user, url, params=None):
     url = app.base_url + url
     headers = {"Authorization": "Bearer " + user.access_token}
 
-    _log_request(Request('GET', url, headers, params=params))
+    log_request(Request('GET', url, headers, params=params))
 
     response = requests.get(url, params, headers=headers)
 
@@ -87,7 +60,7 @@ def _get(app, user, url, params=None):
 
 
 def _unauthorized_get(url, params=None):
-    _log_request(Request('GET', url, None, params=params))
+    log_request(Request('GET', url, None, params=params))
 
     response = requests.get(url, params)
 
@@ -102,7 +75,7 @@ def _post(app, user, url, data=None, files=None):
     request = Request('POST', url, headers, files, data)
     prepared_request = request.prepare()
 
-    _log_request(request)
+    log_request(request)
 
     response = session.send(prepared_request)
 
