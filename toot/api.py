@@ -3,78 +3,19 @@
 import re
 import requests
 
-from requests import Request, Session
 from urllib.parse import urlparse, urlencode
 
-from toot import CLIENT_NAME, CLIENT_WEBSITE
-from toot.utils import domain_exists
-from toot.logging import log_request, log_response
+from toot import http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import ApiError, AuthenticationError, NotFoundError
+from toot.utils import domain_exists
 
 SCOPES = 'read write follow'
-
-
-def _process_response(response):
-    log_response(response)
-
-    if not response.ok:
-        error = "Unknown error"
-
-        try:
-            data = response.json()
-            if "error_description" in data:
-                error = data['error_description']
-            elif "error" in data:
-                error = data['error']
-        except Exception:
-            pass
-
-        if response.status_code == 404:
-            raise NotFoundError(error)
-
-        raise ApiError(error)
-
-    return response
-
-
-def _get(app, user, url, params=None):
-    url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
-
-    log_request(Request('GET', url, headers, params=params))
-
-    response = requests.get(url, params, headers=headers)
-
-    return _process_response(response)
-
-
-def _unauthorized_get(url, params=None):
-    log_request(Request('GET', url, None, params=params))
-
-    response = requests.get(url, params)
-
-    return _process_response(response)
-
-
-def _post(app, user, url, data=None, files=None):
-    url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
-
-    session = Session()
-    request = Request('POST', url, headers, files, data)
-    prepared_request = request.prepare()
-
-    log_request(request)
-
-    response = session.send(prepared_request)
-
-    return _process_response(response)
 
 
 def _account_action(app, user, account, action):
     url = '/api/v1/accounts/{}/{}'.format(account, action)
 
-    return _post(app, user, url).json()
+    return http.post(app, user, url).json()
 
 
 def create_app(instance):
@@ -88,7 +29,7 @@ def create_app(instance):
         'website': CLIENT_WEBSITE,
     })
 
-    return _process_response(response).json()
+    return http.process_response(response).json()
 
 
 def login(app, username, password):
@@ -107,7 +48,7 @@ def login(app, username, password):
     if response.is_redirect:
         raise AuthenticationError()
 
-    return _process_response(response).json()
+    return http.process_response(response).json()
 
 
 def get_browser_login_url(app):
@@ -131,11 +72,11 @@ def request_access_token(app, authorization_code):
         'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
     }, allow_redirects=False)
 
-    return _process_response(response).json()
+    return http.process_response(response).json()
 
 
 def post_status(app, user, status, visibility='public', media_ids=None):
-    return _post(app, user, '/api/v1/statuses', {
+    return http.post(app, user, '/api/v1/statuses', {
         'status': status,
         'media_ids[]': media_ids,
         'visibility': visibility,
@@ -143,7 +84,7 @@ def post_status(app, user, status, visibility='public', media_ids=None):
 
 
 def timeline_home(app, user):
-    return _get(app, user, '/api/v1/timelines/home').json()
+    return http.get(app, user, '/api/v1/timelines/home').json()
 
 
 def _get_next_path(headers):
@@ -158,26 +99,26 @@ def timeline_generator(app, user):
     next_path = '/api/v1/timelines/home'
 
     while next_path:
-        response = _get(app, user, next_path)
+        response = http.get(app, user, next_path)
         yield response.json()
         next_path = _get_next_path(response.headers)
 
 
 def upload_media(app, user, file):
-    return _post(app, user, '/api/v1/media', files={
+    return http.post(app, user, '/api/v1/media', files={
         'file': file
     }).json()
 
 
 def search(app, user, query, resolve):
-    return _get(app, user, '/api/v1/search', {
+    return http.get(app, user, '/api/v1/search', {
         'q': query,
         'resolve': resolve,
     }).json()
 
 
 def search_accounts(app, user, query):
-    return _get(app, user, '/api/v1/accounts/search', {
+    return http.get(app, user, '/api/v1/accounts/search', {
         'q': query,
     }).json()
 
@@ -207,11 +148,11 @@ def unblock(app, user, account):
 
 
 def verify_credentials(app, user):
-    return _get(app, user, '/api/v1/accounts/verify_credentials').json()
+    return http.get(app, user, '/api/v1/accounts/verify_credentials').json()
 
 
 def get_notifications(app, user):
-    return _get(app, user, '/api/v1/notifications').json()
+    return http.get(app, user, '/api/v1/notifications').json()
 
 
 def get_instance(app, user, domain):
@@ -221,7 +162,7 @@ def get_instance(app, user, domain):
     url = "http://{}/api/v1/instance".format(domain)
 
     try:
-        return _unauthorized_get(url).json()
+        return http.unauthorized_get(url).json()
     except NotFoundError:
         raise ApiError(
             "Instance info not found at {}.\n"
