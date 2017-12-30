@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import pytest
-import requests
 
 from requests import Request
 
@@ -10,7 +9,7 @@ from tests.utils import MockResponse, Expectations
 
 
 def test_create_app(monkeypatch):
-    request = Request('POST', 'http://bigfish.software/api/v1/apps',
+    request = Request('POST', 'https://bigfish.software/api/v1/apps',
                       data={'website': CLIENT_WEBSITE,
                             'client_name': CLIENT_NAME,
                             'scopes': SCOPES,
