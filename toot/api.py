@@ -17,7 +17,7 @@ def _account_action(app, user, account, action):
 
 
 def create_app(domain):
-    url = 'http://{}/api/v1/apps'.format(domain)
+    url = 'https://{}/api/v1/apps'.format(domain)
 
     data = {
         'client_name': CLIENT_NAME,
