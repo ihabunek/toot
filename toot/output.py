@@ -7,12 +7,12 @@ from textwrap import wrap
 from toot.utils import format_content, get_text
 
 START_CODES = {
-    'red':     '\033[31m',
-    'green':   '\033[32m',
-    'yellow':  '\033[33m',
-    'blue':    '\033[34m',
+    'red': '\033[31m',
+    'green': '\033[32m',
+    'yellow': '\033[33m',
+    'blue': '\033[34m',
     'magenta': '\033[35m',
-    'cyan':    '\033[36m',
+    'cyan': '\033[36m',
 }
 
 END_CODE = '\033[0m'

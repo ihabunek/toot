@@ -74,7 +74,7 @@ def post(app, user, args):
     else:
         media_ids = None
 
-    response = api.post_status(app, user, args.text, media_ids=media_ids, visibility=args.visibility)
+    response = api.post_status(app, user, args.text, args.visibility, media_ids)
 
     print_out("Toot posted: <green>{}</green>".format(response.get('url')))
 
@@ -83,8 +83,10 @@ def auth(app, user, args):
     if app and user:
         print_out("You are logged in to <yellow>{}</yellow> as <yellow>{}</yellow>\n".format(
             app.instance, user.username))
-        print_out("User data: <green>{}</green>".format(config.get_user_config_path()))
-        print_out("App data:  <green>{}</green>".format(config.get_instance_config_path(app.instance)))
+        print_out("User data: <green>{}</green>".format(
+            config.get_user_config_path()))
+        print_out("App data:  <green>{}</green>".format(
+            config.get_instance_config_path(app.instance)))
     else:
         print_out("You are not logged in")
 
@@ -114,9 +116,10 @@ def logout(app, user, args):
 def upload(app, user, args):
     response = _do_upload(app, user, args.file)
 
+    msg = "Successfully uploaded media ID <yellow>{}</yellow>, type '<yellow>{}</yellow>'"
+
     print_out()
-    print_out("Successfully uploaded media ID <yellow>{}</yellow>, type '<yellow>{}</yellow>'".format(
-         response['id'],  response['type']))
+    print_out(msg.format(response['id'], response['type']))
     print_out("Original URL: <green>{}</green>".format(response['url']))
     print_out("Preview URL:  <green>{}</green>".format(response['preview_url']))
     print_out("Text URL:     <green>{}</green>".format(response['text_url']))

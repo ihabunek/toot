@@ -37,7 +37,7 @@ def _process_response(response):
                 error = data['error_description']
             elif "error" in data:
                 error = data['error']
-        except:
+        except Exception:
             pass
 
         if response.status_code == 404:
