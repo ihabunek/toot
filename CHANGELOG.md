@@ -1,12 +1,13 @@
 Changelog
 ---------
 
-**0.16.0 (TBA)**
+**0.16.0 (2017-12-30)**
 
 * **Drop support for Python 2** because it's a pain to support and caused bugs
   with handling unicode.
 * Remove hacky `login_2fa` command, use `login_browser` instead
 * Add `instance` command
+* Allow `post`ing media without text (#24)
 
 **0.15.1 (2017-12-12)**
 
