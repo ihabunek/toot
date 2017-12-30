@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.16.1 (2017-12-30)**
+
+* Fix bug with app registration
+
 **0.16.0 (2017-12-30)**
 
 * **Drop support for Python 2** because it's a pain to support and caused bugs
