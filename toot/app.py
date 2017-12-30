@@ -4,7 +4,7 @@ import webbrowser
 
 from textwrap import wrap
 
-from toot import ConsoleError
+from toot.exceptions import ConsoleError
 from toot.utils import format_content
 
 # Attempt to load curses, which is not available on windows

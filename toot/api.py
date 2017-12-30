@@ -9,20 +9,9 @@ from urllib.parse import urlparse, urlencode
 from toot import CLIENT_NAME, CLIENT_WEBSITE
 from toot.utils import domain_exists
 from toot.logging import log_request, log_response
+from toot.exceptions import ApiError, AuthenticationError, NotFoundError
 
 SCOPES = 'read write follow'
-
-
-class ApiError(Exception):
-    pass
-
-
-class NotFoundError(ApiError):
-    pass
-
-
-class AuthenticationError(ApiError):
-    pass
 
 
 def _process_response(response):

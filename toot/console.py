@@ -5,7 +5,8 @@ import logging
 
 from argparse import ArgumentParser, FileType
 from collections import namedtuple
-from toot import config, api, commands, ConsoleError, CLIENT_NAME, CLIENT_WEBSITE
+from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE
+from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
 
 
@@ -311,6 +312,6 @@ def main():
     except ConsoleError as e:
         print_err(str(e))
         sys.exit(1)
-    except api.ApiError as e:
+    except ApiError as e:
         print_err(str(e))
         sys.exit(1)

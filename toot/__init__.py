@@ -9,7 +9,3 @@ DEFAULT_INSTANCE = 'mastodon.social'
 
 CLIENT_NAME = 'toot - a Mastodon CLI client'
 CLIENT_WEBSITE = 'https://github.com/ihabunek/toot'
-
-
-class ConsoleError(Exception):
-    pass

@@ -5,7 +5,8 @@ import webbrowser
 from builtins import input
 from getpass import getpass
 
-from toot import api, config, DEFAULT_INSTANCE, User, App, ConsoleError
+from toot import api, config, DEFAULT_INSTANCE, User, App
+from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
 
 
@@ -59,7 +60,7 @@ def login_interactive(app, email=None):
     try:
         print_out("Authenticating...")
         response = api.login(app, email, password)
-    except api.ApiError:
+    except ApiError:
         raise ConsoleError("Login failed")
 
     return create_user(app, email, response['access_token'])

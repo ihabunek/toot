@@ -3,7 +3,8 @@ import pytest
 import requests
 import re
 
-from toot import console, User, App, ConsoleError
+from toot import console, User, App
+from toot.exceptions import ConsoleError
 
 from tests.utils import MockResponse
 

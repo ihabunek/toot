@@ -6,8 +6,9 @@ from itertools import zip_longest
 from itertools import chain
 from textwrap import TextWrapper
 
-from toot import api, config, ConsoleError
+from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
+from toot.exceptions import ConsoleError
 from toot.output import print_out, print_instance, print_account, print_search_results
 
 
