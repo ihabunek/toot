@@ -1,24 +1,37 @@
-import requests
-
-from toot.logging import log_request, log_response
 from requests import Request, Session
 from toot.exceptions import NotFoundError, ApiError
+from toot.logging import log_request, log_response
+
+
+def send_request(request, allow_redirects=True):
+    log_request(request)
+
+    with Session() as session:
+        prepared = session.prepare_request(request)
+        response = session.send(prepared, allow_redirects=allow_redirects)
+
+    log_response(response)
+
+    return response
+
+
+def _get_error_message(response):
+    """Attempt to extract an error message from response body"""
+    try:
+        data = response.json()
+        if "error_description" in data:
+            return data['error_description']
+        if "error" in data:
+            return data['error']
+    except Exception:
+        pass
+
+    return "Unknown error"
 
 
 def process_response(response):
-    log_response(response)
-
     if not response.ok:
-        error = "Unknown error"
-
-        try:
-            data = response.json()
-            if "error_description" in data:
-                error = data['error_description']
-            elif "error" in data:
-                error = data['error']
-        except Exception:
-            pass
+        error = _get_error_message(response)
 
         if response.status_code == 404:
             raise NotFoundError(error)
@@ -32,31 +45,31 @@ def get(app, user, url, params=None):
     url = app.base_url + url
     headers = {"Authorization": "Bearer " + user.access_token}
 
-    log_request(Request('GET', url, headers, params=params))
-
-    response = requests.get(url, params, headers=headers)
-
-    return process_response(response)
-
-
-def unauthorized_get(url, params=None):
-    log_request(Request('GET', url, None, params=params))
-
-    response = requests.get(url, params)
+    request = Request('GET', url, headers, params=params)
+    response = send_request(request)
 
     return process_response(response)
 
 
-def post(app, user, url, data=None, files=None):
+def anon_get(url, params=None):
+    request = Request('GET', url, None, params=params)
+    response = send_request(request)
+
+    return process_response(response)
+
+
+def post(app, user, url, data=None, files=None, allow_redirects=True):
     url = app.base_url + url
     headers = {"Authorization": "Bearer " + user.access_token}
 
-    session = Session()
     request = Request('POST', url, headers, files, data)
-    prepared_request = request.prepare()
+    response = send_request(request, allow_redirects)
 
-    log_request(request)
+    return process_response(response)
 
-    response = session.send(prepared_request)
+
+def anon_post(url, data=None, files=None, allow_redirects=True):
+    request = Request('POST', url, {}, files, data)
+    response = send_request(request, allow_redirects)
 
     return process_response(response)

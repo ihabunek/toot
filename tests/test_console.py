@@ -3,10 +3,12 @@ import pytest
 import requests
 import re
 
+from requests import Request
+
 from toot import console, User, App
 from toot.exceptions import ConsoleError
 
-from tests.utils import MockResponse
+from tests.utils import MockResponse, Expectations
 
 app = App('habunek.com', 'https://habunek.com', 'foo', 'bar')
 user = User('habunek.com', 'ivan@habunek.com', 'xxx')
@@ -34,7 +36,7 @@ def test_post_defaults(monkeypatch, capsys):
             'media_ids[]': None,
         }
 
-    def mock_send(*args):
+    def mock_send(*args, **kwargs):
         return MockResponse({
             'url': 'http://ivan.habunek.com/'
         })
@@ -59,7 +61,7 @@ def test_post_with_options(monkeypatch, capsys):
             'media_ids[]': None,
         }
 
-    def mock_send(*args):
+    def mock_send(*args, **kwargs):
         return MockResponse({
             'url': 'http://ivan.habunek.com/'
         })
@@ -96,11 +98,12 @@ def test_post_invalid_media(monkeypatch, capsys):
 
 
 def test_timeline(monkeypatch, capsys):
-    def mock_get(url, params, headers=None):
-        assert url == 'https://habunek.com/api/v1/timelines/home'
-        assert headers == {'Authorization': 'Bearer xxx'}
-        assert params is None
+    def mock_prepare(request):
+        assert request.url == 'https://habunek.com/api/v1/timelines/home'
+        assert request.headers == {'Authorization': 'Bearer xxx'}
+        assert request.params == {}
 
+    def mock_send(*args, **kwargs):
         return MockResponse([{
             'account': {
                 'display_name': 'Frank Zappa',
@@ -111,7 +114,8 @@ def test_timeline(monkeypatch, capsys):
             'reblog': None,
         }])
 
-    monkeypatch.setattr(requests, 'get', mock_get)
+    monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
+    monkeypatch.setattr(requests.Session, 'send', mock_send)
 
     console.run_command(app, user, 'timeline', [])
 
@@ -127,7 +131,7 @@ def test_upload(monkeypatch, capsys):
         assert request.headers == {'Authorization': 'Bearer xxx'}
         assert request.files.get('file') is not None
 
-    def mock_send(*args):
+    def mock_send(*args, **kwargs):
         return MockResponse({
             'id': 123,
             'url': 'https://bigfish.software/123/456',
@@ -147,14 +151,15 @@ def test_upload(monkeypatch, capsys):
 
 
 def test_search(monkeypatch, capsys):
-    def mock_get(url, params, headers=None):
-        assert url == 'https://habunek.com/api/v1/search'
-        assert headers == {'Authorization': 'Bearer xxx'}
-        assert params == {
+    def mock_prepare(request):
+        assert request.url == 'https://habunek.com/api/v1/search'
+        assert request.headers == {'Authorization': 'Bearer xxx'}
+        assert request.params == {
             'q': 'freddy',
             'resolve': False,
         }
 
+    def mock_send(*args, **kwargs):
         return MockResponse({
             'hashtags': ['foo', 'bar', 'baz'],
             'accounts': [{
@@ -167,7 +172,8 @@ def test_search(monkeypatch, capsys):
             'statuses': [],
         })
 
-    monkeypatch.setattr(requests, 'get', mock_get)
+    monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
+    monkeypatch.setattr(requests.Session, 'send', mock_send)
 
     console.run_command(app, user, 'search', ['freddy'])
 
@@ -179,25 +185,20 @@ def test_search(monkeypatch, capsys):
 
 
 def test_follow(monkeypatch, capsys):
-    def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/accounts/search'
-        assert params == {'q': 'blixa'}
-        assert headers == {'Authorization': 'Bearer xxx'}
+    req1 = Request('GET', 'https://habunek.com/api/v1/accounts/search',
+                   params={'q': 'blixa'},
+                   headers={'Authorization': 'Bearer xxx'})
+    res1 = MockResponse([
+        {'id': 123, 'acct': 'blixa@other.acc'},
+        {'id': 321, 'acct': 'blixa'},
+    ])
 
-        return MockResponse([
-            {'id': 123, 'acct': 'blixa@other.acc'},
-            {'id': 321, 'acct': 'blixa'},
-        ])
+    req2 = Request('POST', 'https://habunek.com/api/v1/accounts/321/follow',
+                   headers={'Authorization': 'Bearer xxx'})
+    res2 = MockResponse()
 
-    def mock_prepare(request):
-        assert request.url == 'https://habunek.com/api/v1/accounts/321/follow'
-
-    def mock_send(*args, **kwargs):
-        return MockResponse()
-
-    monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
-    monkeypatch.setattr(requests.Session, 'send', mock_send)
-    monkeypatch.setattr(requests, 'get', mock_get)
+    expectations = Expectations([req1, req2], [res1, res2])
+    expectations.patch(monkeypatch)
 
     console.run_command(app, user, 'follow', ['blixa'])
 
@@ -206,14 +207,12 @@ def test_follow(monkeypatch, capsys):
 
 
 def test_follow_not_found(monkeypatch, capsys):
-    def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/accounts/search'
-        assert params == {'q': 'blixa'}
-        assert headers == {'Authorization': 'Bearer xxx'}
+    req = Request('GET', 'https://habunek.com/api/v1/accounts/search',
+                  params={'q': 'blixa'}, headers={'Authorization': 'Bearer xxx'})
+    res = MockResponse()
 
-        return MockResponse([])
-
-    monkeypatch.setattr(requests, 'get', mock_get)
+    expectations = Expectations([req], [res])
+    expectations.patch(monkeypatch)
 
     with pytest.raises(ConsoleError) as ex:
         console.run_command(app, user, 'follow', ['blixa'])
@@ -221,25 +220,20 @@ def test_follow_not_found(monkeypatch, capsys):
 
 
 def test_unfollow(monkeypatch, capsys):
-    def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/accounts/search'
-        assert params == {'q': 'blixa'}
-        assert headers == {'Authorization': 'Bearer xxx'}
+    req1 = Request('GET', 'https://habunek.com/api/v1/accounts/search',
+                   params={'q': 'blixa'},
+                   headers={'Authorization': 'Bearer xxx'})
+    res1 = MockResponse([
+        {'id': 123, 'acct': 'blixa@other.acc'},
+        {'id': 321, 'acct': 'blixa'},
+    ])
 
-        return MockResponse([
-            {'id': 123, 'acct': 'blixa@other.acc'},
-            {'id': 321, 'acct': 'blixa'},
-        ])
+    req2 = Request('POST', 'https://habunek.com/api/v1/accounts/321/unfollow',
+                   headers={'Authorization': 'Bearer xxx'})
+    res2 = MockResponse()
 
-    def mock_prepare(request):
-        assert request.url == 'https://habunek.com/api/v1/accounts/321/unfollow'
-
-    def mock_send(*args, **kwargs):
-        return MockResponse()
-
-    monkeypatch.setattr(requests.Request, 'prepare', mock_prepare)
-    monkeypatch.setattr(requests.Session, 'send', mock_send)
-    monkeypatch.setattr(requests, 'get', mock_get)
+    expectations = Expectations([req1, req2], [res1, res2])
+    expectations.patch(monkeypatch)
 
     console.run_command(app, user, 'unfollow', ['blixa'])
 
@@ -248,14 +242,12 @@ def test_unfollow(monkeypatch, capsys):
 
 
 def test_unfollow_not_found(monkeypatch, capsys):
-    def mock_get(url, params, headers):
-        assert url == 'https://habunek.com/api/v1/accounts/search'
-        assert params == {'q': 'blixa'}
-        assert headers == {'Authorization': 'Bearer xxx'}
+    req = Request('GET', 'https://habunek.com/api/v1/accounts/search',
+                  params={'q': 'blixa'}, headers={'Authorization': 'Bearer xxx'})
+    res = MockResponse([])
 
-        return MockResponse([])
-
-    monkeypatch.setattr(requests, 'get', mock_get)
+    expectations = Expectations([req], [res])
+    expectations.patch(monkeypatch)
 
     with pytest.raises(ConsoleError) as ex:
         console.run_command(app, user, 'unfollow', ['blixa'])
@@ -263,30 +255,29 @@ def test_unfollow_not_found(monkeypatch, capsys):
 
 
 def test_whoami(monkeypatch, capsys):
-    def mock_get(url, params, headers=None):
-        assert url == 'https://habunek.com/api/v1/accounts/verify_credentials'
-        assert headers == {'Authorization': 'Bearer xxx'}
-        assert params is None
+    req = Request('GET', 'https://habunek.com/api/v1/accounts/verify_credentials',
+                  headers={'Authorization': 'Bearer xxx'})
 
-        return MockResponse({
-            'acct': 'ihabunek',
-            'avatar': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
-            'avatar_static': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
-            'created_at': '2017-04-04T13:23:09.777Z',
-            'display_name': 'Ivan Habunek',
-            'followers_count': 5,
-            'following_count': 9,
-            'header': '/headers/original/missing.png',
-            'header_static': '/headers/original/missing.png',
-            'id': 46103,
-            'locked': False,
-            'note': 'A developer.',
-            'statuses_count': 19,
-            'url': 'https://mastodon.social/@ihabunek',
-            'username': 'ihabunek'
-        })
+    res = MockResponse({
+        'acct': 'ihabunek',
+        'avatar': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
+        'avatar_static': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
+        'created_at': '2017-04-04T13:23:09.777Z',
+        'display_name': 'Ivan Habunek',
+        'followers_count': 5,
+        'following_count': 9,
+        'header': '/headers/original/missing.png',
+        'header_static': '/headers/original/missing.png',
+        'id': 46103,
+        'locked': False,
+        'note': 'A developer.',
+        'statuses_count': 19,
+        'url': 'https://mastodon.social/@ihabunek',
+        'username': 'ihabunek'
+    })
 
-    monkeypatch.setattr(requests, 'get', mock_get)
+    expectations = Expectations([req], [res])
+    expectations.patch(monkeypatch)
 
     console.run_command(app, user, 'whoami', [])
 

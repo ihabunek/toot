@@ -8,8 +8,9 @@ from textwrap import TextWrapper
 
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
-from toot.exceptions import ConsoleError
+from toot.exceptions import ConsoleError, NotFoundError
 from toot.output import print_out, print_instance, print_account, print_search_results
+from toot.utils import assert_domain_exists
 
 
 def _print_timeline(item):
@@ -207,5 +208,13 @@ def instance(app, user, args):
     if not name:
         raise ConsoleError("Please specify instance name.")
 
-    instance = api.get_instance(app, user, name)
-    print_instance(instance)
+    assert_domain_exists(name)
+
+    try:
+        instance = api.get_instance(name)
+        print_instance(instance)
+    except NotFoundError:
+        raise ConsoleError(
+            "Instance not found at {}.\n"
+            "The given domain probably does not host a Mastodon instance.".format(name)
+        )

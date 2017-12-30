@@ -10,17 +10,22 @@ from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
 
 
-def register_app(instance):
-    print_out("Registering application with <green>{}</green>".format(instance))
+def register_app(domain):
+    print_out("Looking up instance info...")
+    instance = api.get_instance(domain)
+
+    print_out("Found instance <blue>{}</blue> running Mastodon version <yellow>{}</yellow>".format(
+        instance['title'], instance['version']))
 
     try:
-        response = api.create_app(instance)
-    except Exception:
-        raise ConsoleError("Registration failed. Did you enter a valid instance?")
+        print_out("Registering application...")
+        response = api.create_app(domain)
+    except ApiError:
+        raise ConsoleError("Registration failed.")
 
-    base_url = 'https://' + instance
+    base_url = 'https://' + domain
 
-    app = App(instance, base_url, response['client_id'], response['client_secret'])
+    app = App(domain, base_url, response['client_id'], response['client_secret'])
     path = config.save_app(app)
     print_out("Application tokens saved to: <green>{}</green>\n".format(path))
 

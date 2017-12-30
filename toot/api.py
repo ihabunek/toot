@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import re
-import requests
 
 from urllib.parse import urlparse, urlencode
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import ApiError, AuthenticationError, NotFoundError
-from toot.utils import domain_exists
+from toot.exceptions import AuthenticationError
 
 SCOPES = 'read write follow'
 
@@ -18,31 +16,32 @@ def _account_action(app, user, account, action):
     return http.post(app, user, url).json()
 
 
-def create_app(instance):
-    base_url = 'https://' + instance
-    url = base_url + '/api/v1/apps'
+def create_app(domain):
+    url = 'http://{}/api/v1/apps'.format(domain)
 
-    response = requests.post(url, {
+    data = {
         'client_name': CLIENT_NAME,
         'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob',
         'scopes': SCOPES,
         'website': CLIENT_WEBSITE,
-    })
+    }
 
-    return http.process_response(response).json()
+    return http.anon_post(url, data).json()
 
 
 def login(app, username, password):
     url = app.base_url + '/oauth/token'
 
-    response = requests.post(url, {
+    data = {
         'grant_type': 'password',
         'client_id': app.client_id,
         'client_secret': app.client_secret,
         'username': username,
         'password': password,
         'scope': SCOPES,
-    }, allow_redirects=False)
+    }
+
+    response = http.anon_post(url, data, allow_redirects=False)
 
     # If auth fails, it redirects to the login page
     if response.is_redirect:
@@ -64,13 +63,15 @@ def get_browser_login_url(app):
 def request_access_token(app, authorization_code):
     url = app.base_url + '/oauth/token'
 
-    response = requests.post(url, {
+    data = {
         'grant_type': 'authorization_code',
         'client_id': app.client_id,
         'client_secret': app.client_secret,
         'code': authorization_code,
         'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
-    }, allow_redirects=False)
+    }
+
+    response = http.anon_post(url, data, allow_redirects=False)
 
     return http.process_response(response).json()
 
@@ -155,16 +156,6 @@ def get_notifications(app, user):
     return http.get(app, user, '/api/v1/notifications').json()
 
 
-def get_instance(app, user, domain):
-    if not domain_exists(domain):
-        raise ApiError("Domain {} not found".format(domain))
-
+def get_instance(domain):
     url = "http://{}/api/v1/instance".format(domain)
-
-    try:
-        return http.unauthorized_get(url).json()
-    except NotFoundError:
-        raise ApiError(
-            "Instance info not found at {}.\n"
-            "The given domain probably does not host a Mastodon instance.".format(url)
-        )
+    return http.anon_get(url).json()

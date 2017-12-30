@@ -5,6 +5,8 @@ import socket
 
 from bs4 import BeautifulSoup
 
+from toot.exceptions import ConsoleError
+
 
 def get_text(html):
     """Converts html to text, strips all tags."""
@@ -50,3 +52,8 @@ def domain_exists(name):
         return True
     except OSError:
         return False
+
+
+def assert_domain_exists(domain):
+    if not domain_exists(domain):
+        raise ConsoleError("Domain {} not found".format(domain))

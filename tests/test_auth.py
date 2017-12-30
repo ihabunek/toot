@@ -15,6 +15,7 @@ def test_register_app(monkeypatch):
         assert app.client_secret == "cs"
 
     monkeypatch.setattr(api, 'create_app', retval(app_data))
+    monkeypatch.setattr(api, 'get_instance', retval({"title": "foo", "version": "1"}))
     monkeypatch.setattr(config, 'save_app', assert_app)
 
     app = auth.register_app("foo.bar")
