@@ -74,7 +74,14 @@ def post(app, user, args):
         media = _do_upload(app, user, args.media)
         media_ids = [media['id']]
     else:
+        media = None
         media_ids = None
+
+    if media and not args.text:
+        args.text = media['text_url']
+
+    if not args.text:
+        raise ConsoleError("You must specify either text or media to post.")
 
     response = api.post_status(app, user, args.text, args.visibility, media_ids)
 

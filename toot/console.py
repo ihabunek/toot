@@ -144,6 +144,7 @@ POST_COMMANDS = [
         arguments=[
             (["text"], {
                 "help": "The status text to post.",
+                "nargs": "?",
             }),
             (["-m", "--media"], {
                 "type": FileType('rb'),
