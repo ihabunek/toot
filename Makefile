@@ -13,7 +13,7 @@ dist :
 
 clean :
 	find . -name "*pyc" | xargs rm -rf $1
-	rm -rf build dist *.egg-info MANIFEST htmlcov deb_dist toot*.tar.gz
+	rm -rf build dist MANIFEST htmlcov deb_dist toot*.tar.gz
 
 publish :
 	twine upload dist/*
