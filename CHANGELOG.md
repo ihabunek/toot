@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.16.2 (2018-01-02)**
+
+* No changes, pushed to fix a packaging issue
+
 **0.16.1 (2017-12-30)**
 
 * Fix bug with app registration
