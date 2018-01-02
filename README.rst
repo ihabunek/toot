@@ -81,12 +81,14 @@ Running ``toot <command> -h`` shows the documentation for the given command.
     Authentication:
       toot login           Log in from the console, does NOT support two factor authentication
       toot login_browser   Log in using your browser, supports regular and two factor authentication
+      toot activate        Switch between logged in accounts.
       toot logout          Log out, delete stored access keys
-      toot auth            Show stored credentials
+      toot auth            Show logged in accounts and instances
 
     Read:
       toot whoami          Display logged in user details
       toot whois           Display account details
+      toot instance        Display instance details
       toot search          Search for users or hashtags
       toot timeline        Show recent items in your public timeline
       toot curses          An experimental timeline app (doesn't work on Windows)
@@ -139,22 +141,13 @@ You will be redirected to your Mastodon instance to log in and authorize toot to
 
 .. _instance: https://github.com/tootsuite/documentation/blob/master/Using-Mastodon/List-of-Mastodon-instances.md
 
-The application and user access tokens will be saved in two files in your home directory:
+The application and user access tokens will be saved in the configuration file located at ``~/.config/toot/instances/config.json``.
 
-* ``~/.config/toot/instances/<name>`` - created for each mastodon instance once
-* ``~/.config/toot/user.cfg``
+It's possible to be logged into **multiple accounts** at the same time. Just repeat the above process for another instance. You can see all logged in accounts by running ``toot auth``. The currently active account will have an **ACTIVE** flag next to it.
 
-You can check whether you are currently logged in:
+To switch accounts, use ``toot activate``. Alternatively, most commands accept a ``--using`` option which can be used to specify the account you wish to use just that one time.
 
-.. code-block::
-
-    toot auth
-
-And you can logout which will remove the stored access tokens:
-
-.. code-block::
-
-    toot logout
+Finally you can logout from an account by using ``toot logout``. This will remove the stored access tokens for that account.
 
 License
 -------
