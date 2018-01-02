@@ -38,6 +38,16 @@ Install the package:
     sudo apt update
     sudo apt install python3-toot
 
+From Nixpkgs
+~~~~~~~~~~~~
+
+This works on NixOS or systems with the Nix package manager installed.
+
+.. code-block::
+
+    nix-env -iA nixos.toot
+
+
 From OpenBSD ports
 ~~~~~~~~~~~~~~~~~~
 
