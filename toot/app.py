@@ -39,20 +39,15 @@ class TimelineApp:
         self.status_generator = status_generator
         self.statuses = []
         self.selected = None
+        self.stdscr = None
 
     def run(self):
         curses.wrapper(self._wrapped_run)
 
     def _wrapped_run(self, stdscr):
-        self.left_width = 60
-        self.right_width = curses.COLS - self.left_width
+        self.stdscr = stdscr
 
-        # Setup windows
-        self.top = curses.newwin(2, curses.COLS, 0, 0)
-        self.left = curses.newpad(curses.LINES * 2, self.left_width)
-        self.right = curses.newwin(curses.LINES - 4, self.right_width, 2, self.left_width)
-        self.bottom = curses.newwin(2, curses.COLS, curses.LINES - 2, 0)
-
+        self.setup_windows()
         Color.setup_palette()
 
         # Load some data and redraw
@@ -61,6 +56,17 @@ class TimelineApp:
         self.full_redraw()
 
         self.loop()
+
+    def setup_windows(self):
+        screen_height, screen_width = self.stdscr.getmaxyx()
+
+        self.left_width = 60
+        self.right_width = screen_width - self.left_width
+
+        self.top = curses.newwin(2, screen_width, 0, 0)
+        self.left = curses.newpad(screen_height * 2, self.left_width)
+        self.right = curses.newwin(screen_height - 4, self.right_width, 2, self.left_width)
+        self.bottom = curses.newwin(2, screen_width, screen_height - 2, 0)
 
     def loop(self):
         while True:
@@ -79,6 +85,10 @@ class TimelineApp:
 
             elif key.lower() == 'k' or key == curses.KEY_UP:
                 self.select_previous()
+
+            elif key == 'KEY_RESIZE':
+                self.setup_windows()
+                self.full_redraw()
 
     def select_previous(self):
         """Move to the previous status in the timeline."""
@@ -139,7 +149,8 @@ class TimelineApp:
         self.draw_status_details(self.right, self.get_selected_status())
         self.draw_usage(self.bottom)
 
-        self.left.refresh(0, 0, 2, 0, curses.LINES - 4, self.left_width)
+        screen_height, screen_width = self.stdscr.getmaxyx()
+        self.left.refresh(0, 0, 2, 0, screen_height - 4, self.left_width)
 
         self.right.refresh()
         self.top.refresh()
@@ -176,7 +187,8 @@ class TimelineApp:
 
         window.addstr(offset + 4, 1, '─' * (width - 2))
 
-        window.refresh(0, 0, 2, 0, curses.LINES - 4, self.left_width)
+        screen_height, screen_width = self.stdscr.getmaxyx()
+        window.refresh(0, 0, 2, 0, screen_height - 4, self.left_width)
 
     def draw_statuses(self, window):
         for index, status in enumerate(self.statuses):
