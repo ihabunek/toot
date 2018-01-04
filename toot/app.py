@@ -5,7 +5,7 @@ import webbrowser
 from textwrap import wrap
 
 from toot.exceptions import ConsoleError
-from toot.utils import format_content
+from toot.utils import format_content, trunc
 
 # Attempt to load curses, which is not available on windows
 try:
@@ -60,7 +60,10 @@ class TimelineApp:
     def setup_windows(self):
         screen_height, screen_width = self.stdscr.getmaxyx()
 
-        self.left_width = 60
+        if screen_width < 60:
+            raise ConsoleError("Terminal screen is too narrow, toot curses requires at least 60 columns to display properly.")
+
+        self.left_width = max(min(screen_width // 3, 60), 30)
         self.right_width = screen_width - self.left_width
 
         self.top = curses.newwin(2, screen_width, 0, 0)
@@ -150,7 +153,7 @@ class TimelineApp:
         self.draw_usage(self.bottom)
 
         screen_height, screen_width = self.stdscr.getmaxyx()
-        self.left.refresh(0, 0, 2, 0, screen_height - 4, self.left_width)
+        self.left.refresh(0, 0, 2, 0, screen_height - 3, self.left_width)
 
         self.right.refresh()
         self.top.refresh()
@@ -175,16 +178,19 @@ class TimelineApp:
             return self.statuses[self.selected]
 
     def draw_status_row(self, window, status, offset, highlight=False):
-        width = window.getmaxyx()[1]
+        height, width = window.getmaxyx()
         color = Color.blue() if highlight else 0
 
         date, time = status['created_at']
         window.addstr(offset + 2, 2, date, color)
         window.addstr(offset + 3, 2, time, color)
 
-        window.addstr(offset + 2, 15, status['account']['acct'], color)
-        window.addstr(offset + 3, 15, status['account']['display_name'], color)
+        trunc_width = width - 16
+        acct = trunc(status['account']['acct'], trunc_width)
+        display_name = trunc(status['account']['display_name'], trunc_width)
 
+        window.addstr(offset + 2, 14, acct, color)
+        window.addstr(offset + 3, 14, display_name, color)
         window.addstr(offset + 4, 1, '─' * (width - 2))
 
         screen_height, screen_width = self.stdscr.getmaxyx()

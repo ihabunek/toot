@@ -57,3 +57,11 @@ def domain_exists(name):
 def assert_domain_exists(domain):
     if not domain_exists(domain):
         raise ConsoleError("Domain {} not found".format(domain))
+
+
+def trunc(text, length):
+    """Trims text to given length, if trimmed appends ellipsis."""
+    if len(text) <= length:
+        return text
+
+    return text[:length - 1] + '…'
