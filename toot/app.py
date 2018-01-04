@@ -20,6 +20,8 @@ class Color:
         curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
     @staticmethod
     def blue():
@@ -32,6 +34,14 @@ class Color:
     @staticmethod
     def yellow():
         return curses.color_pair(3)
+
+    @staticmethod
+    def red():
+        return curses.color_pair(4)
+
+    @staticmethod
+    def white_on_blue():
+        return curses.color_pair(5)
 
 
 class TimelineApp:
@@ -95,7 +105,10 @@ class TimelineApp:
 
     def select_previous(self):
         """Move to the previous status in the timeline."""
+        self.clear_bottom_message()
+
         if self.selected == 0:
+            self.draw_bottom_message("Cannot move beyond first toot.", Color.green())
             return
 
         old_index = self.selected
@@ -106,7 +119,10 @@ class TimelineApp:
 
     def select_next(self):
         """Move to the next status in the timeline."""
+        self.clear_bottom_message()
+
         if self.selected + 1 >= len(self.statuses):
+            self.draw_bottom_message("Cannot move beyond last toot.", Color.green())
             return
 
         old_index = self.selected
@@ -123,6 +139,7 @@ class TimelineApp:
         self.draw_status_row(self.left, old_status, 3 * old_index - 1, False)
         self.draw_status_row(self.left, new_status, 3 * new_index - 1, True)
         self.draw_status_details(self.right, new_status)
+        self.draw_bottom_status(self.bottom, new_index, len(self.statuses))
 
     def fetch_next(self):
         try:
@@ -151,6 +168,7 @@ class TimelineApp:
         self.draw_statuses(self.left)
         self.draw_status_details(self.right, self.get_selected_status())
         self.draw_usage(self.bottom)
+        self.draw_bottom_status(self.bottom, self.selected, len(self.statuses))
 
         screen_height, screen_width = self.stdscr.getmaxyx()
         self.left.refresh(0, 0, 2, 0, screen_height - 3, self.left_width)
@@ -243,6 +261,24 @@ class TimelineApp:
             window.addstr(acct, Color.green())
             y += 1
 
+        window.refresh()
+
+    def clear_bottom_message(self):
+        _, width = self.bottom.getmaxyx()
+        self.bottom.addstr(1, 0, " " * (width - 1))
+        self.bottom.refresh()
+
+    def draw_bottom_message(self, text, color=0):
+        _, width = self.bottom.getmaxyx()
+        text = trunc(text, width - 1)
+        self.bottom.addstr(1, 0, text, color)
+        self.bottom.refresh()
+
+    def draw_bottom_status(self, window, index, count):
+        _, width = self.bottom.getmaxyx()
+        text = "Showing toot {} of {}".format(index + 1, count)
+        text = trunc(text, width - 1).ljust(width - 1)
+        window.addstr(0, 0, text, Color.white_on_blue() | curses.A_BOLD)
         window.refresh()
 
 
