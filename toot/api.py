@@ -88,21 +88,20 @@ def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
 
 
-def _get_next_path(headers):
-    links = headers.get('Link', '')
-    matches = re.match('<([^>]+)>; rel="next"', links)
-    if matches:
-        url = matches.group(1)
-        return urlparse(url).path
+def timeline_generator(app, user, limit=20):
+    path = '/api/v1/timelines/home?limit={}'.format(limit)
 
+    def get_next_path(headers):
+        links = headers.get('Link', '')
+        matches = re.match('<([^>]+)>; rel="next"', links)
+        if matches:
+            parsed = urlparse(matches.group(1))
+            return "?".join([parsed.path, parsed.query])
 
-def timeline_generator(app, user):
-    next_path = '/api/v1/timelines/home'
-
-    while next_path:
-        response = http.get(app, user, next_path)
+    while path:
+        response = http.get(app, user, path)
         yield response.json()
-        next_path = _get_next_path(response.headers)
+        path = get_next_path(response.headers)
 
 
 def upload_media(app, user, file):

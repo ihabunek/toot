@@ -63,7 +63,7 @@ class TimelineApp:
         self.right_width = screen_width - self.left_width
 
         self.top = curses.newwin(2, screen_width, 0, 0)
-        self.left = curses.newpad(screen_height * 2, self.left_width)
+        self.left = curses.newpad(screen_height - 4, self.left_width)
         self.right = curses.newwin(screen_height - 4, self.right_width, 2, self.left_width)
         self.bottom = curses.newwin(2, screen_width, screen_height - 2, 0)
 
@@ -108,8 +108,9 @@ class TimelineApp:
         self.clear_bottom_message()
 
         if self.selected + 1 >= len(self.statuses):
-            self.draw_bottom_message("Cannot move beyond last toot.", Color.GREEN)
-            return
+            self.fetch_next()
+            self.draw_statuses(self.left, self.selected + 1)
+            self.draw_bottom_status()
 
         old_index = self.selected
         new_index = self.selected + 1
@@ -125,16 +126,19 @@ class TimelineApp:
         self.draw_status_row(self.left, old_status, 3 * old_index - 1, False)
         self.draw_status_row(self.left, new_status, 3 * new_index - 1, True)
         self.draw_status_details(self.right, new_status)
-        self.draw_bottom_status(self.bottom, new_index, len(self.statuses))
+        self.draw_bottom_status()
 
     def fetch_next(self):
         try:
+            self.draw_bottom_message("Loading toots...", Color.BLUE)
             statuses = next(self.status_generator)
         except StopIteration:
             return None
 
         for status in statuses:
             self.statuses.append(parse_status(status))
+
+        self.draw_bottom_message("Loaded {} toots".format(len(statuses)), Color.GREEN)
 
         return len(statuses)
 
@@ -154,7 +158,7 @@ class TimelineApp:
         self.draw_statuses(self.left)
         self.draw_status_details(self.right, self.get_selected_status())
         self.draw_usage(self.bottom)
-        self.draw_bottom_status(self.bottom, self.selected, len(self.statuses))
+        self.draw_bottom_status()
 
         screen_height, screen_width = self.stdscr.getmaxyx()
         self.left.refresh(0, 0, 2, 0, screen_height - 3, self.left_width)
@@ -200,11 +204,19 @@ class TimelineApp:
         screen_height, screen_width = self.stdscr.getmaxyx()
         window.refresh(0, 0, 2, 0, screen_height - 4, self.left_width)
 
-    def draw_statuses(self, window):
+    def draw_statuses(self, window, starting=0):
+        # Resize window to accomodate statuses if required
+        height, width = window.getmaxyx()
+        new_height = len(self.statuses) * 3 + 1
+        if new_height > height:
+            window.resize(new_height, width)
+            window.box()
+
         for index, status in enumerate(self.statuses):
-            offset = 3 * index - 1
-            highlight = self.selected == index
-            self.draw_status_row(window, status, offset, highlight)
+            if index >= starting:
+                offset = 3 * index - 1
+                highlight = self.selected == index
+                self.draw_status_row(window, status, offset, highlight)
 
     def draw_status_details(self, window, status):
         window.erase()
@@ -256,16 +268,16 @@ class TimelineApp:
 
     def draw_bottom_message(self, text, color=0):
         _, width = self.bottom.getmaxyx()
-        text = trunc(text, width - 1)
+        text = trunc(text, width - 1).ljust(width - 1)
         self.bottom.addstr(1, 0, text, color)
         self.bottom.refresh()
 
-    def draw_bottom_status(self, window, index, count):
+    def draw_bottom_status(self):
         _, width = self.bottom.getmaxyx()
-        text = "Showing toot {} of {}".format(index + 1, count)
+        text = "Showing toot {} of {}".format(self.selected + 1, len(self.statuses))
         text = trunc(text, width - 1).ljust(width - 1)
-        window.addstr(0, 0, text, Color.WHITE_ON_BLUE | curses.A_BOLD)
-        window.refresh()
+        self.bottom.addstr(0, 0, text, Color.WHITE_ON_BLUE | curses.A_BOLD)
+        self.bottom.refresh()
 
 
 def parse_status(status):
