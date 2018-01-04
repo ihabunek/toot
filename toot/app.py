@@ -15,33 +15,19 @@ except ImportError as e:
 
 
 class Color:
-    @staticmethod
-    def setup_palette():
+    @classmethod
+    def setup_palette(class_):
         curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
-    @staticmethod
-    def blue():
-        return curses.color_pair(1)
-
-    @staticmethod
-    def green():
-        return curses.color_pair(2)
-
-    @staticmethod
-    def yellow():
-        return curses.color_pair(3)
-
-    @staticmethod
-    def red():
-        return curses.color_pair(4)
-
-    @staticmethod
-    def white_on_blue():
-        return curses.color_pair(5)
+        class_.BLUE = curses.color_pair(1)
+        class_.GREEN = curses.color_pair(2)
+        class_.YELLOW = curses.color_pair(3)
+        class_.RED = curses.color_pair(4)
+        class_.WHITE_ON_BLUE = curses.color_pair(5)
 
 
 class TimelineApp:
@@ -108,7 +94,7 @@ class TimelineApp:
         self.clear_bottom_message()
 
         if self.selected == 0:
-            self.draw_bottom_message("Cannot move beyond first toot.", Color.green())
+            self.draw_bottom_message("Cannot move beyond first toot.", Color.GREEN)
             return
 
         old_index = self.selected
@@ -122,7 +108,7 @@ class TimelineApp:
         self.clear_bottom_message()
 
         if self.selected + 1 >= len(self.statuses):
-            self.draw_bottom_message("Cannot move beyond last toot.", Color.green())
+            self.draw_bottom_message("Cannot move beyond last toot.", Color.GREEN)
             return
 
         old_index = self.selected
@@ -162,7 +148,7 @@ class TimelineApp:
         self.left.box()
         self.right.box()
 
-        self.top.addstr(" toot - your Mastodon command line interface\n", Color.yellow())
+        self.top.addstr(" toot - your Mastodon command line interface\n", Color.YELLOW)
         self.top.addstr(" https://github.com/ihabunek/toot")
 
         self.draw_statuses(self.left)
@@ -180,13 +166,13 @@ class TimelineApp:
     def draw_usage(self, window):
         # Show usage on the bottom
         window.addstr("Usage: | ")
-        window.addch("j", Color.green())
+        window.addch("j", Color.GREEN)
         window.addstr(" next | ")
-        window.addch("k", Color.green())
+        window.addch("k", Color.GREEN)
         window.addstr(" previous | ")
-        window.addch("v", Color.green())
+        window.addch("v", Color.GREEN)
         window.addstr(" open in browser | ")
-        window.addch("q", Color.green())
+        window.addch("q", Color.GREEN)
         window.addstr(" quit")
 
         window.refresh()
@@ -197,7 +183,7 @@ class TimelineApp:
 
     def draw_status_row(self, window, status, offset, highlight=False):
         height, width = window.getmaxyx()
-        color = Color.blue() if highlight else 0
+        color = Color.BLUE if highlight else 0
 
         date, time = status['created_at']
         window.addstr(offset + 2, 2, date, color)
@@ -227,8 +213,8 @@ class TimelineApp:
         acct = status['account']['acct']
         name = status['account']['display_name']
 
-        window.addstr(1, 2, "@" + acct, Color.green())
-        window.addstr(2, 2, name, Color.yellow())
+        window.addstr(1, 2, "@" + acct, Color.GREEN)
+        window.addstr(2, 2, name, Color.YELLOW)
 
         y = 4
         text_width = self.right_width - 4
@@ -257,8 +243,8 @@ class TimelineApp:
         if status['boosted_by']:
             acct = status['boosted_by']['acct']
             window.addstr(y, 2, "Boosted by ")
-            window.addstr("@", Color.green())
-            window.addstr(acct, Color.green())
+            window.addstr("@", Color.GREEN)
+            window.addstr(acct, Color.GREEN)
             y += 1
 
         window.refresh()
@@ -278,7 +264,7 @@ class TimelineApp:
         _, width = self.bottom.getmaxyx()
         text = "Showing toot {} of {}".format(index + 1, count)
         text = trunc(text, width - 1).ljust(width - 1)
-        window.addstr(0, 0, text, Color.white_on_blue() | curses.A_BOLD)
+        window.addstr(0, 0, text, Color.WHITE_ON_BLUE | curses.A_BOLD)
         window.refresh()
 
 
