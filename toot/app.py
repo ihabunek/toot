@@ -36,6 +36,7 @@ class TimelineApp:
         self.statuses = []
         self.selected = None
         self.stdscr = None
+        self.scroll_pos = 0
 
     def run(self):
         curses.wrapper(self._wrapped_run)
@@ -89,6 +90,22 @@ class TimelineApp:
                 self.setup_windows()
                 self.full_redraw()
 
+    def scroll_to(self, index):
+        self.scroll_pos = index
+        height, width = self.stdscr.getmaxyx()
+
+        self.left.refresh(3 * index, 0, 2, 0, height - 4, self.left_width)
+
+    def scroll_up(self):
+        if self.scroll_pos > 0:
+            self.scroll_to(self.scroll_pos - 1)
+
+    def scroll_down(self):
+        self.scroll_to(self.scroll_pos + 1)
+
+    def scroll_refresh(self):
+        self.scroll_to(self.scroll_pos)
+
     def select_previous(self):
         """Move to the previous status in the timeline."""
         self.clear_bottom_message()
@@ -103,10 +120,17 @@ class TimelineApp:
         self.selected = new_index
         self.redraw_after_selection_change(old_index, new_index)
 
+        # Scroll if required
+        if new_index < self.scroll_pos:
+            self.scroll_up()
+        else:
+            self.scroll_refresh()
+
     def select_next(self):
         """Move to the next status in the timeline."""
         self.clear_bottom_message()
 
+        # Load more statuses if no more are available
         if self.selected + 1 >= len(self.statuses):
             self.fetch_next()
             self.draw_statuses(self.left, self.selected + 1)
@@ -118,13 +142,24 @@ class TimelineApp:
         self.selected = new_index
         self.redraw_after_selection_change(old_index, new_index)
 
+        # Scroll if required
+        if new_index >= self.scroll_pos + self.get_page_size():
+            self.scroll_down()
+        else:
+            self.scroll_refresh()
+
+    def get_page_size(self):
+        """Calculate how many statuses fit on one page (3 lines per status)"""
+        height = self.right.getmaxyx()[0] - 2  # window height - borders
+        return height // 3
+
     def redraw_after_selection_change(self, old_index, new_index):
         old_status = self.statuses[old_index]
         new_status = self.statuses[new_index]
 
         # Perform a partial redraw
-        self.draw_status_row(self.left, old_status, 3 * old_index - 1, False)
-        self.draw_status_row(self.left, new_status, 3 * new_index - 1, True)
+        self.draw_status_row(self.left, old_status, old_index, False)
+        self.draw_status_row(self.left, new_status, new_index, True)
         self.draw_status_details(self.right, new_status)
         self.draw_bottom_status()
 
@@ -160,8 +195,7 @@ class TimelineApp:
         self.draw_usage(self.bottom)
         self.draw_bottom_status()
 
-        screen_height, screen_width = self.stdscr.getmaxyx()
-        self.left.refresh(0, 0, 2, 0, screen_height - 3, self.left_width)
+        self.scroll_refresh()
 
         self.right.refresh()
         self.top.refresh()
@@ -185,21 +219,23 @@ class TimelineApp:
         if len(self.statuses) > self.selected:
             return self.statuses[self.selected]
 
-    def draw_status_row(self, window, status, offset, highlight=False):
+    def draw_status_row(self, window, status, index, highlight=False):
+        offset = 3 * index
+
         height, width = window.getmaxyx()
         color = Color.BLUE if highlight else 0
 
         date, time = status['created_at']
-        window.addstr(offset + 2, 2, date, color)
-        window.addstr(offset + 3, 2, time, color)
+        window.addstr(offset + 1, 2, date, color)
+        window.addstr(offset + 2, 2, time, color)
 
         trunc_width = width - 16
-        acct = trunc(status['account']['acct'], trunc_width)
-        display_name = trunc(status['account']['display_name'], trunc_width)
+        acct = trunc(status['account']['acct'], trunc_width).ljust(trunc_width)
+        display_name = trunc(status['account']['display_name'], trunc_width).ljust(trunc_width)
 
-        window.addstr(offset + 2, 14, acct, color)
-        window.addstr(offset + 3, 14, display_name, color)
-        window.addstr(offset + 4, 1, '─' * (width - 2))
+        window.addstr(offset + 1, 14, acct, color)
+        window.addstr(offset + 2, 14, display_name, color)
+        window.addstr(offset + 3, 1, '─' * (width - 2))
 
         screen_height, screen_width = self.stdscr.getmaxyx()
         window.refresh(0, 0, 2, 0, screen_height - 4, self.left_width)
@@ -214,9 +250,8 @@ class TimelineApp:
 
         for index, status in enumerate(self.statuses):
             if index >= starting:
-                offset = 3 * index - 1
                 highlight = self.selected == index
-                self.draw_status_row(window, status, offset, highlight)
+                self.draw_status_row(window, status, index, highlight)
 
     def draw_status_details(self, window, status):
         window.erase()
