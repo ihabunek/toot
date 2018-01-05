@@ -80,10 +80,10 @@ class TimelineApp:
                 if status:
                     webbrowser.open(status['url'])
 
-            elif key.lower() == 'j' or key == curses.KEY_DOWN:
+            elif key.lower() == 'j' or key == 'B':
                 self.select_next()
 
-            elif key.lower() == 'k' or key == curses.KEY_UP:
+            elif key.lower() == 'k' or key == 'A':
                 self.select_previous()
 
             elif key == 'KEY_RESIZE':
