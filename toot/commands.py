@@ -64,7 +64,7 @@ def timeline(app, user, args):
 
 
 def curses(app, user, args):
-    from toot.app import TimelineApp
+    from toot.ui.app import TimelineApp
 
     if not args.public and (not app or not user):
         raise ConsoleError("You must be logged in to view the home timeline.")
