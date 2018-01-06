@@ -329,7 +329,7 @@ def parse_status(status):
         'created_at': created_at,
         'lines': lines,
         'media_attachments': _status['media_attachments'],
-        'url': status['url'],
+        'url': _status['url'],
     }
 
 
