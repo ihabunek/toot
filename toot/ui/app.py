@@ -5,6 +5,7 @@ import webbrowser
 from textwrap import wrap
 
 from toot.exceptions import ConsoleError
+from toot.ui.utils import draw_horizontal_divider, draw_lines
 from toot.utils import format_content, trunc
 
 # Attempt to load curses, which is not available on windows
@@ -17,17 +18,73 @@ except ImportError as e:
 class Color:
     @classmethod
     def setup_palette(class_):
-        curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
-        class_.BLUE = curses.color_pair(1)
-        class_.GREEN = curses.color_pair(2)
-        class_.YELLOW = curses.color_pair(3)
-        class_.RED = curses.color_pair(4)
-        class_.WHITE_ON_BLUE = curses.color_pair(5)
+        class_.WHITE = curses.color_pair(1)
+        class_.BLUE = curses.color_pair(2)
+        class_.GREEN = curses.color_pair(3)
+        class_.YELLOW = curses.color_pair(4)
+        class_.RED = curses.color_pair(5)
+        class_.WHITE_ON_BLUE = curses.color_pair(6)
+
+
+class StatusDetailWindow:
+    """Window which shows details of a status (right side)"""
+    def __init__(self, height, width, y, x):
+        # screen_height, screen_width = stdscr.getmaxyx()
+
+        self.window = curses.newwin(height, width, y, x)
+        self.height = height
+        self.width = width
+
+    def content_lines(self, status):
+        acct = status['account']['acct']
+        name = status['account']['display_name']
+
+        yield name, Color.YELLOW
+        yield "@" + acct, Color.GREEN
+        yield
+
+        text_width = self.width - 4
+
+        for line in status['lines']:
+            wrapped_lines = wrap(line, text_width) if line else ['']
+            for wrapped_line in wrapped_lines:
+                yield wrapped_line.ljust(text_width)
+
+        if status['media_attachments']:
+            yield
+            yield "Media:"
+            for attachment in status['media_attachments']:
+                url = attachment['text_url'] or attachment['url']
+                for line in wrap(url, text_width):
+                    yield line
+
+    def footer_lines(self, status):
+        if status['url'] is not None:
+            yield status['url']
+
+        if status['boosted_by']:
+            acct = status['boosted_by']['acct']
+            yield "Boosted by @{}".format(acct), Color.BLUE
+
+    def draw(self, status):
+        self.window.erase()
+        self.window.box()
+
+        content = self.content_lines(status)
+        footer = self.footer_lines(status)
+
+        y = draw_lines(self.window, content, 2, 1, Color.WHITE)
+        draw_horizontal_divider(self.window, y)
+        draw_lines(self.window, footer, 2, y + 1, Color.WHITE)
+
+        self.window.refresh()
 
 
 class TimelineApp:
@@ -65,7 +122,7 @@ class TimelineApp:
 
         self.top = curses.newwin(2, screen_width, 0, 0)
         self.left = curses.newpad(screen_height - 4, self.left_width)
-        self.right = curses.newwin(screen_height - 4, self.right_width, 2, self.left_width)
+        self.right = StatusDetailWindow(screen_height - 4, self.right_width, 2, self.left_width)
         self.bottom = curses.newwin(2, screen_width, screen_height - 2, 0)
 
     def loop(self):
@@ -150,7 +207,7 @@ class TimelineApp:
 
     def get_page_size(self):
         """Calculate how many statuses fit on one page (3 lines per status)"""
-        height = self.right.getmaxyx()[0] - 2  # window height - borders
+        height = self.right.window.getmaxyx()[0] - 2  # window height - borders
         return height // 3
 
     def redraw_after_selection_change(self, old_index, new_index):
@@ -160,7 +217,7 @@ class TimelineApp:
         # Perform a partial redraw
         self.draw_status_row(self.left, old_status, old_index, False)
         self.draw_status_row(self.left, new_status, new_index, True)
-        self.draw_status_details(self.right, new_status)
+        self.right.draw(new_status)
         self.draw_bottom_status()
 
     def fetch_next(self):
@@ -180,24 +237,21 @@ class TimelineApp:
     def full_redraw(self):
         """Perform a full redraw of the UI."""
         self.left.clear()
-        self.right.clear()
         self.top.clear()
         self.bottom.clear()
 
         self.left.box()
-        self.right.box()
 
         self.top.addstr(" toot - your Mastodon command line interface\n", Color.YELLOW)
         self.top.addstr(" https://github.com/ihabunek/toot")
 
         self.draw_statuses(self.left)
-        self.draw_status_details(self.right, self.get_selected_status())
+        self.right.draw(self.get_selected_status())
         self.draw_usage(self.bottom)
         self.draw_bottom_status()
 
         self.scroll_refresh()
 
-        self.right.refresh()
         self.top.refresh()
         self.bottom.refresh()
 
@@ -252,49 +306,6 @@ class TimelineApp:
             if index >= starting:
                 highlight = self.selected == index
                 self.draw_status_row(window, status, index, highlight)
-
-    def draw_status_details(self, window, status):
-        window.erase()
-        window.box()
-
-        acct = status['account']['acct']
-        name = status['account']['display_name']
-
-        window.addstr(1, 2, "@" + acct, Color.GREEN)
-        window.addstr(2, 2, name, Color.YELLOW)
-
-        y = 4
-        text_width = self.right_width - 4
-
-        for line in status['lines']:
-            wrapped_lines = wrap(line, text_width) if line else ['']
-            for wrapped_line in wrapped_lines:
-                window.addstr(y, 2, wrapped_line.ljust(text_width))
-                y = y + 1
-
-        if status['media_attachments']:
-            y += 1
-            for attachment in status['media_attachments']:
-                url = attachment['text_url'] or attachment['url']
-                for line in wrap(url, text_width):
-                    window.addstr(y, 2, line)
-                    y += 1
-
-        window.addstr(y, 1, '-' * (text_width + 2))
-        y += 1
-
-        if status['url'] is not None:
-            window.addstr(y, 2, status['url'])
-            y += 1
-
-        if status['boosted_by']:
-            acct = status['boosted_by']['acct']
-            window.addstr(y, 2, "Boosted by ")
-            window.addstr("@", Color.GREEN)
-            window.addstr(acct, Color.GREEN)
-            y += 1
-
-        window.refresh()
 
     def clear_bottom_message(self):
         _, width = self.bottom.getmaxyx()
