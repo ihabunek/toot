@@ -138,8 +138,18 @@ READ_COMMANDS = [
     Command(
         name="curses",
         description="An experimental timeline app (doesn't work on Windows)",
-        arguments=[],
-        require_auth=True,
+        arguments=[
+            (["-p", "--public"], {
+                "action": 'store_true',
+                "default": False,
+                "help": "Resolve non-local accounts",
+            }),
+            (["-i", "--instance"], {
+                "type": str,
+                "help": 'instance from which to read (for public timeline only)',
+            })
+        ],
+        require_auth=False,
     ),
 ]
 

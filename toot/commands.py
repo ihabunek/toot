@@ -65,7 +65,16 @@ def timeline(app, user, args):
 
 def curses(app, user, args):
     from toot.app import TimelineApp
-    generator = api.timeline_generator(app, user)
+
+    if not args.public and (not app or not user):
+        raise ConsoleError("You must be logged in to view the home timeline.")
+
+    if args.public:
+        instance = args.instance or app.instance
+        generator = api.public_timeline_generator(instance)
+    else:
+        generator = api.home_timeline_generator(app, user)
+
     TimelineApp(generator).run()
 
 
