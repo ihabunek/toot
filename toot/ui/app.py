@@ -33,11 +33,44 @@ class Color:
         class_.WHITE_ON_BLUE = curses.color_pair(6)
 
 
+class HeaderWindow:
+    def __init__(self, height, width, y, x):
+        self.window = curses.newwin(height, width, y, x)
+        self.height = height
+        self.width = width
+
+    def draw(self):
+        self.window.erase()
+        self.window.addstr(0, 1, "toot - your Mastodon command line interface", Color.YELLOW)
+        self.window.addstr(1, 1, "https://github.com/ihabunek/toot")
+        self.window.refresh()
+
+
+class FooterWindow:
+    def __init__(self, height, width, y, x):
+        self.window = curses.newwin(height, width, y, x)
+        self.height = height
+        self.width = width
+
+    def draw_status(self, selected, count):
+        text = "Showing toot {} of {}".format(selected + 1, count)
+        text = trunc(text, self.width - 1).ljust(self.width - 1)
+        self.window.addstr(0, 0, text, Color.WHITE_ON_BLUE | curses.A_BOLD)
+        self.window.refresh()
+
+    def draw_message(self, text, color):
+        text = trunc(text, self.width - 1).ljust(self.width - 1)
+        self.window.addstr(1, 0, text, color)
+        self.window.refresh()
+
+    def clear_message(self):
+        self.window.addstr(0, 0, " " * self.width)
+        self.window.refresh()
+
+
 class StatusDetailWindow:
     """Window which shows details of a status (right side)"""
     def __init__(self, height, width, y, x):
-        # screen_height, screen_width = stdscr.getmaxyx()
-
         self.window = curses.newwin(height, width, y, x)
         self.height = height
         self.width = width
@@ -87,6 +120,7 @@ class StatusDetailWindow:
         self.window.refresh()
 
 
+
 class TimelineApp:
     def __init__(self, status_generator):
         self.status_generator = status_generator
@@ -120,10 +154,10 @@ class TimelineApp:
         self.left_width = max(min(screen_width // 3, 60), 30)
         self.right_width = screen_width - self.left_width
 
-        self.top = curses.newwin(2, screen_width, 0, 0)
+        self.header = HeaderWindow(2, screen_width, 0, 0)
+        self.footer = FooterWindow(2, screen_width, screen_height - 2, 0)
         self.left = curses.newpad(screen_height - 4, self.left_width)
         self.right = StatusDetailWindow(screen_height - 4, self.right_width, 2, self.left_width)
-        self.bottom = curses.newwin(2, screen_width, screen_height - 2, 0)
 
     def loop(self):
         while True:
@@ -165,10 +199,10 @@ class TimelineApp:
 
     def select_previous(self):
         """Move to the previous status in the timeline."""
-        self.clear_bottom_message()
+        self.footer.clear_message()
 
         if self.selected == 0:
-            self.draw_bottom_message("Cannot move beyond first toot.", Color.GREEN)
+            self.footer.draw_message("Cannot move beyond first toot.", Color.GREEN)
             return
 
         old_index = self.selected
@@ -185,13 +219,13 @@ class TimelineApp:
 
     def select_next(self):
         """Move to the next status in the timeline."""
-        self.clear_bottom_message()
+        self.footer.clear_message()
 
         # Load more statuses if no more are available
         if self.selected + 1 >= len(self.statuses):
             self.fetch_next()
             self.draw_statuses(self.left, self.selected + 1)
-            self.draw_bottom_status()
+            self.draw_footer_status()
 
         old_index = self.selected
         new_index = self.selected + 1
@@ -218,11 +252,11 @@ class TimelineApp:
         self.draw_status_row(self.left, old_status, old_index, False)
         self.draw_status_row(self.left, new_status, new_index, True)
         self.right.draw(new_status)
-        self.draw_bottom_status()
+        self.draw_footer_status()
 
     def fetch_next(self):
         try:
-            self.draw_bottom_message("Loading toots...", Color.BLUE)
+            self.footer.draw_message("Loading toots...", Color.BLUE)
             statuses = next(self.status_generator)
         except StopIteration:
             return None
@@ -230,44 +264,22 @@ class TimelineApp:
         for status in statuses:
             self.statuses.append(parse_status(status))
 
-        self.draw_bottom_message("Loaded {} toots".format(len(statuses)), Color.GREEN)
+        self.footer.draw_message("Loaded {} toots".format(len(statuses)), Color.GREEN)
 
         return len(statuses)
 
     def full_redraw(self):
         """Perform a full redraw of the UI."""
+        self.header.draw()
+        self.draw_footer_status()
+
         self.left.clear()
-        self.top.clear()
-        self.bottom.clear()
-
         self.left.box()
-
-        self.top.addstr(" toot - your Mastodon command line interface\n", Color.YELLOW)
-        self.top.addstr(" https://github.com/ihabunek/toot")
-
         self.draw_statuses(self.left)
+
         self.right.draw(self.get_selected_status())
-        self.draw_usage(self.bottom)
-        self.draw_bottom_status()
-
+        self.header.draw()
         self.scroll_refresh()
-
-        self.top.refresh()
-        self.bottom.refresh()
-
-    def draw_usage(self, window):
-        # Show usage on the bottom
-        window.addstr("Usage: | ")
-        window.addch("j", Color.GREEN)
-        window.addstr(" next | ")
-        window.addch("k", Color.GREEN)
-        window.addstr(" previous | ")
-        window.addch("v", Color.GREEN)
-        window.addstr(" open in browser | ")
-        window.addch("q", Color.GREEN)
-        window.addstr(" quit")
-
-        window.refresh()
 
     def get_selected_status(self):
         if len(self.statuses) > self.selected:
@@ -307,23 +319,8 @@ class TimelineApp:
                 highlight = self.selected == index
                 self.draw_status_row(window, status, index, highlight)
 
-    def clear_bottom_message(self):
-        _, width = self.bottom.getmaxyx()
-        self.bottom.addstr(1, 0, " " * (width - 1))
-        self.bottom.refresh()
-
-    def draw_bottom_message(self, text, color=0):
-        _, width = self.bottom.getmaxyx()
-        text = trunc(text, width - 1).ljust(width - 1)
-        self.bottom.addstr(1, 0, text, color)
-        self.bottom.refresh()
-
-    def draw_bottom_status(self):
-        _, width = self.bottom.getmaxyx()
-        text = "Showing toot {} of {}".format(self.selected + 1, len(self.statuses))
-        text = trunc(text, width - 1).ljust(width - 1)
-        self.bottom.addstr(0, 0, text, Color.WHITE_ON_BLUE | curses.A_BOLD)
-        self.bottom.refresh()
+    def draw_footer_status(self):
+        self.footer.draw_status(self.selected, len(self.statuses))
 
 
 def parse_status(status):
