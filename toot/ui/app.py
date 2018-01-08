@@ -64,8 +64,96 @@ class FooterWindow:
         self.window.refresh()
 
     def clear_message(self):
-        self.window.addstr(0, 0, " " * self.width)
+        self.window.addstr(1, 0, "".ljust(self.width - 1))
         self.window.refresh()
+
+
+class StatusListWindow:
+    """Window which shows the scrollable list of statuses (left side)."""
+    def __init__(self, height, width, top, left):
+        # Dimensions and position of region in stdscr which will contain the pad
+        self.region_height = height
+        self.region_width = width
+        self.region_top = top
+        self.region_left = left
+
+        # How many statuses fit on one page (excluding border, at 3 lines per status)
+        self.page_size = (height - 2) // 3
+
+        # Initially, size the pad to the dimensions of the region, will be
+        # increased later to accomodate statuses
+        self.pad = curses.newpad(10, width)
+        self.pad.box()
+
+        self.scroll_pos = 0
+
+    def draw_statuses(self, statuses, selected, starting=0):
+        # Resize window to accomodate statuses if required
+        height, width = self.pad.getmaxyx()
+
+        new_height = len(statuses) * 3 + 1
+        if new_height > height:
+            self.pad.resize(new_height, width)
+            self.pad.box()
+
+        last_idx = len(statuses) - 1
+
+        for index, status in enumerate(statuses):
+            if index >= starting:
+                highlight = selected == index
+                draw_divider = index < last_idx
+                self.draw_status_row(status, index, highlight, draw_divider)
+
+    def draw_status_row(self, status, index, highlight=False, draw_divider=True):
+        offset = 3 * index
+
+        height, width = self.pad.getmaxyx()
+        color = Color.GREEN if highlight else Color.WHITE
+
+        date, time = status['created_at']
+        self.pad.addstr(offset + 1, 1, " " + date.ljust(14), color)
+        self.pad.addstr(offset + 2, 1, " " + time.ljust(14), color)
+
+        trunc_width = width - 15
+        acct = trunc(status['account']['acct'], trunc_width).ljust(trunc_width)
+        display_name = trunc(status['account']['display_name'], trunc_width).ljust(trunc_width)
+
+        self.pad.addstr(offset + 1, 14, display_name, color)
+        self.pad.addstr(offset + 2, 14, acct, color)
+
+        if draw_divider:
+            draw_horizontal_divider(self.pad, offset + 3)
+
+        self.refresh()
+
+    def refresh(self):
+        self.pad.refresh(
+            self.scroll_pos * 3,  # top
+            0,                    # left
+            self.region_top,
+            self.region_left,
+            self.region_height,
+            self.region_width,
+        )
+
+    def scroll_to(self, index):
+        self.scroll_pos = index
+        self.refresh()
+
+    def scroll_up(self):
+        if self.scroll_pos > 0:
+            self.scroll_to(self.scroll_pos - 1)
+
+    def scroll_down(self):
+        self.scroll_to(self.scroll_pos + 1)
+
+    def scroll_if_required(self, new_index):
+        if new_index < self.scroll_pos:
+            self.scroll_up()
+        elif new_index >= self.scroll_pos + self.page_size:
+            self.scroll_down()
+        else:
+            self.refresh()
 
 
 class StatusDetailWindow:
@@ -110,6 +198,9 @@ class StatusDetailWindow:
         self.window.erase()
         self.window.box()
 
+        if not status:
+            return
+
         content = self.content_lines(status)
         footer = self.footer_lines(status)
 
@@ -120,14 +211,11 @@ class StatusDetailWindow:
         self.window.refresh()
 
 
-
 class TimelineApp:
     def __init__(self, status_generator):
         self.status_generator = status_generator
         self.statuses = []
-        self.selected = None
         self.stdscr = None
-        self.scroll_pos = 0
 
     def run(self):
         curses.wrapper(self._wrapped_run)
@@ -135,8 +223,8 @@ class TimelineApp:
     def _wrapped_run(self, stdscr):
         self.stdscr = stdscr
 
-        self.setup_windows()
         Color.setup_palette()
+        self.setup_windows()
 
         # Load some data and redraw
         self.fetch_next()
@@ -151,17 +239,17 @@ class TimelineApp:
         if screen_width < 60:
             raise ConsoleError("Terminal screen is too narrow, toot curses requires at least 60 columns to display properly.")
 
-        self.left_width = max(min(screen_width // 3, 60), 30)
-        self.right_width = screen_width - self.left_width
+        left_width = max(min(screen_width // 3, 60), 30)
+        right_width = screen_width - left_width
 
         self.header = HeaderWindow(2, screen_width, 0, 0)
         self.footer = FooterWindow(2, screen_width, screen_height - 2, 0)
-        self.left = curses.newpad(screen_height - 4, self.left_width)
-        self.right = StatusDetailWindow(screen_height - 4, self.right_width, 2, self.left_width)
+        self.left = StatusListWindow(screen_height - 4, left_width, 2, 0)
+        self.right = StatusDetailWindow(screen_height - 4, right_width, 2, left_width)
 
     def loop(self):
         while True:
-            key = self.left.getkey()
+            key = self.left.pad.getkey()
 
             if key.lower() == 'q':
                 return
@@ -181,22 +269,6 @@ class TimelineApp:
                 self.setup_windows()
                 self.full_redraw()
 
-    def scroll_to(self, index):
-        self.scroll_pos = index
-        height, width = self.stdscr.getmaxyx()
-
-        self.left.refresh(3 * index, 0, 2, 0, height - 4, self.left_width)
-
-    def scroll_up(self):
-        if self.scroll_pos > 0:
-            self.scroll_to(self.scroll_pos - 1)
-
-    def scroll_down(self):
-        self.scroll_to(self.scroll_pos + 1)
-
-    def scroll_refresh(self):
-        self.scroll_to(self.scroll_pos)
-
     def select_previous(self):
         """Move to the previous status in the timeline."""
         self.footer.clear_message()
@@ -211,48 +283,21 @@ class TimelineApp:
         self.selected = new_index
         self.redraw_after_selection_change(old_index, new_index)
 
-        # Scroll if required
-        if new_index < self.scroll_pos:
-            self.scroll_up()
-        else:
-            self.scroll_refresh()
-
     def select_next(self):
         """Move to the next status in the timeline."""
         self.footer.clear_message()
 
-        # Load more statuses if no more are available
-        if self.selected + 1 >= len(self.statuses):
-            self.fetch_next()
-            self.draw_statuses(self.left, self.selected + 1)
-            self.draw_footer_status()
-
         old_index = self.selected
         new_index = self.selected + 1
 
+        # Load more statuses if no more are available
+        if self.selected + 1 >= len(self.statuses):
+            self.fetch_next()
+            self.left.draw_statuses(self.statuses, self.selected, new_index - 1)
+            self.draw_footer_status()
+
         self.selected = new_index
         self.redraw_after_selection_change(old_index, new_index)
-
-        # Scroll if required
-        if new_index >= self.scroll_pos + self.get_page_size():
-            self.scroll_down()
-        else:
-            self.scroll_refresh()
-
-    def get_page_size(self):
-        """Calculate how many statuses fit on one page (3 lines per status)"""
-        height = self.right.window.getmaxyx()[0] - 2  # window height - borders
-        return height // 3
-
-    def redraw_after_selection_change(self, old_index, new_index):
-        old_status = self.statuses[old_index]
-        new_status = self.statuses[new_index]
-
-        # Perform a partial redraw
-        self.draw_status_row(self.left, old_status, old_index, False)
-        self.draw_status_row(self.left, new_status, new_index, True)
-        self.right.draw(new_status)
-        self.draw_footer_status()
 
     def fetch_next(self):
         try:
@@ -273,51 +318,25 @@ class TimelineApp:
         self.header.draw()
         self.draw_footer_status()
 
-        self.left.clear()
-        self.left.box()
-        self.draw_statuses(self.left)
-
+        self.left.draw_statuses(self.statuses, self.selected)
         self.right.draw(self.get_selected_status())
         self.header.draw()
-        self.scroll_refresh()
+
+    def redraw_after_selection_change(self, old_index, new_index):
+        old_status = self.statuses[old_index]
+        new_status = self.statuses[new_index]
+
+        # Perform a partial redraw
+        self.left.draw_status_row(old_status, old_index, highlight=False, draw_divider=False)
+        self.left.draw_status_row(new_status, new_index, highlight=True, draw_divider=False)
+        self.left.scroll_if_required(new_index)
+
+        self.right.draw(new_status)
+        self.draw_footer_status()
 
     def get_selected_status(self):
         if len(self.statuses) > self.selected:
             return self.statuses[self.selected]
-
-    def draw_status_row(self, window, status, index, highlight=False):
-        offset = 3 * index
-
-        height, width = window.getmaxyx()
-        color = Color.BLUE if highlight else 0
-
-        date, time = status['created_at']
-        window.addstr(offset + 1, 2, date, color)
-        window.addstr(offset + 2, 2, time, color)
-
-        trunc_width = width - 16
-        acct = trunc(status['account']['acct'], trunc_width).ljust(trunc_width)
-        display_name = trunc(status['account']['display_name'], trunc_width).ljust(trunc_width)
-
-        window.addstr(offset + 1, 14, acct, color)
-        window.addstr(offset + 2, 14, display_name, color)
-        window.addstr(offset + 3, 1, '─' * (width - 2))
-
-        screen_height, screen_width = self.stdscr.getmaxyx()
-        window.refresh(0, 0, 2, 0, screen_height - 4, self.left_width)
-
-    def draw_statuses(self, window, starting=0):
-        # Resize window to accomodate statuses if required
-        height, width = window.getmaxyx()
-        new_height = len(self.statuses) * 3 + 1
-        if new_height > height:
-            window.resize(new_height, width)
-            window.box()
-
-        for index, status in enumerate(self.statuses):
-            if index >= starting:
-                highlight = self.selected == index
-                self.draw_status_row(window, status, index, highlight)
 
     def draw_footer_status(self):
         self.footer.draw_status(self.selected, len(self.statuses))
