@@ -115,11 +115,14 @@ class StatusListWindow:
         self.pad.addstr(offset + 2, 1, " " + time.ljust(14), color)
 
         trunc_width = width - 15
-        acct = trunc(status['account']['acct'], trunc_width).ljust(trunc_width)
+        acct = trunc("@" + status['account']['acct'], trunc_width).ljust(trunc_width)
         display_name = trunc(status['account']['display_name'], trunc_width).ljust(trunc_width)
 
-        self.pad.addstr(offset + 1, 14, display_name, color)
-        self.pad.addstr(offset + 2, 14, acct, color)
+        if status['account']['display_name']:
+            self.pad.addstr(offset + 1, 14, display_name, color)
+            self.pad.addstr(offset + 2, 14, acct, color)
+        else:
+            self.pad.addstr(offset + 1, 14, acct, color)
 
         if draw_divider:
             draw_horizontal_divider(self.pad, offset + 3)
@@ -167,7 +170,8 @@ class StatusDetailWindow:
         acct = status['account']['acct']
         name = status['account']['display_name']
 
-        yield name, Color.YELLOW
+        if name:
+            yield name, Color.YELLOW
         yield "@" + acct, Color.GREEN
         yield
 
