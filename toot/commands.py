@@ -9,7 +9,7 @@ from textwrap import TextWrapper
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
-from toot.output import print_out, print_instance, print_account, print_search_results
+from toot.output import print_out, print_err, print_instance, print_account, print_search_results
 from toot.utils import assert_domain_exists
 
 
@@ -89,15 +89,21 @@ def post(app, user, args):
 
 
 def auth(app, user, args):
-    if app and user:
-        print_out("You are logged in to <yellow>{}</yellow> as <yellow>{}</yellow>\n".format(
-            app.instance, user.username))
-        print_out("User data: <green>{}</green>".format(
-            config.get_user_config_path()))
-        print_out("App data:  <green>{}</green>".format(
-            config.get_instance_config_path(app.instance)))
-    else:
-        print_out("You are not logged in")
+    config_data = config.load_config()
+
+    if not config_data["users"]:
+        print_out("You are not logged in to any accounts")
+        return
+
+    active_user = config_data["active_user"]
+
+    print_out("Authenticated accounts:")
+    for uid, u in config_data["users"].items():
+        active_label = "ACTIVE" if active_user == uid else ""
+        print_out("* <green>{}</green> <yellow>{}</yellow>".format(uid, active_label))
+
+    path = config.get_config_file_path()
+    print_out("\nAuth tokens are stored in: <blue>{}</blue>".format(path))
 
 
 def login(app, user, args):
@@ -117,9 +123,15 @@ def login_browser(app, user, args):
 
 
 def logout(app, user, args):
-    config.delete_user()
+    user = config.load_user(args.account, throw=True)
+    config.delete_user(user)
+    print_out("<green>✓ User {} logged out</green>".format(config.user_id(user)))
 
-    print_out("<green>✓ You are now logged out.</green>")
+
+def activate(app, user, args):
+    user = config.load_user(args.account, throw=True)
+    config.activate_user(user)
+    print_out("<green>✓ User {} active</green>".format(config.user_id(user)))
 
 
 def upload(app, user, args):

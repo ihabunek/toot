@@ -5,7 +5,7 @@ import re
 
 from requests import Request
 
-from toot import console, User, App
+from toot import config, console, User, App
 from toot.exceptions import ConsoleError
 
 from tests.utils import MockResponse, Expectations
@@ -292,3 +292,63 @@ def test_whoami(monkeypatch, capsys):
     assert "Followers: 5" in out
     assert "Following: 9" in out
     assert "Statuses: 19" in out
+
+
+def u(user_id, access_token="abc"):
+    username, instance = user_id.split("@")
+    return {
+        "instance": instance,
+        "username": username,
+        "access_token": access_token,
+    }
+
+
+def test_logout(monkeypatch, capsys):
+    def mock_load():
+        return {
+            "users": {
+                "king@gizzard.social": u("king@gizzard.social"),
+                "lizard@wizard.social": u("lizard@wizard.social"),
+            },
+            "active_user": "king@gizzard.social",
+        }
+
+    def mock_save(config):
+        assert config["users"] == {
+            "lizard@wizard.social": u("lizard@wizard.social")
+        }
+        assert config["active_user"] is None
+
+    monkeypatch.setattr(config, "load_config", mock_load)
+    monkeypatch.setattr(config, "save_config", mock_save)
+
+    console.run_command(None, None, "logout", ["king@gizzard.social"])
+
+    out, err = capsys.readouterr()
+    assert "✓ User king@gizzard.social logged out" in out
+
+
+def test_activate(monkeypatch, capsys):
+    def mock_load():
+        return {
+            "users": {
+                "king@gizzard.social": u("king@gizzard.social"),
+                "lizard@wizard.social": u("lizard@wizard.social"),
+            },
+            "active_user": "king@gizzard.social",
+        }
+
+    def mock_save(config):
+        assert config["users"] == {
+            "king@gizzard.social": u("king@gizzard.social"),
+            "lizard@wizard.social": u("lizard@wizard.social"),
+        }
+        assert config["active_user"] == "lizard@wizard.social"
+
+    monkeypatch.setattr(config, "load_config", mock_load)
+    monkeypatch.setattr(config, "save_config", mock_save)
+
+    console.run_command(None, None, "activate", ["lizard@wizard.social"])
+
+    out, err = capsys.readouterr()
+    assert "✓ User lizard@wizard.social active" in out

@@ -30,6 +30,7 @@ class Expectations():
 class MockResponse:
     def __init__(self, response_data={}, ok=True, is_redirect=False):
         self.response_data = response_data
+        self.content = response_data
         self.ok = ok
         self.is_redirect = is_redirect
 

@@ -26,8 +26,9 @@ def register_app(domain):
     base_url = 'https://' + domain
 
     app = App(domain, base_url, response['client_id'], response['client_secret'])
-    path = config.save_app(app)
-    print_out("Application tokens saved to: <green>{}</green>\n".format(path))
+    config.save_app(app)
+
+    print_out("Application tokens saved.")
 
     return app
 
@@ -42,11 +43,16 @@ def create_app_interactive(instance=None):
     return config.load_app(instance) or register_app(instance)
 
 
-def create_user(app, email, access_token):
-    user = User(app.instance, email, access_token)
-    path = config.save_user(user)
+def create_user(app, access_token):
+    # Username is not yet known at this point, so fetch it from Mastodon
+    user = User(app.instance, None, access_token)
+    creds = api.verify_credentials(app, user)
 
-    print_out("Access token saved to: <green>{}</green>".format(path))
+    user = User(app.instance, creds['username'], access_token)
+    config.save_user(user, activate=True)
+
+    print_out("Access token saved to config at: <green>{}</green>".format(
+        config.get_config_file_path()))
 
     return user
 
@@ -68,7 +74,7 @@ def login_interactive(app, email=None):
     except ApiError:
         raise ConsoleError("Login failed")
 
-    return create_user(app, email, response['access_token'])
+    return create_user(app, response['access_token'])
 
 
 BROWSER_LOGIN_EXPLANATION = """
@@ -81,7 +87,6 @@ which you need to paste here.
 
 def login_browser_interactive(app):
     url = api.get_browser_login_url(app)
-
     print_out(BROWSER_LOGIN_EXPLANATION)
 
     print_out("This is the login URL:")
@@ -99,9 +104,4 @@ def login_browser_interactive(app):
     print_out("\nRequesting access token...")
     response = api.request_access_token(app, authorization_code)
 
-    # TODO: user email is not available in this workflow, maybe change the User
-    # to store the username instead? Currently set to "unknown" since it's not
-    # used anywhere.
-    email = "unknown"
-
-    return create_user(app, email, response['access_token'])
+    return create_user(app, response['access_token'])

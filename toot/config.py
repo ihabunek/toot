@@ -1,78 +1,165 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 
-from . import User, App
+from functools import wraps
 
-# The dir where all toot configuration is stored
-CONFIG_DIR = os.environ['HOME'] + '/.config/toot/'
-
-# Subfolder where application access keys for various instances are stored
-INSTANCES_DIR = CONFIG_DIR + 'instances/'
-
-# File in which user access token is stored
-CONFIG_USER_FILE = CONFIG_DIR + 'user.cfg'
+from toot import User, App
+from toot.config_legacy import load_legacy_config
+from toot.exceptions import ConsoleError
+from toot.output import print_out
 
 
-def get_instance_config_path(instance):
-    return INSTANCES_DIR + instance
+# The file holding toot configuration
+CONFIG_FILE = os.environ['HOME'] + '/.config/toot/config.json'
 
 
-def get_user_config_path():
-    return CONFIG_USER_FILE
+def get_config_file_path():
+    return CONFIG_FILE
 
 
-def _load(file, tuple_class):
-    if not os.path.exists(file):
-        return None
-
-    with open(file, 'r') as f:
-        lines = f.read().split()
-        try:
-            return tuple_class(*lines)
-        except TypeError:
-            return None
+def user_id(user):
+    return "{}@{}".format(user.username, user.instance)
 
 
-def _save(file, named_tuple):
-    directory = os.path.dirname(file)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def make_config(path):
+    """Creates a config file.
 
-    with open(file, 'w') as f:
-        values = [v for v in named_tuple]
-        f.write("\n".join(values))
+    Attempts to load data from legacy config files if they exist.
+    """
+    apps, user = load_legacy_config()
+
+    apps = {a.instance: a._asdict() for a in apps}
+    users = {user_id(user): user._asdict()} if user else {}
+    active_user = user_id(user) if user else None
+
+    config = {
+        "apps": apps,
+        "users": users,
+        "active_user": active_user,
+    }
+
+    print_out("Creating config file at <blue>{}</blue>".format(path))
+    with open(path, 'w') as f:
+        json.dump(config, f, indent=True)
+
+
+def load_config():
+    if not os.path.exists(CONFIG_FILE):
+        make_config(CONFIG_FILE)
+
+    with open(CONFIG_FILE) as f:
+        return json.load(f)
+
+
+def save_config(config):
+    with open(CONFIG_FILE, 'w') as f:
+        return json.dump(config, f, indent=True)
+
+
+def extract_user_app(config, user_id):
+    if user_id not in config['users']:
+        return None, None
+
+    user_data = config['users'][user_id]
+    instance = user_data['instance']
+
+    if instance not in config['apps']:
+        return None, None
+
+    app_data = config['apps'][instance]
+    return User(**user_data), App(**app_data)
+
+
+def get_active_user_app():
+    """Returns (User, App) of active user or (None, None) if no user is active."""
+    config = load_config()
+
+    if config['active_user']:
+        return extract_user_app(config, config['active_user'])
+
+    return None, None
+
+
+def get_user_app(user_id):
+    """Returns (User, App) for given user ID or (None, None) if user is not logged in."""
+    return extract_user_app(load_config(), user_id)
 
 
 def load_app(instance):
-    path = get_instance_config_path(instance)
-    return _load(path, App)
+    config = load_config()
+    if instance in config['apps']:
+        return App(**config['apps'][instance])
 
 
-def load_user():
-    path = get_user_config_path()
-    return _load(path, User)
+def load_user(user_id, throw=False):
+    config = load_config()
+
+    if user_id in config['users']:
+        return User(**config['users'][user_id])
+
+    if throw:
+        raise ConsoleError("User '{}' not found".format(user_id))
 
 
-def save_app(app):
-    path = get_instance_config_path(app.instance)
-    _save(path, app)
-    return path
+def modify_config(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        config = load_config()
+        config = f(config, *args, **kwargs)
+        save_config(config)
+        return config
+
+    return wrapper
 
 
-def save_user(user):
-    path = get_user_config_path()
-    _save(path, user)
-    return path
+@modify_config
+def save_app(config, app):
+    assert isinstance(app, App)
+
+    config['apps'][app.instance] = app._asdict()
+
+    return config
 
 
-def delete_app(instance):
-    path = get_instance_config_path(instance)
-    os.unlink(path)
-    return path
+@modify_config
+def delete_app(config, app):
+    assert isinstance(app, App)
+
+    config['apps'].pop(app.instance, None)
+
+    return config
 
 
-def delete_user():
-    path = get_user_config_path()
-    os.unlink(path)
-    return path
+@modify_config
+def save_user(config, user, activate=True):
+    assert isinstance(user, User)
+
+    config['users'][user_id(user)] = user._asdict()
+
+    if activate:
+        config['active_user'] = user_id(user)
+
+    return config
+
+
+@modify_config
+def delete_user(config, user):
+    assert isinstance(user, User)
+
+    config['users'].pop(user_id(user), None)
+
+    if config['active_user'] == user_id(user):
+        config['active_user'] = None
+
+    return config
+
+
+@modify_config
+def activate_user(config, user):
+    assert isinstance(user, User)
+
+    config['active_user'] = user_id(user)
+
+    return config

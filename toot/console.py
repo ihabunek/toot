@@ -38,7 +38,7 @@ common_args = [
 ]
 
 account_arg = (["account"], {
-    "help": "account name, e.g. 'Gargron' or 'polymerwitch@toot.cat'",
+    "help": "account name, e.g. 'Gargron@mastodon.social'",
 })
 
 instance_arg = (["-i", "--instance"], {
@@ -62,18 +62,24 @@ AUTH_COMMANDS = [
     Command(
         name="login_browser",
         description="Log in using your browser, supports regular and two factor authentication",
-        arguments=[instance_arg, email_arg],
+        arguments=[instance_arg],
+        require_auth=False,
+    ),
+    Command(
+        name="activate",
+        description="Switch between logged in accounts.",
+        arguments=[account_arg],
         require_auth=False,
     ),
     Command(
         name="logout",
         description="Log out, delete stored access keys",
-        arguments=[],
+        arguments=[account_arg],
         require_auth=False,
     ),
     Command(
         name="auth",
-        description="Show stored credentials",
+        description="Show logged in accounts and instances",
         arguments=[],
         require_auth=False,
     ),
@@ -261,6 +267,10 @@ def get_argument_parser(name, command):
     for args, kwargs in command.arguments + common_args:
         parser.add_argument(*args, **kwargs)
 
+    # If the command requires auth, give an option to select account
+    if command.require_auth:
+        parser.add_argument("-u", "--using", help="the account to use, overrides active account")
+
     return parser
 
 
@@ -274,6 +284,12 @@ def run_command(app, user, name, args):
 
     parser = get_argument_parser(name, command)
     parsed_args = parser.parse_args(args)
+
+    # Override the active account if 'using' option is given
+    if command.require_auth and parsed_args.using:
+        user, app = config.get_user_app(parsed_args.using)
+        if not user or not app:
+            raise ConsoleError("User '{}' not found".format(parsed_args.using))
 
     if command.require_auth and (not user or not app):
         print_err("This command requires that you are logged in.")
@@ -305,8 +321,7 @@ def main():
     if not command_name:
         return print_usage()
 
-    user = config.load_user()
-    app = config.load_app(user.instance) if user else None
+    user, app = config.get_active_user_app()
 
     try:
         run_command(app, user, command_name, args)

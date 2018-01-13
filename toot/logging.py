@@ -22,7 +22,7 @@ def log_request(request):
 def log_response(response):
     if response.ok:
         logger.debug("<<< \033[32m{}\033[0m".format(response))
-        logger.debug("<<< \033[33m{}\033[0m".format(response.json()))
+        logger.debug("<<< \033[33m{}\033[0m".format(response.content))
     else:
         logger.debug("<<< \033[31m{}\033[0m".format(response))
         logger.debug("<<< \033[31m{}\033[0m".format(response.content))

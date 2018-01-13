@@ -41,15 +41,17 @@ def test_create_app_registered(monkeypatch):
 def test_create_user(monkeypatch):
     app = App(4, 5, 6, 7)
 
-    def assert_user(user):
+    def assert_user(user, activate=True):
+        assert activate
         assert isinstance(user, User)
         assert user.instance == app.instance
-        assert user.username == 2
-        assert user.access_token == 3
+        assert user.username == "foo"
+        assert user.access_token == "abc"
 
     monkeypatch.setattr(config, 'save_user', assert_user)
+    monkeypatch.setattr(api, 'verify_credentials', lambda x, y: {"username": "foo"})
 
-    user = auth.create_user(app, 2, 3)
+    user = auth.create_user(app, 'abc')
 
     assert_user(user)
 
