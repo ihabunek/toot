@@ -132,7 +132,7 @@ class StatusListWindow:
             0,                    # left
             self.region_top,
             self.region_left,
-            self.region_height,
+            self.region_height + 1,  # +1 required to refresh full height, not sure why
             self.region_width,
         )
 
