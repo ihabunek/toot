@@ -1,12 +1,10 @@
-
 def draw_horizontal_divider(window, y):
     height, width = window.getmaxyx()
 
-    if y > height:
-        raise ValueError("y out of bounds")
-
-    line = '├' + '─' * (width - 2) + '┤'
-    window.addstr(y, 0, line)
+    # Don't draw out of bounds
+    if y < height - 1:
+        line = '├' + '─' * (width - 2) + '┤'
+        window.addstr(y, 0, line)
 
 
 def enumerate_lines(generator, default_color):
@@ -22,7 +20,9 @@ def enumerate_lines(generator, default_color):
 
 
 def draw_lines(window, lines, x, y, default_color):
+    height, _ = window.getmaxyx()
     for dy, line, color in enumerate_lines(lines, default_color):
-        window.addstr(y + dy, x, line, color)
+        if y + dy < height - 1:
+            window.addstr(y + dy, x, line, color)
 
     return y + dy + 1
