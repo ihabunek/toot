@@ -191,8 +191,11 @@ class StatusDetailWindow:
                     yield line
 
     def footer_lines(self, status):
+        text_width = self.width - 4
+
         if status['url'] is not None:
-            yield status['url']
+            for line in wrap(status['url'], text_width):
+                yield line
 
         if status['boosted_by']:
             acct = status['boosted_by']['acct']
