@@ -6,6 +6,13 @@ Changelog
 * Changed configuration file format to allow switching between multiple logged
   in accounts (#32)
 * Respect XDG_CONFIG_HOME environment variable to locate config home (#12)
+* Many improvements to the curses app:
+    * Dynamically calculate left window width, supports narrower windows (#27)
+    * Redraw windows when terminal size changes (#25)
+    * Support scrolling the status list
+    * Fetch next batch of statuses when bottom is reached
+    * Support up/down arrows (#30)
+    * Misc visual improvements
 
 **0.16.2 (2018-01-02)**
 
