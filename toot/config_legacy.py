@@ -20,7 +20,10 @@ def load_user(path):
 
     with open(path, 'r') as f:
         lines = f.read().split()
-        return User(*lines)
+        try:
+            return User(*lines)
+        except TypeError:
+            return None
 
 
 def load_apps(path):
@@ -30,7 +33,10 @@ def load_apps(path):
     for name in os.listdir(path):
         with open(path + name) as f:
             values = f.read().split()
-            yield App(*values)
+            try:
+                yield App(*values)
+            except TypeError:
+                pass
 
 
 def add_username(user, apps):
