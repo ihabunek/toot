@@ -26,3 +26,7 @@ def log_response(response):
     else:
         logger.debug("<<< \033[31m{}\033[0m".format(response))
         logger.debug("<<< \033[31m{}\033[0m".format(response.content))
+
+
+def log_debug(*msgs):
+    logger.debug(" ".join(str(m) for m in msgs))

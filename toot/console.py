@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import logging
 
@@ -8,7 +9,6 @@ from collections import namedtuple
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
-
 
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
 
@@ -305,9 +305,10 @@ def run_command(app, user, name, args):
 
 
 def main():
-    # Enable debug log if --debug is in args
+    # Enable debug logging if --debug is in args
     if "--debug" in sys.argv:
-        logging.basicConfig(level=logging.DEBUG)
+        filename = os.getenv("TOOT_LOG_FILE")
+        logging.basicConfig(level=logging.DEBUG, filename=filename)
 
     # If something is piped in, append it to commandline arguments
     if not sys.stdin.isatty():
