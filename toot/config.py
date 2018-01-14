@@ -11,12 +11,18 @@ from toot.exceptions import ConsoleError
 from toot.output import print_out
 
 
-# The file holding toot configuration
-CONFIG_FILE = os.environ['HOME'] + '/.config/toot/config.json'
-
-
 def get_config_file_path():
-    return CONFIG_FILE
+    """Returns the path to toot config file
+
+    Attempts to locate config home dir from XDG_CONFIG_HOME env variable.
+    See: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
+    If not found, defaults to `~/.config`.
+    """
+    config_dir = os.getenv('XDG_CONFIG_HOME', '~/.config')
+    return os.path.expanduser(config_dir + '/toot/config.json')
+
+
+CONFIG_FILE = get_config_file_path()
 
 
 def user_id(user):

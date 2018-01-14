@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+**0.17.0 (TBA)**
+
+* Changed configuration file format to allow switching between multiple logged
+  in accounts (#32)
+* Respect XDG_CONFIG_HOME environment variable to locate config home (#12)
+
 **0.16.2 (2018-01-02)**
 
 * No changes, pushed to fix a packaging issue

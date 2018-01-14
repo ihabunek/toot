@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from toot import User, App, config
@@ -119,3 +120,19 @@ def test_delete_app(sample_config):
     config.delete_app.__wrapped__(sample_config, app)
     assert 'foo.social' not in sample_config['apps']
     assert len(sample_config['apps']) == app_count - 1
+
+
+def test_get_config_file_path():
+    fn = config.get_config_file_path
+
+    os.unsetenv('XDG_CONFIG_HOME')
+
+    assert fn() == os.path.expanduser('~/.config/toot/config.json')
+
+    os.environ['XDG_CONFIG_HOME'] = '/foo/bar/config'
+
+    assert fn() == '/foo/bar/config/toot/config.json'
+
+    os.environ['XDG_CONFIG_HOME'] = '~/foo/config'
+
+    assert fn() == os.path.expanduser('~/foo/config/toot/config.json')
