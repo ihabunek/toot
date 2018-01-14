@@ -88,21 +88,38 @@ def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
 
 
-def _get_next_path(headers):
+def get_next_path(headers):
+    """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
     matches = re.match('<([^>]+)>; rel="next"', links)
     if matches:
-        url = matches.group(1)
-        return urlparse(url).path
+        parsed = urlparse(matches.group(1))
+        return "?".join([parsed.path, parsed.query])
 
 
-def timeline_generator(app, user):
-    next_path = '/api/v1/timelines/home'
-
-    while next_path:
-        response = http.get(app, user, next_path)
+def _timeline_generator(app, user, path, limit=20):
+    while path:
+        response = http.get(app, user, path)
         yield response.json()
-        next_path = _get_next_path(response.headers)
+        path = get_next_path(response.headers)
+
+
+def _anon_timeline_generator(instance, path, limit=20):
+    while path:
+        url = "https://{}{}".format(instance, path)
+        response = http.anon_get(url, path)
+        yield response.json()
+        path = get_next_path(response.headers)
+
+
+def home_timeline_generator(app, user, limit=20):
+    path = '/api/v1/timelines/home?limit={}'.format(limit)
+    return _timeline_generator(app, user, path)
+
+
+def public_timeline_generator(instance, limit=20):
+    path = '/api/v1/timelines/public?limit={}'.format(limit)
+    return _anon_timeline_generator(instance, path)
 
 
 def upload_media(app, user, file):
