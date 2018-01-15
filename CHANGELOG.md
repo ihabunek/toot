@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.17.1 (2017-01-15)**
+
+* Fix packaging to include `toot.ui` package (#41)
+
 **0.17.0 (2017-01-15)**
 
 * Changed configuration file format to allow switching between multiple logged
