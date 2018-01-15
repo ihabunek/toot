@@ -4,6 +4,7 @@ import os
 import json
 
 from functools import wraps
+from os.path import dirname
 
 from toot import User, App
 from toot.config_legacy import load_legacy_config
@@ -47,6 +48,10 @@ def make_config(path):
     }
 
     print_out("Creating config file at <blue>{}</blue>".format(path))
+
+    # Ensure dir exists
+    os.makedirs(dirname(path), exist_ok=True)
+
     with open(path, 'w') as f:
         json.dump(config, f, indent=True)
 

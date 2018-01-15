@@ -3,6 +3,7 @@ Changelog
 
 **0.17.1 (2017-01-15)**
 
+* Create config folder if it does not exist (#40)
 * Fix packaging to include `toot.ui` package (#41)
 
 **0.17.0 (2017-01-15)**
