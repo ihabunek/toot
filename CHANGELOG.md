@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-**0.17.0 (TBA)**
+**0.17.0 (2017-01-15)**
 
 * Changed configuration file format to allow switching between multiple logged
   in accounts (#32)
