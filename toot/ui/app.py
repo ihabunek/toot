@@ -24,6 +24,7 @@ class Color:
         curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_RED)
 
         class_.WHITE = curses.color_pair(1)
         class_.BLUE = curses.color_pair(2)
@@ -31,6 +32,7 @@ class Color:
         class_.YELLOW = curses.color_pair(4)
         class_.RED = curses.color_pair(5)
         class_.WHITE_ON_BLUE = curses.color_pair(6)
+        class_.WHITE_ON_RED = curses.color_pair(7)
 
 
 class HeaderWindow:
@@ -177,7 +179,17 @@ class StatusDetailWindow:
 
         text_width = self.width - 4
 
-        for line in status['lines']:
+        if status['sensitive']:
+            for line in status['spoiler_text']:
+                for wrapped in wrap(line, text_width):
+                    yield wrapped
+            yield
+
+        if status['sensitive'] and not status['show_sensitive']:
+            yield "Marked as sensitive, press s to view".ljust(text_width), Color.WHITE_ON_RED
+            return
+
+        for line in status['content']:
             wrapped_lines = wrap(line, text_width) if line else ['']
             for wrapped_line in wrapped_lines:
                 yield wrapped_line.ljust(text_width)
@@ -272,9 +284,18 @@ class TimelineApp:
             elif key.lower() == 'k' or key == 'A':
                 self.select_previous()
 
+            elif key.lower() == 's':
+                self.show_sensitive()
+
             elif key == 'KEY_RESIZE':
                 self.setup_windows()
                 self.full_redraw()
+
+    def show_sensitive(self):
+        status = self.get_selected_status()
+        if status['sensitive'] and not status['show_sensitive']:
+            status['show_sensitive'] = True
+            self.right.draw(status)
 
     def select_previous(self):
         """Move to the previous status in the timeline."""
@@ -352,7 +373,8 @@ class TimelineApp:
 def parse_status(status):
     _status = status.get('reblog') or status
     account = parse_account(_status['account'])
-    lines = list(format_content(_status['content']))
+    content = list(format_content(_status['content']))
+    spoiler_text = list(format_content(_status['spoiler_text'])) if _status['spoiler_text'] else []
 
     created_at = status['created_at'][:19].split('T')
     boosted_by = parse_account(status['account']) if status['reblog'] else None
@@ -361,9 +383,12 @@ def parse_status(status):
         'account': account,
         'boosted_by': boosted_by,
         'created_at': created_at,
-        'lines': lines,
+        'content': content,
         'media_attachments': _status['media_attachments'],
         'url': _status['url'],
+        'spoiler_text': spoiler_text,
+        'sensitive': _status['sensitive'],
+        'show_sensitive': False,
     }
 
 
