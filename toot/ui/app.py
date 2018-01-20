@@ -2,8 +2,6 @@
 
 import webbrowser
 
-from textwrap import wrap
-
 from toot.exceptions import ConsoleError
 from toot.ui.utils import draw_horizontal_divider, draw_lines
 from toot.utils import format_content, trunc
@@ -181,8 +179,7 @@ class StatusDetailWindow:
 
         if status['sensitive']:
             for line in status['spoiler_text']:
-                for wrapped in wrap(line, text_width):
-                    yield wrapped
+                yield line
             yield
 
         if status['sensitive'] and not status['show_sensitive']:
@@ -190,28 +187,21 @@ class StatusDetailWindow:
             return
 
         for line in status['content']:
-            wrapped_lines = wrap(line, text_width) if line else ['']
-            for wrapped_line in wrapped_lines:
-                yield wrapped_line.ljust(text_width)
+            yield line
 
         if status['media_attachments']:
             yield
             yield "Media:"
             for attachment in status['media_attachments']:
-                url = attachment['text_url'] or attachment['url']
-                for line in wrap(url, text_width):
-                    yield line
+                yield attachment['text_url'] or attachment['url']
 
     def footer_lines(self, status):
-        text_width = self.width - 4
-
         if status['url'] is not None:
-            for line in wrap(status['url'], text_width):
-                yield line
+            yield status['url']
 
         if status['boosted_by']:
             acct = status['boosted_by']['acct']
-            yield "Boosted by @{}".format(acct), Color.BLUE
+            yield "Boosted by @{}".format(acct), Color.GREEN
 
     def draw(self, status):
         self.window.erase()
@@ -223,9 +213,9 @@ class StatusDetailWindow:
         content = self.content_lines(status)
         footer = self.footer_lines(status)
 
-        y = draw_lines(self.window, content, 2, 1, Color.WHITE)
+        y = draw_lines(self.window, content, 1, 2, Color.WHITE)
         draw_horizontal_divider(self.window, y)
-        draw_lines(self.window, footer, 2, y + 1, Color.WHITE)
+        draw_lines(self.window, footer, y + 1, 2, Color.WHITE)
 
         self.window.refresh()
 

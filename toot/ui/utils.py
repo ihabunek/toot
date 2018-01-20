@@ -1,3 +1,6 @@
+from textwrap import wrap
+
+
 def draw_horizontal_divider(window, y):
     height, width = window.getmaxyx()
 
@@ -7,22 +10,36 @@ def draw_horizontal_divider(window, y):
         window.addstr(y, 0, line)
 
 
-def enumerate_lines(generator, default_color):
-    for y, item in enumerate(generator):
-        if isinstance(item, tuple) and len(item) == 2:
-            yield y, item[0], item[1]
-        elif isinstance(item, str):
-            yield y, item, default_color
-        elif item is None:
-            yield y, "", default_color
-        else:
-            raise ValueError("Wrong yield in generator")
+def enumerate_lines(lines, text_width, default_color):
+    def parse_line(line):
+        if isinstance(line, tuple) and len(line) == 2:
+            return line[0], line[1]
+        elif isinstance(line, str):
+            return line, default_color
+        elif line is None:
+            return "", default_color
+
+        raise ValueError("Wrong yield in generator")
+
+    def wrap_lines(lines):
+        for line in lines:
+            line, color = parse_line(line)
+            if line:
+                for wrapped in wrap(line, text_width):
+                    yield wrapped, color
+            else:
+                yield "", color
+
+    return enumerate(wrap_lines(lines))
 
 
-def draw_lines(window, lines, x, y, default_color):
-    height, _ = window.getmaxyx()
-    for dy, line, color in enumerate_lines(lines, default_color):
-        if y + dy < height - 1:
-            window.addstr(y + dy, x, line, color)
+def draw_lines(window, lines, start_y, padding, default_color):
+    height, width = window.getmaxyx()
+    text_width = width - 2 * padding
 
-    return y + dy + 1
+    for dy, (line, color) in enumerate_lines(lines, text_width, default_color):
+        y = start_y + dy
+        if y < height - 1:
+            window.addstr(y, padding, line.ljust(text_width), color)
+
+    return y + 1
