@@ -2,6 +2,7 @@
 
 import re
 import socket
+import unicodedata
 
 from bs4 import BeautifulSoup
 
@@ -10,7 +11,9 @@ from toot.exceptions import ConsoleError
 
 def get_text(html):
     """Converts html to text, strips all tags."""
-    return BeautifulSoup(html, "html.parser").get_text().replace('&apos;', "'")
+    text = BeautifulSoup(html, "html.parser").get_text().replace('&apos;', "'")
+
+    return unicodedata.normalize('NFKC', text)
 
 
 def parse_html(html):
