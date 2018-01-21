@@ -21,16 +21,20 @@ class Color:
         curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLUE)
-        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(9, curses.COLOR_WHITE, curses.COLOR_RED)
 
         class_.WHITE = curses.color_pair(1)
         class_.BLUE = curses.color_pair(2)
         class_.GREEN = curses.color_pair(3)
         class_.YELLOW = curses.color_pair(4)
         class_.RED = curses.color_pair(5)
-        class_.WHITE_ON_BLUE = curses.color_pair(6)
-        class_.WHITE_ON_RED = curses.color_pair(7)
+        class_.CYAN = curses.color_pair(6)
+        class_.MAGENTA = curses.color_pair(7)
+        class_.WHITE_ON_BLUE = curses.color_pair(8)
+        class_.WHITE_ON_RED = curses.color_pair(9)
 
 
 class HeaderWindow:
@@ -338,7 +342,6 @@ class TimelineApp:
 
         self.left.draw_statuses(self.statuses, self.selected)
         self.right.draw(self.get_selected_status())
-        self.header.draw()
 
     def redraw_after_selection_change(self, old_index, new_index):
         old_status = self.statuses[old_index]
