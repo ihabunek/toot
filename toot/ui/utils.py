@@ -1,3 +1,5 @@
+import re
+
 from textwrap import wrap
 
 
@@ -33,6 +35,17 @@ def enumerate_lines(lines, text_width, default_color):
     return enumerate(wrap_lines(lines))
 
 
+HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
+
+
+def highlight_hashtags(window, y, padding, line):
+    from toot.ui.app import Color
+
+    for match in re.finditer(HASHTAG_PATTERN, line):
+        start, end = match.span()
+        window.chgat(y, start + padding, end - start, Color.HASHTAG)
+
+
 def draw_lines(window, lines, start_y, padding, default_color):
     height, width = window.getmaxyx()
     text_width = width - 2 * padding
@@ -41,5 +54,6 @@ def draw_lines(window, lines, start_y, padding, default_color):
         y = start_y + dy
         if y < height - 1:
             window.addstr(y, padding, line.ljust(text_width), color)
+            highlight_hashtags(window, y, padding, line)
 
     return y + 1

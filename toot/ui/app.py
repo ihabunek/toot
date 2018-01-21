@@ -36,6 +36,8 @@ class Color:
         class_.WHITE_ON_BLUE = curses.color_pair(8)
         class_.WHITE_ON_RED = curses.color_pair(9)
 
+        class_.HASHTAG = class_.BLUE | curses.A_BOLD
+
 
 class HeaderWindow:
     def __init__(self, height, width, y, x):
