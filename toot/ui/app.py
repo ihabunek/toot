@@ -119,10 +119,6 @@ class StatusListWindow:
         height, width = self.pad.getmaxyx()
         color = Color.GREEN if highlight else Color.WHITE
 
-        date, time = status['created_at']
-        self.pad.addstr(offset + 1, 1, " " + date.ljust(14), color)
-        self.pad.addstr(offset + 2, 1, " " + time.ljust(14), color)
-
         trunc_width = width - 15
         acct = trunc("@" + status['account']['acct'], trunc_width).ljust(trunc_width)
         display_name = trunc(status['account']['display_name'], trunc_width).ljust(trunc_width)
@@ -132,6 +128,16 @@ class StatusListWindow:
             self.pad.addstr(offset + 2, 14, acct, color)
         else:
             self.pad.addstr(offset + 1, 14, acct, color)
+
+        date, time = status['created_at']
+        self.pad.addstr(offset + 1, 1, " " + date.ljust(12), color)
+        self.pad.addstr(offset + 2, 1, " " + time.ljust(12), color)
+
+        # Redraw box borders to mitigate unicode overflow issues
+        self.pad.addch(offset + 1, 0, "│")
+        self.pad.addch(offset + 2, 0, "│")
+        self.pad.addch(offset + 1, width - 1, "│")
+        self.pad.addch(offset + 2, width - 1, "│")
 
         if draw_divider:
             draw_horizontal_divider(self.pad, offset + 3)
