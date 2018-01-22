@@ -2,6 +2,8 @@
 
 import webbrowser
 
+from toot import __version__
+
 from toot.exceptions import ConsoleError
 from toot.ui.utils import draw_horizontal_divider, draw_lines
 from toot.utils import format_content, trunc
@@ -9,6 +11,7 @@ from toot.utils import format_content, trunc
 # Attempt to load curses, which is not available on windows
 try:
     import curses
+    import curses.panel
 except ImportError as e:
     raise ConsoleError("Curses is not available on this platform")
 
@@ -40,8 +43,8 @@ class Color:
 
 
 class HeaderWindow:
-    def __init__(self, height, width, y, x):
-        self.window = curses.newwin(height, width, y, x)
+    def __init__(self, stdscr, height, width, y, x):
+        self.window = stdscr.subwin(height, width, y, x)
         self.height = height
         self.width = width
 
@@ -53,8 +56,8 @@ class HeaderWindow:
 
 
 class FooterWindow:
-    def __init__(self, height, width, y, x):
-        self.window = curses.newwin(height, width, y, x)
+    def __init__(self, stdscr, height, width, y, x):
+        self.window = stdscr.subwin(height, width, y, x)
         self.height = height
         self.width = width
 
@@ -76,7 +79,7 @@ class FooterWindow:
 
 class StatusListWindow:
     """Window which shows the scrollable list of statuses (left side)."""
-    def __init__(self, height, width, top, left):
+    def __init__(self, stdscr, height, width, top, left):
         # Dimensions and position of region in stdscr which will contain the pad
         self.region_height = height
         self.region_width = width
@@ -167,8 +170,8 @@ class StatusListWindow:
 
 class StatusDetailWindow:
     """Window which shows details of a status (right side)"""
-    def __init__(self, height, width, y, x):
-        self.window = curses.newwin(height, width, y, x)
+    def __init__(self, stdscr, height, width, y, x):
+        self.window = stdscr.subwin(height, width, y, x)
         self.height = height
         self.width = width
 
@@ -226,6 +229,74 @@ class StatusDetailWindow:
         self.window.refresh()
 
 
+class Modal:
+    def __init__(self, stdscr):
+        height, width, y, x = self.get_size_pos(stdscr)
+
+        self.window = curses.newwin(height, width, y, x)
+        self.draw()
+        self.panel = curses.panel.new_panel(self.window)
+        self.panel.hide()
+
+    def get_content(self):
+        raise NotImplementedError()
+
+    def get_size_pos(self, stdscr):
+        screen_height, screen_width = stdscr.getmaxyx()
+
+        content = self.get_content()
+        height = len(content) + 2
+        width = max(len(l) for l in content) + 4
+
+        y = (screen_height - height) // 2
+        x = (screen_width - width) // 2
+
+        return height, width, y, x
+
+    def draw(self):
+        self.window.erase()
+        self.window.box()
+        draw_lines(self.window, self.get_content(), 1, 2, Color.WHITE)
+
+    def show(self):
+        self.panel.top()
+        self.panel.show()
+        self.window.refresh()
+        curses.panel.update_panels()
+
+    def hide(self):
+        self.panel.hide()
+        curses.panel.update_panels()
+
+    def loop(self):
+        self.show()
+
+        key = None
+        while key != 'q':
+            key = self.window.getkey()
+
+        self.hide()
+
+
+class HelpModal(Modal):
+    def get_content(self):
+        return [
+            ("toot v{}".format(__version__), Color.GREEN | curses.A_BOLD),
+            "",
+            "Key bindings:",
+            "",
+            "  h      - show help",
+            "  j or ↓ - move down",
+            "  k or ↑ - move up",
+            "  v      - view current toot in browser",
+            "  q      - quit application",
+            "",
+            "Press q to exist help.",
+            "",
+            ("https://github.com/ihabunek/toot", Color.YELLOW),
+        ]
+
+
 class TimelineApp:
     def __init__(self, status_generator):
         self.status_generator = status_generator
@@ -257,10 +328,12 @@ class TimelineApp:
         left_width = max(min(screen_width // 3, 60), 30)
         right_width = screen_width - left_width
 
-        self.header = HeaderWindow(2, screen_width, 0, 0)
-        self.footer = FooterWindow(2, screen_width, screen_height - 2, 0)
-        self.left = StatusListWindow(screen_height - 4, left_width, 2, 0)
-        self.right = StatusDetailWindow(screen_height - 4, right_width, 2, left_width)
+        self.header = HeaderWindow(self.stdscr, 2, screen_width, 0, 0)
+        self.footer = FooterWindow(self.stdscr, 2, screen_width, screen_height - 2, 0)
+        self.left = StatusListWindow(self.stdscr, screen_height - 4, left_width, 2, 0)
+        self.right = StatusDetailWindow(self.stdscr, screen_height - 4, right_width, 2, left_width)
+
+        self.help_modal = HelpModal(self.stdscr)
 
     def loop(self):
         while True:
@@ -268,6 +341,10 @@ class TimelineApp:
 
             if key.lower() == 'q':
                 return
+
+            elif key.lower() == 'h':
+                self.help_modal.loop()
+                self.full_redraw()
 
             elif key.lower() == 'v':
                 status = self.get_selected_status()
