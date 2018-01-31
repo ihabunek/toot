@@ -45,6 +45,7 @@ def make_config(path):
         "apps": apps,
         "users": users,
         "active_user": active_user,
+        "proxy" : {},
     }
 
     print_out("Creating config file at <blue>{}</blue>".format(path))
@@ -174,3 +175,20 @@ def activate_user(config, user):
     config['active_user'] = user_id(user)
 
     return config
+
+@modify_config
+def set_proxy(config, proxy):
+    config['proxy'] = proxy
+
+    return config
+
+@modify_config
+def delete_proxy(config):
+    config['proxy'] = None
+
+    return config
+
+def get_proxy():
+    config = load_config()
+
+    return config['proxy']

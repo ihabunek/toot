@@ -1,12 +1,13 @@
 from requests import Request, Session
 from toot.exceptions import NotFoundError, ApiError
 from toot.logging import log_request, log_response
-
+from toot import config
 
 def send_request(request, allow_redirects=True):
     log_request(request)
 
     with Session() as session:
+        session.proxies.update(config.get_proxy())
         prepared = session.prepare_request(request)
         response = session.send(prepared, allow_redirects=allow_redirects)
 
