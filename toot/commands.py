@@ -54,7 +54,7 @@ def _parse_timeline(item):
 
 
 def timeline(app, user, args):
-    items = api.timeline_home(app, user)
+    items = api.timeline_home(app, user, args)
     parsed_items = [_parse_timeline(t) for t in items]
 
     print_out("─" * 31 + "┬" + "─" * 88)

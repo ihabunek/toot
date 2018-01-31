@@ -84,8 +84,12 @@ def post_status(app, user, status, visibility='public', media_ids=None):
     }).json()
 
 
-def timeline_home(app, user):
-    return http.get(app, user, '/api/v1/timelines/home').json()
+def timeline_home(app, user, args):
+    if args.tag:
+        timeline = "tag/%s" % args.tag
+    else:
+        timeline = "home"
+    return http.get(app, user, '/api/v1/timelines/%s' % timeline).json()
 
 
 def get_next_path(headers):
