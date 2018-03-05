@@ -91,6 +91,10 @@ def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
 
 
+def timeline_public(app, user, local=False):
+    return http.get(app, user, '/api/v1/timelines/public', {'local': 'true' if local else 'false'}).json()
+
+
 def get_next_path(headers):
     """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
