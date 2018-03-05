@@ -55,7 +55,7 @@ def get_browser_login_url(app):
     return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
         "response_type": "code",
         "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-        "scope": "read write follow",
+        "scope": SCOPES,
         "client_id": app.client_id,
     }))
 
