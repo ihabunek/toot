@@ -132,7 +132,13 @@ READ_COMMANDS = [
     Command(
         name="timeline",
         description="Show recent items in your public timeline",
-        arguments=[],
+        arguments=[
+            (["-l", "--local"], {
+                "action": 'store_true',
+                "default": False,
+                "help": "Show local timeline instead of public timeline.",
+            }),
+        ],
         require_auth=True,
     ),
     Command(

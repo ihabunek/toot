@@ -8,7 +8,10 @@ from toot.utils import assert_domain_exists
 
 
 def timeline(app, user, args):
-    items = api.timeline_home(app, user)
+    if args.local:
+        items = api.timeline_public(app, user, local=True)
+    else:
+        items = api.timeline_home(app, user)
     print_timeline(items)
 
 
