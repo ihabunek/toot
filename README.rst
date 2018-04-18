@@ -38,6 +38,23 @@ Install the package:
     sudo apt update
     sudo apt install python3-toot
 
+From FreeBSD ports
+~~~~~~~~~~~~~~~~~~
+
+Install the package:
+
+.. code-block::
+
+    pkg install toot
+
+Build and install from sources:
+
+.. code-block::
+
+    cd /usr/ports/net-im/toot
+    make install
+
+
 From Nixpkgs
 ~~~~~~~~~~~~
 
