@@ -34,6 +34,11 @@ common_args = [
         "help": "show debug log in console",
         "action": 'store_true',
         "default": False,
+    }),
+    (["--accept-invalid-certs"], {
+        "help": "accept invalid HTTPS certificates",
+        "action": 'store_true',
+        "default": False,
     })
 ]
 
@@ -51,18 +56,23 @@ email_arg = (["-e", "--email"], {
     "help": 'email address to log in with',
 })
 
+insecure_arg = (["-I", "--insecure"], {
+    "action": 'store_true',
+    "default": False,
+    "help": 'use HTTP, not HTTPS',
+})
 
 AUTH_COMMANDS = [
     Command(
         name="login",
         description="Log in from the console, does NOT support two factor authentication",
-        arguments=[instance_arg, email_arg],
+        arguments=[instance_arg, email_arg, insecure_arg],
         require_auth=False,
     ),
     Command(
         name="login_browser",
         description="Log in using your browser, supports regular and two factor authentication",
-        arguments=[instance_arg],
+        arguments=[instance_arg, insecure_arg],
         require_auth=False,
     ),
     Command(

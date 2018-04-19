@@ -116,7 +116,8 @@ def auth(app, user, args):
 
 
 def login(app, user, args):
-    app = create_app_interactive(instance=args.instance)
+    app = create_app_interactive(instance=args.instance,
+            insecure=args.insecure)
     login_interactive(app, args.email)
 
     print_out()
@@ -124,7 +125,8 @@ def login(app, user, args):
 
 
 def login_browser(app, user, args):
-    app = create_app_interactive(instance=args.instance)
+    app = create_app_interactive(instance=args.instance,
+            insecure=args.insecure)
     login_browser_interactive(app)
 
     print_out()
