@@ -55,7 +55,7 @@ def get_browser_login_url(app):
     return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
         "response_type": "code",
         "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-        "scope": "read write follow",
+        "scope": SCOPES,
         "client_id": app.client_id,
     }))
 
@@ -86,6 +86,10 @@ def post_status(app, user, status, visibility='public', media_ids=None):
 
 def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
+
+
+def timeline_public(app, user, local=False):
+    return http.get(app, user, '/api/v1/timelines/public', {'local': 'true' if local else 'false'}).json()
 
 
 def get_next_path(headers):
