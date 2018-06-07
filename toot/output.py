@@ -3,7 +3,12 @@
 import sys
 import re
 
-from textwrap import wrap
+from bs4 import BeautifulSoup
+from datetime import datetime
+from itertools import chain
+from itertools import zip_longest
+from textwrap import wrap, TextWrapper
+
 from toot.utils import format_content, get_text
 
 START_CODES = {
@@ -110,3 +115,48 @@ def print_search_results(results):
 
     if not accounts and not hashtags:
         print_out("<yellow>Nothing found</yellow>")
+
+
+def print_timeline(items):
+    def _print_item(item):
+        def wrap_text(text, width):
+            wrapper = TextWrapper(width=width, break_long_words=False, break_on_hyphens=False)
+            return chain(*[wrapper.wrap(l) for l in text.split("\n")])
+
+        def timeline_rows(item):
+            name = item['name']
+            time = item['time'].strftime('%Y-%m-%d %H:%M%Z')
+
+            left_column = [name, time]
+            if 'reblogged' in item:
+                left_column.append(item['reblogged'])
+
+            text = item['text']
+
+            right_column = wrap_text(text, 80)
+
+            return zip_longest(left_column, right_column, fillvalue="")
+
+        for left, right in timeline_rows(item):
+            print_out("{:30} │ {}".format(left, right))
+
+    def _parse_item(item):
+        content = item['reblog']['content'] if item['reblog'] else item['content']
+        reblogged = item['reblog']['account']['username'] if item['reblog'] else ""
+
+        name = item['account']['display_name'] + " @" + item['account']['username']
+        soup = BeautifulSoup(content, "html.parser")
+        text = soup.get_text().replace('&apos;', "'")
+        time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        return {
+            "name": name,
+            "text": text,
+            "time": time,
+            "reblogged": reblogged,
+        }
+
+    print_out("─" * 31 + "┬" + "─" * 88)
+    for item in items:
+        _print_item(_parse_item(item))
+        print_out("─" * 31 + "┼" + "─" * 88)

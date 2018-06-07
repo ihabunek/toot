@@ -1,66 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from bs4 import BeautifulSoup
-from datetime import datetime
-from itertools import zip_longest
-from itertools import chain
-from textwrap import TextWrapper
-
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
-from toot.output import print_out, print_err, print_instance, print_account, print_search_results
+from toot.output import print_out, print_instance, print_account, print_search_results, print_timeline
 from toot.utils import assert_domain_exists
-
-
-def _print_timeline(item):
-    def wrap_text(text, width):
-        wrapper = TextWrapper(width=width, break_long_words=False, break_on_hyphens=False)
-        return chain(*[wrapper.wrap(l) for l in text.split("\n")])
-
-    def timeline_rows(item):
-        name = item['name']
-        time = item['time'].strftime('%Y-%m-%d %H:%M%Z')
-
-        left_column = [name, time]
-        if 'reblogged' in item:
-            left_column.append(item['reblogged'])
-
-        text = item['text']
-
-        right_column = wrap_text(text, 80)
-
-        return zip_longest(left_column, right_column, fillvalue="")
-
-    for left, right in timeline_rows(item):
-        print_out("{:30} │ {}".format(left, right))
-
-
-def _parse_timeline(item):
-    content = item['reblog']['content'] if item['reblog'] else item['content']
-    reblogged = item['reblog']['account']['username'] if item['reblog'] else ""
-
-    name = item['account']['display_name'] + " @" + item['account']['username']
-    soup = BeautifulSoup(content, "html.parser")
-    text = soup.get_text().replace('&apos;', "'")
-    time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
-
-    return {
-        "name": name,
-        "text": text,
-        "time": time,
-        "reblogged": reblogged,
-    }
 
 
 def timeline(app, user, args):
     items = api.timeline_home(app, user)
-    parsed_items = [_parse_timeline(t) for t in items]
-
-    print_out("─" * 31 + "┬" + "─" * 88)
-    for item in parsed_items:
-        _print_timeline(item)
-        print_out("─" * 31 + "┼" + "─" * 88)
+    print_timeline(items)
 
 
 def curses(app, user, args):
