@@ -170,6 +170,15 @@ POST_COMMANDS = [
                 "type": visibility,
                 "default": "public",
                 "help": 'post visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
+            }),
+            (["-s", "--sensitive"], {
+                "action": 'store_true',
+                "default": False,
+                "help": "mark the media as NSFW",
+            }),
+            (["-p", "--spoiler-text"], {
+                "type": str,
+                "help": 'text to be shown as a warning before the actual content',
             })
         ],
         require_auth=True,

@@ -1,12 +1,16 @@
 Changelog
 ---------
 
-**0.17.1 (2017-01-15)**
+**0.18.0 (TBA)**
+
+* Add `--sensitive` and `--spoiler-text` options to `toot post` (#63)
+
+**0.17.1 (2018-01-15)**
 
 * Create config folder if it does not exist (#40)
 * Fix packaging to include `toot.ui` package (#41)
 
-**0.17.0 (2017-01-15)**
+**0.17.0 (2018-01-15)**
 
 * Changed configuration file format to allow switching between multiple logged
   in accounts (#32)

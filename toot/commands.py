@@ -92,7 +92,13 @@ def post(app, user, args):
     if not args.text:
         raise ConsoleError("You must specify either text or media to post.")
 
-    response = api.post_status(app, user, args.text, args.visibility, media_ids)
+    response = api.post_status(
+        app, user, args.text,
+        visibility=args.visibility,
+        media_ids=media_ids,
+        sensitive=args.sensitive,
+        spoiler_text=args.spoiler_text,
+    )
 
     print_out("Toot posted: <green>{}</green>".format(response.get('url')))
 
