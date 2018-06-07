@@ -132,7 +132,12 @@ READ_COMMANDS = [
     Command(
         name="timeline",
         description="Show recent items in your public timeline",
-        arguments=[],
+        arguments=[
+            (["tag"], {
+                "help" : "Search for a tag",
+                "nargs" : "?",
+            }),
+        ],
         require_auth=True,
     ),
     Command(
