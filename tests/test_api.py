@@ -1,31 +1,32 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from requests import Request
+from unittest import mock
 
 from toot import App, CLIENT_NAME, CLIENT_WEBSITE
 from toot.api import create_app, login, SCOPES, AuthenticationError
-from tests.utils import MockResponse, Expectations
+from tests.utils import MockResponse
 
 
-def test_create_app(monkeypatch):
-    request = Request('POST', 'https://bigfish.software/api/v1/apps',
-                      data={'website': CLIENT_WEBSITE,
-                            'client_name': CLIENT_NAME,
-                            'scopes': SCOPES,
-                            'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob'})
-
-    response = MockResponse({'client_id': 'foo',
-                             'client_secret': 'bar'})
-
-    e = Expectations()
-    e.add(request, response)
-    e.patch(monkeypatch)
+@mock.patch('toot.http.anon_post')
+def test_create_app(mock_post):
+    mock_post.return_value = MockResponse({
+        'client_id': 'foo',
+        'client_secret': 'bar',
+    })
 
     create_app('bigfish.software')
 
+    mock_post.assert_called_once_with('https://bigfish.software/api/v1/apps', {
+        'website': CLIENT_WEBSITE,
+        'client_name': CLIENT_NAME,
+        'scopes': SCOPES,
+        'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob',
+    })
 
-def test_login(monkeypatch):
+
+@mock.patch('toot.http.anon_post')
+def test_login(mock_post):
     app = App('bigfish.software', 'https://bigfish.software', 'foo', 'bar')
 
     data = {
@@ -37,23 +38,21 @@ def test_login(monkeypatch):
         'scope': SCOPES,
     }
 
-    request = Request('POST', 'https://bigfish.software/oauth/token', data=data)
-
-    response = MockResponse({
+    mock_post.return_value = MockResponse({
         'token_type': 'bearer',
         'scope': 'read write follow',
         'access_token': 'xxx',
         'created_at': 1492523699
     })
 
-    e = Expectations()
-    e.add(request, response)
-    e.patch(monkeypatch)
-
     login(app, 'user', 'pass')
 
+    mock_post.assert_called_once_with(
+        'https://bigfish.software/oauth/token', data, allow_redirects=False)
 
-def test_login_failed(monkeypatch):
+
+@mock.patch('toot.http.anon_post')
+def test_login_failed(mock_post):
     app = App('bigfish.software', 'https://bigfish.software', 'foo', 'bar')
 
     data = {
@@ -65,12 +64,10 @@ def test_login_failed(monkeypatch):
         'scope': SCOPES,
     }
 
-    request = Request('POST', 'https://bigfish.software/oauth/token', data=data)
-    response = MockResponse(is_redirect=True)
-
-    e = Expectations()
-    e.add(request, response)
-    e.patch(monkeypatch)
+    mock_post.return_value = MockResponse(is_redirect=True)
 
     with pytest.raises(AuthenticationError):
         login(app, 'user', 'pass')
+
+    mock_post.assert_called_once_with(
+        'https://bigfish.software/oauth/token', data, allow_redirects=False)
