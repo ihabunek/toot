@@ -124,7 +124,7 @@ def test_upload(mock_post, capsys):
 
     console.run_command(app, user, 'upload', [__file__])
 
-    mock_post.assert_called_once()
+    mock_post.call_count == 1
 
     args, kwargs = http.post.call_args
     assert args == (app, user, '/api/v1/media')
