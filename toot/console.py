@@ -142,7 +142,7 @@ READ_COMMANDS = [
                 "type": str,
                 "help": "Show timeline for given hashtag.",
             }),
-            (["-i", "--list-id"], {
+            (["-i", "--list"], {
                 "type": int,
                 "help": "Show timeline for given list ID.",
             }),

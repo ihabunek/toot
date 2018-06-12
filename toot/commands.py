@@ -9,8 +9,8 @@ from toot.utils import assert_domain_exists
 
 def timeline(app, user, args):
     # Make sure tag, list and public are not used simultaneously
-    if len([arg for arg in [args.tag, args.list_id, args.public] if arg]) > 1:
-        raise ConsoleError("Only one of --public --tag --list-id can be used at one time.")
+    if len([arg for arg in [args.tag, args.list, args.public] if arg]) > 1:
+        raise ConsoleError("Only one of --public, --tag, or --list can be used at one time.")
 
     if args.local and not (args.public or args.tag):
         raise ConsoleError("The --local option is only valid alongside --public or --tag.")
@@ -19,8 +19,8 @@ def timeline(app, user, args):
         items = api.timeline_public(app, user, local=args.local)
     elif args.tag:
         items = api.timeline_tag(app, user, args.tag, local=args.local)
-    elif args.list_id:
-        items = api.timeline_list(app, user, args.list_id)
+    elif args.list:
+        items = api.timeline_list(app, user, args.list)
     else:
         items = api.timeline_home(app, user)
 
