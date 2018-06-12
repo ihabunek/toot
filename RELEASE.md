@@ -2,6 +2,7 @@ Release instructions
 ====================
 
 * Update the version number in `setup.py`
+* Update the version number in `toot/__init__.py`
 * Update the `CHANGELOG.md` with the release notes & date
 * Tag a release
 * Push master & tag to GitHub
