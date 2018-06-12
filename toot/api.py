@@ -2,7 +2,7 @@
 
 import re
 
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import AuthenticationError
@@ -92,7 +92,19 @@ def timeline_home(app, user):
 
 
 def timeline_public(app, user, local=False):
-    return http.get(app, user, '/api/v1/timelines/public', {'local': 'true' if local else 'false'}).json()
+    params = {'local': 'true' if local else 'false'}
+    return http.get(app, user, '/api/v1/timelines/public', params).json()
+
+
+def timeline_tag(app, user, hashtag, local=False):
+    url = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
+    params = {'local': 'true' if local else 'false'}
+    return http.get(app, user, url, params).json()
+
+
+def timeline_list(app, user, list_id):
+    url = '/api/v1/timelines/list/{}'.format(list_id)
+    return http.get(app, user, url).json()
 
 
 def get_next_path(headers):

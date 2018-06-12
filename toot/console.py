@@ -131,12 +131,25 @@ READ_COMMANDS = [
     ),
     Command(
         name="timeline",
-        description="Show recent items in your public timeline",
+        description="Show recent items in a timeline (home by default)",
         arguments=[
-            (["-l", "--local"], {
-                "action": 'store_true',
+            (["-p", "--public"], {
+                "action": "store_true",
                 "default": False,
-                "help": "Show local timeline instead of public timeline.",
+                "help": "Show public timeline.",
+            }),
+            (["-t", "--tag"], {
+                "type": str,
+                "help": "Show timeline for given hashtag.",
+            }),
+            (["-i", "--list-id"], {
+                "type": int,
+                "help": "Show timeline for given list ID.",
+            }),
+            (["-l", "--local"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Show only statuses from local instance (public and tag timelines only).",
             }),
         ],
         require_auth=True,
