@@ -6,7 +6,7 @@ import logging
 
 from argparse import ArgumentParser, FileType
 from collections import namedtuple
-from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE
+from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
 
@@ -280,6 +280,7 @@ def print_usage():
     ]
 
     print_out("<green>{}</green>".format(CLIENT_NAME))
+    print_out("<blue>v{}</blue>".format(__version__))
 
     for name, cmds in groups:
         print_out("")
