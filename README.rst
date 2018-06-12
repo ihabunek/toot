@@ -17,6 +17,19 @@ Interact with Mastodon social network from the command line.
 Installation
 ------------
 
+Debian Buster
+~~~~~~~~~~~~~
+
+If you're running Debian Buster (testing), toot is available in the Debian
+package repository.
+
+.. code-block::
+
+    sudo apt install toot
+
+Debian package is maintained by [Jonathan Carter](https://mastodon.xyz/@highvoltage).
+
+
 From APT package repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -54,6 +67,7 @@ Build and install from sources:
     cd /usr/ports/net-im/toot
     make install
 
+FreeBSD port is maintained by [Mateusz Piotrowski](https://mastodon.social/@mpts)
 
 From Nixpkgs
 ~~~~~~~~~~~~
@@ -117,7 +131,7 @@ Running ``toot <command> -h`` shows the documentation for the given command.
       toot whois           Display account details
       toot instance        Display instance details
       toot search          Search for users or hashtags
-      toot timeline        Show recent items in your public timeline
+      toot timeline        Show recent items in a timeline (home by default)
       toot curses          An experimental timeline app (doesn't work on Windows)
 
     Post:
