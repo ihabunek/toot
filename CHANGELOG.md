@@ -3,6 +3,7 @@ Changelog
 
 **0.18.0 (TBA)**
 
+* Add support for public, tag and list timelines in `toot timeline` (#52)
 * Add `--sensitive` and `--spoiler-text` options to `toot post` (#63)
 
 **0.17.1 (2018-01-15)**

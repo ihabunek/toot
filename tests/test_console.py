@@ -109,7 +109,8 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
     out, err = capsys.readouterr()
     assert "The computer can't tell you the emotional story." in out
-    assert "Frank Zappa @fz" in out
+    assert "Frank Zappa" in out
+    assert "@fz" in out
 
 
 @mock.patch('toot.http.post')

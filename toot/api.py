@@ -2,7 +2,7 @@
 
 import re
 
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import AuthenticationError
@@ -55,7 +55,7 @@ def get_browser_login_url(app):
     return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
         "response_type": "code",
         "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-        "scope": "read write follow",
+        "scope": SCOPES,
         "client_id": app.client_id,
     }))
 
@@ -89,6 +89,22 @@ def post_status(app, user, status, visibility='public', media_ids=None,
 
 def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
+
+
+def timeline_public(app, user, local=False):
+    params = {'local': 'true' if local else 'false'}
+    return http.get(app, user, '/api/v1/timelines/public', params).json()
+
+
+def timeline_tag(app, user, hashtag, local=False):
+    url = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
+    params = {'local': 'true' if local else 'false'}
+    return http.get(app, user, url, params).json()
+
+
+def timeline_list(app, user, list_id):
+    url = '/api/v1/timelines/list/{}'.format(list_id)
+    return http.get(app, user, url).json()
 
 
 def get_next_path(headers):

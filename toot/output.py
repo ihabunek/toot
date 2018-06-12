@@ -9,7 +9,7 @@ from itertools import chain
 from itertools import zip_longest
 from textwrap import wrap, TextWrapper
 
-from toot.utils import format_content, get_text
+from toot.utils import format_content, get_text, trunc
 
 START_CODES = {
     'red': '\033[31m',
@@ -124,33 +124,34 @@ def print_timeline(items):
             return chain(*[wrapper.wrap(l) for l in text.split("\n")])
 
         def timeline_rows(item):
-            name = item['name']
+            display_name = item['account']['display_name']
+            username = "@" + item['account']['username']
             time = item['time'].strftime('%Y-%m-%d %H:%M%Z')
 
-            left_column = [name, time]
-            if 'reblogged' in item:
-                left_column.append(item['reblogged'])
+            left_column = [display_name]
+            if display_name != username:
+                left_column.append(username)
+            left_column.append(time)
+            if item['reblogged']:
+                left_column.append("Reblogged @{}".format(item['reblogged']))
 
-            text = item['text']
-
-            right_column = wrap_text(text, 80)
+            right_column = wrap_text(item['text'], 80)
 
             return zip_longest(left_column, right_column, fillvalue="")
 
         for left, right in timeline_rows(item):
-            print_out("{:30} │ {}".format(left, right))
+            print_out("{:30} │ {}".format(trunc(left, 30), right))
 
     def _parse_item(item):
         content = item['reblog']['content'] if item['reblog'] else item['content']
-        reblogged = item['reblog']['account']['username'] if item['reblog'] else ""
+        reblogged = item['reblog']['account']['username'] if item['reblog'] else None
 
-        name = item['account']['display_name'] + " @" + item['account']['username']
         soup = BeautifulSoup(content, "html.parser")
         text = soup.get_text().replace('&apos;', "'")
         time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
         return {
-            "name": name,
+            "account": item['account'],
             "text": text,
             "time": time,
             "reblogged": reblogged,
