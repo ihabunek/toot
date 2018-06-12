@@ -27,7 +27,7 @@ package repository.
 
     sudo apt install toot
 
-Debian package is maintained by [Jonathan Carter](https://mastodon.xyz/@highvoltage).
+Debian package is maintained `Jonathan Carter <https://mastodon.xyz/@highvoltage>`_.
 
 
 From APT package repository
@@ -67,7 +67,7 @@ Build and install from sources:
     cd /usr/ports/net-im/toot
     make install
 
-FreeBSD port is maintained by [Mateusz Piotrowski](https://mastodon.social/@mpts)
+FreeBSD port is maintained by `Mateusz Piotrowski <https://mastodon.social/@mpts>`_
 
 From Nixpkgs
 ~~~~~~~~~~~~
@@ -95,7 +95,7 @@ Build and install from sources:
     cd /usr/ports/net/toot
     make install
 
-Thanks to `Klemens Nanni <mailto:kl3@posteo.org>`_ for handling the OpenBSD ports.
+OpenBSD port is maintained by `Klemens Nanni <mailto:kl3@posteo.org>`_
 
 From Python Package Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~
