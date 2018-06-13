@@ -62,6 +62,7 @@ def post(app, user, args):
         media_ids=media_ids,
         sensitive=args.sensitive,
         spoiler_text=args.spoiler_text,
+        in_reply_to_id=args.reply_to,
     )
 
     print_out("Toot posted: <green>{}</green>".format(response.get('url')))

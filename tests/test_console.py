@@ -39,6 +39,7 @@ def test_post_defaults(mock_post, capsys):
         'media_ids[]': None,
         'sensitive': False,
         'spoiler_text': None,
+        'in_reply_to_id': None,
     })
 
     out, err = capsys.readouterr()
@@ -49,7 +50,13 @@ def test_post_defaults(mock_post, capsys):
 
 @mock.patch('toot.http.post')
 def test_post_with_options(mock_post, capsys):
-    args = ['Hello world', '--visibility', 'unlisted', '--sensitive', '--spoiler-text', 'Spoiler!']
+    args = [
+        'Hello world',
+        '--visibility', 'unlisted',
+        '--sensitive',
+        '--spoiler-text', 'Spoiler!',
+        '--reply-to', '123'
+    ]
 
     mock_post.return_value = MockResponse({
         'url': 'https://habunek.com/@ihabunek/1234567890'
@@ -63,6 +70,7 @@ def test_post_with_options(mock_post, capsys):
         'visibility': 'unlisted',
         'sensitive': True,
         'spoiler_text': "Spoiler!",
+        'in_reply_to_id': 123,
     })
 
     out, err = capsys.readouterr()

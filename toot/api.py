@@ -76,14 +76,27 @@ def request_access_token(app, authorization_code):
     return http.process_response(response).json()
 
 
-def post_status(app, user, status, visibility='public', media_ids=None,
-                sensitive=False, spoiler_text=None):
+def post_status(
+    app,
+    user,
+    status,
+    visibility='public',
+    media_ids=None,
+    sensitive=False,
+    spoiler_text=None,
+    in_reply_to_id=None
+):
+    """
+    Posts a new status.
+    https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#posting-a-new-status
+    """
     return http.post(app, user, '/api/v1/statuses', {
         'status': status,
         'media_ids[]': media_ids,
         'visibility': visibility,
         'sensitive': sensitive,
         'spoiler_text': spoiler_text,
+        'in_reply_to_id': in_reply_to_id,
     }).json()
 
 

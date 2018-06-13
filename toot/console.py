@@ -198,7 +198,11 @@ POST_COMMANDS = [
             (["-p", "--spoiler-text"], {
                 "type": str,
                 "help": 'text to be shown as a warning before the actual content',
-            })
+            }),
+            (["-r", "--reply-to"], {
+                "type": int,
+                "help": 'local ID of the status you want to reply to',
+            }),
         ],
         require_auth=True,
     ),
