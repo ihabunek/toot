@@ -2,7 +2,9 @@
 import io
 import pytest
 import re
+import uuid
 
+from collections import namedtuple
 from unittest import mock
 
 from toot import console, User, App, http
@@ -12,6 +14,8 @@ from tests.utils import MockResponse
 
 app = App('habunek.com', 'https://habunek.com', 'foo', 'bar')
 user = User('habunek.com', 'ivan@habunek.com', 'xxx')
+
+MockUuid = namedtuple("MockUuid", ["hex"])
 
 
 def uncolorize(text):
@@ -25,8 +29,10 @@ def test_print_usage(capsys):
     assert "toot - a Mastodon CLI client" in out
 
 
+@mock.patch('uuid.uuid4')
 @mock.patch('toot.http.post')
-def test_post_defaults(mock_post, capsys):
+def test_post_defaults(mock_post, mock_uuid, capsys):
+    mock_uuid.return_value = MockUuid("rock-on")
     mock_post.return_value = MockResponse({
         'url': 'https://habunek.com/@ihabunek/1234567890'
     })
@@ -40,7 +46,7 @@ def test_post_defaults(mock_post, capsys):
         'sensitive': False,
         'spoiler_text': None,
         'in_reply_to_id': None,
-    })
+    }, headers={"Idempotency-Key": "rock-on"})
 
     out, err = capsys.readouterr()
     assert 'Toot posted' in out
@@ -48,8 +54,10 @@ def test_post_defaults(mock_post, capsys):
     assert not err
 
 
+@mock.patch('uuid.uuid4')
 @mock.patch('toot.http.post')
-def test_post_with_options(mock_post, capsys):
+def test_post_with_options(mock_post, mock_uuid, capsys):
+    mock_uuid.return_value = MockUuid("up-the-irons")
     args = [
         'Hello world',
         '--visibility', 'unlisted',
@@ -71,7 +79,7 @@ def test_post_with_options(mock_post, capsys):
         'sensitive': True,
         'spoiler_text': "Spoiler!",
         'in_reply_to_id': 123,
-    })
+    }, headers={"Idempotency-Key": "up-the-irons"})
 
     out, err = capsys.readouterr()
     assert 'Toot posted' in out

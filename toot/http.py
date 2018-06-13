@@ -58,9 +58,10 @@ def anon_get(url, params=None):
     return process_response(response)
 
 
-def post(app, user, url, data=None, files=None, allow_redirects=True):
+def post(app, user, url, data=None, files=None, allow_redirects=True, headers={}):
     url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
+
+    headers["Authorization"] = "Bearer " + user.access_token
 
     request = Request('POST', url, headers, files, data)
     response = send_request(request, allow_redirects)

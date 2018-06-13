@@ -4,6 +4,8 @@ Changelog
 **0.19.0 (TBA)**
 
 * Add support for replying to a toot (#6)
+* Use Idempotency-Key header to prevent multiple toots being posted if request
+  is retried
 
 **0.18.0 (2018-06-12)**
 

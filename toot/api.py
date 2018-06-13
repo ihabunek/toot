@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import uuid
 
 from urllib.parse import urlparse, urlencode, quote
 
@@ -90,6 +91,11 @@ def post_status(
     Posts a new status.
     https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#posting-a-new-status
     """
+
+    # Idempotency key assures the same status is not posted multiple times
+    # if the request is retried.
+    headers = {"Idempotency-Key": uuid.uuid4().hex}
+
     return http.post(app, user, '/api/v1/statuses', {
         'status': status,
         'media_ids[]': media_ids,
@@ -97,7 +103,7 @@ def post_status(
         'sensitive': sensitive,
         'spoiler_text': spoiler_text,
         'in_reply_to_id': in_reply_to_id,
-    }).json()
+    }, headers=headers).json()
 
 
 def timeline_home(app, user):
