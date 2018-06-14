@@ -217,6 +217,17 @@ POST_COMMANDS = [
         ],
         require_auth=True,
     ),
+    Command(
+        name="delete",
+        description="Delete an existing status",
+        arguments=[
+            (["status_id"], {
+                "help": "ID of the status to delete",
+                "type": int,
+            })
+        ],
+        require_auth=True,
+    ),
 ]
 
 ACCOUNTS_COMMANDS = [

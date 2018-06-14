@@ -107,6 +107,17 @@ def test_post_invalid_media(capsys):
     assert "can't open 'does_not_exist.jpg'" in err
 
 
+@mock.patch('toot.http.delete')
+def test_delete(mock_delete, capsys):
+    console.run_command(app, user, 'delete', ['12321'])
+
+    mock_delete.assert_called_once_with(app, user, '/api/v1/statuses/12321')
+
+    out, err = capsys.readouterr()
+    assert 'Status deleted' in out
+    assert not err
+
+
 @mock.patch('toot.http.get')
 def test_timeline(mock_get, monkeypatch, capsys):
     mock_get.return_value = MockResponse([{

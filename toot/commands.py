@@ -68,6 +68,12 @@ def post(app, user, args):
     print_out("Toot posted: <green>{}</green>".format(response.get('url')))
 
 
+def delete(app, user, args):
+    api.delete_status(app, user, args.status_id)
+
+    print_out("<green>✓ Status deleted</green>")
+
+
 def auth(app, user, args):
     config_data = config.load_config()
 

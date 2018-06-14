@@ -106,6 +106,14 @@ def post_status(
     }, headers=headers).json()
 
 
+def delete_status(app, user, status_id):
+    """
+    Deletes a status with given ID.
+    https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#deleting-a-status
+    """
+    return http.delete(app, user, '/api/v1/statuses/{}'.format(status_id))
+
+
 def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
 
