@@ -30,6 +30,11 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--quiet"], {
+        "help": "don't write to stdout on success",
+        "action": 'store_true',
+        "default": False,
+    }),
     (["--debug"], {
         "help": "show debug log in console",
         "action": 'store_true',

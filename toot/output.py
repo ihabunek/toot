@@ -47,11 +47,13 @@ def strip_tags(text):
 
 
 USE_ANSI_COLOR = "--no-color" not in sys.argv
+QUIET = "--quiet" in sys.argv
 
 
 def print_out(*args, **kwargs):
-    args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
-    print(*args, **kwargs)
+    if not QUIET:
+        args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
+        print(*args, **kwargs)
 
 
 def print_err(*args, **kwargs):
@@ -73,8 +75,8 @@ def print_instance(instance):
     lines = [line.strip() for line in format_content(description) if line.strip()]
     for line in lines:
         for l in wrap(line.strip()):
-            print(l)
-        print()
+            print_out(l)
+        print_out()
 
 
 def print_account(account):
