@@ -4,6 +4,8 @@ Changelog
 **0.19.0 (TBA)**
 
 * Add support for replying to a toot (#6)
+* Add `toot delete` command for deleting a toot (#54)
+* Add global `--quiet` flag to silence output (#46)
 * Use Idempotency-Key header to prevent multiple toots being posted if request
   is retried
 
