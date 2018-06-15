@@ -6,6 +6,8 @@ Changelog
 * Add support for replying to a toot (#6)
 * Add `toot delete` command for deleting a toot (#54)
 * Add global `--quiet` flag to silence output (#46)
+* Make `toot login` provide browser login, and `toot login_cli` log in via
+  console. This makes it clear what's the preferred option.
 * Use Idempotency-Key header to prevent multiple toots being posted if request
   is retried
 

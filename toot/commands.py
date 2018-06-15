@@ -92,7 +92,7 @@ def auth(app, user, args):
     print_out("\nAuth tokens are stored in: <blue>{}</blue>".format(path))
 
 
-def login(app, user, args):
+def login_cli(app, user, args):
     app = create_app_interactive(instance=args.instance)
     login_interactive(app, args.email)
 
@@ -100,7 +100,7 @@ def login(app, user, args):
     print_out("<green>✓ Successfully logged in.</green>")
 
 
-def login_browser(app, user, args):
+def login(app, user, args):
     app = create_app_interactive(instance=args.instance)
     login_browser_interactive(app)
 

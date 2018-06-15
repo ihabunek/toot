@@ -60,14 +60,14 @@ email_arg = (["-e", "--email"], {
 AUTH_COMMANDS = [
     Command(
         name="login",
-        description="Log in from the console, does NOT support two factor authentication",
-        arguments=[instance_arg, email_arg],
+        description="Log into a mastodon instance using your browser (recommended)",
+        arguments=[instance_arg],
         require_auth=False,
     ),
     Command(
-        name="login_browser",
-        description="Log in using your browser, supports regular and two factor authentication",
-        arguments=[instance_arg],
+        name="login_cli",
+        description="Log in from the console, does NOT support two factor authentication",
+        arguments=[instance_arg, email_arg],
         require_auth=False,
     ),
     Command(
