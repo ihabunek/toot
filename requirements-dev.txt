@@ -1,5 +1,7 @@
-pytest-cov~=2.4.0
-pytest~=3.0.0
-stdeb~=0.8.5
-twine~=1.8.1
-wheel~=0.29.0
+keyring
+pytest
+pytest-cov
+pyxdg
+stdeb
+twine
+wheel
