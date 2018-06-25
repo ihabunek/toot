@@ -3,6 +3,7 @@ Toot - a Mastodon CLI client
 ============================
 
 .. image:: https://raw.githubusercontent.com/ihabunek/toot/master/trumpet.png
+   :width: 250px
 
 Interact with Mastodon social network from the command line.
 
