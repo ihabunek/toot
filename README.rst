@@ -2,6 +2,8 @@
 Toot - a Mastodon CLI client
 ============================
 
+.. image:: https://raw.githubusercontent.com/ihabunek/toot/master/trumpet.png
+
 Interact with Mastodon social network from the command line.
 
 .. image:: https://img.shields.io/travis/ihabunek/toot.svg?maxAge=3600&style=flat-square
@@ -12,7 +14,6 @@ Interact with Mastodon social network from the command line.
    :target: https://opensource.org/licenses/MIT
 .. image:: https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square
    :target: https://pypi.python.org/pypi/toot
-
 
 Installation
 ------------
