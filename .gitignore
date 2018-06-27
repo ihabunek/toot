@@ -9,6 +9,7 @@
 /build/
 /deb_dist/
 /dist/
+/docs/_build/
 /htmlcov/
 /tmp/
 /toot-*.tar.gz
