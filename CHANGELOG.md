@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-**0.19.0 (TBA)**
+**0.19.0 (2018-06-27)**
 
 * Add support for replying to a toot (#6)
 * Add `toot delete` command for deleting a toot (#54)
