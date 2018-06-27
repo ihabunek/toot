@@ -10,6 +10,7 @@ Changelog
   console. This makes it clear what's the preferred option.
 * Use Idempotency-Key header to prevent multiple toots being posted if request
   is retried
+* Fix a bug where all media would be marked as sensitive
 
 **0.18.0 (2018-06-12)**
 

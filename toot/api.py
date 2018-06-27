@@ -100,7 +100,7 @@ def post_status(
         'status': status,
         'media_ids[]': media_ids,
         'visibility': visibility,
-        'sensitive': sensitive,
+        'sensitive': "true" if sensitive else "false",
         'spoiler_text': spoiler_text,
         'in_reply_to_id': in_reply_to_id,
     }, headers=headers).json()
