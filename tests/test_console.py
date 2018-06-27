@@ -43,7 +43,7 @@ def test_post_defaults(mock_post, mock_uuid, capsys):
         'status': 'Hello world',
         'visibility': 'public',
         'media_ids[]': None,
-        'sensitive': False,
+        'sensitive': "false",
         'spoiler_text': None,
         'in_reply_to_id': None,
     }, headers={"Idempotency-Key": "rock-on"})
@@ -76,7 +76,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         'status': 'Hello world',
         'media_ids[]': None,
         'visibility': 'unlisted',
-        'sensitive': True,
+        'sensitive': "true",
         'spoiler_text': "Spoiler!",
         'in_reply_to_id': 123,
     }, headers={"Idempotency-Key": "up-the-irons"})
