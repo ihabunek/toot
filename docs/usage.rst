@@ -45,18 +45,10 @@ Running ``toot <command> -h`` shows the documentation for the given command.
 
     https://github.com/ihabunek/toot
 
-It is possible to pipe status text into `toot post`, for example:
-
-.. code-block:: sh
-
-    echo "Text to post" | toot post
-    cat mypost.txt | toot post
-
-
 Authentication
 --------------
 
-Before tooting, you need to login to a Mastodon instance.
+Before tooting, you need to log into a Mastodon instance.
 
 .. code-block:: sh
 
@@ -64,18 +56,46 @@ Before tooting, you need to login to a Mastodon instance.
 
 You will be redirected to your Mastodon instance to log in and authorize toot to access your account, and will be given an **authorization code** in return which you need to enter to log in.
 
-If you don't use two factor authentication you can also log in directly from the command line:
-
-.. code-block:: sh
-
-    toot login_cli
-
-You will be asked to chose an instance and enter your credentials.
-
 The application and user access tokens will be saved in the configuration file located at ``~/.config/toot/instances/config.json``.
 
-It's possible to be logged into **multiple accounts** at the same time. Just repeat the above process for another instance. You can see all logged in accounts by running ``toot auth``. The currently active account will have an **ACTIVE** flag next to it.
+Using multiple accounts
+~~~~~~~~~~~~~~~~~~~~~~~
+
+It's possible to be logged into **multiple accounts** at the same time. Just repeat the login process for another instance. You can see all logged in accounts by running ``toot auth``. The currently active account will have an **ACTIVE** flag next to it.
 
 To switch accounts, use ``toot activate``. Alternatively, most commands accept a ``--using`` option which can be used to specify the account you wish to use just that one time.
 
 Finally you can logout from an account by using ``toot logout``. This will remove the stored access tokens for that account.
+
+Examples
+--------
+
+Posting
+~~~~~~~
+
+The simplest action is posting a status.
+
+.. code-block:: bash
+
+  toot post "hello there"
+
+You can also attach media:
+
+.. code-block:: bash
+
+  toot post "hello media" --media path/to/image.png
+
+If the media is sensitive, mark it as such and people will need to click to show it:
+
+.. code-block:: bash
+
+  toot post "naughty pics ahoy" --media nsfw.png --sensitive
+
+
+It is possible to pipe in the status text:
+
+.. code-block:: bash
+
+    echo "Text to post" | toot post
+    cat post.txt | toot post
+    toot post < post.txt
