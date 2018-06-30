@@ -24,6 +24,7 @@ def visibility(value):
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
 
 
+# Aruguments added to every command
 common_args = [
     (["--no-color"], {
         "help": "don't use ANSI colors in output",
@@ -39,7 +40,14 @@ common_args = [
         "help": "show debug log in console",
         "action": 'store_true',
         "default": False,
-    })
+    }),
+]
+
+# Arguments added to commands which require authentication
+common_auth_args = [
+    (["-u", "--using"], {
+        "help": "the account to use, overrides active account",
+    }),
 ]
 
 account_arg = (["account"], {
@@ -328,12 +336,12 @@ def get_argument_parser(name, command):
         description=command.description,
         epilog=CLIENT_WEBSITE)
 
-    for args, kwargs in command.arguments + common_args:
-        parser.add_argument(*args, **kwargs)
-
-    # If the command requires auth, give an option to select account
+    combined_args = command.arguments + common_args
     if command.require_auth:
-        parser.add_argument("-u", "--using", help="the account to use, overrides active account")
+        combined_args += common_auth_args
+
+    for args, kwargs in combined_args:
+        parser.add_argument(*args, **kwargs)
 
     return parser
 
