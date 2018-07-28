@@ -156,6 +156,11 @@ READ_COMMANDS = [
                 "default": False,
                 "help": "Show only statuses from local instance (public and tag timelines only).",
             }),
+            (["-r", "--reverse"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Reverse the order of the shown timeline (to new posts at the bottom)",
+            }),
         ],
         require_auth=True,
     ),
