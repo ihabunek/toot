@@ -298,7 +298,7 @@ class HelpModal(Modal):
             "  v      - view current toot in browser",
             "  q      - quit application",
             "",
-            "Press q to exist help.",
+            "Press q to exit help.",
             "",
             ("https://github.com/ihabunek/toot", Color.YELLOW),
         ]
