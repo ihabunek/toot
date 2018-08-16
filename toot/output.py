@@ -149,7 +149,7 @@ def print_timeline(items):
         reblogged = item['reblog']['account']['username'] if item['reblog'] else None
 
         soup = BeautifulSoup(content, "html.parser")
-        text = soup.get_text().replace('&apos;', "'")
+        text = re.sub("&apos;*", "'", soup.get_text())
         time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
         return {

@@ -11,7 +11,8 @@ from toot.exceptions import ConsoleError
 
 def get_text(html):
     """Converts html to text, strips all tags."""
-    text = BeautifulSoup(html, "html.parser").get_text().replace('&apos;', "'")
+    text = BeautifulSoup(html, "html.parser").get_text()
+    text = re.sub('&apos;*', "'", text)
 
     return unicodedata.normalize('NFKC', text)
 
