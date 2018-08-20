@@ -29,7 +29,7 @@ Features
 * Support for media uploads, spoiler text, sensitive content
 * Search by account or hash tag
 * Following, muting and blocking accounts
-* Simple swithcing between authenticated in Mastodon accounts
+* Simple switching between authenticated in Mastodon accounts
 
 Curses UI
 ---------
