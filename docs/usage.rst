@@ -99,3 +99,20 @@ It is possible to pipe in the status text:
     echo "Text to post" | toot post
     cat post.txt | toot post
     toot post < post.txt
+
+
+Using the Curses UI
+~~~~~~~
+
+toot has an expimental curses based console UI. The command to start it is ``toot curses``.
+
+To navigate the UI use these commands:
+
+* ``k`` or ``up arrow`` or ``A`` to move up the list of tweets
+* ``j`` or ``down arrow`` or ``B`` to move down the list of tweets
+* ``h`` to show a help screen
+* ``v`` to view the current toot in a browser (this is great for seeing the comment thread on a toot)
+* ``q`` to quit the curses interface and return to the command line
+* ``s`` to show sensitive content. (This is per-toot, and there will be a read bar in the toot to indicate that it is there.)
+
+*Note that the curses UI is not available on Windows.*
