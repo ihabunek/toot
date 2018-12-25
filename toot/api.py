@@ -17,8 +17,8 @@ def _account_action(app, user, account, action):
     return http.post(app, user, url).json()
 
 
-def create_app(domain):
-    url = 'https://{}/api/v1/apps'.format(domain)
+def create_app(domain, scheme='https'):
+    url = '{}://{}/api/v1/apps'.format(scheme, domain)
 
     data = {
         'client_name': CLIENT_NAME,

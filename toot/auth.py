@@ -10,7 +10,7 @@ from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
 
 
-def register_app(domain):
+def register_app(domain, scheme='https'):
     print_out("Looking up instance info...")
     instance = api.get_instance(domain)
 
@@ -19,11 +19,11 @@ def register_app(domain):
 
     try:
         print_out("Registering application...")
-        response = api.create_app(domain)
+        response = api.create_app(domain, scheme)
     except ApiError:
         raise ConsoleError("Registration failed.")
 
-    base_url = 'https://' + domain
+    base_url = scheme + '://' + domain
 
     app = App(domain, base_url, response['client_id'], response['client_secret'])
     config.save_app(app)
@@ -33,14 +33,14 @@ def register_app(domain):
     return app
 
 
-def create_app_interactive(instance=None):
+def create_app_interactive(instance=None, scheme='https'):
     if not instance:
         print_out("Choose an instance [<green>{}</green>]: ".format(DEFAULT_INSTANCE), end="")
         instance = input()
         if not instance:
             instance = DEFAULT_INSTANCE
 
-    return config.load_app(instance) or register_app(instance)
+    return config.load_app(instance) or register_app(instance, scheme)
 
 
 def create_user(app, access_token):

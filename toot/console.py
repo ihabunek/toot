@@ -56,18 +56,26 @@ email_arg = (["-e", "--email"], {
     "help": 'email address to log in with',
 })
 
+scheme_arg = (["--disable-https"], {
+    "help": "disable HTTPS and use insecure HTTP",
+    "dest": "scheme",
+    "default": "https",
+    "action": "store_const",
+    "const": "http",
+})
+
 
 AUTH_COMMANDS = [
     Command(
         name="login",
         description="Log into a mastodon instance using your browser (recommended)",
-        arguments=[instance_arg],
+        arguments=[instance_arg, scheme_arg],
         require_auth=False,
     ),
     Command(
         name="login_cli",
         description="Log in from the console, does NOT support two factor authentication",
-        arguments=[instance_arg, email_arg],
+        arguments=[instance_arg, email_arg, scheme_arg],
         require_auth=False,
     ),
     Command(

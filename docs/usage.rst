@@ -58,6 +58,15 @@ You will be redirected to your Mastodon instance to log in and authorize toot to
 
 The application and user access tokens will be saved in the configuration file located at ``~/.config/toot/instances/config.json``.
 
+Disabling HTTPS
+~~~~~~~~~~~~~~~
+
+You may pass the ``--disable-https`` flag to use unencrypted HTTP instead of HTTPS for a given instance. This is inherently insecure and should be used only when connecting to local development instances.
+
+.. code-block:: sh
+
+    toot login --disable-https --instance localhost:8080
+
 Using multiple accounts
 ~~~~~~~~~~~~~~~~~~~~~~~
 
