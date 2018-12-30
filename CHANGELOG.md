@@ -4,6 +4,7 @@ Changelog
 **0.20.0 (TBA)**
 
 * Enable interaction with instances using http instead of https (#56)
+* Enable proxy usage via environment variables (#47)
 
 **0.19.0 (2018-06-27)**
 
