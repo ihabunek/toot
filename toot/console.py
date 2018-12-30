@@ -131,7 +131,7 @@ READ_COMMANDS = [
                 "help": "instance domain (e.g. 'mastodon.social') or blank to use current",
                 "nargs": "?",
             }),
-
+            scheme_arg,
         ],
         require_auth=False,
     ),

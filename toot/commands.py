@@ -219,7 +219,7 @@ def instance(app, user, args):
     assert_domain_exists(name)
 
     try:
-        instance = api.get_instance(name)
+        instance = api.get_instance(name, args.scheme)
         print_instance(instance)
     except NotFoundError:
         raise ConsoleError(

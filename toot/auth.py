@@ -12,7 +12,7 @@ from toot.output import print_out
 
 def register_app(domain, scheme='https'):
     print_out("Looking up instance info...")
-    instance = api.get_instance(domain)
+    instance = api.get_instance(domain, scheme)
 
     print_out("Found instance <blue>{}</blue> running Mastodon version <yellow>{}</yellow>".format(
         instance['title'], instance['version']))
