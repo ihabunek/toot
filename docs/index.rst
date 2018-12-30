@@ -14,16 +14,6 @@ toot is a commandline tool for interacting with Mastodon social networks.
 .. image:: https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square
    :target: https://pypi.python.org/pypi/toot
 
-Contents
---------
-
-.. toctree::
-   :maxdepth: 1
-
-   install
-   usage
-   release
-
 Features
 --------
 
@@ -31,7 +21,18 @@ Features
 * Support for media uploads, spoiler text, sensitive content
 * Search by account or hash tag
 * Following, muting and blocking accounts
-* Simple swithcing between authenticated in Mastodon accounts
+* Simple switching between multiple Mastodon accounts
+
+Contents
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   install
+   usage
+   advanced
+   release
 
 Curses UI
 ---------
