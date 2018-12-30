@@ -96,7 +96,7 @@ def auth(app, user, args):
 
 
 def login_cli(app, user, args):
-    app = create_app_interactive(instance=args.instance)
+    app = create_app_interactive(instance=args.instance, scheme=args.scheme)
     login_interactive(app, args.email)
 
     print_out()
@@ -104,7 +104,7 @@ def login_cli(app, user, args):
 
 
 def login(app, user, args):
-    app = create_app_interactive(instance=args.instance)
+    app = create_app_interactive(instance=args.instance, scheme=args.scheme)
     login_browser_interactive(app)
 
     print_out()
