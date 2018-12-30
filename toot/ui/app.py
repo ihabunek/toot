@@ -292,12 +292,12 @@ class HelpModal(Modal):
             "",
             "Key bindings:",
             "",
-            "  h           - show help",
-            "  j or ↓ or B - move down",
-            "  k or ↑ or A - move up",
-            "  v           - view current toot in browser",
-            "  q           - quit application",
-            "  s           - show sensitive content"
+            "  h      - show help",
+            "  j or ↓ - move down",
+            "  k or ↑ - move up",
+            "  v      - view current toot in browser",
+            "  q      - quit application",
+            "  s      - show sensitive content"
             "",
             "Press q to exit help.",
             "",
