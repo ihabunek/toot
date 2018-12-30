@@ -108,8 +108,8 @@ toot has an expimental curses based console UI. The command to start it is ``too
 
 To navigate the UI use these commands:
 
-* ``k`` or ``up arrow`` or ``A`` to move up the list of tweets
-* ``j`` or ``down arrow`` or ``B`` to move down the list of tweets
+* ``k`` or ``up arrow`` to move up the list of tweets
+* ``j`` or ``down arrow`` to move down the list of tweets
 * ``h`` to show a help screen
 * ``v`` to view the current toot in a browser (this is great for seeing the comment thread on a toot)
 * ``q`` to quit the curses interface and return to the command line
