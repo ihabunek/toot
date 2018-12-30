@@ -8,7 +8,8 @@ def send_request(request, allow_redirects=True):
 
     with Session() as session:
         prepared = session.prepare_request(request)
-        response = session.send(prepared, allow_redirects=allow_redirects)
+        settings = session.merge_environment_settings(prepared.url, {}, None, None, None)
+        response = session.send(prepared, allow_redirects=allow_redirects, **settings)
 
     log_response(response)
 
