@@ -297,6 +297,7 @@ class HelpModal(Modal):
             "  k or ↑ - move up",
             "  v      - view current toot in browser",
             "  q      - quit application",
+            "  s      - show sensitive content"
             "",
             "Press q to exit help.",
             "",
