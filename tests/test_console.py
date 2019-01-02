@@ -136,12 +136,17 @@ def test_timeline(mock_get, monkeypatch, capsys):
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
 
     out, err = capsys.readouterr()
-    assert "The computer can't tell you the emotional story." in out
-    assert "but what's missing is the eyebrows." in out
-    assert "Frank Zappa" in out
-    assert "@fz" in out
-    assert "id: 111111111111111111" in out
-    assert "[RE]" not in out
+
+    expected = (
+        "───────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────\n"
+        "Frank Zappa                    │ The computer can't tell you the emotional story. It can give you the exact\n"
+        "@fz                            │ mathematical design, but what's missing is the eyebrows.\n"
+        "2017-04-12 15:53               │ \n"
+        "id: 111111111111111111         │ \n"
+        "───────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────\n"
+    )
+    assert out == expected
+    assert err == ""
 
 
 @mock.patch('toot.http.get')
