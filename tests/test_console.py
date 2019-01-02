@@ -126,7 +126,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
             'username': 'fz'
         },
         'created_at': '2017-04-12T15:53:18.174Z',
-        'content': "<p>The computer can't tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
+        'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
         'reblog': None,
     }])
 
@@ -136,6 +136,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
     out, err = capsys.readouterr()
     assert "The computer can't tell you the emotional story." in out
+    assert "but what's missing is the eyebrows." in out
     assert "Frank Zappa" in out
     assert "@fz" in out
 
