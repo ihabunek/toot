@@ -5,6 +5,7 @@ Changelog
 
 * Enable interaction with instances using http instead of https (#56)
 * Enable proxy usage via environment variables (#47)
+* Make `toot post` prompt for input if no text is given (#82)
 
 **0.19.0 (2018-06-27)**
 

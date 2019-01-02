@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import socket
 import unicodedata
@@ -68,3 +69,18 @@ def trunc(text, length):
         return text
 
     return text[:length - 1] + '…'
+
+
+EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"
+
+
+def multiline_input():
+    """Lets user input multiple lines of text, terminated by EOF."""
+    lines = []
+    while True:
+        try:
+            lines.append(input())
+        except EOFError:
+            break
+
+    return "\n".join(lines).strip()

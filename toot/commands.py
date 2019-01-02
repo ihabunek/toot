@@ -4,7 +4,7 @@ from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
 from toot.output import print_out, print_instance, print_account, print_search_results, print_timeline
-from toot.utils import assert_domain_exists
+from toot.utils import assert_domain_exists, multiline_input, EOF_KEY
 
 
 def timeline(app, user, args):
@@ -55,6 +55,10 @@ def post(app, user, args):
 
     if media and not args.text:
         args.text = media['text_url']
+
+    if not args.text:
+        print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
+        args.text = multiline_input()
 
     if not args.text:
         raise ConsoleError("You must specify either text or media to post.")
