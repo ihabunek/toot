@@ -8,7 +8,7 @@ deb_dist:
 	python setup.py --command-packages=stdeb.command bdist_deb
 
 publish :
-	twine upload dist/*
+	twine upload dist/*.tar.gz dist/*.whl
 
 test:
 	pytest -v -s
