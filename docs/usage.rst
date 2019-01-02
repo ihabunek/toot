@@ -13,32 +13,40 @@ Running ``toot <command> -h`` shows the documentation for the given command.
     toot - a Mastodon CLI client
 
     Authentication:
-      toot login       Log into a mastodon instance using your browser (recommended)
-      toot login_cli   Log in from the console, does NOT support two factor authentication
-      toot activate    Switch between logged in accounts.
-      toot logout      Log out, delete stored access keys
-      toot auth        Show logged in accounts and instances
+      toot login         Log into a mastodon instance using your browser (recommended)
+      toot login_cli     Log in from the console, does NOT support two factor authentication
+      toot activate      Switch between logged in accounts.
+      toot logout        Log out, delete stored access keys
+      toot auth          Show logged in accounts and instances
 
     Read:
-      toot whoami      Display logged in user details
-      toot whois       Display account details
-      toot instance    Display instance details
-      toot search      Search for users or hashtags
-      toot timeline    Show recent items in a timeline (home by default)
-      toot curses      An experimental timeline app (doesn't work on Windows)
+      toot whoami        Display logged in user details
+      toot whois         Display account details
+      toot instance      Display instance details
+      toot search        Search for users or hashtags
+      toot timeline      Show recent items in a timeline (home by default)
+      toot curses        An experimental timeline app (doesn't work on Windows)
 
     Post:
-      toot post        Post a status text to your timeline
-      toot upload      Upload an image or video file
-      toot delete      Delete an existing status
+      toot post          Post a status text to your timeline
+      toot upload        Upload an image or video file
+
+    Status:
+      toot delete        Delete a status
+      toot favourite     Favourite a status
+      toot unfavourite   Unfavourite a status
+      toot reblog        Reblog a status
+      toot unreblog      Unreblog a status
+      toot pin           Pin a status
+      toot unpin         Unpin a status
 
     Accounts:
-      toot follow      Follow an account
-      toot unfollow    Unfollow an account
-      toot mute        Mute an account
-      toot unmute      Unmute an account
-      toot block       Block an account
-      toot unblock     Unblock an account
+      toot follow        Follow an account
+      toot unfollow      Unfollow an account
+      toot mute          Mute an account
+      toot unmute        Unmute an account
+      toot block         Block an account
+      toot unblock       Unblock an account
 
     To get help for each command run:
       toot <command> --help

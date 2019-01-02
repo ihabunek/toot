@@ -77,8 +77,37 @@ def post(app, user, args):
 
 def delete(app, user, args):
     api.delete_status(app, user, args.status_id)
-
     print_out("<green>✓ Status deleted</green>")
+
+
+def favourite(app, user, args):
+    api.favourite(app, user, args.status_id)
+    print_out("<green>✓ Status favourited</green>")
+
+
+def unfavourite(app, user, args):
+    api.unfavourite(app, user, args.status_id)
+    print_out("<green>✓ Status unfavourited</green>")
+
+
+def reblog(app, user, args):
+    api.reblog(app, user, args.status_id)
+    print_out("<green>✓ Status reblogged</green>")
+
+
+def unreblog(app, user, args):
+    api.unreblog(app, user, args.status_id)
+    print_out("<green>✓ Status unreblogged</green>")
+
+
+def pin(app, user, args):
+    api.pin(app, user, args.status_id)
+    print_out("<green>✓ Status pinned</green>")
+
+
+def unpin(app, user, args):
+    api.unpin(app, user, args.status_id)
+    print_out("<green>✓ Status unpinned</green>")
 
 
 def auth(app, user, args):

@@ -72,6 +72,10 @@ scheme_arg = (["--disable-https"], {
     "const": "http",
 })
 
+status_id_arg = (["status_id"], {
+    "help": "ID of the status",
+    "type": int,
+})
 
 AUTH_COMMANDS = [
     Command(
@@ -243,15 +247,49 @@ POST_COMMANDS = [
         ],
         require_auth=True,
     ),
+]
+
+STATUS_COMMANDS = [
     Command(
         name="delete",
-        description="Delete an existing status",
-        arguments=[
-            (["status_id"], {
-                "help": "ID of the status to delete",
-                "type": int,
-            })
-        ],
+        description="Delete a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="favourite",
+        description="Favourite a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="unfavourite",
+        description="Unfavourite a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="reblog",
+        description="Reblog a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="unreblog",
+        description="Unreblog a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="pin",
+        description="Pin a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="unpin",
+        description="Unpin a status",
+        arguments=[status_id_arg],
         require_auth=True,
     ),
 ]
@@ -307,7 +345,7 @@ ACCOUNTS_COMMANDS = [
     ),
 ]
 
-COMMANDS = AUTH_COMMANDS + READ_COMMANDS + POST_COMMANDS + ACCOUNTS_COMMANDS
+COMMANDS = AUTH_COMMANDS + READ_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS
 
 
 def print_usage():
@@ -317,6 +355,7 @@ def print_usage():
         ("Authentication", AUTH_COMMANDS),
         ("Read", READ_COMMANDS),
         ("Post", POST_COMMANDS),
+        ("Status", STATUS_COMMANDS),
         ("Accounts", ACCOUNTS_COMMANDS),
     ]
 

@@ -17,6 +17,12 @@ def _account_action(app, user, account, action):
     return http.post(app, user, url).json()
 
 
+def _status_action(app, user, status_id, action):
+    url = '/api/v1/statuses/{}/{}'.format(status_id, action)
+
+    return http.post(app, user, url).json()
+
+
 def create_app(domain, scheme='https'):
     url = '{}://{}/api/v1/apps'.format(scheme, domain)
 
@@ -112,6 +118,30 @@ def delete_status(app, user, status_id):
     https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#deleting-a-status
     """
     return http.delete(app, user, '/api/v1/statuses/{}'.format(status_id))
+
+
+def favourite(app, user, status_id):
+    return _status_action(app, user, status_id, 'favourite')
+
+
+def unfavourite(app, user, status_id):
+    return _status_action(app, user, status_id, 'unfavourite')
+
+
+def reblog(app, user, status_id):
+    return _status_action(app, user, status_id, 'reblog')
+
+
+def unreblog(app, user, status_id):
+    return _status_action(app, user, status_id, 'unreblog')
+
+
+def pin(app, user, status_id):
+    return _status_action(app, user, status_id, 'pin')
+
+
+def unpin(app, user, status_id):
+    return _status_action(app, user, status_id, 'unpin')
 
 
 def timeline_home(app, user):

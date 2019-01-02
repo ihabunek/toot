@@ -17,7 +17,7 @@ toot is a commandline tool for interacting with Mastodon social networks.
 Features
 --------
 
-* Posting, replying, deleting statuses
+* Posting, replying, deleting, favouriting, reblogging & pinning statuses
 * Support for media uploads, spoiler text, sensitive content
 * Search by account or hash tag
 * Following, muting and blocking accounts
