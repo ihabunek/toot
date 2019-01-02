@@ -7,6 +7,7 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
+from wcwidth import wcswidth
 
 from toot.exceptions import ConsoleError
 
@@ -75,12 +76,21 @@ def assert_domain_exists(domain):
         raise ConsoleError("Domain {} not found".format(domain))
 
 
-def trunc(text, length):
+def trunc(text, length, text_length=None):
     """Trims text to given length, if trimmed appends ellipsis."""
-    if len(text) <= length:
+    if text_length is None:
+        text_length = len(text)
+    if text_length <= length:
         return text
 
     return text[:length - 1] + '…'
+
+
+def pad(text, length, fill=' '):
+    text_length = wcswidth(text)
+    text = trunc(text, length, text_length)
+    assert len(text) <= length
+    return text + fill * (length - text_length)
 
 
 EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"

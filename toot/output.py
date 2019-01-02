@@ -9,7 +9,7 @@ from itertools import chain
 from itertools import zip_longest
 from textwrap import wrap, TextWrapper
 
-from toot.utils import format_content, get_text, trunc
+from toot.utils import format_content, get_text, pad
 
 START_CODES = {
     'red': '\033[31m',
@@ -147,7 +147,7 @@ def print_timeline(items):
             return zip_longest(left_column, right_column, fillvalue="")
 
         for left, right in timeline_rows(item):
-            print_out("{:30} │ {}".format(trunc(left, 30), right))
+            print_out("{} │ {}".format(pad(left, 30), right))
 
     def _parse_item(item):
         content = item['reblog']['content'] if item['reblog'] else item['content']

@@ -122,7 +122,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
     mock_get.return_value = MockResponse([{
         'id': '111111111111111111',
         'account': {
-            'display_name': 'Frank Zappa',
+            'display_name': 'Frank Zappa 🎸',
             'username': 'fz'
         },
         'created_at': '2017-04-12T15:53:18.174Z',
@@ -139,7 +139,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
     expected = (
         "───────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────\n"
-        "Frank Zappa                    │ The computer can't tell you the emotional story. It can give you the exact\n"
+        "Frank Zappa 🎸                 │ The computer can't tell you the emotional story. It can give you the exact\n"
         "@fz                            │ mathematical design, but what's missing is the eyebrows.\n"
         "2017-04-12 15:53               │ \n"
         "id: 111111111111111111         │ \n"
