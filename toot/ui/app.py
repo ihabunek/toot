@@ -2,7 +2,7 @@
 
 import webbrowser
 
-from toot import __version__
+from toot import __version__, api
 
 from toot.exceptions import ConsoleError
 from toot.ui.parsers import parse_status
@@ -293,6 +293,7 @@ class HelpModal(Modal):
             "  j or ↓ - move down",
             "  k or ↑ - move up",
             "  v      - view current toot in browser",
+            "  b      - toggle boost/reblog status",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
@@ -367,6 +368,9 @@ class TimelineApp:
             elif key.lower() == 's':
                 self.show_sensitive()
 
+            elif key.lower() == 'b':
+                self.toggle_reblog()
+
             elif key == 'KEY_RESIZE':
                 self.setup_windows()
                 self.full_redraw()
@@ -376,6 +380,23 @@ class TimelineApp:
         if status['sensitive'] and not status['show_sensitive']:
             status['show_sensitive'] = True
             self.right.draw(status)
+
+    def toggle_reblog(self):
+        """Reblog or unreblog selected status."""
+        status = self.get_selected_status()
+        assert status
+        app, user = self.app, self.user
+        if not app or not user:
+            self.footer.draw_message("You must be logged in to reblog", Color.RED)
+            return
+        status_id = status['id']
+        if status['reblogged']:
+            action = 'unreblogged'
+            api.unreblog(app, user, status_id)
+        else:
+            action = 'reblogged'
+            api.reblog(app, user, status_id)
+        self.footer.draw_message("Status {}".format(action), Color.GREEN)
 
     def select_previous(self):
         """Move to the previous status in the timeline."""
