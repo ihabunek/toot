@@ -55,7 +55,7 @@ def curses(app, user, args):
     else:
         generator = api.home_timeline_generator(app, user)
 
-    TimelineApp(generator).run()
+    TimelineApp(app, user, generator).run()
 
 
 def post(app, user, args):
