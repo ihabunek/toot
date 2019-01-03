@@ -300,7 +300,9 @@ class HelpModal(Modal):
 
 
 class TimelineApp:
-    def __init__(self, status_generator):
+    def __init__(self, app, user, status_generator):
+        self.app = app
+        self.user = user
         self.status_generator = status_generator
         self.statuses = []
         self.stdscr = None
