@@ -20,6 +20,7 @@ def parse_status(status):
         'id': status['id'],
         'in_reply_to_id': _status.get('in_reply_to_id'),
         'media_attachments': _status['media_attachments'],
+        'uri': _status['uri'],
         'url': _status['url'],
         'reblogged': status.get('reblogged'),
         'reblogs_count': _status['reblogs_count'],
@@ -35,4 +36,5 @@ def parse_account(account):
         'id': account['id'],
         'acct': account['acct'],
         'display_name': account['display_name'],
+        'url': account['url'],
     }

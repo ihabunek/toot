@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+
+from copy import copy
 import os
 import webbrowser
 
-from toot import __version__, api
+from toot import __version__, api, http
 
 from toot.exceptions import ConsoleError
 from toot.ui.parsers import parse_status
@@ -12,6 +14,7 @@ from toot.wcstring import fit_text
 # Attempt to load curses, which is not available on windows
 try:
     import curses
+    import curses.ascii
     import curses.panel
     import curses.textpad
 except ImportError:
@@ -329,6 +332,7 @@ class HelpModal(Modal):
             "  f      - toggle favourite status",
             "  c      - post a new status",
             "  r      - reply to status",
+            "  enter  - view status context (ancestors, descendants)",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
@@ -509,12 +513,24 @@ class TimelineApp:
         self.app = app
         self.user = user
         self.status_generator = status_generator
-        self.statuses = []
+        self.main_statuses = self.statuses = []
+        self.main_selected = self.selected = 0
+        self._old_left = None
         self.stdscr = None
+        self.in_context = False
 
     def run(self):
         os.environ.setdefault('ESCDELAY', '25')
         curses.wrapper(self._wrapped_run)
+
+    def reset(self):
+        self.statuses[:] = self.main_statuses
+        self.selected = self.main_selected
+        self.in_context = False
+        self.setup_windows()
+        self.left = self._old_left
+        self._old_left = None
+        self.footer.draw_message("Reset done", Color.GREEN)
 
     def _wrapped_run(self, stdscr):
         self.stdscr = stdscr
@@ -524,7 +540,6 @@ class TimelineApp:
 
         # Load some data and redraw
         self.fetch_next()
-        self.selected = 0
         self.full_redraw()
 
         self.loop()
@@ -579,6 +594,26 @@ class TimelineApp:
             elif key == 'b':
                 self.toggle_reblog()
 
+            elif ch == curses.ascii.LF:
+                status = self.get_selected_status()
+                assert status
+                self.footer.draw_message("Loading context...", Color.YELLOW)
+                statuses, selected = self.status_context(status)
+                self.main_statuses[:] = self.statuses
+                self.statuses = [parse_status(s) for s in statuses]
+                self.main_selected, self.selected = self.selected, selected
+                self._old_left = copy(self.left)
+                self.in_context = True
+                self.setup_windows()
+                self.full_redraw()
+                self.footer.draw_message("Loaded {} toots from context".format(len(statuses)),
+                                         Color.GREEN)
+
+            elif ch == curses.ascii.ESC:
+                if self.in_context:
+                    self.reset()
+                    self.full_redraw()
+
             elif key == 'f':
                 self.toggle_favourite()
 
@@ -596,6 +631,14 @@ class TimelineApp:
         if status['sensitive'] and not status['show_sensitive']:
             status['show_sensitive'] = True
             self.right.draw(status)
+
+    def status_context(self, status):
+        base_url = status['account']['url'].split('@', 1)[0]
+        status_id = status['uri'].rsplit('/', 1)[-1]
+        status_url = base_url + 'api/v1/statuses/{}'.format(status_id)
+        status = http.anon_get(status_url).json()
+        context = http.anon_get(status_url + '/context').json()
+        return context['ancestors'] + [status] + context['descendants'], len(context['ancestors'])
 
     def compose(self):
         """Compose and submit a new status"""
@@ -711,10 +754,14 @@ class TimelineApp:
         new_index = self.selected + 1
 
         # Load more statuses if no more are available
-        if self.selected + 1 >= len(self.statuses):
+        if not self.in_context and self.selected + 1 >= len(self.statuses):
             self.fetch_next()
             self.left.draw_statuses(self.statuses, self.selected, new_index - 1)
             self.draw_footer_status()
+
+        if self.in_context and new_index >= len(self.statuses):
+            self.footer.draw_message("Reached end of thread.", Color.GREEN)
+            return
 
         self.selected = new_index
         self.redraw_after_selection_change(old_index, new_index)
