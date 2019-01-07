@@ -221,6 +221,12 @@ class StatusDetailWindow:
         if status['reblogged']:
             yield "↷ Boosted", Color.CYAN
 
+        yield (
+            "{replies_count} replies, "
+            "{reblogs_count} reblogs, "
+            "{favourites_count} favourites"
+        ).format(**status), Color.CYAN
+
     def draw(self, status):
         self.window.erase()
         self.window.box()
