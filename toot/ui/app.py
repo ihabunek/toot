@@ -129,6 +129,8 @@ class StatusListWindow:
             self.pad.addstr(offset + 2, 14, acct, color)
         else:
             self.pad.addstr(offset + 1, 14, acct, color)
+        if status['in_reply_to_id'] is not None:
+            self.pad.addstr(offset + 1, width - 3, '⤶', Color.CYAN)
 
         date, time = status['created_at']
         self.pad.addstr(offset + 1, 1, " " + date.ljust(12), color)
