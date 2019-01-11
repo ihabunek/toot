@@ -29,6 +29,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     packages=['toot', 'toot.ui'],
+    python_requires=">=3.3",
     install_requires=[
         "requests>=2.13,<3.0",
         "beautifulsoup4>=4.5.0,<5.0",
