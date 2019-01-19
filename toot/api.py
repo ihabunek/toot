@@ -17,10 +17,17 @@ def _account_action(app, user, account, action):
     return http.post(app, user, url).json()
 
 
-def _status_action(app, user, status_id, action):
-    url = '/api/v1/statuses/{}/{}'.format(status_id, action)
+def _status_action(app, user, status_id, action, method='post'):
+    if action is None:
+        url = '/api/v1/statuses/{}'.format(status_id)
+        method = 'get'
+    else:
+        url = '/api/v1/statuses/{}/{}'.format(status_id, action)
 
-    return http.post(app, user, url).json()
+    if method == 'post':
+        return http.post(app, user, url).json()
+    elif method == 'get':
+        return http.get(app, user, url).json()
 
 
 def create_app(domain, scheme='https'):
@@ -143,6 +150,8 @@ def pin(app, user, status_id):
 def unpin(app, user, status_id):
     return _status_action(app, user, status_id, 'unpin')
 
+def context(app, user, status_id):
+    return _status_action(app, user, status_id, 'context', method='get')
 
 def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
@@ -244,6 +253,9 @@ def unblock(app, user, account):
 def verify_credentials(app, user):
     return http.get(app, user, '/api/v1/accounts/verify_credentials').json()
 
+
+def single_status(app, user, status_id):
+    return _status_action(app, user, status_id, None, method='get')
 
 def get_notifications(app, user):
     return http.get(app, user, '/api/v1/notifications').json()

@@ -29,6 +29,19 @@ def timeline(app, user, args):
 
     print_timeline(items)
 
+def thread(app, user, args):
+    toot = api.single_status(app, user, args.status_id)
+    context = api.context(app, user, args.status_id)
+    thread = []
+    for item in context['ancestors']:
+        thread.append(item)
+
+    thread.append(toot)
+
+    for item in context['descendants']:
+        thread.append(item)
+
+    print_timeline(thread)
 
 def curses(app, user, args):
     from toot.ui.app import TimelineApp

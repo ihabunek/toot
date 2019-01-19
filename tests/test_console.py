@@ -121,6 +121,7 @@ def test_delete(mock_delete, capsys):
 @mock.patch('toot.http.get')
 def test_timeline(mock_get, monkeypatch, capsys):
     mock_get.return_value = MockResponse([{
+        'id': '111111111111111111',
         'account': {
             'display_name': 'Frank Zappa',
             'username': 'fz'
@@ -128,6 +129,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'created_at': '2017-04-12T15:53:18.174Z',
         'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
         'reblog': None,
+        'in_reply_to_id': None
     }])
 
     console.run_command(app, user, 'timeline', [])
@@ -139,7 +141,94 @@ def test_timeline(mock_get, monkeypatch, capsys):
     assert "but what's missing is the eyebrows." in out
     assert "Frank Zappa" in out
     assert "@fz" in out
+    assert "id: 111111111111111111" in out
+    assert "[RE]" not in out
 
+@mock.patch('toot.http.get')
+def test_timeline_with_re(mock_get, monkeypatch, capsys):
+    mock_get.return_value = MockResponse([{
+        'id': '111111111111111111',
+        'account': {
+            'display_name': 'Frank Zappa',
+            'username': 'fz'
+        },
+        'created_at': '2017-04-12T15:53:18.174Z',
+        'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
+        'reblog': None,
+        'in_reply_to_id': '111111111111111110'
+    }])
+
+    console.run_command(app, user, 'timeline', [])
+
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home')
+
+    out, err = capsys.readouterr()
+    assert "The computer can't tell you the emotional story." in out
+    assert "but what's missing is the eyebrows." in out
+    assert "Frank Zappa" in out
+    assert "@fz" in out
+    assert "id: 111111111111111111" in out
+    assert "[RE]" in out
+
+@mock.patch('toot.http.get')
+def test_thread(mock_get, monkeypatch, capsys):
+    mock_get.side_effect = [
+        MockResponse({
+            'id': '111111111111111111',
+            'account': {
+                'display_name': 'Frank Zappa',
+                'username': 'fz'
+            },
+            'created_at': '2017-04-12T15:53:18.174Z',
+            'content': "my response in the middle",
+            'reblog': None,
+            'in_reply_to_id': '111111111111111110'
+        }),
+        MockResponse({
+            'ancestors': [{
+                'id': '111111111111111110',
+                'account': {
+                    'display_name': 'Frank Zappa',
+                    'username': 'fz'
+                },
+                'created_at': '2017-04-12T15:53:18.174Z',
+                'content': "original content",
+                'reblog': None,
+                'in_reply_to_id': None}],
+            'descendants': [{
+                'id': '111111111111111112',
+                'account': {
+                    'display_name': 'Frank Zappa',
+                    'username': 'fz'
+                },
+                'created_at': '2017-04-12T15:53:18.174Z',
+                'content': "response message",
+                'reblog': None,
+                'in_reply_to_id': '111111111111111111'}],
+        }),
+    ]
+
+    console.run_command(app, user, 'thread', ['111111111111111111'])
+
+    calls = [
+        mock.call(app, user, '/api/v1/statuses/111111111111111111'),
+        mock.call(app, user, '/api/v1/statuses/111111111111111111/context'),
+    ]
+    mock_get.assert_has_calls(calls, any_order=False)
+
+    out, err = capsys.readouterr()
+
+    # Display order
+    assert out.index('original content') < out.index('my response in the middle')
+    assert out.index('my response in the middle') < out.index('response message')
+
+    assert "original content" in out
+    assert "my response in the middle" in out
+    assert "response message" in out
+    assert "Frank Zappa" in out
+    assert "@fz" in out
+    assert "id: 111111111111111111" in out
+    assert "[RE]" in out
 
 @mock.patch('toot.http.post')
 def test_upload(mock_post, capsys):
