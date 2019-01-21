@@ -156,7 +156,7 @@ READ_COMMANDS = [
     ),
     Command(
         name="thread",
-        description="Show toot thfread items",
+        description="Show toot thread items",
         arguments=[
             (["status_id"], {
                 "help": "Show thread for toot.",
