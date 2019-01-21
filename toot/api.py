@@ -144,6 +144,12 @@ def unpin(app, user, status_id):
     return _status_action(app, user, status_id, 'unpin')
 
 
+def context(app, user, status_id):
+    url = '/api/v1/statuses/{}/context'.format(status_id)
+
+    return http.get(app, user, url).json()
+
+
 def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
 
@@ -243,6 +249,12 @@ def unblock(app, user, account):
 
 def verify_credentials(app, user):
     return http.get(app, user, '/api/v1/accounts/verify_credentials').json()
+
+
+def single_status(app, user, status_id):
+    url = '/api/v1/statuses/{}'.format(status_id)
+
+    return http.get(app, user, url).json()
 
 
 def get_notifications(app, user):

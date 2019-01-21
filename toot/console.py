@@ -155,6 +155,16 @@ READ_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="thread",
+        description="Show toot thread items",
+        arguments=[
+            (["status_id"], {
+                "help": "Show thread for toot.",
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
         name="timeline",
         description="Show recent items in a timeline (home by default)",
         arguments=[

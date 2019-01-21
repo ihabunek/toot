@@ -137,6 +137,11 @@ def print_timeline(items):
             if item['reblogged']:
                 left_column.append("Reblogged @{}".format(item['reblogged']))
 
+            if item['reply_to_toot'] is not None:
+                left_column.append('[RE]')
+
+            left_column.append("id: {}".format(item['id']))
+
             right_column = wrap_text(item['text'], 80)
 
             return zip_longest(left_column, right_column, fillvalue="")
@@ -153,10 +158,12 @@ def print_timeline(items):
         time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
         return {
+            "id": item['id'],
             "account": item['account'],
             "text": text,
             "time": time,
             "reblogged": reblogged,
+            "reply_to_toot": item['in_reply_to_id']
         }
 
     print_out("─" * 31 + "┬" + "─" * 88)
