@@ -10,6 +10,11 @@ from bs4 import BeautifulSoup
 from toot.exceptions import ConsoleError
 
 
+def str_bool(b):
+    """Convert boolean to string, in the way expected by the API."""
+    return "true" if b else "false"
+
+
 def get_text(html):
     """Converts html to text, strips all tags."""
     text = BeautifulSoup(html.replace('&apos;', "'"), "html.parser").get_text()

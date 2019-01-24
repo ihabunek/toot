@@ -7,6 +7,7 @@ from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import AuthenticationError
+from toot.utils import str_bool
 
 SCOPES = 'read write follow'
 
@@ -106,7 +107,7 @@ def post_status(
         'status': status,
         'media_ids[]': media_ids,
         'visibility': visibility,
-        'sensitive': "true" if sensitive else "false",
+        'sensitive': str_bool(sensitive),
         'spoiler_text': spoiler_text,
         'in_reply_to_id': in_reply_to_id,
     }, headers=headers).json()
@@ -155,13 +156,13 @@ def timeline_home(app, user):
 
 
 def timeline_public(app, user, local=False):
-    params = {'local': 'true' if local else 'false'}
+    params = {'local': str_bool(local)}
     return http.get(app, user, '/api/v1/timelines/public', params).json()
 
 
 def timeline_tag(app, user, hashtag, local=False):
     url = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
-    params = {'local': 'true' if local else 'false'}
+    params = {'local': str_bool(local)}
     return http.get(app, user, url, params).json()
 
 
@@ -201,13 +202,13 @@ def home_timeline_generator(app, user, limit=20):
 
 def public_timeline_generator(instance, local=False, limit=20):
     path = '/api/v1/timelines/public'
-    params = {'local': 'true' if local else 'false', 'limit': limit}
+    params = {'local': str_bool(local), 'limit': limit}
     return _anon_timeline_generator(instance, path, params)
 
 
 def tag_timeline_generator(app, user, hashtag, local=False, limit=20):
     path = '/api/v1/timelines/tag/{}'.format(hashtag)
-    params = {'local': 'true' if local else 'false', 'limit': limit}
+    params = {'local': str_bool(local), 'limit': limit}
     return _timeline_generator(app, user, path, params)
 
 
