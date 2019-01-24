@@ -150,6 +150,12 @@ def context(app, user, status_id):
     return http.get(app, user, url).json()
 
 
+def reblogged_by(app, user, status_id):
+    url = '/api/v1/statuses/{}/reblogged_by'.format(status_id)
+
+    return http.get(app, user, url).json()
+
+
 def timeline_home(app, user):
     return http.get(app, user, '/api/v1/timelines/home').json()
 

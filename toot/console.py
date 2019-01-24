@@ -291,6 +291,12 @@ STATUS_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="reblogged_by",
+        description="Show accounts that reblogged the status",
+        arguments=[status_id_arg],
+        require_auth=False,
+    ),
+    Command(
         name="pin",
         description="Pin a status",
         arguments=[status_id_arg],
