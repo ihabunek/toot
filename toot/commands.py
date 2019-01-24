@@ -144,6 +144,11 @@ def unpin(app, user, args):
     print_out("<green>✓ Status unpinned</green>")
 
 
+def reblogged_by(app, user, args):
+    for account in api.reblogged_by(app, user, args.status_id):
+        print_out("{}\n @{}".format(account['display_name'], account['acct']))
+
+
 def auth(app, user, args):
     config_data = config.load_config()
 

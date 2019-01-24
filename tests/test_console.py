@@ -259,6 +259,35 @@ def test_thread(mock_get, monkeypatch, capsys):
     assert "111111111111111111" in out
     assert "In reply to" in out
 
+@mock.patch('toot.http.get')
+def test_reblogged_by(mock_get, monkeypatch, capsys):
+    mock_get.return_value = MockResponse([{
+        'display_name': 'Terry Bozzio',
+        'acct': 'bozzio@drummers.social',
+    }, {
+        'display_name': 'Dweezil',
+        'acct': 'dweezil@zappafamily.social',
+    }])
+
+    console.run_command(app, user, 'reblogged_by', ['111111111111111111'])
+
+    calls = [
+        mock.call(app, user, '/api/v1/statuses/111111111111111111/reblogged_by'),
+    ]
+    mock_get.assert_has_calls(calls, any_order=False)
+
+    out, err = capsys.readouterr()
+
+    # Display order
+    expected = "\n".join([
+        "Terry Bozzio",
+        " @bozzio@drummers.social",
+        "Dweezil",
+        " @dweezil@zappafamily.social",
+        "",
+    ])
+    assert out == expected
+
 @mock.patch('toot.http.post')
 def test_upload(mock_post, capsys):
     mock_post.return_value = MockResponse({

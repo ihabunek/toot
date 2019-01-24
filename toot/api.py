@@ -151,6 +151,12 @@ def context(app, user, status_id):
     return http.get(app, user, url).json()
 
 
+def reblogged_by(app, user, status_id):
+    url = '/api/v1/statuses/{}/reblogged_by'.format(status_id)
+
+    return http.get(app, user, url).json()
+
+
 def _get_next_path(headers):
     """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
