@@ -203,10 +203,19 @@ READ_COMMANDS = [
                 "default": False,
                 "help": "Resolve non-local accounts",
             }),
+            (["-t", "--tag"], {
+                "type": str,
+                "help": "Show timeline for given hashtag.",
+            }),
+            (["-l", "--local"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Show only statuses from local instance (public and tag timelines only).",
+            }),
             (["-i", "--instance"], {
                 "type": str,
                 "help": 'instance from which to read (for public timeline only)',
-            })
+            }),
         ],
         require_auth=False,
     ),

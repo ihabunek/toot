@@ -179,17 +179,17 @@ def get_next_path(headers):
         return "?".join([parsed.path, parsed.query])
 
 
-def _timeline_generator(app, user, path, limit=20):
+def _timeline_generator(app, user, path, params=None):
     while path:
-        response = http.get(app, user, path)
+        response = http.get(app, user, path, params)
         yield response.json()
         path = get_next_path(response.headers)
 
 
-def _anon_timeline_generator(instance, path, limit=20):
+def _anon_timeline_generator(instance, path, params=None):
     while path:
         url = "https://{}{}".format(instance, path)
-        response = http.anon_get(url, path)
+        response = http.anon_get(url, params)
         yield response.json()
         path = get_next_path(response.headers)
 
@@ -199,9 +199,16 @@ def home_timeline_generator(app, user, limit=20):
     return _timeline_generator(app, user, path)
 
 
-def public_timeline_generator(instance, limit=20):
-    path = '/api/v1/timelines/public?limit={}'.format(limit)
-    return _anon_timeline_generator(instance, path)
+def public_timeline_generator(instance, local=False, limit=20):
+    path = '/api/v1/timelines/public'
+    params = {'local': 'true' if local else 'false', 'limit': limit}
+    return _anon_timeline_generator(instance, path, params)
+
+
+def tag_timeline_generator(app, user, hashtag, local=False, limit=20):
+    path = '/api/v1/timelines/tag/{}'.format(hashtag)
+    params = {'local': 'true' if local else 'false', 'limit': limit}
+    return _timeline_generator(app, user, path, params)
 
 
 def upload_media(app, user, file):

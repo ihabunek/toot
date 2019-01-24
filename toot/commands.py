@@ -46,12 +46,21 @@ def thread(app, user, args):
 def curses(app, user, args):
     from toot.ui.app import TimelineApp
 
+    # Make sure tag, list and public are not used simultaneously
+    if len([arg for arg in [args.tag, args.public] if arg]) > 1:
+        raise ConsoleError("Only one of --public or --tag can be used at one time.")
+
+    if args.local and not (args.public or args.tag):
+        raise ConsoleError("The --local option is only valid alongside --public or --tag.")
+
     if not args.public and (not app or not user):
         raise ConsoleError("You must be logged in to view the home timeline.")
 
     if args.public:
         instance = args.instance or app.instance
-        generator = api.public_timeline_generator(instance)
+        generator = api.public_timeline_generator(instance, local=args.local)
+    elif args.tag:
+        generator = api.tag_timeline_generator(app, user, args.tag, local=args.local)
     else:
         generator = api.home_timeline_generator(app, user)
 
