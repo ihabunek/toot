@@ -18,6 +18,7 @@ def parse_status(status):
         'id': status['id'],
         'media_attachments': _status['media_attachments'],
         'url': _status['url'],
+        'reblogged': status.get('reblogged'),
         'spoiler_text': spoiler_text,
         'sensitive': _status['sensitive'],
         'show_sensitive': False,

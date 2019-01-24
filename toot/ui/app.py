@@ -213,6 +213,9 @@ class StatusDetailWindow:
             acct = status['boosted_by']['acct']
             yield "Boosted by @{}".format(acct), Color.GREEN
 
+        if status['reblogged']:
+            yield "↷", Color.CYAN
+
     def draw(self, status):
         self.window.erase()
         self.window.box()
