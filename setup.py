@@ -17,10 +17,16 @@ setup(
     author='Ivan Habunek',
     author_email='ivan@habunek.com',
     url='https://github.com/ihabunek/toot/',
+    project_urls={
+        'Documentation': 'https://toot.readthedocs.io/en/latest/',
+        'Issue tracker': 'https://github.com/ihabunek/toot/issues/',
+    },
     keywords='mastodon toot',
     license='GPLv3',
     classifiers=[
         'Development Status :: 4 - Beta',
+        'Environment :: Console :: Curses',
+        'Environment :: Console',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
