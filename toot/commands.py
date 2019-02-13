@@ -16,18 +16,29 @@ def timeline(app, user, args):
         raise ConsoleError("The --local option is only valid alongside --public or --tag.")
 
     if args.public:
-        items = api.timeline_public(app, user, local=args.local)
+        gen = api.public_timeline_generator(app.instance, local=args.local, limit=args.count)
     elif args.tag:
-        items = api.timeline_tag(app, user, args.tag, local=args.local)
+        gen = api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
     elif args.list:
-        items = api.timeline_list(app, user, args.list)
+        gen = api.timeline_list_genertor(app, user, args.list)
     else:
-        items = api.timeline_home(app, user)
+        gen = api.home_timeline_generator(app, user, limit=args.count)
 
-    if args.reverse:
-        items = reversed(items)
+    while(True):
+        items = next(gen)
 
-    print_timeline(items)
+        if args.reverse:
+            items = reversed(items)
+
+        print_timeline(items)
+
+        if args.once:
+            break
+
+        char = input("\nContinue? [Y/n] ")
+        if char.lower() == "n":
+            break
+
 
 def thread(app, user, args):
     toot = api.single_status(app, user, args.status_id)
@@ -42,6 +53,7 @@ def thread(app, user, args):
         thread.append(item)
 
     print_timeline(thread)
+
 
 def curses(app, user, args):
     from toot.ui.app import TimelineApp

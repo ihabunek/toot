@@ -4,7 +4,7 @@ import os
 import sys
 import logging
 
-from argparse import ArgumentParser, FileType
+from argparse import ArgumentParser, FileType, ArgumentTypeError
 from collections import namedtuple
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
@@ -19,6 +19,13 @@ def visibility(value):
         raise ValueError("Invalid visibility value")
 
     return value
+
+
+def timeline_count(value):
+    n = int(value)
+    if not 0 < n <= 20:
+        raise ArgumentTypeError("Number of toots should be between 1 and 20.")
+    return n
 
 
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
@@ -190,6 +197,16 @@ READ_COMMANDS = [
                 "action": "store_true",
                 "default": False,
                 "help": "Reverse the order of the shown timeline (to new posts at the bottom)",
+            }),
+            (["-c", "--count"], {
+                "type": timeline_count,
+                "help": "Number of toots to show per page (1-20, default 10).",
+                "default": 10,
+            }),
+            (["-1", "--once"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Only show the first <count> toots, do not prompt to continue.",
             }),
         ],
         require_auth=True,

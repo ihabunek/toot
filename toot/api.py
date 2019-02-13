@@ -151,26 +151,6 @@ def context(app, user, status_id):
     return http.get(app, user, url).json()
 
 
-def timeline_home(app, user):
-    return http.get(app, user, '/api/v1/timelines/home').json()
-
-
-def timeline_public(app, user, local=False):
-    params = {'local': str_bool(local)}
-    return http.get(app, user, '/api/v1/timelines/public', params).json()
-
-
-def timeline_tag(app, user, hashtag, local=False):
-    url = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
-    params = {'local': str_bool(local)}
-    return http.get(app, user, url, params).json()
-
-
-def timeline_list(app, user, list_id):
-    url = '/api/v1/timelines/list/{}'.format(list_id)
-    return http.get(app, user, url).json()
-
-
 def get_next_path(headers):
     """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
@@ -210,6 +190,11 @@ def tag_timeline_generator(app, user, hashtag, local=False, limit=20):
     path = '/api/v1/timelines/tag/{}'.format(hashtag)
     params = {'local': str_bool(local), 'limit': limit}
     return _timeline_generator(app, user, path, params)
+
+
+def timeline_list_generator(app, user, list_id, limit=20):
+    path = '/api/v1/timelines/list/{}'.format(list_id)
+    return _timeline_generator(app, user, path, {'limit': limit})
 
 
 def upload_media(app, user, file):

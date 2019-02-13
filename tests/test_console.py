@@ -132,9 +132,9 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'in_reply_to_id': None
     }])
 
-    console.run_command(app, user, 'timeline', [])
+    console.run_command(app, user, 'timeline', ['--once'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home')
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
 
     out, err = capsys.readouterr()
     assert "The computer can't tell you the emotional story." in out
@@ -143,6 +143,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
     assert "@fz" in out
     assert "id: 111111111111111111" in out
     assert "[RE]" not in out
+
 
 @mock.patch('toot.http.get')
 def test_timeline_with_re(mock_get, monkeypatch, capsys):
@@ -158,9 +159,9 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
         'in_reply_to_id': '111111111111111110'
     }])
 
-    console.run_command(app, user, 'timeline', [])
+    console.run_command(app, user, 'timeline', ['--once'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home')
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
 
     out, err = capsys.readouterr()
     assert "The computer can't tell you the emotional story." in out
