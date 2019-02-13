@@ -28,6 +28,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
+    data_files=[('', ['Makefile'])],
     packages=['toot', 'toot.ui'],
     python_requires=">=3.3",
     install_requires=[
