@@ -7,7 +7,7 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
-from wcwidth import wcswidth
+from wcwidth import wcwidth, wcswidth
 
 from toot.exceptions import ConsoleError
 
@@ -76,21 +76,59 @@ def assert_domain_exists(domain):
         raise ConsoleError("Domain {} not found".format(domain))
 
 
-def trunc(text, length, text_length=None):
-    """Trims text to given length, if trimmed appends ellipsis."""
-    if text_length is None:
-        text_length = len(text)
+def trunc(text, length):
+    """
+    Truncates text to given length, taking into account wide characters.
+
+    If truncated, the last char is replaced by an elipsis.
+    """
+    if length < 1:
+        raise ValueError("length should be 1 or larger")
+
+    # Remove whitespace first so no unneccesary truncation is done.
+    text = text.strip()
+    text_length = wcswidth(text)
+
     if text_length <= length:
         return text
 
-    return text[:length - 1] + '…'
+    # We cannot just remove n characters from the end since we don't know how
+    # wide these characters are and how it will affect text length.
+    # Use wcwidth to determine how many characters need to be truncated.
+    chars_to_truncate = 0
+    trunc_length = 0
+    for char in reversed(text):
+        chars_to_truncate += 1
+        trunc_length += wcwidth(char)
+        if text_length - trunc_length <= length:
+            break
+
+    # Additional char to make room for elipsis
+    n = chars_to_truncate + 1
+    return text[:-n].strip() + '…'
 
 
-def pad(text, length, fill=' '):
+def pad(text, length):
+    """Pads text to given length, taking into account wide characters."""
     text_length = wcswidth(text)
-    text = trunc(text, length, text_length)
-    assert len(text) <= length
-    return text + fill * (length - text_length)
+
+    if text_length < length:
+        return text + ' ' * (length - text_length)
+
+    return text
+
+
+def fit_text(text, length):
+    """Makes text fit the given length by padding or truncating it."""
+    text_length = wcswidth(text)
+
+    if text_length > length:
+        return trunc(text, length)
+
+    if text_length < length:
+        return pad(text, length)
+
+    return text
 
 
 EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"
