@@ -151,7 +151,7 @@ def context(app, user, status_id):
     return http.get(app, user, url).json()
 
 
-def get_next_path(headers):
+def _get_next_path(headers):
     """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
     matches = re.match('<([^>]+)>; rel="next"', links)
@@ -164,7 +164,7 @@ def _timeline_generator(app, user, path, params=None):
     while path:
         response = http.get(app, user, path, params)
         yield response.json()
-        path = get_next_path(response.headers)
+        path = _get_next_path(response.headers)
 
 
 def _anon_timeline_generator(instance, path, params=None):
@@ -172,7 +172,7 @@ def _anon_timeline_generator(instance, path, params=None):
         url = "https://{}{}".format(instance, path)
         response = http.anon_get(url, params)
         yield response.json()
-        path = get_next_path(response.headers)
+        path = _get_next_path(response.headers)
 
 
 def home_timeline_generator(app, user, limit=20):
