@@ -2,7 +2,6 @@
 import io
 import pytest
 import re
-import uuid
 
 from collections import namedtuple
 from unittest import mock
