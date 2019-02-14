@@ -3,14 +3,12 @@
 import sys
 import re
 
-from bs4 import BeautifulSoup
 from datetime import datetime
-from itertools import chain
-from itertools import zip_longest
-from textwrap import wrap, TextWrapper
+from textwrap import wrap
+from wcwidth import wcswidth
 
-from toot.utils import format_content, get_text
-from toot.wcstring import pad
+from toot.utils import format_content, get_text, parse_html
+from toot.wcstring import wc_wrap
 
 
 START_CODES = {
@@ -101,6 +99,13 @@ def print_account(account):
     print_out(account['url'])
 
 
+HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
+
+
+def highlight_hashtags(line):
+    return re.sub(HASHTAG_PATTERN, '<cyan>\\1</cyan>', line)
+
+
 def print_search_results(results):
     accounts = results['accounts']
     hashtags = results['hashtags']
@@ -121,54 +126,52 @@ def print_search_results(results):
         print_out("<yellow>Nothing found</yellow>")
 
 
-def print_timeline(items):
-    def _print_item(item):
-        def wrap_text(text, width):
-            wrapper = TextWrapper(width=width, break_long_words=False, break_on_hyphens=False)
-            return chain(*[wrapper.wrap(l) for l in text.split("\n")])
+def print_status(status, width):
+    reblog = status['reblog']
+    content = reblog['content'] if reblog else status['content']
+    media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
+    in_reply_to = status['in_reply_to_id']
 
-        def timeline_rows(item):
-            display_name = item['account']['display_name']
-            username = "@" + item['account']['username']
-            time = item['time'].strftime('%Y-%m-%d %H:%M%Z')
+    time = status['created_at']
+    time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
+    time = time.strftime('%Y-%m-%d %H:%M%z')
 
-            left_column = [display_name]
-            if display_name != username:
-                left_column.append(username)
-            left_column.append(time)
-            if item['reblogged']:
-                left_column.append("Reblogged @{}".format(item['reblogged']))
+    username = "@" + status['account']['username']
+    spacing = width - wcswidth(username) - wcswidth(time)
 
-            if item['reply_to_toot'] is not None:
-                left_column.append('[RE]')
+    display_name = status['account']['display_name']
+    if display_name:
+        spacing -= wcswidth(display_name) + 1
 
-            left_column.append("id: {}".format(item['id']))
+    print_out("{}{}{}{}".format(
+        "<green>{}</green> ".format(display_name) if display_name else "",
+        "<blue>{}</blue>".format(username),
+        " " * spacing,
+        "<yellow>{}</yellow>".format(time),
+    ))
 
-            right_column = wrap_text(item['text'], 80)
+    for paragraph in parse_html(content):
+        print_out("")
+        for line in paragraph:
+            for subline in wc_wrap(line, width):
+                print_out(highlight_hashtags(subline))
 
-            return zip_longest(left_column, right_column, fillvalue="")
+    if media_attachments:
+        print_out("\nMedia:")
+        for attachment in media_attachments:
+            url = attachment['text_url'] or attachment['url']
+            for line in wc_wrap(url, width):
+                print_out(line)
 
-        for left, right in timeline_rows(item):
-            print_out("{} │ {}".format(pad(left, 30), right))
+    print_out("\n{}{}{}".format(
+        "ID <yellow>{}</yellow>  ".format(status['id']),
+        "↲ In reply to <yellow>{}</yellow>  ".format(in_reply_to) if in_reply_to else "",
+        "↻ Reblogged <blue>@{}</blue>  ".format(reblog['account']['username']) if reblog else "",
+    ))
 
-    def _parse_item(item):
-        content = item['reblog']['content'] if item['reblog'] else item['content']
-        reblogged = item['reblog']['account']['username'] if item['reblog'] else None
 
-        soup = BeautifulSoup(content.replace('&apos;', "'"), "html.parser")
-        text = soup.get_text()
-        time = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
-
-        return {
-            "id": item['id'],
-            "account": item['account'],
-            "text": text,
-            "time": time,
-            "reblogged": reblogged,
-            "reply_to_toot": item['in_reply_to_id']
-        }
-
-    print_out("─" * 31 + "┬" + "─" * 88)
+def print_timeline(items, width=100):
+    print_out("─" * width)
     for item in items:
-        _print_item(_parse_item(item))
-        print_out("─" * 31 + "┼" + "─" * 88)
+        print_status(item, width)
+        print_out("─" * width)
