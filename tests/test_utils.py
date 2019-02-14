@@ -1,4 +1,5 @@
 from toot import utils
+from toot.wcstring import wc_wrap
 
 
 def test_pad():
@@ -73,3 +74,85 @@ def test_fit_text():
     assert utils.fit_text(text, 18) == 'Frank Zappa 🎸    '
     assert utils.fit_text(text, 19) == 'Frank Zappa 🎸     '
     assert utils.fit_text(text, 20) == 'Frank Zappa 🎸      '
+
+
+def test_wc_wrap_plain_text():
+    lorem = (
+        "Eius voluptas eos praesentium et tempore. Quaerat nihil voluptatem "
+        "excepturi reiciendis sapiente voluptate natus. Tenetur occaecati "
+        "velit dicta dolores. Illo reiciendis nulla ea. Facilis nostrum non "
+        "qui inventore sit."
+    )
+
+    assert list(wc_wrap(lorem, 50)) == [
+        #01234567890123456789012345678901234567890123456789 # noqa
+        "Eius voluptas eos praesentium et tempore. Quaerat",
+        "nihil voluptatem excepturi reiciendis sapiente",
+        "voluptate natus. Tenetur occaecati velit dicta",
+        "dolores. Illo reiciendis nulla ea. Facilis nostrum",
+        "non qui inventore sit.",
+    ]
+
+
+def test_wc_wrap_plain_text_wrap_on_any_whitespace():
+    lorem = (
+        "Eius\t\tvoluptas\teos\tpraesentium\tet\ttempore.\tQuaerat\tnihil\tvoluptatem\t"
+        "excepturi\nreiciendis\n\nsapiente\nvoluptate\nnatus.\nTenetur\noccaecati\n"
+        "velit\rdicta\rdolores.\rIllo\rreiciendis\rnulla\r\r\rea.\rFacilis\rnostrum\rnon\r"
+        "qui\u2003inventore\u2003\u2003sit."  # em space
+    )
+
+    assert list(wc_wrap(lorem, 50)) == [
+        #01234567890123456789012345678901234567890123456789 # noqa
+        "Eius voluptas eos praesentium et tempore. Quaerat",
+        "nihil voluptatem excepturi reiciendis sapiente",
+        "voluptate natus. Tenetur occaecati velit dicta",
+        "dolores. Illo reiciendis nulla ea. Facilis nostrum",
+        "non qui inventore sit.",
+    ]
+
+
+def test_wc_wrap_text_with_wide_chars():
+    lorem = (
+        "☕☕☕☕☕ voluptas eos praesentium et 🎸🎸🎸🎸🎸. Quaerat nihil "
+        "voluptatem excepturi reiciendis sapiente voluptate natus."
+    )
+
+    assert list(wc_wrap(lorem, 50)) == [
+        #01234567890123456789012345678901234567890123456789 # noqa
+        "☕☕☕☕☕ voluptas eos praesentium et 🎸🎸🎸🎸🎸.",
+        "Quaerat nihil voluptatem excepturi reiciendis",
+        "sapiente voluptate natus.",
+    ]
+
+
+def test_wc_wrap_hard_wrap():
+    lorem = (
+        "☕☕☕☕☕voluptaseospraesentiumet🎸🎸🎸🎸🎸.Quaeratnihil"
+        "voluptatemexcepturireiciendissapientevoluptatenatus."
+    )
+
+    assert list(wc_wrap(lorem, 50)) == [
+        #01234567890123456789012345678901234567890123456789 # noqa
+        "☕☕☕☕☕voluptaseospraesentiumet🎸🎸🎸🎸🎸.Quaer",
+        "atnihilvoluptatemexcepturireiciendissapientevolupt",
+        "atenatus.",
+    ]
+
+
+def test_wc_wrap_indented():
+    lorem = (
+        "     Eius voluptas eos praesentium et tempore. Quaerat nihil voluptatem "
+        "     excepturi reiciendis sapiente voluptate natus. Tenetur occaecati "
+        "     velit dicta dolores. Illo reiciendis nulla ea. Facilis nostrum non "
+        "     qui inventore sit."
+    )
+
+    assert list(wc_wrap(lorem, 50)) == [
+        #01234567890123456789012345678901234567890123456789 # noqa
+        "Eius voluptas eos praesentium et tempore. Quaerat",
+        "nihil voluptatem excepturi reiciendis sapiente",
+        "voluptate natus. Tenetur occaecati velit dicta",
+        "dolores. Illo reiciendis nulla ea. Facilis nostrum",
+        "non qui inventore sit.",
+    ]
