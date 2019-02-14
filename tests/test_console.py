@@ -128,7 +128,8 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'created_at': '2017-04-12T15:53:18.174Z',
         'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
         'reblog': None,
-        'in_reply_to_id': None
+        'in_reply_to_id': None,
+        'media_attachments': [],
     }])
 
     console.run_command(app, user, 'timeline', ['--once'])
@@ -136,16 +137,18 @@ def test_timeline(mock_get, monkeypatch, capsys):
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
 
     out, err = capsys.readouterr()
+    lines = out.split("\n")
 
-    expected = (
-        "───────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────\n"
-        "Frank Zappa 🎸                 │ The computer can't tell you the emotional story. It can give you the exact\n"
-        "@fz                            │ mathematical design, but what's missing is the eyebrows.\n"
-        "2017-04-12 15:53               │ \n"
-        "id: 111111111111111111         │ \n"
-        "───────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────\n"
-    )
-    assert out == expected
+    assert "Frank Zappa 🎸" in lines[1]
+    assert "@fz" in lines[1]
+    assert "2017-04-12 15:53" in lines[1]
+
+    assert (
+        "The computer can't tell you the emotional story. It can give you the "
+        "exact mathematical design, but\nwhat's missing is the eyebrows." in out)
+
+    assert "111111111111111111" in lines[-3]
+
     assert err == ""
 
 
@@ -153,14 +156,21 @@ def test_timeline(mock_get, monkeypatch, capsys):
 def test_timeline_with_re(mock_get, monkeypatch, capsys):
     mock_get.return_value = MockResponse([{
         'id': '111111111111111111',
+        'created_at': '2017-04-12T15:53:18.174Z',
         'account': {
             'display_name': 'Frank Zappa',
             'username': 'fz'
         },
-        'created_at': '2017-04-12T15:53:18.174Z',
-        'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
-        'reblog': None,
-        'in_reply_to_id': '111111111111111110'
+        'reblog': {
+            'account': {
+                'display_name': 'Johnny Cash',
+                'username': 'jc'
+            },
+            'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
+            'media_attachments': [],
+        },
+        'in_reply_to_id': '111111111111111110',
+        'media_attachments': [],
     }])
 
     console.run_command(app, user, 'timeline', ['--once'])
@@ -168,12 +178,21 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
 
     out, err = capsys.readouterr()
-    assert "The computer can't tell you the emotional story." in out
-    assert "but what's missing is the eyebrows." in out
-    assert "Frank Zappa" in out
-    assert "@fz" in out
-    assert "id: 111111111111111111" in out
-    assert "[RE]" in out
+    lines = out.split("\n")
+
+    assert "Frank Zappa" in lines[1]
+    assert "@fz" in lines[1]
+    assert "2017-04-12 15:53" in lines[1]
+
+    assert (
+        "The computer can't tell you the emotional story. It can give you the "
+        "exact mathematical design, but\nwhat's missing is the eyebrows." in out)
+
+    assert "111111111111111111" in lines[-3]
+    assert "↻ Reblogged \x1b[34m@jc\x1b[0m" in lines[-3]
+
+    assert err == ""
+
 
 @mock.patch('toot.http.get')
 def test_thread(mock_get, monkeypatch, capsys):
@@ -187,7 +206,8 @@ def test_thread(mock_get, monkeypatch, capsys):
             'created_at': '2017-04-12T15:53:18.174Z',
             'content': "my response in the middle",
             'reblog': None,
-            'in_reply_to_id': '111111111111111110'
+            'in_reply_to_id': '111111111111111110',
+            'media_attachments': [],
         }),
         MockResponse({
             'ancestors': [{
@@ -198,6 +218,7 @@ def test_thread(mock_get, monkeypatch, capsys):
                 },
                 'created_at': '2017-04-12T15:53:18.174Z',
                 'content': "original content",
+                'media_attachments': [],
                 'reblog': None,
                 'in_reply_to_id': None}],
             'descendants': [{
@@ -208,6 +229,7 @@ def test_thread(mock_get, monkeypatch, capsys):
                 },
                 'created_at': '2017-04-12T15:53:18.174Z',
                 'content': "response message",
+                'media_attachments': [],
                 'reblog': None,
                 'in_reply_to_id': '111111111111111111'}],
         }),
@@ -223,6 +245,8 @@ def test_thread(mock_get, monkeypatch, capsys):
 
     out, err = capsys.readouterr()
 
+    assert not err
+
     # Display order
     assert out.index('original content') < out.index('my response in the middle')
     assert out.index('my response in the middle') < out.index('response message')
@@ -232,8 +256,8 @@ def test_thread(mock_get, monkeypatch, capsys):
     assert "response message" in out
     assert "Frank Zappa" in out
     assert "@fz" in out
-    assert "id: 111111111111111111" in out
-    assert "[RE]" in out
+    assert "111111111111111111" in out
+    assert "In reply to" in out
 
 @mock.patch('toot.http.post')
 def test_upload(mock_post, capsys):
