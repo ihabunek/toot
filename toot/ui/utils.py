@@ -1,6 +1,6 @@
 import re
 
-from textwrap import wrap
+from toot.wcstring import fit_text, wc_wrap
 
 
 def draw_horizontal_divider(window, y):
@@ -27,7 +27,7 @@ def enumerate_lines(lines, text_width, default_color):
         for line in lines:
             line, color = parse_line(line)
             if line:
-                for wrapped in wrap(line, text_width):
+                for wrapped in wc_wrap(line, text_width):
                     yield wrapped, color
             else:
                 yield "", color
@@ -53,7 +53,7 @@ def draw_lines(window, lines, start_y, padding, default_color):
     for dy, (line, color) in enumerate_lines(lines, text_width, default_color):
         y = start_y + dy
         if y < height - 1:
-            window.addstr(y, padding, line.ljust(text_width), color)
+            window.addstr(y, padding, fit_text(line, text_width), color)
             highlight_hashtags(window, y, padding, line)
 
     return y + 1

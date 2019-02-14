@@ -9,7 +9,9 @@ from itertools import chain
 from itertools import zip_longest
 from textwrap import wrap, TextWrapper
 
-from toot.utils import format_content, get_text, pad
+from toot.utils import format_content, get_text
+from toot.wcstring import pad
+
 
 START_CODES = {
     'red': '\033[31m',

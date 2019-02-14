@@ -7,13 +7,13 @@ from toot import __version__
 from toot.exceptions import ConsoleError
 from toot.ui.parsers import parse_status
 from toot.ui.utils import draw_horizontal_divider, draw_lines
-from toot.utils import trunc
+from toot.wcstring import fit_text
 
 # Attempt to load curses, which is not available on windows
 try:
     import curses
     import curses.panel
-except ImportError as e:
+except ImportError:
     raise ConsoleError("Curses is not available on this platform")
 
 
@@ -64,12 +64,12 @@ class FooterWindow:
 
     def draw_status(self, selected, count):
         text = "Showing toot {} of {}".format(selected + 1, count)
-        text = trunc(text, self.width - 1).ljust(self.width - 1)
+        text = fit_text(text, self.width)
         self.window.addstr(0, 0, text, Color.WHITE_ON_BLUE | curses.A_BOLD)
         self.window.refresh()
 
     def draw_message(self, text, color):
-        text = trunc(text, self.width - 1).ljust(self.width - 1)
+        text = fit_text(text, self.width - 1)
         self.window.addstr(1, 0, text, color)
         self.window.refresh()
 
@@ -121,8 +121,8 @@ class StatusListWindow:
         color = Color.GREEN if highlight else Color.WHITE
 
         trunc_width = width - 15
-        acct = trunc("@" + status['account']['acct'], trunc_width).ljust(trunc_width)
-        display_name = trunc(status['account']['display_name'], trunc_width).ljust(trunc_width)
+        acct = fit_text("@" + status['account']['acct'], trunc_width)
+        display_name = fit_text(status['account']['display_name'], trunc_width)
 
         if status['account']['display_name']:
             self.pad.addstr(offset + 1, 14, display_name, color)
@@ -133,12 +133,6 @@ class StatusListWindow:
         date, time = status['created_at']
         self.pad.addstr(offset + 1, 1, " " + date.ljust(12), color)
         self.pad.addstr(offset + 2, 1, " " + time.ljust(12), color)
-
-        # Redraw box borders to mitigate unicode overflow issues
-        self.pad.addch(offset + 1, 0, "│")
-        self.pad.addch(offset + 2, 0, "│")
-        self.pad.addch(offset + 1, width - 1, "│")
-        self.pad.addch(offset + 2, width - 1, "│")
 
         if draw_divider:
             draw_horizontal_divider(self.pad, offset + 3)
