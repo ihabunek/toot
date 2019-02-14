@@ -214,7 +214,7 @@ class StatusDetailWindow:
             yield "Boosted by @{}".format(acct), Color.GREEN
 
         if status['reblogged']:
-            yield "↷", Color.CYAN
+            yield "↷ Boosted", Color.CYAN
 
     def draw(self, status):
         self.window.erase()
@@ -293,7 +293,7 @@ class HelpModal(Modal):
             "  j or ↓ - move down",
             "  k or ↑ - move up",
             "  v      - view current toot in browser",
-            "  b      - toggle boost/reblog status",
+            "  b      - toggle boost status",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
@@ -391,12 +391,17 @@ class TimelineApp:
             return
         status_id = status['id']
         if status['reblogged']:
-            action = 'unreblogged'
+            status['reblogged'] = False
+            self.footer.draw_message("Unboosting status...", Color.YELLOW)
             api.unreblog(app, user, status_id)
+            self.footer.draw_message("✓ Status unboosted", Color.GREEN)
         else:
-            action = 'reblogged'
+            status['reblogged'] = True
+            self.footer.draw_message("Boosting status...", Color.YELLOW)
             api.reblog(app, user, status_id)
-        self.footer.draw_message("Status {}".format(action), Color.GREEN)
+            self.footer.draw_message("✓ Status boosted", Color.GREEN)
+
+        self.right.draw(status)
 
     def select_previous(self):
         """Move to the previous status in the timeline."""
