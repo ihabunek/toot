@@ -40,6 +40,15 @@ Install the package:
     sudo apt update
     sudo apt install python3-toot
 
+Arch Linux
+----------
+
+Install from [AUR](https://aur.archlinux.org/packages/toot/).
+
+..code-block:: bash
+
+    yay -S toot
+
 FreeBSD ports
 -------------
 
