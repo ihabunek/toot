@@ -134,6 +134,9 @@ class StatusListWindow:
         self.pad.addstr(offset + 1, 1, " " + date.ljust(12), color)
         self.pad.addstr(offset + 2, 1, " " + time.ljust(12), color)
 
+        if status['favourited']:
+            self.pad.addstr(offset + 2, width - 3, '⭐', Color.YELLOW)
+
         if draw_divider:
             draw_horizontal_divider(self.pad, offset + 3)
 
