@@ -43,7 +43,7 @@ Install the package:
 Arch Linux
 ----------
 
-Install from [AUR](https://aur.archlinux.org/packages/toot/).
+Install from `AUR <https://aur.archlinux.org/packages/toot/>`_.
 
 ..code-block:: bash
 
