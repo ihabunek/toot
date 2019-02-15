@@ -84,6 +84,38 @@ status_id_arg = (["status_id"], {
     "type": int,
 })
 
+# Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
+timeline_args = [
+    (["-p", "--public"], {
+        "action": "store_true",
+        "default": False,
+        "help": "show public timeline (does not require auth)",
+    }),
+    (["-t", "--tag"], {
+        "type": str,
+        "help": "show hashtag timeline (does not require auth)",
+    }),
+    (["-l", "--local"], {
+        "action": "store_true",
+        "default": False,
+        "help": "show only statuses from local instance (public and tag timelines only)",
+    }),
+    (["-i", "--instance"], {
+        "type": str,
+        "help": "mastodon instance from which to read (public and tag timelines only)",
+    }),
+    (["--list"], {
+        "type": int,
+        "help": "show timeline for given list.",
+    }),
+    (["-c", "--count"], {
+        "type": timeline_count,
+        "help": "number of toots to show per page (1-20, default 10).",
+        "default": 10,
+    }),
+]
+
+
 AUTH_COMMANDS = [
     Command(
         name="login",
@@ -116,6 +148,7 @@ AUTH_COMMANDS = [
         require_auth=False,
     ),
 ]
+
 
 READ_COMMANDS = [
     Command(
@@ -174,34 +207,11 @@ READ_COMMANDS = [
     Command(
         name="timeline",
         description="Show recent items in a timeline (home by default)",
-        arguments=[
-            (["-p", "--public"], {
-                "action": "store_true",
-                "default": False,
-                "help": "Show public timeline.",
-            }),
-            (["-t", "--tag"], {
-                "type": str,
-                "help": "Show timeline for given hashtag.",
-            }),
-            (["-i", "--list"], {
-                "type": int,
-                "help": "Show timeline for given list ID.",
-            }),
-            (["-l", "--local"], {
-                "action": "store_true",
-                "default": False,
-                "help": "Show only statuses from local instance (public and tag timelines only).",
-            }),
+        arguments=timeline_args + [
             (["-r", "--reverse"], {
                 "action": "store_true",
                 "default": False,
                 "help": "Reverse the order of the shown timeline (to new posts at the bottom)",
-            }),
-            (["-c", "--count"], {
-                "type": timeline_count,
-                "help": "Number of toots to show per page (1-20, default 10).",
-                "default": 10,
             }),
             (["-1", "--once"], {
                 "action": "store_true",
@@ -214,26 +224,7 @@ READ_COMMANDS = [
     Command(
         name="curses",
         description="An experimental timeline app (doesn't work on Windows)",
-        arguments=[
-            (["-p", "--public"], {
-                "action": 'store_true',
-                "default": False,
-                "help": "Resolve non-local accounts",
-            }),
-            (["-t", "--tag"], {
-                "type": str,
-                "help": "Show timeline for given hashtag.",
-            }),
-            (["-l", "--local"], {
-                "action": "store_true",
-                "default": False,
-                "help": "Show only statuses from local instance (public and tag timelines only).",
-            }),
-            (["-i", "--instance"], {
-                "type": str,
-                "help": 'instance from which to read (for public timeline only)',
-            }),
-        ],
+        arguments=timeline_args,
         require_auth=False,
     ),
 ]

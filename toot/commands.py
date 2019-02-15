@@ -7,7 +7,7 @@ from toot.output import print_out, print_instance, print_account, print_search_r
 from toot.utils import assert_domain_exists, multiline_input, EOF_KEY
 
 
-def timeline(app, user, args):
+def get_timeline_generator(app, user, args):
     # Make sure tag, list and public are not used simultaneously
     if len([arg for arg in [args.tag, args.list, args.public] if arg]) > 1:
         raise ConsoleError("Only one of --public, --tag, or --list can be used at one time.")
@@ -15,17 +15,30 @@ def timeline(app, user, args):
     if args.local and not (args.public or args.tag):
         raise ConsoleError("The --local option is only valid alongside --public or --tag.")
 
+    if args.instance and not (args.public or args.tag):
+        raise ConsoleError("The --instance option is only valid alongside --public or --tag.")
+
     if args.public:
-        gen = api.public_timeline_generator(app.instance, local=args.local, limit=args.count)
+        instance = args.instance or app.instance
+        return api.public_timeline_generator(instance, local=args.local, limit=args.count)
     elif args.tag:
-        gen = api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
+        instance = args.instance or app.instance
+        return api.tag_timeline_generator(instance, args.tag, local=args.local, limit=args.count)
     elif args.list:
-        gen = api.timeline_list_generator(app, user, args.list)
+        return api.timeline_list_generator(app, user, args.list, limit=args.count)
     else:
-        gen = api.home_timeline_generator(app, user, limit=args.count)
+        return api.home_timeline_generator(app, user, limit=args.count)
+
+
+def timeline(app, user, args):
+    generator = get_timeline_generator(app, user, args)
 
     while(True):
-        items = next(gen)
+        try:
+            items = next(generator)
+        except StopIteration:
+            print_out("That's all folks.")
+            return
 
         if args.reverse:
             items = reversed(items)
@@ -56,26 +69,8 @@ def thread(app, user, args):
 
 
 def curses(app, user, args):
+    generator = get_timeline_generator(app, user, args)
     from toot.ui.app import TimelineApp
-
-    # Make sure tag, list and public are not used simultaneously
-    if len([arg for arg in [args.tag, args.public] if arg]) > 1:
-        raise ConsoleError("Only one of --public or --tag can be used at one time.")
-
-    if args.local and not (args.public or args.tag):
-        raise ConsoleError("The --local option is only valid alongside --public or --tag.")
-
-    if not args.public and (not app or not user):
-        raise ConsoleError("You must be logged in to view the home timeline.")
-
-    if args.public:
-        instance = args.instance or app.instance
-        generator = api.public_timeline_generator(instance, local=args.local)
-    elif args.tag:
-        generator = api.tag_timeline_generator(app, user, args.tag, local=args.local)
-    else:
-        generator = api.home_timeline_generator(app, user)
-
     TimelineApp(app, user, generator).run()
 
 
