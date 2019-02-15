@@ -15,6 +15,7 @@ def parse_status(status):
         'boosted_by': boosted_by,
         'created_at': created_at,
         'content': content,
+        'favourited': status.get('favourited'),
         'id': status['id'],
         'media_attachments': _status['media_attachments'],
         'url': _status['url'],

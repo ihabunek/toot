@@ -134,6 +134,9 @@ class StatusListWindow:
         self.pad.addstr(offset + 1, 1, " " + date.ljust(12), color)
         self.pad.addstr(offset + 2, 1, " " + time.ljust(12), color)
 
+        if status['favourited']:
+            self.pad.addstr(offset + 2, width - 3, '⭐', Color.YELLOW)
+
         if draw_divider:
             draw_horizontal_divider(self.pad, offset + 3)
 
@@ -294,6 +297,7 @@ class HelpModal(Modal):
             "  k or ↑ - move up",
             "  v      - view current toot in browser",
             "  b      - toggle boost status",
+            "  f      - toggle favourite status",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
@@ -371,6 +375,9 @@ class TimelineApp:
             elif key.lower() == 'b':
                 self.toggle_reblog()
 
+            elif key.lower() == 'f':
+                self.toggle_favourite()
+
             elif key == 'KEY_RESIZE':
                 self.setup_windows()
                 self.full_redraw()
@@ -400,6 +407,27 @@ class TimelineApp:
             self.footer.draw_message("Boosting status...", Color.YELLOW)
             api.reblog(app, user, status_id)
             self.footer.draw_message("✓ Status boosted", Color.GREEN)
+
+        self.right.draw(status)
+
+    def toggle_favourite(self):
+        """Favourite or unfavourite selected status."""
+        status = self.get_selected_status()
+        assert status
+        app, user = self.app, self.user
+        if not app or not user:
+            self.footer.draw_message("You must be logged in to favourite", Color.RED)
+            return
+        status_id = status['id']
+        if status['favourited']:
+            self.footer.draw_message("Undoing favourite status...", Color.YELLOW)
+            api.unfavourite(app, user, status_id)
+            self.footer.draw_message("✓ Status unfavourited", Color.GREEN)
+        else:
+            self.footer.draw_message("Favourite status...", Color.YELLOW)
+            api.favourite(app, user, status_id)
+            self.footer.draw_message("✓ Status favourited", Color.GREEN)
+        status['favourited'] = not status['favourited']
 
         self.right.draw(status)
 
