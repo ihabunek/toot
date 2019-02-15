@@ -14,6 +14,15 @@ toot is a commandline tool for interacting with Mastodon social networks.
 .. image:: https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square
    :target: https://pypi.python.org/pypi/toot
 
+Resources
+---------
+
+* Homepage: https://github.com/ihabunek/toot
+* Issues: https://github.com/ihabunek/toot/issues
+* Documentation: https://toot.readthedocs.io/en/latest/
+* Discussion and support: `#toot IRC channel on freenode.net
+  <https://webchat.freenode.net/?channels=toot>`_
+
 Features
 --------
 

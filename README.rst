@@ -15,12 +15,14 @@ Interact with Mastodon social network from the command line.
 .. image:: https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square
    :target: https://pypi.python.org/pypi/toot
 
-Documentation
--------------
+Resources
+---------
 
-Documentation is hosted on readthedocs.io. Check it out for instruction on installation, usage and more.
-
-https://toot.readthedocs.io/en/latest/
+* Homepage: https://github.com/ihabunek/toot
+* Issues: https://github.com/ihabunek/toot/issues
+* Documentation: https://toot.readthedocs.io/en/latest/
+* Discussion and support: #toot IRC channel on freenode.net
+  (`webchat <https://webchat.freenode.net/?channels=toot>`_)
 
 Features
 --------
