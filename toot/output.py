@@ -136,7 +136,7 @@ def print_status(status, width):
     time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
     time = time.strftime('%Y-%m-%d %H:%M%z')
 
-    username = "@" + status['account']['username']
+    username = "@" + status['account']['acct']
     spacing = width - wcswidth(username) - wcswidth(time)
 
     display_name = status['account']['display_name']
@@ -166,7 +166,7 @@ def print_status(status, width):
     print_out("\n{}{}{}".format(
         "ID <yellow>{}</yellow>  ".format(status['id']),
         "↲ In reply to <yellow>{}</yellow>  ".format(in_reply_to) if in_reply_to else "",
-        "↻ Reblogged <blue>@{}</blue>  ".format(reblog['account']['username']) if reblog else "",
+        "↻ Reblogged <blue>@{}</blue>  ".format(reblog['account']['acct']) if reblog else "",
     ))
 
 
