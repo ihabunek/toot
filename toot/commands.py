@@ -20,7 +20,7 @@ def timeline(app, user, args):
     elif args.tag:
         gen = api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
     elif args.list:
-        gen = api.timeline_list_genertor(app, user, args.list)
+        gen = api.timeline_list_generator(app, user, args.list)
     else:
         gen = api.home_timeline_generator(app, user, limit=args.count)
 
