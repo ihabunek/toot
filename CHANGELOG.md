@@ -1,6 +1,23 @@
 Changelog
 ---------
 
+**0.21.0 (2019-02-15)**
+
+* Add `toot reblogged_by` to show who reblogged a status (#88)
+* Add `toot thread` to show a status with its replies (#87)
+* Better handling of wide characters (eastern scripts, emojis) (#84)
+* Improved `timeline`, nicer visuals, and it will now ask to show next batch
+  of toots, unless given the `--once` option
+* Add public/local/tag timelines to `timeline` and `curses`
+* Support for boosting and favouriting in `toot curses`, press `f`/`b` (#88,
+  #93)
+
+**BC BREAK**
+
+* in `toot timeline` short argument for selecting a list is no longer `-i`, this
+  has been changed to select the instance, so that it is the same as on other
+  commands, please use the long form `--list` instead
+
 **0.20.0 (2019-02-01)**
 
 * Enable interaction with instances using http instead of https (#56)
