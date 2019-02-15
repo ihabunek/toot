@@ -45,7 +45,7 @@ Arch Linux
 
 Install from `AUR <https://aur.archlinux.org/packages/toot/>`_.
 
-..code-block:: bash
+.. code-block:: bash
 
     yay -S toot
 
