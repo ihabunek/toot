@@ -545,6 +545,20 @@ def test_notifications(mock_get, capsys):
         "",
     ])
 
+@mock.patch('toot.http.get')
+def test_notifications_empty(mock_get, capsys):
+    mock_get.return_value = MockResponse([])
+
+    console.run_command(app, user, 'notifications', [])
+
+    mock_get.assert_called_once_with(app, user, '/api/v1/notifications')
+
+    out, err = capsys.readouterr()
+    out = uncolorize(out)
+
+    assert not err
+    assert out == "No notification\n"
+
 
 @mock.patch('toot.http.post')
 def test_notifications_clear(mock_post, capsys):

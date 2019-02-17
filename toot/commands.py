@@ -304,8 +304,13 @@ def notifications(app, user, args):
         print_out("<green>Cleared notifications</green>")
         return
 
+    notifications = api.get_notifications(app, user)
+    if not notifications:
+        print_out("<yellow>No notification</yellow>")
+        return
+
     width = 100
-    for notification in sorted(api.get_notifications(app, user),
+    for notification in sorted(notifications,
                                key=lambda n: datetime.strptime(
                                    n["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"),
                                reverse=True):
