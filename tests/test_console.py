@@ -436,6 +436,116 @@ def test_whoami(mock_get, capsys):
     assert "Statuses: 19" in out
 
 
+@mock.patch('toot.http.get')
+def test_notifications(mock_get, capsys):
+    mock_get.return_value = MockResponse([{
+        'id': '1',
+        'type': 'follow',
+        'created_at': '2019-02-16T07:01:20.714Z',
+        'account': {
+            'display_name': 'Frank Zappa',
+            'acct': 'frank@zappa.social',
+        },
+    }, {
+        'id': '2',
+        'type': 'mention',
+        'created_at': '2017-01-12T12:12:12.0Z',
+        'account': {
+            'display_name': 'Dweezil Zappa',
+            'acct': 'dweezil@zappa.social',
+        },
+        'status': {
+            'id': '111111111111111111',
+            'account': {
+                'display_name': 'Dweezil Zappa',
+                'acct': 'dweezil@zappa.social',
+            },
+            'created_at': '2017-04-12T15:53:18.174Z',
+            'content': "<p>We still have fans in 2017 @fan123</p>",
+            'reblog': None,
+            'in_reply_to_id': None,
+            'media_attachments': [],
+        },
+    }, {
+        'id': '3',
+        'type': 'reblog',
+        'created_at': '1983-11-03T03:03:03.333Z',
+        'account': {
+            'display_name': 'Terry Bozzio',
+            'acct': 'terry@bozzio.social',
+        },
+        'status': {
+            'id': '1234',
+            'account': {
+                'display_name': 'Zappa Fan',
+                'acct': 'fan123@zappa-fans.social'
+            },
+            'created_at': '1983-11-04T15:53:18.174Z',
+            'content': "<p>The Black Page, a masterpiece</p>",
+            'reblog': None,
+            'in_reply_to_id': None,
+            'media_attachments': [],
+        },
+    }, {
+        'id': '4',
+        'type': 'favourite',
+        'created_at': '1983-12-13T01:02:03.444Z',
+        'account': {
+            'display_name': 'Zappa Old Fan',
+            'acct': 'fan9@zappa-fans.social',
+        },
+        'status': {
+            'id': '1234',
+            'account': {
+                'display_name': 'Zappa Fan',
+                'acct': 'fan123@zappa-fans.social'
+            },
+            'created_at': '1983-11-04T15:53:18.174Z',
+            'content': "<p>The Black Page, a masterpiece</p>",
+            'reblog': None,
+            'in_reply_to_id': None,
+            'media_attachments': [],
+        },
+    }])
+
+    console.run_command(app, user, 'notifications', [])
+
+    mock_get.assert_called_once_with(app, user, '/api/v1/notifications')
+
+    out, err = capsys.readouterr()
+    out = uncolorize(out)
+
+    width = 100
+    assert not err
+    assert out == "\n".join([
+        "─" * width,
+        "Frank Zappa @frank@zappa.social now follows you",
+        "─" * width,
+        "Dweezil Zappa @dweezil@zappa.social mentioned you in",
+        "Dweezil Zappa @dweezil@zappa.social                                                 2017-04-12 15:53",
+        "",
+        "We still have fans in 2017 @fan123",
+        "",
+        "ID 111111111111111111  ",
+        "─" * width,
+        "Zappa Old Fan @fan9@zappa-fans.social favourited your status",
+        "Zappa Fan @fan123@zappa-fans.social                                                 1983-11-04 15:53",
+        "",
+        "The Black Page, a masterpiece",
+        "",
+        "ID 1234  ",
+        "─" * width,
+        "Terry Bozzio @terry@bozzio.social reblogged your status",
+        "Zappa Fan @fan123@zappa-fans.social                                                 1983-11-04 15:53",
+        "",
+        "The Black Page, a masterpiece",
+        "",
+        "ID 1234  ",
+        "─" * width,
+        "",
+    ])
+
+
 def u(user_id, access_token="abc"):
     username, instance = user_id.split("@")
     return {

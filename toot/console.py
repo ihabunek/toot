@@ -168,6 +168,12 @@ READ_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="notifications",
+        description="Notifications for logged in user",
+        arguments=[],
+        require_auth=True,
+    ),
+    Command(
         name="instance",
         description="Display instance details",
         arguments=[

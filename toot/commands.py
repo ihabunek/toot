@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
-from toot.output import print_out, print_instance, print_account, print_search_results, print_timeline
+from toot.output import (print_out, print_instance, print_account,
+                         print_search_results, print_status, print_timeline)
 from toot.utils import assert_domain_exists, multiline_input, EOF_KEY
 
 
@@ -293,3 +296,26 @@ def instance(app, user, args):
             "Instance not found at {}.\n"
             "The given domain probably does not host a Mastodon instance.".format(name)
         )
+
+
+def notifications(app, user, args):
+    width = 100
+    for notification in sorted(api.get_notifications(app, user),
+                               key=lambda n: datetime.strptime(
+                                   n["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"),
+                               reverse=True):
+        account = "{display_name} @{acct}".format(**notification["account"])
+        msg = {
+            "follow": "{account} now follows you",
+            "mention": "{account} mentioned you in",
+            "reblog": "{account} reblogged your status",
+            "favourite": "{account} favourited your status",
+        }.get(notification["type"])
+        if msg is None:
+            continue
+        print_out("─" * width)
+        print_out(msg.format(account=account))
+        status = notification.get("status")
+        if status is not None:
+            print_status(status, width=width)
+    print_out("─" * width)
