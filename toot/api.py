@@ -260,6 +260,10 @@ def get_notifications(app, user):
     return http.get(app, user, '/api/v1/notifications').json()
 
 
+def clear_notifications(app, user):
+    http.post(app, user, '/api/v1/notifications/clear')
+
+
 def get_instance(domain, scheme="https"):
     url = "{}://{}/api/v1/instance".format(scheme, domain)
     return http.anon_get(url).json()

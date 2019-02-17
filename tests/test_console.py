@@ -546,6 +546,17 @@ def test_notifications(mock_get, capsys):
     ])
 
 
+@mock.patch('toot.http.post')
+def test_notifications_clear(mock_post, capsys):
+    console.run_command(app, user, 'notifications', ['--clear'])
+    out, err = capsys.readouterr()
+    out = uncolorize(out)
+
+    mock_post.assert_called_once_with(app, user, '/api/v1/notifications/clear')
+    assert not err
+    assert out == 'Cleared notifications\n'
+
+
 def u(user_id, access_token="abc"):
     username, instance = user_id.split("@")
     return {

@@ -170,7 +170,13 @@ READ_COMMANDS = [
     Command(
         name="notifications",
         description="Notifications for logged in user",
-        arguments=[],
+        arguments=[
+            (["--clear"], {
+                "help": "delete all notifications from the server",
+                "action": 'store_true',
+                "default": False,
+            }),
+        ],
         require_auth=True,
     ),
     Command(

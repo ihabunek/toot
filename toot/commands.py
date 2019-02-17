@@ -299,6 +299,11 @@ def instance(app, user, args):
 
 
 def notifications(app, user, args):
+    if args.clear:
+        api.clear_notifications(app, user)
+        print_out("<green>Cleared notifications</green>")
+        return
+
     width = 100
     for notification in sorted(api.get_notifications(app, user),
                                key=lambda n: datetime.strptime(
