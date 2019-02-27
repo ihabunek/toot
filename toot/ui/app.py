@@ -317,38 +317,86 @@ class HelpModal(Modal):
         ]
 
 
-class ComposeModal(Modal):
-    def __init__(self, stdscr):
-        self.height, self.width, y, x = self.get_size_pos(stdscr)
+class TextModal(Modal):
+    def __init__(self, stdscr, title, footer=None, maxsize=(None, None)):
+        self.pad_y = 2
+        self.pad_x = 2
+        self.title = title
+        self.footer = footer
+        if self.footer:
+            self.pad_y += 1
+        self.height, self.width, y, x = self.get_size_pos(stdscr, maxsize)
 
         self.window = curses.newwin(self.height, self.width, y, x)
-        self.text_window = self.window.derwin(self.height - 6, self.width - 5, 3, 2)
+        self.text_window = self.window.derwin(self.height - (self.pad_y * 2), self.width - (self.pad_x * 2 + 1), self.pad_y, self.pad_x)
         self.box = curses.textpad.Textbox(self.text_window)
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
         self.panel.hide()
 
-    def draw(self):
-        self.window.erase()
-        self.window.box()
-        draw_lines(self.window, ["Compose a toot (^G to send):"], 1, 2, Color.WHITE)
-
-    def get_size_pos(self, stdscr):
+    def get_size_pos(self, stdscr, maxsize):
         screen_height, screen_width = stdscr.getmaxyx()
-
-        height = int(screen_height / 1.33)
-        width = int(screen_width / 1.25)
+        if maxsize[0]:
+            height = maxsize[0] + self.pad_y * 2
+        else:
+            height = int(screen_height / 1.33)
+        if maxsize[1]:
+            width = maxsize[1] + self.pad_x * 2 + 1
+        else:
+            width = int(screen_width / 1.25)
 
         y = (screen_height - height) // 2
         x = (screen_width - width) // 2
 
         return height, width, y, x
 
+    def draw(self):
+        self.window.erase()
+        self.window.box()
+        draw_lines(self.window, ["{}  (^G to confirm):".format(self.title)], 1, 2, Color.WHITE)
+        draw_lines(self.window, [self.footer], self.height - 2, 2, Color.WHITE)
+
+    def do_command(self, ch):
+        if ch == curses.ascii.ctrl(ord('q')):
+            return False, 'break'
+        elif ch == curses.ascii.ctrl(ord('g')):
+            return False, 'gather'
+        else:
+            return self.box.do_command(ch), None
+
     def loop(self):
         self.show()
-        content = self.box.edit()
+        while True:
+            ch = self.box.win.getch()
+            if not ch:
+                continue
+            continue_flag, next_action = self.do_command(ch)
+            if not continue_flag:
+                break
+            self.box.win.refresh()
         self.hide()
-        return content
+        if next_action == 'gather':
+            return self.box.gather()
+        else:
+            return None
+
+
+class ComposeModal(TextModal):
+    def __init__(self, stdscr):
+        super().__init__(stdscr, title="Compose a toot", footer="^G to submit, ^Q to quit, ^S to mark sensitive (cw)")
+        self.cw = None
+        self.cwmodal = TextModal(stdscr, title="Content warning", maxsize=(1, None))
+
+    def do_command(self, ch):
+        if ch == curses.ascii.ctrl(ord('s')):
+            self.cw = self.cwmodal.loop()
+            return True, None
+        else:
+            return super().do_command(ch)
+
+    def loop(self):
+        content = super().loop()
+        return content, self.cw
 
 
 class TimelineApp:
@@ -443,14 +491,16 @@ class TimelineApp:
             return
 
         compose_modal = ComposeModal(self.stdscr)
-        content = compose_modal.loop()
+        content, cw = compose_modal.loop()
         self.full_redraw()
-        if len(content) == 0:
+        if content is None:
+            return
+        elif len(content) == 0:
             self.footer.draw_message("Status must contain content", Color.RED)
             return
 
         self.footer.draw_message("Submitting status...", Color.YELLOW)
-        response = api.post_status(app, user, content)
+        response = api.post_status(app, user, content, spoiler_text=cw)
         self.footer.draw_message("✓ Status posted", Color.GREEN)
 
     def toggle_reblog(self):
