@@ -13,6 +13,7 @@ from toot.wcstring import fit_text
 try:
     import curses
     import curses.panel
+    import curses.textpad
 except ImportError:
     raise ConsoleError("Curses is not available on this platform")
 
@@ -306,6 +307,7 @@ class HelpModal(Modal):
             "  v      - view current toot in browser",
             "  b      - toggle boost status",
             "  f      - toggle favourite status",
+            "  c      - compose and post a new status",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
@@ -313,6 +315,40 @@ class HelpModal(Modal):
             "",
             ("https://github.com/ihabunek/toot", Color.YELLOW),
         ]
+
+
+class ComposeModal(Modal):
+    def __init__(self, stdscr):
+        self.height, self.width, y, x = self.get_size_pos(stdscr)
+
+        self.window = curses.newwin(self.height, self.width, y, x)
+        self.text_window = self.window.derwin(self.height - 6, self.width - 5, 3, 2)
+        self.box = curses.textpad.Textbox(self.text_window)
+        self.draw()
+        self.panel = curses.panel.new_panel(self.window)
+        self.panel.hide()
+
+    def draw(self):
+        self.window.erase()
+        self.window.box()
+        draw_lines(self.window, ["Compose a toot (^G to send):"], 1, 2, Color.WHITE)
+
+    def get_size_pos(self, stdscr):
+        screen_height, screen_width = stdscr.getmaxyx()
+
+        height = int(screen_height / 1.33)
+        width = int(screen_width / 1.25)
+
+        y = (screen_height - height) // 2
+        x = (screen_width - width) // 2
+
+        return height, width, y, x
+
+    def loop(self):
+        self.show()
+        content = self.box.edit()
+        self.hide()
+        return content
 
 
 class TimelineApp:
@@ -386,6 +422,9 @@ class TimelineApp:
             elif key.lower() == 'f':
                 self.toggle_favourite()
 
+            elif key.lower() == 'c':
+                self.compose()
+
             elif key == 'KEY_RESIZE':
                 self.setup_windows()
                 self.full_redraw()
@@ -395,6 +434,24 @@ class TimelineApp:
         if status['sensitive'] and not status['show_sensitive']:
             status['show_sensitive'] = True
             self.right.draw(status)
+
+    def compose(self):
+        """Compose and submit a new status"""
+        app, user = self.app, self.user
+        if not app or not user:
+            self.footer.draw_message("You must be logged in to post", Color.RED)
+            return
+
+        compose_modal = ComposeModal(self.stdscr)
+        content = compose_modal.loop()
+        self.full_redraw()
+        if len(content) == 0:
+            self.footer.draw_message("Status must contain content", Color.RED)
+            return
+
+        self.footer.draw_message("Submitting status...", Color.YELLOW)
+        response = api.post_status(app, user, content)
+        self.footer.draw_message("✓ Status posted", Color.GREEN)
 
     def toggle_reblog(self):
         """Reblog or unreblog selected status."""
