@@ -307,8 +307,8 @@ class HelpModal(Modal):
             "  v      - view current toot in browser",
             "  b      - toggle boost status",
             "  f      - toggle favourite status",
-            "  c      - compose and post a new status",
-            "  r      - compose and reply to status",
+            "  c      - post a new status",
+            "  r      - reply to status",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
