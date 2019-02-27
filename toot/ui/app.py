@@ -308,6 +308,7 @@ class HelpModal(Modal):
             "  b      - toggle boost status",
             "  f      - toggle favourite status",
             "  c      - compose and post a new status",
+            "  r      - compose and reply to status",
             "  q      - quit application",
             "  s      - show sensitive content"
             "",
@@ -473,6 +474,9 @@ class TimelineApp:
             elif key.lower() == 'c':
                 self.compose()
 
+            elif key.lower() == 'r':
+                self.reply()
+
             elif key == 'KEY_RESIZE':
                 self.setup_windows()
                 self.full_redraw()
@@ -502,6 +506,27 @@ class TimelineApp:
         self.footer.draw_message("Submitting status...", Color.YELLOW)
         response = api.post_status(app, user, content, spoiler_text=cw)
         self.footer.draw_message("✓ Status posted", Color.GREEN)
+
+    def reply(self):
+        """Reply to the selected status"""
+        status = self.get_selected_status()
+        app, user = self.app, self.user
+        if not app or not user:
+            self.footer.draw_message("You must be logged in to reply", Color.RED)
+            return
+
+        compose_modal = ComposeModal(self.stdscr)
+        content, cw = compose_modal.loop()
+        self.full_redraw()
+        if content is None:
+            return
+        elif len(content) == 0:
+            self.footer.draw_message("Status must contain content", Color.RED)
+            return
+
+        self.footer.draw_message("Submitting reply...", Color.YELLOW)
+        response = api.post_status(app, user, content, spoiler_text=cw, in_reply_to_id=status['id'])
+        self.footer.draw_message("✓ Reply posted", Color.GREEN)
 
     def toggle_reblog(self):
         """Reblog or unreblog selected status."""
