@@ -6,8 +6,8 @@ from toot import __version__, api
 
 from toot.exceptions import ConsoleError
 from toot.ui.parsers import parse_status
-from toot.ui.utils import draw_horizontal_divider, draw_lines
-from toot.wcstring import fit_text
+from toot.ui.utils import draw_horizontal_divider, draw_lines, size_as_drawn
+from toot.wcstring import fit_text, wc_wrap
 
 # Attempt to load curses, which is not available on windows
 try:
@@ -319,30 +319,35 @@ class HelpModal(Modal):
 
 
 class TextModal(Modal):
-    def __init__(self, stdscr, title, footer=None, maxsize=(None, None)):
-        self.pad_y = 2
-        self.pad_x = 2
+    def __init__(self, stdscr, title, footer=None, size=(None, None)):
+        self.content = []
+        self.cursor_pos = 0
+        self.pad_y, self.pad_x = 2, 2
+
         self.title = title
         self.footer = footer
+        self.size = size
         if self.footer:
             self.pad_y += 1
-        self.height, self.width, y, x = self.get_size_pos(stdscr, maxsize)
 
-        self.window = curses.newwin(self.height, self.width, y, x)
-        self.text_window = self.window.derwin(self.height - (self.pad_y * 2), self.width - (self.pad_x * 2 + 1), self.pad_y, self.pad_x)
-        self.box = curses.textpad.Textbox(self.text_window)
+        height, width, y, x = self.get_size_pos(stdscr)
+
+        self.window = curses.newwin(height, width, y, x)
+        self.text_window = self.window.derwin(height - (self.pad_y * 2), width - (self.pad_x * 2 + 1), self.pad_y, self.pad_x)
+        self.text_window.keypad(1)
+
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
         self.panel.hide()
 
-    def get_size_pos(self, stdscr, maxsize):
+    def get_size_pos(self, stdscr):
         screen_height, screen_width = stdscr.getmaxyx()
-        if maxsize[0]:
-            height = maxsize[0] + self.pad_y * 2
+        if self.size[0]:
+            height = self.size[0] + (self.pad_y * 2) + 1
         else:
             height = int(screen_height / 1.33)
-        if maxsize[1]:
-            width = maxsize[1] + self.pad_x * 2 + 1
+        if self.size[1]:
+            width = self.size[1] + (self.pad_x * 2 + 1) + 1
         else:
             width = int(screen_width / 1.25)
 
@@ -354,44 +359,83 @@ class TextModal(Modal):
     def draw(self):
         self.window.erase()
         self.window.box()
+
         draw_lines(self.window, ["{}  (^G to confirm):".format(self.title)], 1, 2, Color.WHITE)
-        draw_lines(self.window, [self.footer], self.height - 2, 2, Color.WHITE)
+        if self.footer:
+            window_height, window_width = self.window.getmaxyx()
+            draw_lines(self.window, [self.footer], window_height - self.pad_y + 1, 2, Color.WHITE)
+
+        text = ''.join(self.content)
+        lines = text.split('\n')
+        draw_lines(self.text_window, lines, 0, 0, Color.WHITE)
+
+        text_window_height, text_window_width = self.text_window.getmaxyx()
+        text_on_screen = (''.join(self.content)[:self.cursor_pos] + '_').split('\n')
+        y, x = size_as_drawn(text_on_screen, text_window_width)
+        self.text_window.move(y, x)
 
     def do_command(self, ch):
-        if ch == curses.ascii.ctrl(ord('q')):
-            return False, 'break'
+        if curses.ascii.isprint(ch) or ch == curses.ascii.LF:
+            text_window_height, text_window_width = self.text_window.getmaxyx()
+            y, x = size_as_drawn((''.join(self.content) + chr(ch)).split('\n'), text_window_width)
+            if y < text_window_height - 1 and x < text_window_width:
+                self.content.insert(self.cursor_pos, chr(ch))
+                self.cursor_pos += 1
+
+        elif ch == curses.KEY_BACKSPACE:
+            if self.cursor_pos > 0:
+                del self.content[self.cursor_pos - 1]
+                self.cursor_pos -= 1
+
+        elif ch == curses.KEY_DC:
+            if self.cursor_pos >= 0 and self.cursor_pos < len(self.content):
+                del self.content[self.cursor_pos]
+
+        elif ch == curses.KEY_DC:
+            if self.cursor_pos > 0 and self.cursor_pos <= len(self.content):
+                del self.content[self.cursor_pos - 1]
+                self.cursor_pos -= 1
+
+        elif ch == curses.KEY_LEFT:
+            if self.cursor_pos > 0:
+                self.cursor_pos -= 1
+
+        elif ch == curses.KEY_RIGHT:
+            if self.cursor_pos + 1 <= len(self.content):
+                self.cursor_pos += 1
+
+        elif ch == curses.ascii.ctrl(ord('q')):
+            self.content = []
+            return False
+
         elif ch == curses.ascii.ctrl(ord('g')):
-            return False, 'gather'
-        else:
-            return self.box.do_command(ch), None
+            return False
+
+        self.draw()
+        return True
 
     def loop(self):
         self.show()
         while True:
-            ch = self.box.win.getch()
+            ch = self.text_window.getch()
             if not ch:
                 continue
-            continue_flag, next_action = self.do_command(ch)
-            if not continue_flag:
+            if not self.do_command(ch):
                 break
-            self.box.win.refresh()
         self.hide()
-        if next_action == 'gather':
-            return self.box.gather()
-        else:
-            return None
+        return ''.join(self.content) if len(self.content) > 0 else None
 
 
 class ComposeModal(TextModal):
     def __init__(self, stdscr):
         super().__init__(stdscr, title="Compose a toot", footer="^G to submit, ^Q to quit, ^S to mark sensitive (cw)")
         self.cw = None
-        self.cwmodal = TextModal(stdscr, title="Content warning", maxsize=(1, None))
+        self.cwmodal = TextModal(stdscr, title="Content warning", size=(1, 60))
 
     def do_command(self, ch):
         if ch == curses.ascii.ctrl(ord('s')):
             self.cw = self.cwmodal.loop()
-            return True, None
+            return True
         else:
             return super().do_command(ch)
 
