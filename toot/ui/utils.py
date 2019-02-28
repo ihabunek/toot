@@ -46,6 +46,17 @@ def highlight_hashtags(window, y, padding, line):
         window.chgat(y, start + padding, end - start, Color.HASHTAG)
 
 
+def size_as_drawn(lines, screen_width):
+    """Get the bottom-right corner of some text as would be drawn by draw_lines"""
+    y = 0
+    x = 0
+    for line in lines:
+        for wrapped_line in wc_wrap(line, screen_width):
+            x = len(wrapped_line)
+            y += 1
+    return y - 1, x - 1
+
+
 def draw_lines(window, lines, start_y, padding, default_color):
     height, width = window.getmaxyx()
     text_width = width - 2 * padding
