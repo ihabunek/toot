@@ -318,7 +318,7 @@ class HelpModal(Modal):
         ]
 
 
-class TextModal(Modal):
+class EntryModal(Modal):
     def __init__(self, stdscr, title, footer=None, size=(None, None)):
         self.content = []
         self.cursor_pos = 0
@@ -333,8 +333,8 @@ class TextModal(Modal):
         height, width, y, x = self.get_size_pos(stdscr)
 
         self.window = curses.newwin(height, width, y, x)
-        self.text_window = self.window.derwin(height - (self.pad_y * 2), width - (self.pad_x * 2 + 1), self.pad_y, self.pad_x)
-        self.text_window.keypad(1)
+        self.text_window = self.window.derwin(height - (self.pad_y * 2), width - (self.pad_x * 2), self.pad_y, self.pad_x)
+        self.text_window.keypad(True)
 
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
@@ -347,7 +347,7 @@ class TextModal(Modal):
         else:
             height = int(screen_height / 1.33)
         if self.size[1]:
-            width = self.size[1] + (self.pad_x * 2 + 1) + 1
+            width = self.size[1] + (self.pad_x * 2) + 1
         else:
             width = int(screen_width / 1.25)
 
@@ -391,11 +391,6 @@ class TextModal(Modal):
             if self.cursor_pos >= 0 and self.cursor_pos < len(self.content):
                 del self.content[self.cursor_pos]
 
-        elif ch == curses.KEY_DC:
-            if self.cursor_pos > 0 and self.cursor_pos <= len(self.content):
-                del self.content[self.cursor_pos - 1]
-                self.cursor_pos -= 1
-
         elif ch == curses.KEY_LEFT:
             if self.cursor_pos > 0:
                 self.cursor_pos -= 1
@@ -423,18 +418,19 @@ class TextModal(Modal):
             if not self.do_command(ch):
                 break
         self.hide()
-        return ''.join(self.content) if len(self.content) > 0 else None
+        return ''.join(self.content)
 
 
-class ComposeModal(TextModal):
+class ComposeModal(EntryModal):
     def __init__(self, stdscr):
         super().__init__(stdscr, title="Compose a toot", footer="^G to submit, ^Q to quit, ^S to mark sensitive (cw)")
         self.cw = None
-        self.cwmodal = TextModal(stdscr, title="Content warning", size=(1, 60))
+        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60))
 
     def do_command(self, ch):
         if ch == curses.ascii.ctrl(ord('s')):
-            self.cw = self.cwmodal.loop()
+            self.cw = self.cwmodal.loop() or None
+            self.draw()
             return True
         else:
             return super().do_command(ch)
