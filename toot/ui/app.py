@@ -319,8 +319,8 @@ class HelpModal(Modal):
 
 
 class EntryModal(Modal):
-    def __init__(self, stdscr, title, footer=None, size=(None, None)):
-        self.content = []
+    def __init__(self, stdscr, title, footer=None, size=(None, None), default=None):
+        self.content = [] if default is None else default.split()
         self.cursor_pos = 0
         self.pad_y, self.pad_x = 2, 2
 
@@ -422,10 +422,10 @@ class EntryModal(Modal):
 
 
 class ComposeModal(EntryModal):
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, default_cw=None):
         super().__init__(stdscr, title="Compose a toot", footer="^G to submit, ^Q to quit, ^S to mark sensitive (cw)")
-        self.cw = None
-        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60))
+        self.cw = default_cw
+        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw)
 
     def do_command(self, ch):
         if ch == curses.ascii.ctrl(ord('s')):
@@ -544,7 +544,7 @@ class TimelineApp:
             return
 
         self.footer.draw_message("Submitting status...", Color.YELLOW)
-        response = api.post_status(app, user, content, spoiler_text=cw)
+        response = api.post_status(app, user, content, spoiler_text=cw, sensitive=cw is not None)
         self.footer.draw_message("✓ Status posted", Color.GREEN)
 
     def reply(self):
@@ -555,7 +555,7 @@ class TimelineApp:
             self.footer.draw_message("You must be logged in to reply", Color.RED)
             return
 
-        compose_modal = ComposeModal(self.stdscr)
+        compose_modal = ComposeModal(self.stdscr, default_cw='\n'.join(status['spoiler_text']) or None)
         content, cw = compose_modal.loop()
         self.full_redraw()
         if content is None:
@@ -565,7 +565,7 @@ class TimelineApp:
             return
 
         self.footer.draw_message("Submitting reply...", Color.YELLOW)
-        response = api.post_status(app, user, content, spoiler_text=cw, in_reply_to_id=status['id'])
+        response = api.post_status(app, user, content, spoiler_text=cw, sensitive=cw is not None, in_reply_to_id=status['id'])
         self.footer.draw_message("✓ Reply posted", Color.GREEN)
 
     def toggle_reblog(self):
