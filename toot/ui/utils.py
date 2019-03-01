@@ -51,10 +51,15 @@ def size_as_drawn(lines, screen_width):
     y = 0
     x = 0
     for line in lines:
-        for wrapped_line in wc_wrap(line, screen_width):
-            x = len(wrapped_line)
+        wrapped = list(wc_wrap(line, screen_width))
+        if len(wrapped) > 0:
+            for wrapped_line in wrapped:
+                x = len(wrapped_line)
+                y += 1
+        else:
+            x = 0
             y += 1
-    return y - 1, x - 1
+    return y - 1, x - 1 if x != 0 else 0
 
 
 def draw_lines(window, lines, start_y, padding, default_color):
