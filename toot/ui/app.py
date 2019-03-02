@@ -366,7 +366,10 @@ class EntryModal(Modal):
             window_height, window_width = self.window.getmaxyx()
             draw_lines(self.window, [self.footer], window_height - self.pad_y + 1, 2, Color.WHITE)
 
-        text = ''.join(self.content)
+        self.refresh()
+
+    def refresh(self):
+        text = self.get_content()
         lines = text.split('\n')
         draw_lines(self.text_window, lines, 0, 0, Color.WHITE)
 
@@ -375,40 +378,61 @@ class EntryModal(Modal):
         y, x = size_as_drawn(text_on_screen, text_window_width)
         self.text_window.move(y, x)
 
+    def show(self):
+        super().show()
+        self.refresh()
+
+    def clear(self):
+        self.content = []
+        self.cursor_pos = 0
+
     def do_command(self, ch):
         if curses.ascii.isprint(ch) or ch == curses.ascii.LF:
             text_window_height, text_window_width = self.text_window.getmaxyx()
-            y, x = size_as_drawn((''.join(self.content) + chr(ch)).split('\n'), text_window_width)
+            y, x = size_as_drawn((self.get_content() + chr(ch)).split('\n'), text_window_width)
             if y < text_window_height - 1 and x < text_window_width:
                 self.content.insert(self.cursor_pos, chr(ch))
                 self.cursor_pos += 1
+            else:
+                curses.beep()
 
         elif ch == curses.KEY_BACKSPACE:
             if self.cursor_pos > 0:
                 del self.content[self.cursor_pos - 1]
                 self.cursor_pos -= 1
+            else:
+                curses.beep()
 
         elif ch == curses.KEY_DC:
             if self.cursor_pos >= 0 and self.cursor_pos < len(self.content):
                 del self.content[self.cursor_pos]
+            else:
+                curses.beep()
 
         elif ch == curses.KEY_LEFT:
             if self.cursor_pos > 0:
                 self.cursor_pos -= 1
+            else:
+                curses.beep()
 
         elif ch == curses.KEY_RIGHT:
             if self.cursor_pos + 1 <= len(self.content):
                 self.cursor_pos += 1
+            else:
+                curses.beep()
 
         elif ch in (curses.ascii.RS, curses.ascii.EOT):
-            return False
+            return False, False
 
         elif ch == curses.ascii.ESC:
-            self.content = []
-            return False
+            self.clear()
+            return False, True
 
-        self.draw()
-        return True
+        self.refresh()
+        return True, False
+
+    def get_content(self):
+        return ''.join(self.content)
 
     def loop(self):
         self.show()
@@ -416,10 +440,14 @@ class EntryModal(Modal):
             ch = self.text_window.getch()
             if not ch:
                 continue
-            if not self.do_command(ch):
+            should_continue, abort_flag = self.do_command(ch)
+            if not should_continue:
                 break
         self.hide()
-        return ''.join(self.content)
+        if abort_flag:
+            return None
+        else:
+            return self.get_content()
 
 
 class ComposeModal(EntryModal):
@@ -432,7 +460,7 @@ class ComposeModal(EntryModal):
         if ch == curses.ascii.ctrl(ord('s')):
             self.cw = self.cwmodal.loop() or None
             self.draw()
-            return True
+            return True, False
         else:
             return super().do_command(ch)
 
