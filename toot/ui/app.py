@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import webbrowser
+import os
 
 from toot import __version__, api
 
@@ -360,7 +361,7 @@ class EntryModal(Modal):
         self.window.erase()
         self.window.box()
 
-        draw_lines(self.window, ["{}  (^G to confirm):".format(self.title)], 1, 2, Color.WHITE)
+        draw_lines(self.window, ["{}  (Ctrl+Enter to confirm):".format(self.title)], 1, 2, Color.WHITE)
         if self.footer:
             window_height, window_width = self.window.getmaxyx()
             draw_lines(self.window, [self.footer], window_height - self.pad_y + 1, 2, Color.WHITE)
@@ -399,11 +400,11 @@ class EntryModal(Modal):
             if self.cursor_pos + 1 <= len(self.content):
                 self.cursor_pos += 1
 
-        elif ch == curses.ascii.ctrl(ord('q')):
-            self.content = []
+        elif ch in (curses.ascii.RS, curses.ascii.EOT):
             return False
 
-        elif ch == curses.ascii.ctrl(ord('g')):
+        elif ch == curses.ascii.ESC:
+            self.content = []
             return False
 
         self.draw()
@@ -423,7 +424,7 @@ class EntryModal(Modal):
 
 class ComposeModal(EntryModal):
     def __init__(self, stdscr, default_cw=None):
-        super().__init__(stdscr, title="Compose a toot", footer="^G to submit, ^Q to quit, ^S to mark sensitive (cw)")
+        super().__init__(stdscr, title="Compose a toot", footer="Ctrl+Enter to submit, ESC to quit, ^S to mark sensitive (cw)")
         self.cw = default_cw
         self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw)
 
@@ -449,6 +450,7 @@ class TimelineApp:
         self.stdscr = None
 
     def run(self):
+        os.environ.setdefault('ESCDELAY', '25')
         curses.wrapper(self._wrapped_run)
 
     def _wrapped_run(self, stdscr):
