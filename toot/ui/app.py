@@ -361,7 +361,7 @@ class EntryModal(Modal):
         self.window.erase()
         self.window.box()
 
-        draw_lines(self.window, ["{}  (Ctrl+Enter to confirm):".format(self.title)], 1, 2, Color.WHITE)
+        draw_lines(self.window, ["{}  (^D to confirm):".format(self.title)], 1, 2, Color.WHITE)
         if self.footer:
             window_height, window_width = self.window.getmaxyx()
             draw_lines(self.window, [self.footer], window_height - self.pad_y + 1, 2, Color.WHITE)
@@ -421,7 +421,7 @@ class EntryModal(Modal):
             else:
                 curses.beep()
 
-        elif ch in (curses.ascii.RS, curses.ascii.EOT):
+        elif ch in (curses.ascii.EOT, curses.ascii.RS):  # ^D or (for some terminals) Ctrl+Enter
             return False, False
 
         elif ch == curses.ascii.ESC:
@@ -452,7 +452,7 @@ class EntryModal(Modal):
 
 class ComposeModal(EntryModal):
     def __init__(self, stdscr, default_cw=None):
-        super().__init__(stdscr, title="Compose a toot", footer="Ctrl+Enter to submit, ESC to quit, ^S to mark sensitive (cw)")
+        super().__init__(stdscr, title="Compose a toot", footer="^D to submit, ESC to quit, ^S to mark sensitive (cw)")
         self.cw = default_cw
         self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw)
 
