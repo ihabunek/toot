@@ -575,6 +575,10 @@ class TimelineApp:
 
         self.footer.draw_message("Submitting status...", Color.YELLOW)
         response = api.post_status(app, user, content, spoiler_text=cw, sensitive=cw is not None)
+        status = parse_status(response)
+        self.statuses.insert(0, status)
+        self.selected += 1
+        self.left.draw_statuses(self.statuses, self.selected)
         self.footer.draw_message("✓ Status posted", Color.GREEN)
 
     def reply(self):
@@ -596,6 +600,10 @@ class TimelineApp:
 
         self.footer.draw_message("Submitting reply...", Color.YELLOW)
         response = api.post_status(app, user, content, spoiler_text=cw, sensitive=cw is not None, in_reply_to_id=status['id'])
+        status = parse_status(response)
+        self.statuses.insert(0, status)
+        self.selected += 1
+        self.left.draw_statuses(self.statuses, self.selected)
         self.footer.draw_message("✓ Reply posted", Color.GREEN)
 
     def toggle_reblog(self):
