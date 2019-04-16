@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**0.22.0 (TBA)**
+
+* Add `toot notifications` to show notifications (thanks @dlax)
+
 **0.21.0 (2019-02-15)**
 
 * Add `toot reblogged_by` to show who reblogged a status (#88)
