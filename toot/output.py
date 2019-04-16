@@ -175,3 +175,30 @@ def print_timeline(items, width=100):
     for item in items:
         print_status(item, width)
         print_out("─" * width)
+
+
+notification_msgs = {
+    "follow": "{account} now follows you",
+    "mention": "{account} mentioned you in",
+    "reblog": "{account} reblogged your status",
+    "favourite": "{account} favourited your status",
+}
+
+
+def print_notification(notification, width=100):
+    account = "{display_name} @{acct}".format(**notification["account"])
+    msg = notification_msgs.get(notification["type"])
+    if msg is None:
+        return
+
+    print_out("─" * width)
+    print_out(msg.format(account=account))
+    status = notification.get("status")
+    if status is not None:
+        print_status(status, width)
+
+
+def print_notifications(notifications, width=100):
+    for notification in notifications:
+        print_notification(notification)
+    print_out("─" * width)
