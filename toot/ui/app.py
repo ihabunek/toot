@@ -8,7 +8,7 @@ from toot import __version__, api
 from toot.exceptions import ConsoleError
 from toot.ui.parsers import parse_status
 from toot.ui.utils import draw_horizontal_divider, draw_lines, size_as_drawn
-from toot.wcstring import fit_text, wc_wrap
+from toot.wcstring import fit_text
 
 # Attempt to load curses, which is not available on windows
 try:
@@ -500,13 +500,18 @@ class TimelineApp:
         if screen_width < 60:
             raise ConsoleError("Terminal screen is too narrow, toot curses requires at least 60 columns to display properly.")
 
-        left_width = max(min(screen_width // 3, 60), 30)
-        right_width = screen_width - left_width
+        header_height = 2
+        footer_height = 2
+        footer_top = screen_height - footer_height
 
-        self.header = HeaderWindow(self.stdscr, 2, screen_width, 0, 0)
-        self.footer = FooterWindow(self.stdscr, 2, screen_width, screen_height - 2, 0)
-        self.left = StatusListWindow(self.stdscr, screen_height - 4, left_width, 2, 0)
-        self.right = StatusDetailWindow(self.stdscr, screen_height - 4, right_width, 2, left_width)
+        left_width = max(min(screen_width // 3, 60), 30)
+        main_height = screen_height - header_height - footer_height
+        main_width = screen_width - left_width
+
+        self.header = HeaderWindow(self.stdscr, header_height, screen_width, 0, 0)
+        self.footer = FooterWindow(self.stdscr, footer_height, screen_width, footer_top, 0)
+        self.left = StatusListWindow(self.stdscr, main_height, left_width, header_height, 0)
+        self.right = StatusDetailWindow(self.stdscr, main_height, main_width, header_height, left_width)
 
         self.help_modal = HelpModal(self.stdscr)
 
