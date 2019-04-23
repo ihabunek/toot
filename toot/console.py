@@ -85,7 +85,7 @@ status_id_arg = (["status_id"], {
 })
 
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
-timeline_args = [
+common_timeline_args = [
     (["-p", "--public"], {
         "action": "store_true",
         "default": False,
@@ -108,13 +108,33 @@ timeline_args = [
         "type": int,
         "help": "show timeline for given list.",
     }),
+]
+
+timeline_args = common_timeline_args + [
     (["-c", "--count"], {
         "type": timeline_count,
         "help": "number of toots to show per page (1-20, default 10).",
         "default": 10,
     }),
+    (["-r", "--reverse"], {
+        "action": "store_true",
+        "default": False,
+        "help": "Reverse the order of the shown timeline (to new posts at the bottom)",
+    }),
+    (["-1", "--once"], {
+        "action": "store_true",
+        "default": False,
+        "help": "Only show the first <count> toots, do not prompt to continue.",
+    }),
 ]
 
+curses_args = common_timeline_args + [
+    (["-c", "--count"], {
+        "type": timeline_count,
+        "help": "number of toots to show per page (1-20, default 20).",
+        "default": 20,
+    }),
+]
 
 AUTH_COMMANDS = [
     Command(
@@ -219,24 +239,13 @@ READ_COMMANDS = [
     Command(
         name="timeline",
         description="Show recent items in a timeline (home by default)",
-        arguments=timeline_args + [
-            (["-r", "--reverse"], {
-                "action": "store_true",
-                "default": False,
-                "help": "Reverse the order of the shown timeline (to new posts at the bottom)",
-            }),
-            (["-1", "--once"], {
-                "action": "store_true",
-                "default": False,
-                "help": "Only show the first <count> toots, do not prompt to continue.",
-            }),
-        ],
+        arguments=timeline_args,
         require_auth=True,
     ),
     Command(
         name="curses",
         description="An experimental timeline app (doesn't work on Windows)",
-        arguments=timeline_args,
+        arguments=curses_args,
         require_auth=False,
     ),
 ]
