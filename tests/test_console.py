@@ -528,14 +528,14 @@ def test_notifications(mock_get, capsys):
         "",
         "ID 111111111111111111  ",
         "─" * width,
-        "Zappa Old Fan @fan9@zappa-fans.social favourited your status",
+        "Terry Bozzio @terry@bozzio.social reblogged your status",
         "Zappa Fan @fan123@zappa-fans.social                                                 1983-11-04 15:53",
         "",
         "The Black Page, a masterpiece",
         "",
         "ID 1234  ",
         "─" * width,
-        "Terry Bozzio @terry@bozzio.social reblogged your status",
+        "Zappa Old Fan @fan9@zappa-fans.social favourited your status",
         "Zappa Fan @fan123@zappa-fans.social                                                 1983-11-04 15:53",
         "",
         "The Black Page, a masterpiece",
@@ -544,6 +544,7 @@ def test_notifications(mock_get, capsys):
         "─" * width,
         "",
     ])
+
 
 @mock.patch('toot.http.get')
 def test_notifications_empty(mock_get, capsys):
