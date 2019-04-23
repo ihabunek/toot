@@ -48,13 +48,18 @@ class Color:
 class HeaderWindow:
     def __init__(self, stdscr, height, width, y, x):
         self.window = stdscr.subwin(height, width, y, x)
+        self.window.bkgdset(' ', Color.WHITE_ON_BLUE)
         self.height = height
         self.width = width
 
-    def draw(self):
+    def draw(self, user):
+        username = "{}@{}".format(user.username, user.instance)
+
         self.window.erase()
-        self.window.addstr(0, 1, "toot - your Mastodon command line interface", Color.YELLOW)
-        self.window.addstr(1, 1, "https://github.com/ihabunek/toot")
+        self.window.addstr("  toot", curses.A_BOLD)
+        self.window.addstr(" | ")
+        self.window.addstr(username)
+        self.window.addstr(" | ")
         self.window.refresh()
 
 
@@ -500,7 +505,7 @@ class TimelineApp:
         if screen_width < 60:
             raise ConsoleError("Terminal screen is too narrow, toot curses requires at least 60 columns to display properly.")
 
-        header_height = 2
+        header_height = 1
         footer_height = 2
         footer_top = screen_height - footer_height
 
@@ -700,7 +705,7 @@ class TimelineApp:
 
     def full_redraw(self):
         """Perform a full redraw of the UI."""
-        self.header.draw()
+        self.header.draw(self.user)
         self.draw_footer_status()
 
         self.left.draw_statuses(self.statuses, self.selected)
