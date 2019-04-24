@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-
-import webbrowser
 import os
+import webbrowser
 
 from toot import __version__, api
 
@@ -101,6 +100,9 @@ class StatusListWindow:
         # increased later to accomodate statuses
         self.pad = curses.newpad(10, width)
         self.pad.box()
+
+        # Make curses interpret escape sequences for getch (why is this off by default?)
+        self.pad.keypad(True)
 
         self.scroll_pos = 0
 
@@ -522,42 +524,43 @@ class TimelineApp:
 
     def loop(self):
         while True:
-            key = self.left.pad.getkey()
+            ch = self.left.pad.getch()
+            key = chr(ch).lower() if curses.ascii.isprint(ch) else None
 
-            if key.lower() == 'q':
+            if key == 'q':
                 return
 
-            elif key.lower() == 'h':
+            elif key == 'h':
                 self.help_modal.loop()
                 self.full_redraw()
 
-            elif key.lower() == 'v':
+            elif key == 'v':
                 status = self.get_selected_status()
                 if status:
                     webbrowser.open(status['url'])
 
-            elif key.lower() == 'j' or key == 'B':
+            elif key == 'j' or ch == curses.KEY_DOWN:
                 self.select_next()
 
-            elif key.lower() == 'k' or key == 'A':
+            elif key == 'k' or ch == curses.KEY_UP:
                 self.select_previous()
 
-            elif key.lower() == 's':
+            elif key == 's':
                 self.show_sensitive()
 
-            elif key.lower() == 'b':
+            elif key == 'b':
                 self.toggle_reblog()
 
-            elif key.lower() == 'f':
+            elif key == 'f':
                 self.toggle_favourite()
 
-            elif key.lower() == 'c':
+            elif key == 'c':
                 self.compose()
 
-            elif key.lower() == 'r':
+            elif key == 'r':
                 self.reply()
 
-            elif key == 'KEY_RESIZE':
+            elif ch == curses.KEY_RESIZE:
                 self.setup_windows()
                 self.full_redraw()
 
