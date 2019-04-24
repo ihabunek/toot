@@ -739,11 +739,12 @@ class TimelineApp:
 
     def full_redraw(self):
         """Perform a full redraw of the UI."""
+        self.left.draw_statuses(self.statuses, self.selected)
+        self.right.draw(self.get_selected_status())
+
         self.header.draw(self.user)
         self.draw_footer_status()
 
-        self.left.draw_statuses(self.statuses, self.selected)
-        self.right.draw(self.get_selected_status())
 
     def redraw_after_selection_change(self, old_index, new_index):
         old_status = self.statuses[old_index]
