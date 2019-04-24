@@ -254,11 +254,12 @@ class StatusDetailWindow:
 
 
 class Modal:
-    def __init__(self, stdscr):
-        height, width, y, x = self.get_size_pos(stdscr)
+    def __init__(self, stdscr, resize_callback=None):
+        self.stdscr = stdscr
+        self.resize_callback = resize_callback
 
-        self.window = curses.newwin(height, width, y, x)
-        self.draw()
+        self.setup_windows()
+        self.full_redraw()
         self.panel = curses.panel.new_panel(self.window)
         self.panel.hide()
 
@@ -277,8 +278,12 @@ class Modal:
 
         return height, width, y, x
 
-    def draw(self):
-        self.window.erase()
+    def setup_windows(self):
+        height, width, y, x = self.get_size_pos(self.stdscr)
+        self.window = curses.newwin(height, width, y, x)
+
+    def full_redraw(self):
+        self.setup_windows()
         self.window.box()
         draw_lines(self.window, self.get_content(), 1, 2, Color.WHITE)
 
@@ -295,9 +300,16 @@ class Modal:
     def loop(self):
         self.show()
 
-        key = None
-        while key != 'q':
-            key = self.window.getkey()
+        while True:
+            ch = self.window.getch()
+            key = chr(ch).lower() if curses.ascii.isprint(ch) else None
+
+            if key == 'q':
+                break
+            elif ch == curses.KEY_RESIZE:
+                if self.resize_callback:
+                    self.resize_callback()
+                self.full_redraw()
 
         self.hide()
 
@@ -327,7 +339,9 @@ class HelpModal(Modal):
 
 
 class EntryModal(Modal):
-    def __init__(self, stdscr, title, footer=None, size=(None, None), default=None):
+    def __init__(self, stdscr, title, footer=None, size=(None, None), default=None, resize_callback=None):
+        self.stdscr = stdscr
+        self.resize_callback = resize_callback
         self.content = [] if default is None else default.split()
         self.cursor_pos = 0
         self.pad_y, self.pad_x = 2, 2
@@ -338,13 +352,8 @@ class EntryModal(Modal):
         if self.footer:
             self.pad_y += 1
 
-        height, width, y, x = self.get_size_pos(stdscr)
-
-        self.window = curses.newwin(height, width, y, x)
-        self.text_window = self.window.derwin(height - (self.pad_y * 2), width - (self.pad_x * 2), self.pad_y, self.pad_x)
-        self.text_window.keypad(True)
-
-        self.draw()
+        self.setup_windows()
+        self.full_redraw()
         self.panel = curses.panel.new_panel(self.window)
         self.panel.hide()
 
@@ -364,7 +373,14 @@ class EntryModal(Modal):
 
         return height, width, y, x
 
-    def draw(self):
+    def setup_windows(self):
+        height, width, y, x = self.get_size_pos(self.stdscr)
+
+        self.window = curses.newwin(height, width, y, x)
+        self.text_window = self.window.derwin(height - (self.pad_y * 2), width - (self.pad_x * 2), self.pad_y, self.pad_x)
+        self.text_window.keypad(True)
+
+    def full_redraw(self):
         self.window.erase()
         self.window.box()
 
@@ -373,9 +389,10 @@ class EntryModal(Modal):
             window_height, window_width = self.window.getmaxyx()
             draw_lines(self.window, [self.footer], window_height - self.pad_y + 1, 2, Color.WHITE)
 
-        self.refresh()
+        self.window.refresh()
+        self.refresh_text()
 
-    def refresh(self):
+    def refresh_text(self):
         text = self.get_content()
         lines = text.split('\n')
         draw_lines(self.text_window, lines, 0, 0, Color.WHITE)
@@ -392,6 +409,12 @@ class EntryModal(Modal):
     def clear(self):
         self.content = []
         self.cursor_pos = 0
+
+    def on_resize(self):
+        if self.resize_callback:
+            self.resize_callback()
+        self.setup_windows()
+        self.full_redraw()
 
     def do_command(self, ch):
         if curses.ascii.isprint(ch) or ch == curses.ascii.LF:
@@ -435,7 +458,11 @@ class EntryModal(Modal):
             self.clear()
             return False, True
 
-        self.refresh()
+        elif ch == curses.KEY_RESIZE:
+            self.on_resize()
+            return True, False
+
+        self.refresh_text()
         return True, False
 
     def get_content(self):
@@ -458,15 +485,16 @@ class EntryModal(Modal):
 
 
 class ComposeModal(EntryModal):
-    def __init__(self, stdscr, default_cw=None):
-        super().__init__(stdscr, title="Compose a toot", footer="^D to submit, ESC to quit, ^W to mark sensitive (cw)")
+    def __init__(self, stdscr, default_cw=None, **kwargs):
+        super().__init__(stdscr, title="Compose a toot", footer="^D to submit, ESC to quit, ^W to mark sensitive (cw)", **kwargs)
         self.cw = default_cw
-        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw)
+        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw, resize_callback=self.on_resize)
 
     def do_command(self, ch):
         if ch == curses.ascii.ctrl(ord('w')):
+            self.cwmodal.on_resize()
             self.cw = self.cwmodal.loop() or None
-            self.draw()
+            self.full_redraw()
             return True, False
         else:
             return super().do_command(ch)
@@ -520,7 +548,7 @@ class TimelineApp:
         self.left = StatusListWindow(self.stdscr, main_height, left_width, header_height, 0)
         self.right = StatusDetailWindow(self.stdscr, main_height, main_width, header_height, left_width)
 
-        self.help_modal = HelpModal(self.stdscr)
+        self.help_modal = HelpModal(self.stdscr, resize_callback=self.on_resize)
 
     def loop(self):
         while True:
@@ -561,8 +589,7 @@ class TimelineApp:
                 self.reply()
 
             elif ch == curses.KEY_RESIZE:
-                self.setup_windows()
-                self.full_redraw()
+                self.on_resize()
 
     def show_sensitive(self):
         status = self.get_selected_status()
@@ -577,7 +604,7 @@ class TimelineApp:
             self.footer.draw_message("You must be logged in to post", Color.RED)
             return
 
-        compose_modal = ComposeModal(self.stdscr)
+        compose_modal = ComposeModal(self.stdscr, resize_callback=self.on_resize)
         content, cw = compose_modal.loop()
         self.full_redraw()
         if content is None:
@@ -602,7 +629,7 @@ class TimelineApp:
             self.footer.draw_message("You must be logged in to reply", Color.RED)
             return
 
-        compose_modal = ComposeModal(self.stdscr, default_cw='\n'.join(status['spoiler_text']) or None)
+        compose_modal = ComposeModal(self.stdscr, default_cw='\n'.join(status['spoiler_text']) or None, resize_callback=self.on_resize)
         content, cw = compose_modal.loop()
         self.full_redraw()
         if content is None:
@@ -705,6 +732,10 @@ class TimelineApp:
         self.footer.draw_message("Loaded {} toots".format(len(statuses)), Color.GREEN)
 
         return len(statuses)
+
+    def on_resize(self):
+        self.setup_windows()
+        self.full_redraw()
 
     def full_redraw(self):
         """Perform a full redraw of the UI."""
