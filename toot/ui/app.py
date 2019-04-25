@@ -461,7 +461,7 @@ class ComposeModal(EntryModal):
     def __init__(self, stdscr, default_cw=None):
         super().__init__(stdscr, title="Compose a toot", footer="^D to submit, ESC to quit, ^W to mark sensitive (cw)")
         self.cw = default_cw
-        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, None), default=self.cw)
+        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw)
 
     def do_command(self, ch):
         if ch == curses.ascii.ctrl(ord('w')):
