@@ -260,7 +260,7 @@ class Modal:
         self.window = curses.newwin(height, width, y, x)
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
-        self.panel.hide()
+        self.hide()
 
     def get_content(self):
         raise NotImplementedError()
@@ -346,7 +346,7 @@ class EntryModal(Modal):
 
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
-        self.panel.hide()
+        self.hide()
 
     def get_size_pos(self, stdscr):
         screen_height, screen_width = stdscr.getmaxyx()
