@@ -260,7 +260,7 @@ class Modal:
         self.window = curses.newwin(height, width, y, x)
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
-        self.panel.hide()
+        self.hide()
 
     def get_content(self):
         raise NotImplementedError()
@@ -346,7 +346,7 @@ class EntryModal(Modal):
 
         self.draw()
         self.panel = curses.panel.new_panel(self.window)
-        self.panel.hide()
+        self.hide()
 
     def get_size_pos(self, stdscr):
         screen_height, screen_width = stdscr.getmaxyx()
@@ -461,7 +461,7 @@ class ComposeModal(EntryModal):
     def __init__(self, stdscr, default_cw=None):
         super().__init__(stdscr, title="Compose a toot", footer="^D to submit, ESC to quit, ^W to mark sensitive (cw)")
         self.cw = default_cw
-        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, 60), default=self.cw)
+        self.cwmodal = EntryModal(stdscr, title="Content warning", size=(1, None), default=self.cw)
 
     def do_command(self, ch):
         if ch == curses.ascii.ctrl(ord('w')):
