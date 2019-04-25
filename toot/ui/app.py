@@ -404,7 +404,7 @@ class EntryModal(Modal):
 
     def show(self):
         super().show()
-        self.refresh()
+        self.refresh_text()
 
     def clear(self):
         self.content = []
