@@ -7,17 +7,6 @@ sources:
   - https://git.sr.ht/~ihabunek/toot
   - https://git.sr.ht/~ihabunek/annotatepy
 tasks:
-  - deps: |
-      pip3 install --user --progress-bar off jedi
-      cd annotatepy
-      pip3 install --user -e .
-
-  - annotate: |
-      cd toot
-      /home/build/.local/bin/annotatepy toot -o annotations.json
-      cat annotations.json
-      ../upload-annotations annotations.json ihabunek toot
-
   - annotate: |
       cd annotatepy
       python3 setup.py install --user
