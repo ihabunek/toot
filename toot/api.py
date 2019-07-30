@@ -92,7 +92,8 @@ def post_status(
     media_ids=None,
     sensitive=False,
     spoiler_text=None,
-    in_reply_to_id=None
+    in_reply_to_id=None,
+    language=None,
 ):
     """
     Posts a new status.
@@ -110,6 +111,7 @@ def post_status(
         'sensitive': str_bool(sensitive),
         'spoiler_text': spoiler_text,
         'in_reply_to_id': in_reply_to_id,
+        'language': language,
     }, headers=headers).json()
 
 

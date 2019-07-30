@@ -13,8 +13,19 @@ from toot.output import print_out, print_err
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
 
 
+def language(value):
+    """Validates the language parameter"""
+    if len(value) != 3:
+        raise ArgumentTypeError(
+            "Invalid language specified: '{}'. Expected a 3 letter "
+            "abbreviation according to ISO 639-2 standard.".format(value)
+        )
+
+    return value
+
+
 def visibility(value):
-    """Validates the visibilty parameter"""
+    """Validates the visibility parameter"""
     if value not in VISIBILITY_CHOICES:
         raise ValueError("Invalid visibility value")
 
@@ -275,11 +286,15 @@ POST_COMMANDS = [
             }),
             (["-p", "--spoiler-text"], {
                 "type": str,
-                "help": 'text to be shown as a warning before the actual content',
+                "help": "text to be shown as a warning before the actual content",
             }),
             (["-r", "--reply-to"], {
                 "type": int,
-                "help": 'local ID of the status you want to reply to',
+                "help": "local ID of the status you want to reply to",
+            }),
+            (["-l", "--language"], {
+                "type": language,
+                "help": "ISO 639-2 language code of the toot, to skip automatic detection",
             }),
         ],
         require_auth=True,

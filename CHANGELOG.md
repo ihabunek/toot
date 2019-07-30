@@ -5,6 +5,7 @@ Changelog
 
 * Add `toot notifications` to show notifications (thanks @dlax)
 * Add posting and replying to curses interface (thanks @Skehmatics)
+* Add `--language` option to `toot post`
 
 **0.21.0 (2019-02-15)**
 
