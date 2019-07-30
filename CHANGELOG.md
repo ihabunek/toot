@@ -3,6 +3,7 @@ Changelog
 
 **0.22.0 (TBA)**
 
+* **BRAEAKING**: Dropped support for Python 3.3
 * Add `toot notifications` to show notifications (thanks @dlax)
 * Add posting and replying to curses interface (thanks @Skehmatics)
 * Add `--language` option to `toot post`
