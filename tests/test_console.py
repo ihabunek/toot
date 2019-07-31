@@ -45,6 +45,7 @@ def test_post_defaults(mock_post, mock_uuid, capsys):
         'sensitive': "false",
         'spoiler_text': None,
         'in_reply_to_id': None,
+        'language': None,
     }, headers={"Idempotency-Key": "rock-on"})
 
     out, err = capsys.readouterr()
@@ -62,7 +63,8 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         '--visibility', 'unlisted',
         '--sensitive',
         '--spoiler-text', 'Spoiler!',
-        '--reply-to', '123'
+        '--reply-to', '123',
+        '--language', 'hrv',
     ]
 
     mock_post.return_value = MockResponse({
@@ -78,6 +80,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         'sensitive': "true",
         'spoiler_text': "Spoiler!",
         'in_reply_to_id': 123,
+        'language': 'hrv',
     }, headers={"Idempotency-Key": "up-the-irons"})
 
     out, err = capsys.readouterr()
