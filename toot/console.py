@@ -271,8 +271,10 @@ POST_COMMANDS = [
                 "nargs": "?",
             }),
             (["-m", "--media"], {
-                "type": FileType('rb'),
-                "help": "path to the media file to attach"
+                "action": "append",
+                "type": FileType("rb"),
+                "help": "path to the media file to attach (specify multiple "
+                        "times to attach up to 4 files)"
             }),
             (["-v", "--visibility"], {
                 "type": visibility,

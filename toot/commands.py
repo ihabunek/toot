@@ -76,15 +76,18 @@ def curses(app, user, args):
 
 
 def post(app, user, args):
+    if args.media and len(args.media) > 4:
+        raise ConsoleError("Cannot attach more than 4 files.")
+
     if args.media:
-        media = _do_upload(app, user, args.media)
-        media_ids = [media['id']]
+        media = [_do_upload(app, user, file) for file in args.media]
+        media_ids = [m["id"] for m in media]
     else:
         media = None
         media_ids = None
 
     if media and not args.text:
-        args.text = media['text_url']
+        args.text = "\n".join(m['text_url'] for m in media)
 
     if not args.text:
         print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
