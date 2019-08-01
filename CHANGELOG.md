@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-**0.22.0 (TBA)**
+**0.22.0 (2019-08-01)**
 
 * **BRAEAKING**: Dropped support for Python 3.3
 * Add `toot notifications` to show notifications (thanks @dlax)
