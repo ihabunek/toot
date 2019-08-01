@@ -26,7 +26,7 @@ Publishing to Debian repo
 
 Publishing deb packages is done via `ihabunek/packages <https://github.com/ihabunek/packages>`_.
 
-* run ``make deb`` to create the debian package
+* run ``make deb_dist`` to create the debian package
 * copy deb file to packages project directory
 * in packages project directory:
     * ``make`` to build the repo files
