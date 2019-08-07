@@ -1,9 +1,14 @@
 from requests import Request, Session
+from toot import __version__
 from toot.exceptions import NotFoundError, ApiError
 from toot.logging import log_request, log_response
 
 
 def send_request(request, allow_redirects=True):
+    # Set a user agent string
+    # Required for accesing instances using Cloudfront DDOS protection.
+    request.headers["User-Agent"] = "toot/{}".format(__version__)
+
     log_request(request)
 
     with Session() as session:
