@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
 from toot.output import (print_out, print_instance, print_account,
                          print_search_results, print_timeline, print_notifications)
-from toot.utils import assert_domain_exists, multiline_input, EOF_KEY
+from toot.utils import assert_domain_exists, editor_input, multiline_input, EOF_KEY
 
 
 def get_timeline_generator(app, user, args):
@@ -76,8 +78,16 @@ def curses(app, user, args):
 
 
 def post(app, user, args):
+    # TODO: this might be achievable, explore options
+    if args.editor and not sys.stdin.isatty():
+        raise ConsoleError("Cannot run editor if not in tty.")
+
     if args.media and len(args.media) > 4:
         raise ConsoleError("Cannot attach more than 4 files.")
+
+    # Read any text that might be piped to stdin
+    if not args.text and not sys.stdin.isatty():
+        args.text = sys.stdin.read().rstrip()
 
     if args.media:
         media = [_do_upload(app, user, file) for file in args.media]
@@ -89,7 +99,9 @@ def post(app, user, args):
     if media and not args.text:
         args.text = "\n".join(m['text_url'] for m in media)
 
-    if not args.text:
+    if args.editor:
+        args.text = editor_input(args.editor, args.text)
+    elif not args.text:
         print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
         args.text = multiline_input()
 

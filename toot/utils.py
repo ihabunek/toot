@@ -3,6 +3,8 @@
 import os
 import re
 import socket
+import subprocess
+import tempfile
 import unicodedata
 import warnings
 
@@ -88,3 +90,27 @@ def multiline_input():
             break
 
     return "\n".join(lines).strip()
+
+
+EDITOR_INPUT_INSTRUCTIONS = """
+# Please enter your toot. Lines starting with '#' will be ignored, and an empty
+# message aborts the post.
+"""
+
+
+def editor_input(editor, initial_text):
+    """Lets user input text using an editor."""
+    initial_text = (initial_text or "") + EDITOR_INPUT_INSTRUCTIONS
+
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(initial_text.encode())
+        f.flush()
+
+        subprocess.run([editor, f.name])
+
+        f.seek(0)
+        text = f.read().decode()
+
+    lines = text.strip().splitlines()
+    lines = (l for l in lines if not l.startswith("#"))
+    return "\n".join(lines)

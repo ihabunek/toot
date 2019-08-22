@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 import logging
+import os
+import shutil
+import sys
 
 from argparse import ArgumentParser, FileType, ArgumentTypeError
 from collections import namedtuple
@@ -37,6 +38,21 @@ def timeline_count(value):
     if not 0 < n <= 20:
         raise ArgumentTypeError("Number of toots should be between 1 and 20.")
     return n
+
+
+def editor(value):
+    if not value:
+        raise ArgumentTypeError(
+            "Editor not specified in --editor option and $EDITOR environment "
+            "variable not set."
+        )
+
+    # Check editor executable exists
+    exe = shutil.which(value)
+    if not exe:
+        raise ArgumentTypeError(f"Editor `{value}` not found")
+
+    return exe
 
 
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
@@ -298,6 +314,13 @@ POST_COMMANDS = [
                 "type": language,
                 "help": "ISO 639-2 language code of the toot, to skip automatic detection",
             }),
+            (["-e", "--editor"], {
+                "type": editor,
+                "nargs": "?",
+                "const": os.getenv("EDITOR", ""),  # option given without value
+                "help": "Specify an editor to compose your toot, "
+                        "defaults to editor defined in $EDITOR env variable.",
+            }),
         ],
         require_auth=True,
     ),
@@ -500,12 +523,6 @@ def main():
         filename = os.getenv("TOOT_LOG_FILE")
         logging.basicConfig(level=logging.DEBUG, filename=filename)
 
-    # If something is piped in, append it to commandline arguments
-    if not sys.stdin.isatty():
-        stdin = sys.stdin.read()
-        if stdin:
-            sys.argv.append(stdin)
-
     command_name = sys.argv[1] if len(sys.argv) > 1 else None
     args = sys.argv[2:]
 
@@ -519,5 +536,5 @@ def main():
     except (ConsoleError, ApiError) as e:
         print_err(str(e))
         sys.exit(1)
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         pass
