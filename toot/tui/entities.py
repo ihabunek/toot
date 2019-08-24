@@ -1,4 +1,16 @@
 from datetime import datetime
+from collections import namedtuple
+
+
+Author = namedtuple("Author", ["account", "display_name"])
+
+
+def get_author(data, instance):
+    # Show the author, not the persopn who reblogged
+    status = data["reblog"] or data
+    acct = status['account']['acct']
+    acct = acct if "@" in acct else "{}@{}".format(acct, instance)
+    return Author(acct, status['account']['display_name'])
 
 
 def parse_datetime(value):
@@ -20,6 +32,7 @@ class Status:
         self.display_name = self.data["account"]["display_name"]
         self.account = self.get_account()
         self.created_at = parse_datetime(data["created_at"])
+        self.author = get_author(data, instance)
 
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
