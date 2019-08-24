@@ -1,5 +1,6 @@
 import logging
 import urwid
+import webbrowser
 
 from toot.utils import format_content
 
@@ -18,6 +19,7 @@ class Timeline(urwid.Columns):
     signals = [
         "status_focused",
         "status_activated",
+        "next",
     ]
 
     def __init__(self, tui, statuses):
@@ -69,6 +71,28 @@ class Timeline(urwid.Columns):
         index = self.status_list.body.focus
         count = len(self.statuses)
         self._emit("status_focused", [status, index, count])
+
+    def keypress(self, size, key):
+        # If down is pressed on last status in list emit a signal to load more.
+        # TODO: Consider pre-loading statuses earlier
+        command = self._command_map[key]
+        if command in [urwid.CURSOR_DOWN, urwid.CURSOR_PAGE_DOWN]:
+            index = self.status_list.body.focus + 1
+            count = len(self.statuses)
+            if index >= count:
+                self._emit("next")
+
+        if key in ("v", "V"):
+            status = self.get_focused_status()
+            webbrowser.open(status.data["url"])
+            return
+
+        return super().keypress(size, key)
+
+    def add_statuses(self, statuses):
+        self.statuses += statuses
+        new_items = [self.build_list_item(status) for status in statuses]
+        self.status_list.body.extend(new_items)
 
 
 class StatusDetails(urwid.Pile):

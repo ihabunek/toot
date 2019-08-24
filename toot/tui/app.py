@@ -49,13 +49,13 @@ class Footer(urwid.Pile):
         self.status.set_text(text)
 
     def clear_status(self, text):
-        self.status.set_text(urwid.Text())
+        self.status.set_text("")
 
     def set_message(self, text):
         self.message.set_text(text)
 
     def clear_message(self):
-        self.message.set_text(urwid.Text())
+        self.message.set_text("")
 
 
 class TUI(urwid.Frame):
@@ -82,8 +82,8 @@ class TUI(urwid.Frame):
 
         self.loop = None  # set in `create`
         self.executor = ThreadPoolExecutor(max_workers=1)
-        # self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
-        self.timeline_generator = api.public_timeline_generator(app.instance, local=False, limit=40)
+        self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
+        # self.timeline_generator = api.public_timeline_generator(app.instance, local=False, limit=40)
 
         self.body = urwid.Filler(urwid.Text("Loading toots...", align="center"))
         self.header = Header(app, user)
@@ -93,31 +93,49 @@ class TUI(urwid.Frame):
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
-        self.loop.set_alarm_in(0, self.schedule_loading_toots)
+        self.loop.set_alarm_in(0, self.schedule_load_statuses)
         self.loop.run()
         self.executor.shutdown(wait=False)
 
     def run_in_thread(self, fn, args=[], kwargs={}, done_callback=None):
-        future = self.executor.submit(self.load_toots)
+        future = self.executor.submit(fn)
         if done_callback:
             future.add_done_callback(done_callback)
 
-    def schedule_loading_toots(self, *args):
-        self.run_in_thread(self.load_toots, done_callback=self.toots_loaded)
+    def schedule_load_statuses(self, *args):
+        self.run_in_thread(self.load_statuses, done_callback=self.statuses_loaded_initial)
 
-    def load_toots(self):
-        data = next(self.timeline_generator)
-        with open("tmp/statuses2.json", "w") as f:
-            import json
-            json.dump(data, f, indent=4)
+    def load_statuses(self):
+        self.footer.set_message("Loading statuses...")
+        try:
+            data = next(self.timeline_generator)
+        except StopIteration:
+            return []
+        finally:
+            self.footer.clear_message()
+
+        # with open("tmp/statuses2.json", "w") as f:
+        #     import json
+        #     json.dump(data, f, indent=4)
 
         return [Status(s, self.app.instance) for s in data]
 
-    def toots_loaded(self, future):
+    def schedule_load_next(self):
+        self.run_in_thread(self.load_statuses, done_callback=self.statuses_loaded_next)
+
+    def statuses_loaded_initial(self, future):
+        # TODO: handle errors in future
         self.body = Timeline(self, future.result())
+
         urwid.connect_signal(self.body, "status_focused",
             lambda _, args: self.status_focused(*args))
+        urwid.connect_signal(self.body, "next",
+            lambda *args: self.schedule_load_next())
         self.body.status_focused()  # Draw first status
+
+    def statuses_loaded_next(self, future):
+        # TODO: handle errors in future
+        self.body.add_statuses(future.result())
 
     def status_focused(self, status, index, count):
         self.footer.set_status([
