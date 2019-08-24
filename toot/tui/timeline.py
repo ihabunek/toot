@@ -4,6 +4,7 @@ import webbrowser
 
 from toot.utils import format_content
 
+from .utils import highlight_hashtags
 from .widgets import SelectableText, SelectableColumns
 
 logger = logging.getLogger("toot")
@@ -107,7 +108,7 @@ class StatusDetails(urwid.Pile):
                 ("gray", "Reblogged by "),
                 ("gray", status.data["account"]["display_name"])
             ])
-            yield urwid.Divider("-")
+            yield urwid.AttrMap(urwid.Divider("-"), "gray")
 
         if status.author.display_name:
             yield urwid.Text(("green", status.author.display_name))
@@ -115,7 +116,7 @@ class StatusDetails(urwid.Pile):
         yield urwid.Divider()
 
         for line in format_content(status.data["content"]):
-            yield urwid.Text(line)
+            yield urwid.Text(highlight_hashtags(line))
 
         if status.data["card"]:
             yield urwid.Divider()
@@ -125,6 +126,10 @@ class StatusDetails(urwid.Pile):
         yield urwid.Text(("green", card["title"].strip()))
         if card["author_name"]:
             yield urwid.Text(["by ", ("yellow", card["author_name"].strip())])
+        yield urwid.Text("")
+        if card["description"]:
+            yield urwid.Text(card["description"].strip())
+            yield urwid.Text("")
         yield urwid.Text(("link", card["url"]))
 
     def build_card(self, card):
