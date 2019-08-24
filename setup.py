@@ -34,12 +34,13 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    packages=['toot', 'toot.ui'],
+    packages=['toot', 'toot.ui', 'toot.tui'],
     python_requires=">=3.4",
     install_requires=[
         "requests>=2.13,<3.0",
         "beautifulsoup4>=4.5.0,<5.0",
         "wcwidth>=0.1.7,<2.0",
+        "urwid>=2.0.0,<3.0",
     ],
     entry_points={
         'console_scripts': [

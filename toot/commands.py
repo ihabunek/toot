@@ -324,3 +324,8 @@ def notifications(app, user, args):
         return
 
     print_notifications(notifications)
+
+
+def tui(app, user, args):
+    from .tui.app import TUI
+    TUI.create(app, user).run()

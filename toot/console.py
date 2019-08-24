@@ -275,6 +275,12 @@ READ_COMMANDS = [
         arguments=curses_args,
         require_auth=False,
     ),
+    Command(
+        name="tui",
+        description="Launches the TUI (terminal user interface).",
+        arguments=curses_args,
+        require_auth=False,
+    ),
 ]
 
 POST_COMMANDS = [
