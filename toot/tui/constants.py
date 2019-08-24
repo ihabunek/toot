@@ -6,7 +6,11 @@ PALETTE = [
 
     # Footer
     ('footer_status', 'white', 'dark blue'),
+    ('footer_status_bold', 'white, bold', 'dark blue'),
     ('footer_message', 'dark green', ''),
+
+    # Functional
+    ('link', ',italics', ''),
 
     # by color name
     ('blue', 'light blue', ''),

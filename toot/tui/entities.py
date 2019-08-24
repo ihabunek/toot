@@ -17,8 +17,12 @@ class Status:
         self.instance = instance
 
         self.id = self.data["id"]
+        self.display_name = self.data["account"]["display_name"]
         self.account = self.get_account()
         self.created_at = parse_datetime(data["created_at"])
+
+        self.favourited = data.get("favourited", False)
+        self.reblogged = data.get("reblogged", False)
 
     def get_account(self):
         acct = self.data['account']['acct']

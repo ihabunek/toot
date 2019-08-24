@@ -3,7 +3,7 @@ import urwid
 
 from concurrent.futures import ThreadPoolExecutor
 
-from toot.api import home_timeline_generator
+from toot import api
 
 from .constants import PALETTE
 from .entities import Status
@@ -48,12 +48,14 @@ class Footer(urwid.Pile):
     def set_status(self, text):
         self.status.set_text(text)
 
+    def clear_status(self, text):
+        self.status.set_text(urwid.Text())
+
     def set_message(self, text):
         self.message.set_text(text)
 
-    def set_error(self, text):
-        # TODO: change to red
-        self.message.set_text(text)
+    def clear_message(self):
+        self.message.set_text(urwid.Text())
 
 
 class TUI(urwid.Frame):
@@ -80,7 +82,8 @@ class TUI(urwid.Frame):
 
         self.loop = None  # set in `create`
         self.executor = ThreadPoolExecutor(max_workers=1)
-        self.timeline_generator = home_timeline_generator(app, user, limit=40)
+        # self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
+        self.timeline_generator = api.public_timeline_generator(app.instance, local=False, limit=40)
 
         self.body = urwid.Filler(urwid.Text("Loading toots...", align="center"))
         self.header = Header(app, user)
@@ -104,10 +107,23 @@ class TUI(urwid.Frame):
 
     def load_toots(self):
         data = next(self.timeline_generator)
+        with open("tmp/statuses2.json", "w") as f:
+            import json
+            json.dump(data, f, indent=4)
+
         return [Status(s, self.app.instance) for s in data]
 
     def toots_loaded(self, future):
         self.body = Timeline(self, future.result())
+        urwid.connect_signal(self.body, "status_focused",
+            lambda _, args: self.status_focused(*args))
+        self.body.status_focused()  # Draw first status
+
+    def status_focused(self, status, index, count):
+        self.footer.set_status([
+            ("footer_status_bold", "[home] "), status.id,
+            " - status ", str(index + 1), " of ", str(count),
+        ])
 
     def unhandled_input(self, key):
         if key in ('q', 'Q'):
