@@ -60,6 +60,7 @@ class Timeline(urwid.Columns):
 
     def status_activated(self, *args):
         """Called when a status is clicked, or Enter is pressed."""
+        status = self.get_focused_status()
         self._emit("status_activated", [status])
 
     def status_focused(self):
@@ -101,9 +102,16 @@ class StatusDetails(urwid.Pile):
         return super().__init__(widget_list)
 
     def content_generator(self, status):
-        if status.display_name:
-            yield urwid.Text(("green", status.display_name))
-        yield urwid.Text(("yellow", status.account))
+        if status.data["reblog"]:
+            yield urwid.Text([
+                ("gray", "Reblogged by "),
+                ("gray", status.data["account"]["display_name"])
+            ])
+            yield urwid.Divider("-")
+
+        if status.author.display_name:
+            yield urwid.Text(("green", status.author.display_name))
+        yield urwid.Text(("yellow", status.author.account))
         yield urwid.Divider()
 
         for line in format_content(status.data["content"]):

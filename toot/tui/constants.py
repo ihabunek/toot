@@ -23,4 +23,5 @@ PALETTE = [
     ('italic', 'white', ''),
     ('yellow', 'yellow', ''),
     ('yellow_selected', 'yellow', 'dark blue'),
+    ('gray', 'light gray', ''),
 ]

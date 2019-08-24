@@ -114,6 +114,7 @@ class TUI(urwid.Frame):
         finally:
             self.footer.clear_message()
 
+        # # FIXME: REMOVE DEBUGGING
         # with open("tmp/statuses2.json", "w") as f:
         #     import json
         #     json.dump(data, f, indent=4)
