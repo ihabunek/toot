@@ -20,8 +20,6 @@ class Clickable:
         if button == 1:
             self._emit('click')
 
-        return super().mouse_event(size, event, button, x, y, focus)
-
 
 class SelectableText(Clickable, urwid.Text):
     _selectable = True

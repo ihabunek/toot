@@ -9,7 +9,6 @@ from toot import api
 from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
-from .widgets import SelectableText
 
 logger = logging.getLogger(__name__)
 
@@ -194,9 +193,7 @@ class StatusSource(urwid.ListBox):
     def __init__(self, status):
         source = json.dumps(status.data, indent=4)
         lines = source.splitlines()
-        focus_map = {None: "blue_selected"}
         walker = urwid.SimpleFocusListWalker([
-            urwid.AttrMap(SelectableText(line), None, focus_map)
-            for line in lines
+            urwid.Text(line) for line in lines
         ])
         super().__init__(walker)
