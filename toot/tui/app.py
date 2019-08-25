@@ -1,3 +1,4 @@
+import json
 import logging
 import urwid
 
@@ -8,6 +9,7 @@ from toot import api
 from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
+from .widgets import SelectableText
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +92,9 @@ class TUI(urwid.Frame):
         self.footer = Footer()
         self.footer.set_status("Loading...")
 
+        self.timeline = None
+        self.overlay = None
+
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
@@ -126,17 +131,18 @@ class TUI(urwid.Frame):
 
     def statuses_loaded_initial(self, future):
         # TODO: handle errors in future
-        self.body = Timeline(self, future.result())
+        self.timeline = Timeline(self, future.result())
 
-        urwid.connect_signal(self.body, "status_focused",
+        urwid.connect_signal(self.timeline, "status_focused",
             lambda _, args: self.status_focused(*args))
-        urwid.connect_signal(self.body, "next",
+        urwid.connect_signal(self.timeline, "next",
             lambda *args: self.schedule_load_next())
-        self.body.status_focused()  # Draw first status
+        self.timeline.status_focused()  # Draw first status
+        self.body = self.timeline
 
     def statuses_loaded_next(self, future):
         # TODO: handle errors in future
-        self.body.add_statuses(future.result())
+        self.timeline.add_statuses(future.result())
 
     def status_focused(self, status, index, count):
         self.footer.set_status([
@@ -144,6 +150,53 @@ class TUI(urwid.Frame):
             " - status ", str(index + 1), " of ", str(count),
         ])
 
+    def show_status_source(self, status):
+        self.open_overlay(
+            widget=StatusSource(status),
+            title="Status source",
+            options={
+                "align": 'center',
+                "width": ('relative', 80),
+                "valign": 'middle',
+                "height": ('relative', 80),
+            },
+        )
+
+    # --- Overlay handling -----------------------------------------------------
+
+    def open_overlay(self, widget, options={}, title=""):
+        top_widget = urwid.LineBox(widget, title=title)
+        bottom_widget = self.body
+
+        self.overlay = urwid.Overlay(
+            top_widget,
+            bottom_widget,
+            **options
+        )
+        self.body = self.overlay
+
+    def close_overlay(self):
+        self.body = self.overlay.bottom_w
+        self.overlay = None
+
+    # --- Keys -----------------------------------------------------------------
+
     def unhandled_input(self, key):
         if key in ('q', 'Q'):
-            raise urwid.ExitMainLoop()
+            if self.overlay:
+                self.close_overlay()
+            else:
+                raise urwid.ExitMainLoop()
+
+
+class StatusSource(urwid.ListBox):
+    """Shows status data, as returned by the server, as formatted JSON."""
+    def __init__(self, status):
+        source = json.dumps(status.data, indent=4)
+        lines = source.splitlines()
+        focus_map = {None: "blue_selected"}
+        walker = urwid.SimpleFocusListWalker([
+            urwid.AttrMap(SelectableText(line), None, focus_map)
+            for line in lines
+        ])
+        super().__init__(walker)

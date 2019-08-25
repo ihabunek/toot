@@ -14,7 +14,7 @@ PALETTE = [
     # Colors
     ('blue', 'light blue', ''),
     ('blue_bold', 'light blue, bold', ''),
-    ('blue_selected', 'white,bold', 'dark blue'),
+    ('blue_selected', 'white', 'dark blue'),
     ('cyan', 'dark cyan', ''),
     ('cyan_bold', 'dark cyan,bold', ''),
     ('gray', 'dark gray', ''),

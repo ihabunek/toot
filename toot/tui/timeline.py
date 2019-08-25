@@ -26,7 +26,6 @@ class Timeline(urwid.Columns):
     def __init__(self, tui, statuses):
         self.tui = tui
         self.statuses = statuses
-        self.instance = tui.app.instance
 
         self.status_list = self.build_status_list(statuses)
         self.status_details = self.build_status_details(statuses[0])
@@ -87,6 +86,11 @@ class Timeline(urwid.Columns):
         if key in ("v", "V"):
             status = self.get_focused_status()
             webbrowser.open(status.data["url"])
+            return
+
+        if key in ("u", "U"):
+            status = self.get_focused_status()
+            self.tui.show_status_source(status)
             return
 
         return super().keypress(size, key)
