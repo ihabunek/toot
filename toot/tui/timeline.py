@@ -28,7 +28,7 @@ class Timeline(urwid.Columns):
         self.statuses = statuses
 
         self.status_list = self.build_status_list(statuses)
-        self.status_details = self.build_status_details(statuses[0])
+        self.status_details = StatusDetails(statuses[0])
 
         super().__init__([
             ("weight", 50, self.status_list),
@@ -51,10 +51,6 @@ class Timeline(urwid.Columns):
             None: "green_selected",
         })
 
-    def build_status_details(self, status):
-        details = StatusDetails(status)
-        return urwid.Filler(details, valign="top")
-
     def get_focused_status(self):
         return self.statuses[self.status_list.body.focus]
 
@@ -66,8 +62,8 @@ class Timeline(urwid.Columns):
     def status_focused(self):
         """Called when the list focus switches to a new status"""
         status = self.get_focused_status()
-        details = StatusDetails(status)
-        self.status_details.set_body(details)
+        self.status_details = StatusDetails(status)
+        self.contents[1] = self.status_details, ("weight", 50, False)
 
         index = self.status_list.body.focus
         count = len(self.statuses)
@@ -109,21 +105,30 @@ class StatusDetails(urwid.Pile):
     def content_generator(self, status):
         if status.data["reblog"]:
             boosted_by = status.data["account"]["display_name"]
-            yield urwid.Text(("gray", "♺ {} boosted".format(boosted_by)))
-            yield urwid.AttrMap(urwid.Divider("-"), "gray")
+            yield ("pack", urwid.Text(("gray", "♺ {} boosted".format(boosted_by))))
+            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
         if status.author.display_name:
-            yield urwid.Text(("green", status.author.display_name))
+            yield ("pack", urwid.Text(("green", status.author.display_name)))
 
-        yield urwid.Text(("yellow", status.author.account))
-        yield urwid.Divider()
+        yield ("pack", urwid.Text(("yellow", status.author.account)))
+        yield ("pack", urwid.Divider())
 
         for line in format_content(status.data["content"]):
-            yield urwid.Text(highlight_hashtags(line))
+            yield ("pack", urwid.Text(highlight_hashtags(line)))
 
         if status.data["card"]:
-            yield urwid.Divider()
-            yield self.build_card(status.data["card"])
+            yield ("pack", urwid.Divider())
+            yield ("pack", self.build_card(status.data["card"]))
+
+        # Push things to bottom
+        yield ("weight", 1, urwid.SolidFill(" "))
+        yield ("pack", urwid.Text([
+            ("cyan_bold", "B"), ("cyan", "oost"), " | ",
+            ("cyan_bold", "F"), ("cyan", "avourite"), " | ",
+            ("cyan_bold", "V"), ("cyan", "iew in browser"), " | ",
+            ("cyan_bold", "H"), ("cyan", "elp"), " ",
+        ]))
 
     def card_generator(self, card):
         yield urwid.Text(("green", card["title"].strip()))
@@ -137,7 +142,9 @@ class StatusDetails(urwid.Pile):
 
     def build_card(self, card):
         contents = list(self.card_generator(card))
-        return urwid.LineBox(urwid.Pile(contents))
+        card = urwid.Pile(contents)
+        card = urwid.Padding(card, left=1, right=1)
+        return urwid.LineBox(card)
 
 
 class StatusListItem(SelectableColumns):
