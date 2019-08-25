@@ -104,14 +104,13 @@ class StatusDetails(urwid.Pile):
 
     def content_generator(self, status):
         if status.data["reblog"]:
-            yield urwid.Text([
-                ("gray", "Reblogged by "),
-                ("gray", status.data["account"]["display_name"])
-            ])
+            boosted_by = status.data["account"]["display_name"]
+            yield urwid.Text(("gray", "♺ {} boosted".format(boosted_by)))
             yield urwid.AttrMap(urwid.Divider("-"), "gray")
 
         if status.author.display_name:
             yield urwid.Text(("green", status.author.display_name))
+
         yield urwid.Text(("yellow", status.author.account))
         yield urwid.Divider()
 
