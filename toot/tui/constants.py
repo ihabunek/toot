@@ -7,6 +7,8 @@ PALETTE = [
     ('footer_status_bold', 'white, bold', 'dark blue'),
     ('header', 'white', 'dark blue'),
     ('header_bold', 'white,bold', 'dark blue'),
+    ('intro_bigtext', 'yellow', ''),
+    ('intro_smalltext', 'light blue', ''),
 
     # Functional
     ('hashtag', 'light cyan,bold', ''),
