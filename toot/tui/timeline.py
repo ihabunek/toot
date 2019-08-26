@@ -2,6 +2,7 @@ import logging
 import urwid
 import webbrowser
 
+from toot import api
 from toot.utils import format_content
 
 from .utils import highlight_hashtags
@@ -30,9 +31,14 @@ class Timeline(urwid.Columns):
         self.status_list = self.build_status_list(statuses)
         self.status_details = StatusDetails(statuses[0])
 
+        # Maps status ID to its index in the list
+        self.status_index_map = {
+            status.id: n for n, status in enumerate(statuses)
+        }
+
         super().__init__([
-            ("weight", 50, self.status_list),
-            ("weight", 50, self.status_details),
+            ("weight", 40, self.status_list),
+            ("weight", 60, self.status_details),
         ], dividechars=1)
 
     def build_status_list(self, statuses):
@@ -79,6 +85,16 @@ class Timeline(urwid.Columns):
             if index >= count:
                 self._emit("next")
 
+        if key in ("b", "B"):
+            status = self.get_focused_status()
+            self.tui.async_toggle_reblog(status)
+            return
+
+        if key in ("f", "F"):
+            status = self.get_focused_status()
+            self.tui.async_toggle_favourite(status)
+            return
+
         if key in ("v", "V"):
             status = self.get_focused_status()
             webbrowser.open(status.data["url"])
@@ -91,11 +107,30 @@ class Timeline(urwid.Columns):
 
         return super().keypress(size, key)
 
-    def add_statuses(self, statuses):
-        self.statuses += statuses
-        new_items = [self.build_list_item(status) for status in statuses]
-        self.status_list.body.extend(new_items)
+    def add_status(self, status):
+        self.statuses.append(status)
+        self.status_index_map[status.id] = len(self.statuses) - 1
+        self.status_list.body.append(self.build_list_item(status))
 
+    def add_statuses(self, statuses):
+        for status in statuses:
+            self.add_status(status)
+
+    def update_status(self, status):
+        """Overwrite status in list with the new instance and redraw."""
+        index = self.status_index_map[status.id]
+        assert self.statuses[index].id == status.id
+
+        # Update internal status list
+        self.statuses[index] = status
+
+        # Redraw list item
+        self.status_list.body[index] = self.build_list_item(status)
+
+        # Redraw status details if status is focused
+        if index == self.status_list.body.focus:
+            self.status_details = StatusDetails(status)
+            self.contents[1] = self.status_details, ("weight", 50, False)
 
 class StatusDetails(urwid.Pile):
     def __init__(self, status):

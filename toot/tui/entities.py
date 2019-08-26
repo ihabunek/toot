@@ -28,15 +28,19 @@ class Status:
         self.data = data
         self.instance = instance
 
+        # TODO: make Status immutable?
+
         self.id = self.data["id"]
         self.display_name = self.data["account"]["display_name"]
         self.account = self.get_account()
         self.created_at = parse_datetime(data["created_at"])
         self.author = get_author(data, instance)
-
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
 
     def get_account(self):
         acct = self.data['account']['acct']
         return acct if "@" in acct else "{}@{}".format(acct, self.instance)
+
+    def __repr__(self):
+        return "<Status id={}>".format(self.id)
