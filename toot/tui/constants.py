@@ -2,6 +2,7 @@
 PALETTE = [
     # Components
     ('footer_message', 'dark green', ''),
+    ('footer_message_error', 'white', 'dark red'),
     ('footer_status', 'white', 'dark blue'),
     ('footer_status_bold', 'white, bold', 'dark blue'),
     ('header', 'white', 'dark blue'),
