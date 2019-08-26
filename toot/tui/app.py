@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 import urwid
 
 from concurrent.futures import ThreadPoolExecutor
@@ -96,6 +97,7 @@ class TUI(urwid.Frame):
 
         self.timeline = None
         self.overlay = None
+        self.exception = None
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -186,6 +188,18 @@ class TUI(urwid.Frame):
             },
         )
 
+    def show_exception(self, exception):
+        self.open_overlay(
+            widget=ExceptionStackTrace(exception),
+            title="Unhandled Exception",
+            options={
+                "align": 'center',
+                "width": ('relative', 80),
+                "valign": 'middle',
+                "height": ('relative', 80),
+            },
+        )
+
     def async_toggle_favourite(self, status):
         def _favourite():
             logger.info("Favouriting {}".format(status))
@@ -246,6 +260,10 @@ class TUI(urwid.Frame):
     # --- Keys -----------------------------------------------------------------
 
     def unhandled_input(self, key):
+        if key in ('e', 'E'):
+            if self.exception:
+                self.show_exception(self.exception)
+
         if key in ('q', 'Q'):
             if self.overlay:
                 self.close_overlay()
@@ -258,6 +276,16 @@ class StatusSource(urwid.ListBox):
     def __init__(self, status):
         source = json.dumps(status.data, indent=4)
         lines = source.splitlines()
+        walker = urwid.SimpleFocusListWalker([
+            urwid.Text(line) for line in lines
+        ])
+        super().__init__(walker)
+
+
+class ExceptionStackTrace(urwid.ListBox):
+    """Shows an exception stack trace."""
+    def __init__(self, ex):
+        lines = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__) * 3
         walker = urwid.SimpleFocusListWalker([
             urwid.Text(line) for line in lines
         ])
