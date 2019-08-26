@@ -5,7 +5,7 @@ import urwid
 
 from concurrent.futures import ThreadPoolExecutor
 
-from toot import api
+from toot import api, __version__
 
 from .constants import PALETTE
 from .entities import Status
@@ -90,7 +90,8 @@ class TUI(urwid.Frame):
         self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
         # self.timeline_generator = api.public_timeline_generator(app.instance, local=False, limit=40)
 
-        self.body = urwid.Filler(urwid.Text("Loading toots...", align="center"))
+        # Show intro screen while toots are being loaded
+        self.body = self.build_intro()
         self.header = Header(app, user)
         self.footer = Footer()
         self.footer.set_status("Loading...")
@@ -105,6 +106,30 @@ class TUI(urwid.Frame):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_statuses(is_initial=True))
         self.loop.run()
         self.executor.shutdown(wait=False)
+
+    def build_intro(self):
+        font = urwid.font.Thin6x6Font()
+
+        # NB: Padding with width="clip" will convert the fixed BigText widget
+        # to a flow widget so it can be used in a Pile.
+
+        big_text = "Toot {}".format(__version__)
+        big_text = urwid.BigText(("intro_bigtext", big_text), font)
+        big_text = urwid.Padding(big_text, align="center", width="clip")
+
+        intro = urwid.Pile([
+            big_text,
+            urwid.Divider(),
+            urwid.Text([
+                "Maintained by ",
+                ("intro_smalltext", "@ihabunek"),
+                " and contributors"
+            ], align="center"),
+            urwid.Divider(),
+            urwid.Text(("intro_smalltext", "Loading toots..."), align="center"),
+        ])
+
+        return urwid.Filler(intro)
 
     def run_in_thread(self, fn, args=[], kwargs={}, done_callback=None, error_callback=None):
         """Runs `fn(*args, **kwargs)` asynchronously in a separate thread.
