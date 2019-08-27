@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from toot import api, __version__
 
+from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
@@ -225,6 +226,30 @@ class TUI(urwid.Frame):
             },
         )
 
+    def show_compose(self):
+        composer = StatusComposer()
+        urwid.connect_signal(composer, "close",
+            lambda *args: self.close_overlay())
+        urwid.connect_signal(composer, "post",
+            lambda _, content, warning: self.post_status(content, warning))
+        self.open_overlay(
+            widget=composer,
+            title="Compose status",
+            options={
+                "align": 'center',
+                "width": ('relative', 80),
+                "valign": 'middle',
+                "height": ('relative', 80),
+            },
+        )
+
+    def post_status(self, content, warning):
+        data = api.post_status(self.app, self.user, content, spoiler_text=warning)
+        status = Status(data, self.app.instance)
+        self.timeline.prepend_status(status)
+        self.footer.set_message("Status posted {} \\o/".format(status.id))
+        self.close_overlay()
+
     def async_toggle_favourite(self, status):
         def _favourite():
             logger.info("Favouriting {}".format(status))
@@ -285,11 +310,16 @@ class TUI(urwid.Frame):
     # --- Keys -----------------------------------------------------------------
 
     def unhandled_input(self, key):
+        # TODO: this should not be in unhandled input
         if key in ('e', 'E'):
             if self.exception:
                 self.show_exception(self.exception)
 
-        if key in ('q', 'Q'):
+        elif key == 'esc':
+            if self.overlay:
+                self.close_overlay()
+
+        elif key in ('q', 'Q'):
             if self.overlay:
                 self.close_overlay()
             else:

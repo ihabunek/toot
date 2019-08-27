@@ -1,8 +1,12 @@
 # name, fg, bg, mono, fg_h, bg_h
 PALETTE = [
     # Components
+    ('button', 'white', 'black'),
+    ('button_focused', 'light gray', 'dark magenta'),
+    ('editbox', 'white', 'black'),
+    ('editbox_focused', '', 'dark magenta'),
     ('footer_message', 'dark green', ''),
-    ('footer_message_error', 'white', 'dark red'),
+    ('footer_message_error', 'light red', ''),
     ('footer_status', 'white', 'dark blue'),
     ('footer_status_bold', 'white, bold', 'dark blue'),
     ('header', 'white', 'dark blue'),
