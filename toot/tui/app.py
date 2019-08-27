@@ -231,7 +231,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(composer, "close",
             lambda *args: self.close_overlay())
         urwid.connect_signal(composer, "post",
-            lambda _, content, warning: self.post_status(content, warning))
+            lambda _, content, warning, visibility: self.post_status(content, warning, visibility))
         self.open_overlay(
             widget=composer,
             title="Compose status",
@@ -243,8 +243,9 @@ class TUI(urwid.Frame):
             },
         )
 
-    def post_status(self, content, warning):
-        data = api.post_status(self.app, self.user, content, spoiler_text=warning)
+    def post_status(self, content, warning, visibility):
+        data = api.post_status(self.app, self.user, content,
+            spoiler_text=warning, visibility=visibility)
         status = Status(data, self.app.instance)
         self.timeline.prepend_status(status)
         self.footer.set_message("Status posted {} \\o/".format(status.id))
