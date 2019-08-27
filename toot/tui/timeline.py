@@ -171,6 +171,13 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Divider())
             yield ("pack", self.build_linebox(self.card_generator(card)))
 
+        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
+        yield ("pack", urwid.Text([
+            ("gray", "⤶ {} ".format(status.data["replies_count"])),
+            ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.data["reblogs_count"])),
+            ("yellow" if status.favourited else "gray", "★ {}".format(status.data["favourites_count"])),
+        ]))
+
         # Push things to bottom
         yield ("weight", 1, urwid.SolidFill(" "))
         yield ("pack", urwid.Text([
