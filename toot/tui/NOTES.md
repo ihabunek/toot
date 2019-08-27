@@ -19,6 +19,7 @@ TODO/Ideas:
     * download media and use local image viewer?
     * convert to ascii art?
 * use signals to avoid tightly coupling components
+* interaction with clipboard - how to copy a status to clipbard?
 
 Questions:
 * is it possible to make a span a urwid.Text selectable? e.g. for urls and hashtags
