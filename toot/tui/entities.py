@@ -1,5 +1,6 @@
-from datetime import datetime
 from collections import namedtuple
+
+from .utils import parse_datetime
 
 
 Author = namedtuple("Author", ["account", "display_name"])
@@ -11,11 +12,6 @@ def get_author(data, instance):
     acct = status['account']['acct']
     acct = acct if "@" in acct else "{}@{}".format(acct, instance)
     return Author(acct, status['account']['display_name'])
-
-
-def parse_datetime(value):
-    """Returns an aware datetime in local timezone"""
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z").astimezone()
 
 
 class Status:

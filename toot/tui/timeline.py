@@ -4,7 +4,7 @@ import webbrowser
 
 from toot.utils import format_content
 
-from .utils import highlight_hashtags
+from .utils import highlight_hashtags, parse_datetime
 from .widgets import SelectableText, SelectableColumns
 
 logger = logging.getLogger("toot")
@@ -160,9 +160,15 @@ class StatusDetails(urwid.Pile):
         for line in format_content(status.data["content"]):
             yield ("pack", urwid.Text(highlight_hashtags(line)))
 
-        if status.data["card"]:
+        poll = status.data.get("poll")
+        if poll:
             yield ("pack", urwid.Divider())
-            yield ("pack", self.build_card(status.data["card"]))
+            yield ("pack", self.build_poll(poll))
+
+        card = status.data.get("card")
+        if card:
+            yield ("pack", urwid.Divider())
+            yield ("pack", self.build_card(card))
 
         # Push things to bottom
         yield ("weight", 1, urwid.SolidFill(" "))
@@ -189,6 +195,28 @@ class StatusDetails(urwid.Pile):
         card = urwid.Pile(contents)
         card = urwid.Padding(card, left=1, right=1)
         return urwid.LineBox(card)
+
+    def poll_generator(self, poll):
+        for option in poll["options"]:
+            perc = (round(100 * option["votes_count"] / poll["votes_count"])
+                if poll["votes_count"] else 0)
+            yield urwid.Text(option["title"])
+            yield urwid.ProgressBar("", "blue_selected", perc)
+
+        if poll["expired"]:
+            status = "Closed"
+        else:
+            expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
+            status = "Closes on {}".format(expires_at)
+
+        status = "Poll · {} votes · {}".format(poll["votes_count"], status)
+        yield urwid.Text(("gray", status))
+
+    def build_poll(self, poll):
+        contents = list(self.poll_generator(poll))
+        poll = urwid.Pile(contents)
+        poll = urwid.Padding(poll, left=1, right=1)
+        return urwid.LineBox(poll)
 
 
 class StatusListItem(SelectableColumns):
