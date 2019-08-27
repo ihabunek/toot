@@ -191,7 +191,7 @@ class TUI(urwid.Frame):
         def _done_next(statuses):
             """Process sequential batch of statuses, adds statuses to the
             existing timeline."""
-            self.timeline.add_statuses(statuses)
+            self.timeline.append_statuses(statuses)
 
         self.run_in_thread(_load_statuses,
             done_callback=_done_initial if is_initial else _done_next)

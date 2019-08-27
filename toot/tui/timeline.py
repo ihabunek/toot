@@ -27,11 +27,6 @@ class Timeline(urwid.Columns):
         self.status_list = self.build_status_list(statuses)
         self.status_details = StatusDetails(statuses[0])
 
-        # Maps status ID to its index in the list
-        self.status_index_map = {
-            status.id: n for n, status in enumerate(statuses)
-        }
-
         super().__init__([
             ("weight", 40, self.status_list),
             ("weight", 60, self.status_details),
@@ -110,30 +105,29 @@ class Timeline(urwid.Columns):
 
         return super().keypress(size, key)
 
-    def add_status(self, status):
+    def append_status(self, status):
         self.statuses.append(status)
-        self.status_index_map[status.id] = len(self.statuses) - 1
         self.status_list.body.append(self.build_list_item(status))
 
     def prepend_status(self, status):
         self.statuses.insert(0, status)
-        # Need to rebuild the map, there has to be a better way
-        self.status_index_map = {
-            status.id: n for n, status in enumerate(self.statuses)
-        }
         self.status_list.body.insert(0, self.build_list_item(status))
 
-        if self.status_list.body.focus == 0:
-            self.draw_status_details(status)
-
-    def add_statuses(self, statuses):
+    def append_statuses(self, statuses):
         for status in statuses:
-            self.add_status(status)
+            self.append_status(status)
+
+    def get_status_index(self, id):
+        # TODO: This is suboptimal, consider a better way
+        for n, status in enumerate(self.statuses):
+            if status.id == id:
+                return n
+        raise ValueError("Status with ID {} not found".format(id))
 
     def update_status(self, status):
         """Overwrite status in list with the new instance and redraw."""
-        index = self.status_index_map[status.id]
-        assert self.statuses[index].id == status.id
+        index = self.get_status_index(status.id)
+        assert self.statuses[index].id == status.id  # Sanity check
 
         # Update internal status list
         self.statuses[index] = status
