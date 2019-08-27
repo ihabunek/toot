@@ -126,7 +126,7 @@ class StatusComposer(urwid.Frame):
             self.set_error_message("Cannot post an empty message")
             return
 
-        self._emit("post", content, warning)
+        self._emit("post", content, warning, self.visibility)
 
     def close(self, button):
         self._emit("close")
