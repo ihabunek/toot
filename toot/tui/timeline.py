@@ -2,7 +2,6 @@ import logging
 import urwid
 import webbrowser
 
-from toot import api
 from toot.utils import format_content
 
 from .utils import highlight_hashtags
@@ -14,9 +13,6 @@ logger = logging.getLogger("toot")
 class Timeline(urwid.Columns):
     """
     Displays a list of statuses to the left, and status details on the right.
-
-    TODO: Switch to top/bottom for narrow views.
-    TODO: Cache rendered statuses?
     """
     signals = [
         "status_focused",
@@ -68,12 +64,15 @@ class Timeline(urwid.Columns):
     def status_focused(self):
         """Called when the list focus switches to a new status"""
         status = self.get_focused_status()
-        self.status_details = StatusDetails(status)
-        self.contents[1] = self.status_details, ("weight", 50, False)
+        self.draw_status_details(status)
 
         index = self.status_list.body.focus
         count = len(self.statuses)
         self._emit("status_focused", [status, index, count])
+
+    def draw_status_details(self, status):
+        self.status_details = StatusDetails(status)
+        self.contents[1] = self.status_details, ("weight", 50, False)
 
     def keypress(self, size, key):
         # If down is pressed on last status in list emit a signal to load more.
@@ -88,6 +87,10 @@ class Timeline(urwid.Columns):
         if key in ("b", "B"):
             status = self.get_focused_status()
             self.tui.async_toggle_reblog(status)
+            return
+
+        if key in ('c', 'C'):
+            self.tui.show_compose()
             return
 
         if key in ("f", "F"):
@@ -112,6 +115,17 @@ class Timeline(urwid.Columns):
         self.status_index_map[status.id] = len(self.statuses) - 1
         self.status_list.body.append(self.build_list_item(status))
 
+    def prepend_status(self, status):
+        self.statuses.insert(0, status)
+        # Need to rebuild the map, there has to be a better way
+        self.status_index_map = {
+            status.id: n for n, status in enumerate(self.statuses)
+        }
+        self.status_list.body.insert(0, self.build_list_item(status))
+
+        if self.status_list.body.focus == 0:
+            self.draw_status_details(status)
+
     def add_statuses(self, statuses):
         for status in statuses:
             self.add_status(status)
@@ -129,8 +143,8 @@ class Timeline(urwid.Columns):
 
         # Redraw status details if status is focused
         if index == self.status_list.body.focus:
-            self.status_details = StatusDetails(status)
-            self.contents[1] = self.status_details, ("weight", 50, False)
+            self.draw_status_details(status)
+
 
 class StatusDetails(urwid.Pile):
     def __init__(self, status):
@@ -161,7 +175,8 @@ class StatusDetails(urwid.Pile):
         yield ("pack", urwid.Text([
             ("cyan_bold", "B"), ("cyan", "oost"), " | ",
             ("cyan_bold", "F"), ("cyan", "avourite"), " | ",
-            ("cyan_bold", "V"), ("cyan", "iew in browser"), " | ",
+            ("cyan_bold", "V"), ("cyan", "iew"), " | ",
+            ("cyan", "So"), ("cyan_bold", "u"), ("cyan", "rce"), " | ",
             ("cyan_bold", "H"), ("cyan", "elp"), " ",
         ]))
 
