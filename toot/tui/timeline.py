@@ -95,8 +95,8 @@ class Timeline(urwid.Columns):
 
         if key in ("v", "V"):
             status = self.get_focused_status()
-            webbrowser.open(status.data["url"])
-            return
+            if status.data["url"]:
+                webbrowser.open(status.data["url"])
 
         if key in ("u", "U"):
             status = self.get_focused_status()
