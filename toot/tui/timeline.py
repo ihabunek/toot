@@ -164,12 +164,12 @@ class StatusDetails(urwid.Pile):
         poll = status.data.get("poll")
         if poll:
             yield ("pack", urwid.Divider())
-            yield ("pack", self.build_poll(poll))
+            yield ("pack", self.build_linebox(self.poll_generator(poll)))
 
         card = status.data.get("card")
         if card:
             yield ("pack", urwid.Divider())
-            yield ("pack", self.build_card(card))
+            yield ("pack", self.build_linebox(self.card_generator(card)))
 
         # Push things to bottom
         yield ("weight", 1, urwid.SolidFill(" "))
@@ -181,6 +181,11 @@ class StatusDetails(urwid.Pile):
             ("cyan_bold", "H"), ("cyan", "elp"), " ",
         ]))
 
+    def build_linebox(self, contents):
+        contents = urwid.Pile(list(contents))
+        contents = urwid.Padding(contents, left=1, right=1)
+        return urwid.LineBox(contents)
+
     def card_generator(self, card):
         yield urwid.Text(("green", card["title"].strip()))
         if card["author_name"]:
@@ -190,12 +195,6 @@ class StatusDetails(urwid.Pile):
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
         yield urwid.Text(("link", card["url"]))
-
-    def build_card(self, card):
-        contents = list(self.card_generator(card))
-        card = urwid.Pile(contents)
-        card = urwid.Padding(card, left=1, right=1)
-        return urwid.LineBox(card)
 
     def poll_generator(self, poll):
         for option in poll["options"]:
@@ -212,12 +211,6 @@ class StatusDetails(urwid.Pile):
 
         status = "Poll · {} votes · {}".format(poll["votes_count"], status)
         yield urwid.Text(("gray", status))
-
-    def build_poll(self, poll):
-        contents = list(self.poll_generator(poll))
-        poll = urwid.Pile(contents)
-        poll = urwid.Padding(poll, left=1, right=1)
-        return urwid.LineBox(poll)
 
 
 class StatusListItem(SelectableColumns):
