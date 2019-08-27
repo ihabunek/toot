@@ -52,7 +52,9 @@ def make_config(path):
     # Ensure dir exists
     os.makedirs(dirname(path), exist_ok=True)
 
-    with open(path, 'w') as f:
+    # Create file with 600 permissions since it contains secrets
+    fd = os.open(path, os.O_CREAT | os.O_WRONLY, 0o600)
+    with os.fdopen(fd, 'w') as f:
         json.dump(config, f, indent=True)
 
 
