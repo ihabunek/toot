@@ -160,6 +160,19 @@ class TUI(urwid.Frame):
         future = self.executor.submit(fn, *args, **kwargs)
         future.add_done_callback(_done)
 
+    def connect_default_timeline_signals(self, timeline):
+        def _compose(*args):
+            self.show_compose()
+
+        def _source(timeline, status):
+            self.show_status_source(status)
+
+        urwid.connect_signal(timeline, "focus", self.refresh_footer)
+        urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
+        urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
+        urwid.connect_signal(timeline, "source", _source)
+        urwid.connect_signal(timeline, "compose", _compose)
+
     def build_timeline(self, statuses):
         def _close(*args):
             raise urwid.ExitMainLoop()
@@ -167,38 +180,36 @@ class TUI(urwid.Frame):
         def _next(*args):
             self.async_load_statuses(is_initial=False)
 
-        def _focus(timeline):
-            self.refresh_footer(timeline)
-
         def _thread(timeline, status):
             self.show_thread(status)
 
-        timeline = Timeline("home", self, statuses)
-        urwid.connect_signal(timeline, "focus", _focus)
+        timeline = Timeline("home", statuses)
+
+        self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
         urwid.connect_signal(timeline, "close", _close)
         urwid.connect_signal(timeline, "thread", _thread)
+
         return timeline
 
     def show_thread(self, status):
         def _close(*args):
+            """When thread is closed, go back to the main timeline."""
             self.body = self.timeline
             self.body.refresh_status_details()
             self.refresh_footer(self.timeline)
-
-        def _focus(timeline):
-            self.refresh_footer(timeline)
 
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
         context = api.context(self.app, self.user, status.id)
         ancestors = [Status(s, self.app.instance) for s in context["ancestors"]]
         descendants = [Status(s, self.app.instance) for s in context["descendants"]]
+        statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        statuses = ancestors + [status] + descendants
-        timeline = Timeline("thread", self, statuses, focus, is_thread=True)
-        urwid.connect_signal(timeline, "focus", _focus)
+        timeline = Timeline("thread", statuses, focus, is_thread=True)
+
+        self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
 
         self.body = timeline
@@ -245,42 +256,25 @@ class TUI(urwid.Frame):
         self.open_overlay(
             widget=StatusSource(status),
             title="Status source",
-            options={
-                "align": 'center',
-                "width": ('relative', 80),
-                "valign": 'middle',
-                "height": ('relative', 80),
-            },
         )
 
     def show_exception(self, exception):
         self.open_overlay(
             widget=ExceptionStackTrace(exception),
             title="Unhandled Exception",
-            options={
-                "align": 'center',
-                "width": ('relative', 80),
-                "valign": 'middle',
-                "height": ('relative', 80),
-            },
         )
 
     def show_compose(self):
+        def _close(*args):
+            self.close_overlay()
+
+        def _post(timeline, content, warning, visibility):
+            self.post_status(content, warning, visibility)
+
         composer = StatusComposer()
-        urwid.connect_signal(composer, "close",
-            lambda *args: self.close_overlay())
-        urwid.connect_signal(composer, "post",
-            lambda _, content, warning, visibility: self.post_status(content, warning, visibility))
-        self.open_overlay(
-            widget=composer,
-            title="Compose status",
-            options={
-                "align": 'center',
-                "width": ('relative', 80),
-                "valign": 'middle',
-                "height": ('relative', 80),
-            },
-        )
+        urwid.connect_signal(composer, "close", _close)
+        urwid.connect_signal(composer, "post", _post)
+        self.open_overlay(composer, title="Compose status")
 
     def post_status(self, content, warning, visibility):
         data = api.post_status(self.app, self.user, content,
@@ -290,7 +284,7 @@ class TUI(urwid.Frame):
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()
 
-    def async_toggle_favourite(self, status):
+    def async_toggle_favourite(self, timeline, status):
         def _favourite():
             logger.info("Favouriting {}".format(status))
             api.favourite(self.app, self.user, status.id)
@@ -303,14 +297,14 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped favourited flag
             new_data = status.data
             new_data["favourited"] = not status.favourited
-            self.timeline.update_status(Status(new_data, status.instance))
+            timeline.update_status(Status(new_data, status.instance))
 
         self.run_in_thread(
             _unfavourite if status.favourited else _favourite,
             done_callback=_done
         )
 
-    def async_toggle_reblog(self, status):
+    def async_toggle_reblog(self, timeline, status):
         def _reblog():
             logger.info("Reblogging {}".format(status))
             api.reblog(self.app, self.user, status.id)
@@ -323,7 +317,7 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped reblogged flag
             new_data = status.data
             new_data["reblogged"] = not status.reblogged
-            self.timeline.update_status(Status(new_data, status.instance))
+            timeline.update_status(Status(new_data, status.instance))
 
         self.run_in_thread(
             _unreblog if status.reblogged else _reblog,
@@ -332,14 +326,22 @@ class TUI(urwid.Frame):
 
     # --- Overlay handling -----------------------------------------------------
 
+    default_overlay_options = dict(
+        align="center", width=("relative", 80),
+        valign="middle", height=("relative", 80),
+    )
+
     def open_overlay(self, widget, options={}, title=""):
         top_widget = urwid.LineBox(widget, title=title)
         bottom_widget = self.body
 
+        _options = self.default_overlay_options
+        _options.update(options)
+
         self.overlay = urwid.Overlay(
             top_widget,
             bottom_widget,
-            **options
+            **_options
         )
         self.body = self.overlay
 
