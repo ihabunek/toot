@@ -191,6 +191,15 @@ class StatusDetails(urwid.Pile):
         for line in format_content(status.data["content"]):
             yield ("pack", urwid.Text(highlight_hashtags(line)))
 
+        media = status.data["media_attachments"]
+        if media:
+            for m in media:
+                yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
+                if m["description"]:
+                    yield ("pack", urwid.Text(m["description"]))
+                yield ("pack", urwid.Text(("link", m["url"])))
+
         poll = status.data.get("poll")
         if poll:
             yield ("pack", urwid.Divider())
