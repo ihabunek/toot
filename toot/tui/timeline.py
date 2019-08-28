@@ -150,6 +150,10 @@ class Timeline(urwid.Columns):
                 return n
         raise ValueError("Status with ID {} not found".format(id))
 
+    def focus_status(self, status):
+        index = self.get_status_index(status.id)
+        self.status_list.body.set_focus(index)
+
     def update_status(self, status):
         """Overwrite status in list with the new instance and redraw."""
         index = self.get_status_index(status.id)

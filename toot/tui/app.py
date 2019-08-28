@@ -280,7 +280,11 @@ class TUI(urwid.Frame):
         data = api.post_status(self.app, self.user, content,
             spoiler_text=warning, visibility=visibility)
         status = Status(data, self.app.instance)
+
+        # TODO: instead of this, fetch new items from the timeline?
         self.timeline.prepend_status(status)
+        self.timeline.focus_status(status)
+
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()
 
