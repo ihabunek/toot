@@ -3,6 +3,9 @@ Interesting urwid implementations:
 * https://github.com/TomasTomecek/sen/blob/master/sen/tui/ui.py
 * https://github.com/rndusr/stig/tree/master/stig/tui
 
+Check out:
+* https://github.com/rr-/urwid_readline - better edit box?
+
 TODO/Ideas:
 * pack left column in timeline view
 * allow scrolling of toot contents if they don't fit the screen, perhaps using

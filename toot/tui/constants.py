@@ -19,6 +19,7 @@ PALETTE = [
     ('link', ',italics', ''),
 
     # Colors
+    ('bold', ',bold', ''),
     ('blue', 'light blue', ''),
     ('blue_bold', 'light blue, bold', ''),
     ('blue_selected', 'white', 'dark blue'),
