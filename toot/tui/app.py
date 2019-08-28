@@ -161,12 +161,48 @@ class TUI(urwid.Frame):
         future.add_done_callback(_done)
 
     def build_timeline(self, statuses):
-        timeline = Timeline(self, statuses)
-        urwid.connect_signal(timeline, "status_focused",
-            lambda _, args: self.status_focused(*args))
-        urwid.connect_signal(timeline, "next",
-            lambda *args: self.async_load_statuses(is_initial=False))
+        def _close(*args):
+            raise urwid.ExitMainLoop()
+
+        def _next(*args):
+            self.async_load_statuses(is_initial=False)
+
+        def _focus(timeline):
+            self.refresh_footer(timeline)
+
+        def _thread(timeline, status):
+            self.show_thread(status)
+
+        timeline = Timeline("home", self, statuses)
+        urwid.connect_signal(timeline, "focus", _focus)
+        urwid.connect_signal(timeline, "next", _next)
+        urwid.connect_signal(timeline, "close", _close)
+        urwid.connect_signal(timeline, "thread", _thread)
         return timeline
+
+    def show_thread(self, status):
+        def _close(*args):
+            self.body = self.timeline
+            self.body.refresh_status_details()
+            self.refresh_footer(self.timeline)
+
+        def _focus(timeline):
+            self.refresh_footer(timeline)
+
+        # This is pretty fast, so it's probably ok to block while context is
+        # loaded, can be made async later if needed
+        context = api.context(self.app, self.user, status.id)
+        ancestors = [Status(s, self.app.instance) for s in context["ancestors"]]
+        descendants = [Status(s, self.app.instance) for s in context["descendants"]]
+        focus = len(ancestors)
+
+        statuses = ancestors + [status] + descendants
+        timeline = Timeline("thread", self, statuses, focus, is_thread=True)
+        urwid.connect_signal(timeline, "focus", _focus)
+        urwid.connect_signal(timeline, "close", _close)
+
+        self.body = timeline
+        self.refresh_footer(timeline)
 
     def async_load_statuses(self, is_initial):
         """Asynchronously load a list of statuses."""
@@ -185,7 +221,8 @@ class TUI(urwid.Frame):
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
             self.timeline = self.build_timeline(statuses)
-            self.timeline.status_focused()  # Draw first status
+            self.timeline.refresh_status_details()  # Draw first status
+            self.refresh_footer(self.timeline)
             self.body = self.timeline
 
         def _done_next(statuses):
@@ -196,10 +233,12 @@ class TUI(urwid.Frame):
         self.run_in_thread(_load_statuses,
             done_callback=_done_initial if is_initial else _done_next)
 
-    def status_focused(self, status, index, count):
+    def refresh_footer(self, timeline):
+        """Show status details in footer."""
+        status, index, count = timeline.get_focused_status_with_counts()
         self.footer.set_status([
-            ("footer_status_bold", "[home] "), status.id,
-            " - status ", str(index + 1), " of ", str(count),
+            ("footer_status_bold", "[{}] ".format(timeline.name)),
+            status.id, " - status ", str(index + 1), " of ", str(count),
         ])
 
     def show_status_source(self, status):
