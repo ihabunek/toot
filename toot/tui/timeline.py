@@ -4,7 +4,7 @@ import webbrowser
 
 from toot.utils import format_content
 
-from .utils import highlight_hashtags, parse_datetime
+from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
 
 logger = logging.getLogger("toot")
@@ -15,17 +15,19 @@ class Timeline(urwid.Columns):
     Displays a list of statuses to the left, and status details on the right.
     """
     signals = [
-        "status_focused",
-        "status_activated",
+        "focus",
         "next",
+        "close",
+        "thread",
     ]
 
-    def __init__(self, tui, statuses):
+    def __init__(self, name, tui, statuses, focus=0, is_thread=False):
+        self.name = name
         self.tui = tui
+        self.is_thread = is_thread
         self.statuses = statuses
-
-        self.status_list = self.build_status_list(statuses)
-        self.status_details = StatusDetails(statuses[0])
+        self.status_list = self.build_status_list(statuses, focus=focus)
+        self.status_details = StatusDetails(statuses[focus], is_thread)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -33,10 +35,11 @@ class Timeline(urwid.Columns):
             ("weight", 60, self.status_details),
         ], dividechars=1)
 
-    def build_status_list(self, statuses):
+    def build_status_list(self, statuses, focus):
         items = [self.build_list_item(status) for status in statuses]
         walker = urwid.SimpleFocusListWalker(items)
-        urwid.connect_signal(walker, "modified", self.status_focused)
+        walker.set_focus(focus)
+        urwid.connect_signal(walker, "modified", self.modified)
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
@@ -57,17 +60,27 @@ class Timeline(urwid.Columns):
         status = self.get_focused_status()
         self._emit("status_activated", [status])
 
-    def status_focused(self):
+    def get_focused_status_with_counts(self):
+        """Returns status, status index in list and number of statuses"""
+        return (
+            self.get_focused_status(),
+            self.status_list.body.focus,
+            len(self.statuses),
+        )
+
+    def modified(self):
         """Called when the list focus switches to a new status"""
+        status, index, count = self.get_focused_status_with_counts()
+        self.draw_status_details(status)
+        self._emit("focus")
+
+    def refresh_status_details(self):
+        """Redraws the details of the focused status."""
         status = self.get_focused_status()
         self.draw_status_details(status)
 
-        index = self.status_list.body.focus
-        count = len(self.statuses)
-        self._emit("status_focused", [status, index, count])
-
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status)
+        self.status_details = StatusDetails(status, self.is_thread)
         self.contents[2] = self.status_details, ("weight", 50, False)
 
     def keypress(self, size, key):
@@ -92,6 +105,15 @@ class Timeline(urwid.Columns):
         if key in ("f", "F"):
             status = self.get_focused_status()
             self.tui.async_toggle_favourite(status)
+            return
+
+        if key in ('q', 'Q'):
+            self._emit("close")
+            return
+
+        if key in ('t', 'T'):
+            status = self.get_focused_status()
+            self._emit("thread", status)
             return
 
         if key in ("v", "V"):
@@ -142,7 +164,8 @@ class Timeline(urwid.Columns):
 
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status):
+    def __init__(self, status, in_thread):
+        self.in_thread = in_thread
         widget_list = list(self.content_generator(status))
         return super().__init__(widget_list)
 
@@ -180,13 +203,11 @@ class StatusDetails(urwid.Pile):
 
         # Push things to bottom
         yield ("weight", 1, urwid.SolidFill(" "))
-        yield ("pack", urwid.Text([
-            ("cyan_bold", "B"), ("cyan", "oost"), " | ",
-            ("cyan_bold", "F"), ("cyan", "avourite"), " | ",
-            ("cyan_bold", "V"), ("cyan", "iew"), " | ",
-            ("cyan", "So"), ("cyan_bold", "u"), ("cyan", "rce"), " | ",
-            ("cyan_bold", "H"), ("cyan", "elp"), " ",
-        ]))
+
+        options = "[B]oost [F]avourite [V]iew {}So[u]rce [H]elp".format(
+            "[T]hread " if not self.in_thread else "")
+        options = highlight_keys(options, "cyan_bold", "cyan")
+        yield ("pack", urwid.Text(options))
 
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
