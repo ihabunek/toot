@@ -15,15 +15,18 @@ class Timeline(urwid.Columns):
     Displays a list of statuses to the left, and status details on the right.
     """
     signals = [
-        "focus",
-        "next",
-        "close",
-        "thread",
+        "close",      # Close thread
+        "compose",    # Compose a new toot
+        "favourite",  # Favourite status
+        "focus",      # Focus changed
+        "next",       # Fetch more statuses
+        "reblog",     # Reblog status
+        "source",     # Show status source
+        "thread",     # Show thread for status
     ]
 
-    def __init__(self, name, tui, statuses, focus=0, is_thread=False):
+    def __init__(self, name, statuses, focus=0, is_thread=False):
         self.name = name
-        self.tui = tui
         self.is_thread = is_thread
         self.statuses = statuses
         self.status_list = self.build_status_list(statuses, focus=focus)
@@ -95,23 +98,23 @@ class Timeline(urwid.Columns):
 
         if key in ("b", "B"):
             status = self.get_focused_status()
-            self.tui.async_toggle_reblog(status)
+            self._emit("reblog", status)
             return
 
-        if key in ('c', 'C'):
-            self.tui.show_compose()
+        if key in ("c", "C"):
+            self._emit("compose")
             return
 
         if key in ("f", "F"):
             status = self.get_focused_status()
-            self.tui.async_toggle_favourite(status)
+            self._emit("favourite", status)
             return
 
-        if key in ('q', 'Q'):
+        if key in ("q", "Q"):
             self._emit("close")
             return
 
-        if key in ('t', 'T'):
+        if key in ("t", "T"):
             status = self.get_focused_status()
             self._emit("thread", status)
             return
@@ -123,7 +126,7 @@ class Timeline(urwid.Columns):
 
         if key in ("u", "U"):
             status = self.get_focused_status()
-            self.tui.show_status_source(status)
+            self._emit("source", status)
             return
 
         return super().keypress(size, key)
