@@ -4,7 +4,7 @@ PALETTE = [
     ('button', 'white', 'black'),
     ('button_focused', 'light gray', 'dark magenta'),
     ('editbox', 'white', 'black'),
-    ('editbox_focused', '', 'dark magenta'),
+    ('editbox_focused', 'white', 'dark magenta'),
     ('footer_message', 'dark green', ''),
     ('footer_message_error', 'light red', ''),
     ('footer_status', 'white', 'dark blue'),
@@ -13,6 +13,7 @@ PALETTE = [
     ('header_bold', 'white,bold', 'dark blue'),
     ('intro_bigtext', 'yellow', ''),
     ('intro_smalltext', 'light blue', ''),
+    ('content_warning', 'white', 'dark magenta'),
 
     # Functional
     ('hashtag', 'light cyan,bold', ''),
