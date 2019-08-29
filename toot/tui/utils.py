@@ -1,4 +1,6 @@
 import re
+import shutil
+import subprocess
 
 from datetime import datetime
 
@@ -39,3 +41,28 @@ def highlight_hashtags(line, attr="hashtag"):
         (attr, p) if p.startswith("#") else p
         for p in re.split(HASHTAG_PATTERN, line)
     ]
+
+
+def show_media(paths):
+    """
+    Attempt to open an image viewer to show given media files.
+
+    FIXME: This is not very thought out, but works for me.
+    Once settings are implemented, add an option for the user to configure their
+    prefered media viewer.
+    """
+    viewer = None
+    potential_viewers = [
+        "feh",
+        "eog",
+        "display"
+    ]
+    for v in potential_viewers:
+        viewer = shutil.which(v)
+        if viewer:
+            break
+
+    if not viewer:
+        raise Exception("Cannot find an image viewer")
+
+    subprocess.run([viewer] + paths)
