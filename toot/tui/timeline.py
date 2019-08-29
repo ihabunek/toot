@@ -122,6 +122,11 @@ class Timeline(urwid.Columns):
             self._emit("reply", status)
             return
 
+        if key in ("s", "S"):
+            status.show_sensitive = True
+            self.refresh_status_details()
+            return
+
         if key in ("t", "T"):
             self._emit("thread", status)
             return
@@ -194,8 +199,16 @@ class StatusDetails(urwid.Pile):
         yield ("pack", urwid.Text(("yellow", status.author.account)))
         yield ("pack", urwid.Divider())
 
-        for line in format_content(status.data["content"]):
-            yield ("pack", urwid.Text(highlight_hashtags(line)))
+        if status.data["spoiler_text"]:
+            yield ("pack", urwid.Text(status.data["spoiler_text"]))
+            yield ("pack", urwid.Divider())
+
+        # Show content warning
+        if status.data["spoiler_text"] and not status.show_sensitive:
+            yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
+        else:
+            for line in format_content(status.data["content"]):
+                yield ("pack", urwid.Text(highlight_hashtags(line)))
 
         media = status.data["media_attachments"]
         if media:

@@ -24,6 +24,9 @@ class Status:
         self.data = data
         self.instance = instance
 
+        # This can be toggled by the user
+        self.show_sensitive = False
+
         # TODO: make Status immutable?
 
         self.id = self.data["id"]
