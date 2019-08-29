@@ -50,6 +50,8 @@ toot includes a curses-based terminal user interface (TUI). Run it with ``toot t
 
 .. image :: _static/tui_list.png
 
+.. image :: _static/tui_poll.png
+
 .. image :: _static/tui_compose.png
 
 Development
