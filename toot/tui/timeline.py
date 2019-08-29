@@ -47,7 +47,6 @@ class Timeline(urwid.Columns):
 
     def build_list_item(self, status):
         item = StatusListItem(status)
-        urwid.connect_signal(item, "click", self.status_activated)
         return urwid.AttrMap(item, None, focus_map={
             "blue": "green_selected",
             "green": "green_selected",
@@ -58,13 +57,12 @@ class Timeline(urwid.Columns):
     def get_focused_status(self):
         return self.statuses[self.status_list.body.focus]
 
-    def status_activated(self, *args):
-        """Called when a status is clicked, or Enter is pressed."""
-        status = self.get_focused_status()
-        self._emit("status_activated", [status])
-
     def get_focused_status_with_counts(self):
-        """Returns status, status index in list and number of statuses"""
+        """Returns a tuple of:
+            * focused status
+            * focused status' index in the status list
+            * length of the status list
+        """
         return (
             self.get_focused_status(),
             self.status_list.body.focus,
@@ -84,12 +82,13 @@ class Timeline(urwid.Columns):
 
     def draw_status_details(self, status):
         self.status_details = StatusDetails(status, self.is_thread)
-        self.contents[2] = self.status_details, ("weight", 50, False)
+        self.contents[2] = self.status_details, ("weight", 60, False)
 
     def keypress(self, size, key):
+        command = self._command_map[key]
+
         # If down is pressed on last status in list emit a signal to load more.
         # TODO: Consider pre-loading statuses earlier
-        command = self._command_map[key]
         if command in [urwid.CURSOR_DOWN, urwid.CURSOR_PAGE_DOWN]:
             index = self.status_list.body.focus + 1
             count = len(self.statuses)
@@ -123,6 +122,7 @@ class Timeline(urwid.Columns):
             status = self.get_focused_status()
             if status.data["url"]:
                 webbrowser.open(status.data["url"])
+            return
 
         if key in ("u", "U"):
             status = self.get_focused_status()

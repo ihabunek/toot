@@ -48,7 +48,6 @@ class StatusComposer(urwid.Frame):
         self.cancel_button = Button("Cancel", on_press=self.close)
 
         contents = list(self.generate_list_items())
-        logger.info(contents)
         self.walker = urwid.SimpleListWalker(contents)
         self.listbox = urwid.ListBox(self.walker)
         return super().__init__(self.listbox)
