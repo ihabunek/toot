@@ -338,6 +338,25 @@ class HelpModal(Modal):
         ]
 
 
+class DeprecationNoticeModal(Modal):
+    def get_content(self):
+        return [
+            ("DEPRECATION NOTICE", Color.RED | curses.A_BOLD),
+            "",
+            "This experimental terminal UI has been deprecated and will be ",
+            "removed in the near future.",
+            "",
+            "The new TUI can be lauched by running `toot tui`. This new UI ",
+            "contains all the functionality of this one and much more. ",
+            "It will be supported for the forseeable future.",
+            "",
+            "For details see:",
+            ("https://github.com/ihabunek/toot/pull/108", Color.CYAN),
+            "",
+            ("Press q to close this notice.", Color.YELLOW),
+        ]
+
+
 class EntryModal(Modal):
     def __init__(self, stdscr, title, footer=None, size=(None, None), default=None, resize_callback=None):
         self.stdscr = stdscr
@@ -527,6 +546,9 @@ class TimelineApp:
         self.selected = 0
         self.full_redraw()
 
+        self.deprecation_modal.loop()
+        self.full_redraw()
+
         self.loop()
 
     def setup_windows(self):
@@ -549,6 +571,7 @@ class TimelineApp:
         self.right = StatusDetailWindow(self.stdscr, main_height, main_width, header_height, left_width)
 
         self.help_modal = HelpModal(self.stdscr, resize_callback=self.on_resize)
+        self.deprecation_modal = DeprecationNoticeModal(self.stdscr, resize_callback=self.on_resize)
 
     def loop(self):
         while True:
