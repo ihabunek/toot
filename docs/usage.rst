@@ -11,6 +11,7 @@ Running ``toot <command> -h`` shows the documentation for the given command.
     $ toot
 
     toot - a Mastodon CLI client
+    v0.23.0
 
     Authentication:
       toot login           Log into a mastodon instance using your browser (recommended)
@@ -19,15 +20,17 @@ Running ``toot <command> -h`` shows the documentation for the given command.
       toot logout          Log out, delete stored access keys
       toot auth            Show logged in accounts and instances
 
+    TUI:
+      toot tui             Launches the toot terminal user interface
+
     Read:
       toot whoami          Display logged in user details
       toot whois           Display account details
-      toot notifications   Display notifications for logged in user
+      toot notifications   Notifications for logged in user
       toot instance        Display instance details
       toot search          Search for users or hashtags
       toot thread          Show toot thread items
       toot timeline        Show recent items in a timeline (home by default)
-      toot curses          An experimental timeline app (doesn't work on Windows)
 
     Post:
       toot post            Post a status text to your timeline
@@ -55,6 +58,7 @@ Running ``toot <command> -h`` shows the documentation for the given command.
       toot <command> --help
 
     https://github.com/ihabunek/toot
+
 
 Authentication
 --------------
@@ -187,14 +191,15 @@ If you get bored of them:
 Using the Curses UI
 ~~~~~~~~~~~~~~~~~~~
 
-toot has an expimental curses based console UI. The command to start it is ``toot curses``.
+toot has a curses-based terminal user interface. The command to start it is ``toot tui``.
 
 To navigate the UI use these commands:
 
 * ``k`` or ``up arrow`` to move up the list of tweets
 * ``j`` or ``down arrow`` to move down the list of tweets
 * ``h`` to show a help screen
-* ``v`` to view the current toot in a browser (this is great for seeing the comment thread on a toot)
+* ``t`` to view status thread
+* ``v`` to view the current toot in a browser
 * ``b`` to boost or unboost a status
 * ``f`` to favourite or unfavourite a status
 * ``q`` to quit the curses interface and return to the command line
