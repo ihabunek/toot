@@ -29,11 +29,10 @@ class StatusComposer(urwid.Frame):
     """
     signals = ["close", "post"]
 
-    def __init__(self):
-        self.content_caption = urwid.Text("Status message")
+    def __init__(self, in_reply_to=None):
+        self.in_reply_to = in_reply_to
         self.content_edit = EditBox()
 
-        self.cw_caption = urwid.Text("Content warning")
         self.cw_edit = None
         self.cw_add_button = Button("Add content warning",
             on_press=self.add_content_warning)
@@ -53,12 +52,16 @@ class StatusComposer(urwid.Frame):
         return super().__init__(self.listbox)
 
     def generate_list_items(self):
-        yield self.content_caption
+        if self.in_reply_to:
+            yield urwid.Text(("gray", "Replying to {}".format(self.in_reply_to.account)))
+            yield urwid.AttrWrap(urwid.Divider("-"), "gray")
+
+        yield urwid.Text("Status message")
         yield self.content_edit
         yield urwid.Divider()
 
         if self.cw_edit:
-            yield self.cw_caption
+            yield urwid.Text("Content warning")
             yield self.cw_edit
             yield urwid.Divider()
             yield self.cw_remove_button
@@ -125,7 +128,8 @@ class StatusComposer(urwid.Frame):
             self.set_error_message("Cannot post an empty message")
             return
 
-        self._emit("post", content, warning, self.visibility)
+        in_reply_to_id = self.in_reply_to.id if self.in_reply_to else None
+        self._emit("post", content, warning, self.visibility, in_reply_to_id)
 
     def close(self, button):
         self._emit("close")

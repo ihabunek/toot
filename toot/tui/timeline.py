@@ -21,6 +21,7 @@ class Timeline(urwid.Columns):
         "focus",      # Focus changed
         "next",       # Fetch more statuses
         "reblog",     # Reblog status
+        "reply",      # Compose a reply to a status
         "source",     # Show status source
         "thread",     # Show thread for status
     ]
@@ -85,6 +86,7 @@ class Timeline(urwid.Columns):
         self.contents[2] = self.status_details, ("weight", 60, False)
 
     def keypress(self, size, key):
+        status = self.get_focused_status()
         command = self._command_map[key]
 
         # If down is pressed on last status in list emit a signal to load more.
@@ -96,7 +98,6 @@ class Timeline(urwid.Columns):
                 self._emit("next")
 
         if key in ("b", "B"):
-            status = self.get_focused_status()
             self._emit("reblog", status)
             return
 
@@ -105,7 +106,6 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("f", "F"):
-            status = self.get_focused_status()
             self._emit("favourite", status)
             return
 
@@ -113,19 +113,20 @@ class Timeline(urwid.Columns):
             self._emit("close")
             return
 
+        if key in ("r", "R"):
+            self._emit("reply", status)
+            return
+
         if key in ("t", "T"):
-            status = self.get_focused_status()
             self._emit("thread", status)
             return
 
         if key in ("v", "V"):
-            status = self.get_focused_status()
             if status.data["url"]:
                 webbrowser.open(status.data["url"])
             return
 
         if key in ("u", "U"):
-            status = self.get_focused_status()
             self._emit("source", status)
             return
 
@@ -220,7 +221,7 @@ class StatusDetails(urwid.Pile):
         # Push things to bottom
         yield ("weight", 1, urwid.SolidFill(" "))
 
-        options = "[B]oost [F]avourite [V]iew {}So[u]rce [H]elp".format(
+        options = "[B]oost [F]avourite [V]iew {}[R]eply So[u]rce [H]elp".format(
             "[T]hread " if not self.in_thread else "")
         options = highlight_keys(options, "cyan_bold", "cyan")
         yield ("pack", urwid.Text(options))

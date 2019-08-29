@@ -164,6 +164,10 @@ class TUI(urwid.Frame):
         def _compose(*args):
             self.show_compose()
 
+        def _reply(timeline, status):
+            logger.info("reply")
+            self.show_compose(status)
+
         def _source(timeline, status):
             self.show_status_source(status)
 
@@ -172,6 +176,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
         urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "compose", _compose)
+        urwid.connect_signal(timeline, "reply", _reply)
 
     def build_timeline(self, statuses):
         def _close(*args):
@@ -264,21 +269,23 @@ class TUI(urwid.Frame):
             title="Unhandled Exception",
         )
 
-    def show_compose(self):
+    def show_compose(self, in_reply_to=None):
         def _close(*args):
             self.close_overlay()
 
-        def _post(timeline, content, warning, visibility):
-            self.post_status(content, warning, visibility)
+        def _post(timeline, *args):
+            self.post_status(*args)
 
-        composer = StatusComposer()
+        composer = StatusComposer(in_reply_to)
         urwid.connect_signal(composer, "close", _close)
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")
 
-    def post_status(self, content, warning, visibility):
+    def post_status(self, content, warning, visibility, in_reply_to_id):
         data = api.post_status(self.app, self.user, content,
-            spoiler_text=warning, visibility=visibility)
+            spoiler_text=warning,
+            visibility=visibility,
+            in_reply_to_id=in_reply_to_id)
         status = Status(data, self.app.instance)
 
         # TODO: instead of this, fetch new items from the timeline?
