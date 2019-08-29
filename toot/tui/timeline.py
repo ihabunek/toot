@@ -19,6 +19,7 @@ class Timeline(urwid.Columns):
         "compose",    # Compose a new toot
         "favourite",  # Favourite status
         "focus",      # Focus changed
+        "media",      # Display media attachments
         "next",       # Fetch more statuses
         "reblog",     # Reblog status
         "reply",      # Compose a reply to a status
@@ -109,6 +110,10 @@ class Timeline(urwid.Columns):
             self._emit("favourite", status)
             return
 
+        if key in ("m", "M"):
+            self._emit("media", status)
+            return
+
         if key in ("q", "Q"):
             self._emit("close")
             return
@@ -121,13 +126,13 @@ class Timeline(urwid.Columns):
             self._emit("thread", status)
             return
 
+        if key in ("u", "U"):
+            self._emit("source", status)
+            return
+
         if key in ("v", "V"):
             if status.data["url"]:
                 webbrowser.open(status.data["url"])
-            return
-
-        if key in ("u", "U"):
-            self._emit("source", status)
             return
 
         return super().keypress(size, key)

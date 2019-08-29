@@ -11,6 +11,7 @@ from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
+from .utils import show_media
 
 logger = logging.getLogger(__name__)
 
@@ -171,12 +172,16 @@ class TUI(urwid.Frame):
         def _source(timeline, status):
             self.show_status_source(status)
 
+        def _media(timeline, status):
+            self.show_media(status)
+
         urwid.connect_signal(timeline, "focus", self.refresh_footer)
         urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
         urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
         urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "reply", _reply)
+        urwid.connect_signal(timeline, "media", _media)
 
     def build_timeline(self, statuses):
         def _close(*args):
@@ -280,6 +285,11 @@ class TUI(urwid.Frame):
         urwid.connect_signal(composer, "close", _close)
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")
+
+    def show_media(self, status):
+        urls = [m["url"] for m in status.data["media_attachments"]]
+        if urls:
+            show_media(urls)
 
     def post_status(self, content, warning, visibility, in_reply_to_id):
         data = api.post_status(self.app, self.user, content,
