@@ -50,7 +50,7 @@ def editor(value):
     # Check editor executable exists
     exe = shutil.which(value)
     if not exe:
-        raise ArgumentTypeError(f"Editor `{value}` not found")
+        raise ArgumentTypeError("Editor `{}` not found".format(value))
 
     return exe
 
