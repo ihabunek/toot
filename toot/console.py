@@ -196,6 +196,21 @@ AUTH_COMMANDS = [
     ),
 ]
 
+TUI_COMMANDS = [
+    Command(
+        name="tui",
+        description="Launches the toot terminal user interface",
+        arguments=[],
+        require_auth=False,
+    ),
+    Command(
+        name="curses",
+        description="An experimental timeline app (DEPRECATED, use 'toot tui' instead)",
+        arguments=curses_args,
+        require_auth=False,
+    ),
+]
+
 
 READ_COMMANDS = [
     Command(
@@ -268,18 +283,6 @@ READ_COMMANDS = [
         description="Show recent items in a timeline (home by default)",
         arguments=timeline_args,
         require_auth=True,
-    ),
-    Command(
-        name="curses",
-        description="An experimental timeline app (doesn't work on Windows)",
-        arguments=curses_args,
-        require_auth=False,
-    ),
-    Command(
-        name="tui",
-        description="Launches the TUI (terminal user interface).",
-        arguments=curses_args,
-        require_auth=False,
     ),
 ]
 
@@ -445,7 +448,7 @@ ACCOUNTS_COMMANDS = [
     ),
 ]
 
-COMMANDS = AUTH_COMMANDS + READ_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS
+COMMANDS = AUTH_COMMANDS + READ_COMMANDS + TUI_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS
 
 
 def print_usage():
@@ -453,6 +456,7 @@ def print_usage():
 
     groups = [
         ("Authentication", AUTH_COMMANDS),
+        ("TUI", TUI_COMMANDS),
         ("Read", READ_COMMANDS),
         ("Post", POST_COMMANDS),
         ("Status", STATUS_COMMANDS),

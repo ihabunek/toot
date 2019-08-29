@@ -36,9 +36,12 @@ Features
 Curses UI
 ---------
 
-toot has an experimental curses based console UI.
+toot includes a curses-based terminal user interface (TUI). Run it with ``toot tui``.
 
-.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/curses.png
+.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_list.png
+
+.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_compose.png
+
 
 License
 -------

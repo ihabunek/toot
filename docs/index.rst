@@ -46,9 +46,11 @@ Contents
 Curses UI
 ---------
 
-toot has an experimental curses based console UI. Run it with ``toot curses``.
+toot includes a curses-based terminal user interface (TUI). Run it with ``toot tui``.
 
-.. image :: _static/curses.png
+.. image :: _static/tui_list.png
+
+.. image :: _static/tui_compose.png
 
 Development
 -----------
