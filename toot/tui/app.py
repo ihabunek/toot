@@ -12,6 +12,7 @@ from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
 from .utils import show_media
+from .widgets import Button
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,6 @@ class TUI(urwid.Frame):
         self.loop = None  # set in `create`
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
-        # self.timeline_generator = api.public_timeline_generator(app.instance, local=False, limit=40)
 
         # Show intro screen while toots are being loaded
         self.body = self.build_intro()
@@ -105,7 +105,8 @@ class TUI(urwid.Frame):
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
-        self.loop.set_alarm_in(0, lambda *args: self.async_load_statuses(is_initial=True))
+        self.loop.set_alarm_in(0, lambda *args:
+            self.async_load_timeline(is_initial=True, timeline_name="home"))
         self.loop.run()
         self.executor.shutdown(wait=False)
 
@@ -160,6 +161,7 @@ class TUI(urwid.Frame):
 
         future = self.executor.submit(fn, *args, **kwargs)
         future.add_done_callback(_done)
+        return future
 
     def connect_default_timeline_signals(self, timeline):
         def _compose(*args):
@@ -187,17 +189,17 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "media", _media)
         urwid.connect_signal(timeline, "menu", _menu)
 
-    def build_timeline(self, statuses):
+    def build_timeline(self, name, statuses):
         def _close(*args):
             raise urwid.ExitMainLoop()
 
         def _next(*args):
-            self.async_load_statuses(is_initial=False)
+            self.async_load_timeline(is_initial=False)
 
         def _thread(timeline, status):
             self.show_thread(status)
 
-        timeline = Timeline("home", statuses)
+        timeline = Timeline(name, statuses)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -229,7 +231,7 @@ class TUI(urwid.Frame):
         self.body = timeline
         self.refresh_footer(timeline)
 
-    def async_load_statuses(self, is_initial):
+    def async_load_timeline(self, is_initial, timeline_name=None):
         """Asynchronously load a list of statuses."""
 
         def _load_statuses():
@@ -245,7 +247,7 @@ class TUI(urwid.Frame):
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
-            self.timeline = self.build_timeline(statuses)
+            self.timeline = self.build_timeline(timeline_name, statuses)
             self.timeline.refresh_status_details()  # Draw first status
             self.refresh_footer(self.timeline)
             self.body = self.timeline
@@ -255,7 +257,7 @@ class TUI(urwid.Frame):
             existing timeline."""
             self.timeline.append_statuses(statuses)
 
-        self.run_in_thread(_load_statuses,
+        return self.run_in_thread(_load_statuses,
             done_callback=_done_initial if is_initial else _done_next)
 
     def refresh_footer(self, timeline):
@@ -289,6 +291,32 @@ class TUI(urwid.Frame):
         urwid.connect_signal(composer, "close", _close)
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")
+
+    def show_goto_menu(self):
+        menu = GotoMenu()
+        urwid.connect_signal(menu, "home_timeline",
+            lambda x: self.goto_home_timeline())
+        urwid.connect_signal(menu, "local_public_timeline",
+            lambda x: self.goto_public_timeline(True))
+        urwid.connect_signal(menu, "global_public_timeline",
+            lambda x: self.goto_public_timeline(False))
+
+        self.open_overlay(menu, title="Go to", options=dict(
+            align="center", width=("relative", 60),
+            valign="middle", height=8,
+        ))
+
+    def goto_home_timeline(self):
+        self.timeline_generator = api.home_timeline_generator(
+            self.app, self.user, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name="home")
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_public_timeline(self, local):
+        self.timeline_generator = api.public_timeline_generator(
+            self.app.instance, local=local, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name="public")
+        promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):
         urls = [m["url"] for m in status.data["media_attachments"]]
@@ -364,7 +392,7 @@ class TUI(urwid.Frame):
         top_widget = urwid.LineBox(widget, title=title)
         bottom_widget = self.body
 
-        _options = self.default_overlay_options
+        _options = self.default_overlay_options.copy()
         _options.update(options)
 
         self.overlay = urwid.Overlay(
@@ -385,6 +413,12 @@ class TUI(urwid.Frame):
         if key in ('e', 'E'):
             if self.exception:
                 self.show_exception(self.exception)
+
+        elif key in ('g', 'G'):
+            logger.info(self.overlay)
+            if not self.overlay:
+                self.show_goto_menu()
+            return
 
         elif key == 'esc':
             if self.overlay:
@@ -411,8 +445,29 @@ class StatusSource(urwid.ListBox):
 class ExceptionStackTrace(urwid.ListBox):
     """Shows an exception stack trace."""
     def __init__(self, ex):
-        lines = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__) * 3
+        lines = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         walker = urwid.SimpleFocusListWalker([
             urwid.Text(line) for line in lines
         ])
         super().__init__(walker)
+
+
+class GotoMenu(urwid.ListBox):
+    signals = [
+        "home_timeline",
+        "local_public_timeline",
+        "global_public_timeline",
+    ]
+
+    def __init__(self):
+        actions = list(self.generate_actions())
+        walker = urwid.SimpleFocusListWalker(actions)
+        super().__init__(walker)
+
+    def generate_actions(self):
+        yield Button("Home timeline",
+            on_press=lambda b: self._emit("home_timeline"))
+        yield Button("Local public timeline",
+            on_press=lambda b: self._emit("local_public_timeline"))
+        yield Button("Global public timeline",
+            on_press=lambda b: self._emit("global_public_timeline"))

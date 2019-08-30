@@ -30,7 +30,9 @@ TODO/Ideas:
 * reblog
   * show author in status list, not person who reblogged
   * "v" should open the reblogged status, status.url is empty for the reblog
-
+* overlays
+  * stack overlays instead of having one?
+  * current bug: press U G Q Q - second Q closes the app instead of closing the overlay
 
 Questions:
 * is it possible to make a span a urwid.Text selectable? e.g. for urls and hashtags
