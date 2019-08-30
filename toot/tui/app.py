@@ -175,6 +175,9 @@ class TUI(urwid.Frame):
         def _media(timeline, status):
             self.show_media(status)
 
+        def _menu(timeline, status):
+            self.show_context_menu(status)
+
         urwid.connect_signal(timeline, "focus", self.refresh_footer)
         urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
         urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
@@ -182,6 +185,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "reply", _reply)
         urwid.connect_signal(timeline, "media", _media)
+        urwid.connect_signal(timeline, "menu", _menu)
 
     def build_timeline(self, statuses):
         def _close(*args):
@@ -290,6 +294,10 @@ class TUI(urwid.Frame):
         urls = [m["url"] for m in status.data["media_attachments"]]
         if urls:
             show_media(urls)
+
+    def show_context_menu(self, status):
+        # TODO: show context menu
+        pass
 
     def post_status(self, content, warning, visibility, in_reply_to_id):
         data = api.post_status(self.app, self.user, content,

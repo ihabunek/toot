@@ -2,25 +2,8 @@ import urwid
 import logging
 
 from .constants import VISIBILITY_OPTIONS
-
+from .widgets import Button, EditBox
 logger = logging.getLogger(__name__)
-
-
-class EditBox(urwid.AttrWrap):
-    def __init__(self):
-        edit = urwid.Edit(multiline=True, allow_tab=True)
-        return super().__init__(edit, "editbox", "editbox_focused")
-
-
-class Button(urwid.AttrWrap):
-    def __init__(self, *args, **kwargs):
-        button = urwid.Button(*args, **kwargs)
-        padding = urwid.Padding(button, width=len(args[0]) + 4)
-        return super().__init__(padding, "button", "button_focused")
-
-    def set_label(self, *args, **kwargs):
-        self.original_widget.original_widget.set_label(*args, **kwargs)
-        self.original_widget.width = len(args[0]) + 4
 
 
 class StatusComposer(urwid.Frame):
