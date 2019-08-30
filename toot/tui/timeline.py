@@ -87,7 +87,7 @@ class Timeline(urwid.Columns):
 
     def draw_status_details(self, status):
         self.status_details = StatusDetails(status, self.is_thread)
-        self.contents[2] = self.status_details, ("weight", 60, False)
+        self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
 
     def keypress(self, size, key):
         status = self.get_focused_status()
