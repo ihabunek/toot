@@ -12,7 +12,7 @@ from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
 from .utils import show_media
-from .widgets import Button
+from .widgets import Button, EditBox
 
 logger = logging.getLogger(__name__)
 
@@ -296,14 +296,14 @@ class TUI(urwid.Frame):
         menu = GotoMenu()
         urwid.connect_signal(menu, "home_timeline",
             lambda x: self.goto_home_timeline())
-        urwid.connect_signal(menu, "local_public_timeline",
-            lambda x: self.goto_public_timeline(True))
-        urwid.connect_signal(menu, "global_public_timeline",
-            lambda x: self.goto_public_timeline(False))
+        urwid.connect_signal(menu, "public_timeline",
+            lambda x, local: self.goto_public_timeline(local))
+        urwid.connect_signal(menu, "hashtag_timeline",
+            lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=8,
+            valign="middle", height=9,
         ))
 
     def goto_home_timeline(self):
@@ -316,6 +316,12 @@ class TUI(urwid.Frame):
         self.timeline_generator = api.public_timeline_generator(
             self.app.instance, local=local, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="public")
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_tag_timeline(self, tag, local):
+        self.timeline_generator = api.tag_timeline_generator(
+            self.app.instance, tag, local=local, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name="#{}".format(tag))
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):
@@ -455,19 +461,41 @@ class ExceptionStackTrace(urwid.ListBox):
 class GotoMenu(urwid.ListBox):
     signals = [
         "home_timeline",
-        "local_public_timeline",
-        "global_public_timeline",
+        "public_timeline",
+        "hashtag_timeline",
     ]
 
     def __init__(self):
+        self.hash_edit = EditBox(caption="Hashtag: ")
+
         actions = list(self.generate_actions())
         walker = urwid.SimpleFocusListWalker(actions)
         super().__init__(walker)
 
+    def get_hashtag(self):
+        return self.hash_edit.edit_text.strip()
+
     def generate_actions(self):
-        yield Button("Home timeline",
-            on_press=lambda b: self._emit("home_timeline"))
-        yield Button("Local public timeline",
-            on_press=lambda b: self._emit("local_public_timeline"))
-        yield Button("Global public timeline",
-            on_press=lambda b: self._emit("global_public_timeline"))
+        def _home(button):
+            self._emit("home_timeline")
+
+        def _local_public(button):
+            self._emit("public_timeline", True)
+
+        def _global_public(button):
+            self._emit("public_timeline", False)
+
+        def _hashtag(local):
+            hashtag = self.get_hashtag()
+            if hashtag:
+                self._emit("hashtag_timeline", hashtag, local)
+            else:
+                self.set_focus(4)
+
+        yield Button("Home timeline", on_press=_home)
+        yield Button("Local public timeline", on_press=_local_public)
+        yield Button("Global public timeline", on_press=_global_public)
+        yield urwid.Divider()
+        yield self.hash_edit
+        yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
+        yield Button("Public hashtag timeline", on_press=lambda x: _hashtag(False))
