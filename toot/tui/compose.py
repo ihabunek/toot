@@ -14,7 +14,7 @@ class StatusComposer(urwid.Frame):
 
     def __init__(self, in_reply_to=None):
         self.in_reply_to = in_reply_to
-        self.content_edit = EditBox()
+        self.content_edit = EditBox(multiline=True, allow_tab=True)
 
         self.cw_edit = None
         self.cw_add_button = Button("Add content warning",
@@ -81,7 +81,7 @@ class StatusComposer(urwid.Frame):
         self.walker.set_focus(7 if self.cw_edit else 4)
 
     def add_content_warning(self, button):
-        self.cw_edit = EditBox()
+        self.cw_edit = EditBox(multiline=True, allow_tab=True)
         self.refresh()
         self.walker.set_focus(4)
 
