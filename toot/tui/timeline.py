@@ -20,6 +20,7 @@ class Timeline(urwid.Columns):
         "favourite",  # Favourite status
         "focus",      # Focus changed
         "media",      # Display media attachments
+        "menu",       # Show a context menu
         "next",       # Fetch more statuses
         "reblog",     # Reblog status
         "reply",      # Compose a reply to a status
@@ -38,7 +39,7 @@ class Timeline(urwid.Columns):
             ("weight", 40, self.status_list),
             ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
             ("weight", 60, self.status_details),
-        ], dividechars=1)
+        ])
 
     def build_status_list(self, statuses, focus):
         items = [self.build_list_item(status) for status in statuses]
@@ -49,6 +50,8 @@ class Timeline(urwid.Columns):
 
     def build_list_item(self, status):
         item = StatusListItem(status)
+        urwid.connect_signal(item, "click", lambda *args:
+            self._emit("menu", status))
         return urwid.AttrMap(item, None, focus_map={
             "blue": "green_selected",
             "green": "green_selected",

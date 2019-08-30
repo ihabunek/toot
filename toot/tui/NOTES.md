@@ -5,6 +5,7 @@ Interesting urwid implementations:
 
 Check out:
 * https://github.com/rr-/urwid_readline - better edit box?
+* https://github.com/prompt-toolkit/python-prompt-toolkit
 
 TODO/Ideas:
 * pack left column in timeline view
@@ -26,6 +27,10 @@ TODO/Ideas:
 * Status source
     * shortcut to copy source
     * syntax highlighting?
+* reblog
+  * show author in status list, not person who reblogged
+  * "v" should open the reblogged status, status.url is empty for the reblog
+
 
 Questions:
 * is it possible to make a span a urwid.Text selectable? e.g. for urls and hashtags
