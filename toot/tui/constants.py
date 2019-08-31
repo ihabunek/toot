@@ -21,6 +21,7 @@ PALETTE = [
 
     # Colors
     ('bold', ',bold', ''),
+    ('italics', ',italics', ''),
     ('blue', 'light blue', ''),
     ('blue_bold', 'light blue, bold', ''),
     ('blue_selected', 'white', 'dark blue'),
@@ -30,7 +31,7 @@ PALETTE = [
     ('green', 'dark green', ''),
     ('green_selected', 'white,bold', 'dark green'),
     ('yellow', 'yellow', ''),
-    ('yellow_selected', 'yellow', 'dark blue'),
+    ('yellow_bold', 'yellow,bold', ''),
 ]
 
 VISIBILITY_OPTIONS = [
