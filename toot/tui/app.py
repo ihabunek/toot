@@ -11,7 +11,7 @@ from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
 from .timeline import Timeline
-from .utils import show_media
+from .utils import show_media, highlight_keys
 from .widgets import Button, EditBox
 
 logger = logging.getLogger(__name__)
@@ -306,6 +306,9 @@ class TUI(urwid.Frame):
             valign="middle", height=9,
         ))
 
+    def show_help(self):
+        self.open_overlay(Help(), title="Help")
+
     def goto_home_timeline(self):
         self.timeline_generator = api.home_timeline_generator(
             self.app, self.user, limit=40)
@@ -421,10 +424,12 @@ class TUI(urwid.Frame):
                 self.show_exception(self.exception)
 
         elif key in ('g', 'G'):
-            logger.info(self.overlay)
             if not self.overlay:
                 self.show_goto_menu()
-            return
+
+        elif key in ('h', 'H'):
+            if not self.overlay:
+                self.show_help()
 
         elif key == 'esc':
             if self.overlay:
@@ -499,3 +504,44 @@ class GotoMenu(urwid.ListBox):
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
         yield Button("Public hashtag timeline", on_press=lambda x: _hashtag(False))
+
+
+class Help(urwid.Padding):
+    def __init__(self):
+        actions = list(self.generate_contents())
+        walker = urwid.SimpleListWalker(actions)
+        listbox = urwid.ListBox(walker)
+        super().__init__(listbox, left=1, right=1)
+
+    def generate_contents(self):
+
+        def h(text):
+            return highlight_keys(text, "cyan")
+
+        yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
+        yield urwid.Divider()
+        yield urwid.Text(("bold", "General usage"))
+        yield urwid.Divider()
+        yield urwid.Text(h("  [Arrow keys] or [H/J/K/L] to move around and scroll content"))
+        yield urwid.Text(h("  [PageUp] and [PageDown] to scroll content"))
+        yield urwid.Text(h("  [Enter] or [Space] to activate buttons and menu options"))
+        yield urwid.Text(h("  [Esc] or [Q] to go back, close overlays, such as menus and this help text"))
+        yield urwid.Divider()
+        yield urwid.Text(("bold", "General keys"))
+        yield urwid.Divider()
+        yield urwid.Text(h("  [Q] - quit toot"))
+        yield urwid.Text(h("  [G] - go to - switch timelines"))
+        yield urwid.Text(h("  [H] - show this help"))
+        yield urwid.Divider()
+        yield urwid.Text(("bold", "Status keys"))
+        yield urwid.Divider()
+        yield urwid.Text("These commands are applied to the currently focused status.")
+        yield urwid.Divider()
+        yield urwid.Text(h("  [B] - Boost/unboost status"))
+        yield urwid.Text(h("  [C] - Compose new status"))
+        yield urwid.Text(h("  [F] - Favourite/unfavourite status"))
+        yield urwid.Text(h("  [R] - Reply to current status"))
+        yield urwid.Text(h("  [S] - Show text marked as sensitive"))
+        yield urwid.Text(h("  [T] - Show status thread (replies)"))
+        yield urwid.Text(h("  [U] - Show the status data in JSON as received from the server"))
+        yield urwid.Text(h("  [V] - Open status in default browser"))
