@@ -3,6 +3,8 @@ PALETTE = [
     # Components
     ('button', 'white', 'black'),
     ('button_focused', 'light gray', 'dark magenta'),
+    ('columns_divider', 'white', 'dark blue'),
+    ('content_warning', 'white', 'dark magenta'),
     ('editbox', 'white', 'black'),
     ('editbox_focused', 'white', 'dark magenta'),
     ('footer_message', 'dark green', ''),
@@ -13,7 +15,7 @@ PALETTE = [
     ('header_bold', 'white,bold', 'dark blue'),
     ('intro_bigtext', 'yellow', ''),
     ('intro_smalltext', 'light blue', ''),
-    ('content_warning', 'white', 'dark magenta'),
+    ('poll_bar', 'white', 'dark blue'),
 
     # Functional
     ('hashtag', 'light cyan,bold', ''),
@@ -22,7 +24,6 @@ PALETTE = [
 
     # Colors
     ('bold', ',bold', ''),
-    ('italics', ',italics', ''),
     ('blue', 'light blue', ''),
     ('blue_bold', 'light blue, bold', ''),
     ('blue_selected', 'white', 'dark blue'),
