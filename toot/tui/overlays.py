@@ -1,11 +1,12 @@
 import json
 import traceback
 import urwid
+import webbrowser
 
 from toot import __version__
 
 from .utils import highlight_keys
-from .widgets import Button, EditBox
+from .widgets import Button, EditBox, SelectableText
 
 
 class StatusSource(urwid.ListBox):
@@ -80,9 +81,14 @@ class Help(urwid.Padding):
         super().__init__(listbox, left=1, right=1)
 
     def generate_contents(self):
-
         def h(text):
             return highlight_keys(text, "cyan")
+
+        def link(text, url):
+            attr_map = {"link": "link_focused"}
+            text = SelectableText([text, ("link", url)])
+            urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
+            return urwid.AttrMap(text, "", attr_map)
 
         yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
         yield urwid.Divider()
@@ -111,3 +117,8 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [T] - Show status thread (replies)"))
         yield urwid.Text(h("  [U] - Show the status data in JSON as received from the server"))
         yield urwid.Text(h("  [V] - Open status in default browser"))
+        yield urwid.Divider()
+        yield urwid.Text(("bold", "Links"))
+        yield urwid.Divider()
+        yield link("Documentation: ", "https://toot.readthedocs.io/")
+        yield link("Project home:  ", "https://github.com/ihabunek/toot/")

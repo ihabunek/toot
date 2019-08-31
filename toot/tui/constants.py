@@ -18,6 +18,7 @@ PALETTE = [
     # Functional
     ('hashtag', 'light cyan,bold', ''),
     ('link', ',italics', ''),
+    ('link_focused', ',italics', 'dark magenta'),
 
     # Colors
     ('bold', ',bold', ''),
