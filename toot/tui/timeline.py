@@ -271,7 +271,7 @@ class StatusDetails(urwid.Pile):
             perc = (round(100 * option["votes_count"] / poll["votes_count"])
                 if poll["votes_count"] else 0)
             yield urwid.Text(option["title"])
-            yield urwid.ProgressBar("", "blue_selected", perc)
+            yield urwid.ProgressBar("", "poll_bar", perc)
 
         if poll["expired"]:
             status = "Closed"
