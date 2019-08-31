@@ -38,7 +38,7 @@ class Timeline(urwid.Columns):
         super().__init__([
             ("weight", 40, self.status_list),
             ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
-            ("weight", 60, self.status_details),
+            ("weight", 60, urwid.Padding(self.status_details, left=1)),
         ])
 
     def build_status_list(self, statuses, focus):
