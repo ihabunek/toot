@@ -36,6 +36,7 @@ class Status:
         self.author = get_author(data, instance)
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
+        self.in_reply_to = data.get("in_reply_to_id")
 
     def get_account(self):
         acct = self.data['account']['acct']

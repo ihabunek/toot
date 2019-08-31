@@ -284,6 +284,7 @@ class StatusListItem(SelectableColumns):
         created_at = status.created_at.strftime("%Y-%m-%d %H:%M")
         favourited = ("yellow", "★") if status.favourited else " "
         reblogged = ("yellow", "♺") if status.reblogged else " "
+        is_reply = ("cyan", "⤶") if status.in_reply_to else " "
 
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
@@ -293,4 +294,6 @@ class StatusListItem(SelectableColumns):
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
             urwid.Text(("green", status.account), wrap="clip"),
+            ("pack", urwid.Text(is_reply)),
+            ("pack", urwid.Text(" ")),
         ])
