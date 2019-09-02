@@ -33,8 +33,8 @@ Features
 * Following, muting and blocking accounts
 * Simple switching between authenticated in Mastodon accounts
 
-Curses UI
----------
+Terminal User Interface
+-----------------------
 
 toot includes a curses-based terminal user interface (TUI). Run it with ``toot tui``.
 
