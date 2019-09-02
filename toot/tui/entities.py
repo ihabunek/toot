@@ -22,6 +22,7 @@ class Status:
     """
     def __init__(self, data, instance):
         self.data = data
+        reblog = data.get('reblog', {})
         self.instance = instance
 
         # This can be toggled by the user
@@ -37,6 +38,7 @@ class Status:
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
         self.in_reply_to = data.get("in_reply_to_id")
+        self.url = reblog.get("url") if reblog else data.get("url")
 
     def get_account(self):
         acct = self.data['account']['acct']
