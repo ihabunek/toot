@@ -11,9 +11,11 @@ Bump & tag version
 
 * Update the version number in ``setup.py``
 * Update the version number in ``toot/__init__.py``
-* Update the ``CHANGELOG.md`` with the release notes & date
-* Tag a release in git
-* Push master & tag to GitHub
+* Update ``changelog.yaml`` with the release notes & date
+* Run ``./scripts/generate_changelog`` to generate a human readable changelog
+* Commit the changes
+* Run ``./scripts/tag_release <version>`` to tag a release in git
+* Run ``git push --follow-tags`` to upload changes and tag to Github
 
 Publishing to PyPI
 ------------------
@@ -41,3 +43,5 @@ Github release
     * source dist (.zip and .tar.gz)
     * wheel distribution (.whl)
     * debian package (.deb)
+
+TODO: this can be automated: https://developer.github.com/v3/repos/releases/
