@@ -1,4 +1,13 @@
 
+0.23.0:
+  date: 2019-09-03
+  changes:
+    - "Add `toot tui`, new and improved TUI implemented written with the help of the [urwid](http://urwid.org/) library"
+    - "Deprecate `toot curses`. It will show a deprecation notice when started. To be removed in a future release"
+    - "Add `--editor` option to `toot post` to allow composing toots in an editor (#90)"
+    - "Fix config file permissions, set them to 0600 when creating the initial config file (#109)"
+    - "Add user agent string to all requests, fixes interaction with instances protected by Cloudflare (#106)"
+
 0.22.0:
   date: 2019-08-01
   changes:
