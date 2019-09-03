@@ -55,7 +55,7 @@ def login(app, username, password):
     if response.is_redirect:
         raise AuthenticationError()
 
-    return http.process_response(response).json()
+    return response.json()
 
 
 def get_browser_login_url(app):
@@ -79,9 +79,7 @@ def request_access_token(app, authorization_code):
         'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
     }
 
-    response = http.anon_post(url, data, allow_redirects=False)
-
-    return http.process_response(response).json()
+    return http.anon_post(url, data, allow_redirects=False).json()
 
 
 def post_status(
