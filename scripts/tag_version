@@ -12,9 +12,11 @@ import subprocess
 import sys
 import textwrap
 import yaml
+import toot
 
 from datetime import date
 from os import path
+from pkg_resources import get_distribution
 
 path = path.join(path.dirname(path.dirname(path.abspath(__file__))), "changelog.yaml")
 with open(path, "r") as f:
@@ -25,10 +27,19 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 version = sys.argv[1]
-changelog_item = changelog.get(version)
 
+changelog_item = changelog.get(version)
 if not changelog_item:
     print(f"Version `{version}` not found in changelog.", file=sys.stderr)
+    sys.exit(1)
+
+if toot.__version__ != version:
+    print(f"toot.__version__ is `{toot.__version__}`, expected {version}.", file=sys.stderr)
+    sys.exit(1)
+
+dist_version = get_distribution('toot').version
+if dist_version != version:
+    print(f"Version in setup.py is `{dist_version}`, expected {version}.", file=sys.stderr)
     sys.exit(1)
 
 release_date = changelog_item["date"]
@@ -47,7 +58,11 @@ for c in changes:
         initial = False
         commit_message += f"{lead} {line}\n"
 
-subprocess.run(["git", "tag", "-a", version, "-m", commit_message])
+proc = subprocess.run(["git", "tag", "-a", version, "-m", commit_message])
+if proc.returncode != 0:
+    sys.exit(1)
 
-print("Tagged version:")
+print()
 print(commit_message)
+print()
+print(f"Version {version} tagged \\o/")
