@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+"""
+Creates an annotated git tag for a given version number.
+
+The tag will include the version number and changes for given version.
+
+Usage: tag_version [version]
+"""
+
+import subprocess
+import sys
+import textwrap
+import yaml
+
+from datetime import date
+from os import path
+
+path = path.join(path.dirname(path.dirname(path.abspath(__file__))), "changelog.yaml")
+with open(path, "r") as f:
+    changelog = yaml.safe_load(f)
+
+if len(sys.argv) != 2:
+    print("Wrong argument count", file=sys.stderr)
+    sys.exit(1)
+
+version = sys.argv[1]
+changelog_item = changelog.get(version)
+
+if not changelog_item:
+    print(f"Version `{version}` not found in changelog.", file=sys.stderr)
+    sys.exit(1)
+
+release_date = changelog_item["date"]
+changes = changelog_item["changes"]
+
+if not isinstance(release_date, date):
+    print(f"Release date not set for version `{version}` in the changelog.", file=sys.stderr)
+    sys.exit(1)
+
+commit_message = f"toot {version}\n\n"
+for c in changes:
+    lines = textwrap.wrap(c, 70)
+    initial = True
+    for line in lines:
+        lead = " *" if initial else "  "
+        initial = False
+        commit_message += f"{lead} {line}\n"
+
+subprocess.run(["git", "tag", "-a", version, "-m", commit_message])
+
+print("Tagged version:")
+print(commit_message)
