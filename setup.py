@@ -3,15 +3,16 @@
 from setuptools import setup
 
 long_description = """
-toot is a commandline tool for interacting with Mastodon social networks.
+Toot is a CLI and TUI tool for interacting with Mastodon instances from the
+command line.
+
 Allows posting text and media to the timeline, searching, following, muting
 and blocking accounts and other actions.
-Includes a curses-based terminal user interface (TUI).
 """
 
 setup(
     name='toot',
-    version='0.22.0',
+    version='0.23.0',
     description='Mastodon CLI client',
     long_description=long_description.strip(),
     author='Ivan Habunek',
