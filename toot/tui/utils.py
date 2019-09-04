@@ -9,7 +9,15 @@ HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
 def parse_datetime(value):
     """Returns an aware datetime in local timezone"""
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z").astimezone()
+
+    # In Python < 3.7, `%z` does not match `Z` offset
+    # https://docs.python.org/3.7/library/datetime.html#strftime-and-strptime-behavior
+    if value.endswith("Z"):
+        dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
+    else:
+        dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+    return dttm.astimezone()
 
 
 def highlight_keys(text, high_attr, low_attr=""):
