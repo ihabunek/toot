@@ -30,6 +30,23 @@ class ExceptionStackTrace(urwid.ListBox):
         super().__init__(walker)
 
 
+class StatusDeleteConfirmation(urwid.ListBox):
+    signals = ["delete", "close"]
+
+    def __init__(self, status):
+        yes = SelectableText("Yes, send it to heck")
+        no = SelectableText("No, I'll spare it for now")
+
+        urwid.connect_signal(yes, "click", lambda *args: self._emit("delete"))
+        urwid.connect_signal(no, "click", lambda *args: self._emit("close"))
+
+        walker = urwid.SimpleFocusListWalker([
+            urwid.AttrWrap(yes, "", "blue_selected"),
+            urwid.AttrWrap(no, "", "blue_selected"),
+        ])
+        super().__init__(walker)
+
+
 class GotoMenu(urwid.ListBox):
     signals = [
         "home_timeline",

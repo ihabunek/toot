@@ -9,6 +9,7 @@ from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource
+from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
 from .utils import show_media
 
@@ -165,8 +166,11 @@ class TUI(urwid.Frame):
         def _compose(*args):
             self.show_compose()
 
+        def _delete(timeline, status):
+            if status.is_mine:
+                self.show_delete_confirmation(status)
+
         def _reply(timeline, status):
-            logger.info("reply")
             self.show_compose(status)
 
         def _source(timeline, status):
@@ -178,14 +182,15 @@ class TUI(urwid.Frame):
         def _menu(timeline, status):
             self.show_context_menu(status)
 
-        urwid.connect_signal(timeline, "focus", self.refresh_footer)
-        urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
-        urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
-        urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "compose", _compose)
-        urwid.connect_signal(timeline, "reply", _reply)
+        urwid.connect_signal(timeline, "delete", _delete)
+        urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
+        urwid.connect_signal(timeline, "focus", self.refresh_footer)
         urwid.connect_signal(timeline, "media", _media)
         urwid.connect_signal(timeline, "menu", _menu)
+        urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
+        urwid.connect_signal(timeline, "reply", _reply)
+        urwid.connect_signal(timeline, "source", _source)
 
     def build_timeline(self, name, statuses):
         def _close(*args):
@@ -206,6 +211,10 @@ class TUI(urwid.Frame):
 
         return timeline
 
+    def make_status(self, status_data):
+        is_mine = self.user.username == status_data["account"]["acct"]
+        return Status(status_data, is_mine, self.app.instance)
+
     def show_thread(self, status):
         def _close(*args):
             """When thread is closed, go back to the main timeline."""
@@ -216,8 +225,8 @@ class TUI(urwid.Frame):
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
         context = api.context(self.app, self.user, status.id)
-        ancestors = [Status(s, self.app.instance) for s in context["ancestors"]]
-        descendants = [Status(s, self.app.instance) for s in context["descendants"]]
+        ancestors = [self.make_status(s) for s in context["ancestors"]]
+        descendants = [self.make_status(s) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
@@ -241,7 +250,7 @@ class TUI(urwid.Frame):
             finally:
                 self.footer.clear_message()
 
-            return [Status(s, self.app.instance) for s in data]
+            return [self.make_status(s) for s in data]
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
@@ -334,12 +343,28 @@ class TUI(urwid.Frame):
         # TODO: show context menu
         pass
 
+    def show_delete_confirmation(self, status):
+        def _delete(widget):
+            promise = self.async_delete_status(self.timeline, status)
+            promise.add_done_callback(lambda *args: self.close_overlay())
+
+        def _close(widget):
+            self.close_overlay()
+
+        widget = StatusDeleteConfirmation(status)
+        urwid.connect_signal(widget, "close", _close)
+        urwid.connect_signal(widget, "delete", _delete)
+        self.open_overlay(widget, title="Delete status?", options=dict(
+            align="center", width=("relative", 60),
+            valign="middle", height=5,
+        ))
+
     def post_status(self, content, warning, visibility, in_reply_to_id):
         data = api.post_status(self.app, self.user, content,
             spoiler_text=warning,
             visibility=visibility,
             in_reply_to_id=in_reply_to_id)
-        status = Status(data, self.app.instance)
+        status = self.make_status(data)
 
         # TODO: instead of this, fetch new items from the timeline?
         self.timeline.prepend_status(status)
@@ -361,7 +386,8 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped favourited flag
             new_data = status.data
             new_data["favourited"] = not status.favourited
-            timeline.update_status(Status(new_data, status.instance))
+            new_status = self.make_status(new_data)
+            timeline.update_status(new_status)
 
         self.run_in_thread(
             _unfavourite if status.favourited else _favourite,
@@ -381,12 +407,22 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped reblogged flag
             new_data = status.data
             new_data["reblogged"] = not status.reblogged
-            timeline.update_status(Status(new_data, status.instance))
+            new_status = self.make_status(new_data)
+            timeline.update_status(new_status)
 
         self.run_in_thread(
             _unreblog if status.reblogged else _reblog,
             done_callback=_done
         )
+
+    def async_delete_status(self, timeline, status):
+        def _delete():
+            api.delete_status(self.app, self.user, status.id)
+
+        def _done(loop):
+            timeline.remove_status(status)
+
+        return self.run_in_thread(_delete, done_callback=_done)
 
     # --- Overlay handling -----------------------------------------------------
 

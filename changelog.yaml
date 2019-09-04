@@ -1,4 +1,9 @@
 
+0.24.0:
+  date: TBA
+  changes:
+    - "TUI: Implement deleting own status messages"
+
 0.23.1:
   date: 2019-09-04
   changes:

@@ -17,6 +17,7 @@ class Timeline(urwid.Columns):
     signals = [
         "close",      # Close thread
         "compose",    # Compose a new toot
+        "delete",     # Delete own status
         "favourite",  # Favourite status
         "focus",      # Focus changed
         "media",      # Display media attachments
@@ -110,6 +111,10 @@ class Timeline(urwid.Columns):
             self._emit("compose")
             return
 
+        if key in ("d", "D"):
+            self._emit("delete", status)
+            return
+
         if key in ("f", "F"):
             self._emit("favourite", status)
             return
@@ -184,6 +189,14 @@ class Timeline(urwid.Columns):
         if index == self.status_list.body.focus:
             self.draw_status_details(status)
 
+    def remove_status(self, status):
+        index = self.get_status_index(status.id)
+        assert self.statuses[index].id == status.id  # Sanity check
+
+        del(self.statuses[index])
+        del(self.status_list.body[index])
+        self.refresh_status_details()
+
 
 class StatusDetails(urwid.Pile):
     def __init__(self, status, in_thread):
@@ -247,8 +260,18 @@ class StatusDetails(urwid.Pile):
         # Push things to bottom
         yield ("weight", 1, urwid.SolidFill(" "))
 
-        options = "[B]oost [F]avourite [V]iew {}[R]eply So[u]rce [H]elp".format(
-            "[T]hread " if not self.in_thread else "")
+        options = [
+            "[B]oost",
+            "[D]elete" if status.is_mine else "",
+            "[F]avourite",
+            "[V]iew",
+            "[T]hread" if not self.in_thread else "",
+            "[R]eply",
+            "So[u]rce",
+            "[H]elp",
+        ]
+        options = " ".join(o for o in options if o)
+
         options = highlight_keys(options, "cyan_bold", "cyan")
         yield ("pack", urwid.Text(options))
 
