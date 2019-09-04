@@ -1,4 +1,9 @@
 
+0.23.1:
+  date: 2019-09-04
+  changes:
+    - "Fix a date parsing bug in Python versions <3.7 (#114)"
+
 0.23.0:
   date: 2019-09-03
   changes:

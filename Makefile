@@ -19,3 +19,6 @@ coverage:
 clean :
 	find . -name "*pyc" | xargs rm -rf $1
 	rm -rf build dist MANIFEST htmlcov deb_dist toot*.tar.gz
+
+changelog:
+	./scripts/generate_changelog > CHANGELOG.md
