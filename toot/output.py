@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sys
+import os
 import re
+import sys
 
 from datetime import datetime
 from textwrap import wrap
@@ -46,7 +47,27 @@ def strip_tags(text):
     return text
 
 
-USE_ANSI_COLOR = "--no-color" not in sys.argv
+def use_ansi_color():
+    """Returns True if ANSI color codes should be used."""
+
+    # Windows doesn't support color unless ansicon is installed
+    # See: http://adoxa.altervista.org/ansicon/
+    if sys.platform == 'win32' and 'ANSICON' not in os.environ:
+        return False
+
+    # Don't show color if stdout is not a tty, e.g. if output is piped on
+    if not sys.stdout.isatty():
+        return False
+
+    # Don't show color if explicitly specified in options
+    if "--no-color" in sys.argv:
+        return False
+
+    return True
+
+
+USE_ANSI_COLOR = use_ansi_color()
+
 QUIET = "--quiet" in sys.argv
 
 
