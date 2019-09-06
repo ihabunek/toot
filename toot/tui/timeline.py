@@ -149,8 +149,8 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("v", "V"):
-            if status.data["url"]:
-                webbrowser.open(status.data["url"])
+            if status.url:
+                webbrowser.open(status.url)
             return
 
         return super().keypress(size, key)

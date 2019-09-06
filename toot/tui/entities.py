@@ -31,6 +31,9 @@ class Status:
         self.reblogged = data.get("reblogged", False)
         self.in_reply_to = data.get("in_reply_to_id")
 
+        reblog = data.get("reblog")
+        self.url = reblog.get("url") if reblog else data.get("url")
+
     def get_author(self):
         # Show the author, not the persopn who reblogged
         data = self.data["reblog"] or self.data
