@@ -121,6 +121,10 @@ class Timeline(urwid.Columns):
         if key in ("q", "Q"):
             self._emit("close")
             return
+        
+        if key == "esc":
+            self._emit("close")
+            return
 
         if key in ("r", "R"):
             self._emit("reply", status)
