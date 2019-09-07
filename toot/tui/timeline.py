@@ -286,7 +286,7 @@ class StatusDetails(urwid.Pile):
 
     def card_generator(self, card):
         yield urwid.Text(("green", card["title"].strip()))
-        if card["author_name"]:
+        if card.get("author_name"):
             yield urwid.Text(["by ", ("yellow", card["author_name"].strip())])
         yield urwid.Text("")
         if card["description"]:
