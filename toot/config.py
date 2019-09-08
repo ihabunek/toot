@@ -7,7 +7,6 @@ from functools import wraps
 from os.path import dirname
 
 from toot import User, App
-from toot.config_legacy import load_legacy_config
 from toot.exceptions import ConsoleError
 from toot.output import print_out
 
@@ -31,20 +30,11 @@ def user_id(user):
 
 
 def make_config(path):
-    """Creates a config file.
-
-    Attempts to load data from legacy config files if they exist.
-    """
-    apps, user = load_legacy_config()
-
-    apps = {a.instance: a._asdict() for a in apps}
-    users = {user_id(user): user._asdict()} if user else {}
-    active_user = user_id(user) if user else None
-
+    """Creates an empty toot configuration file."""
     config = {
-        "apps": apps,
-        "users": users,
-        "active_user": active_user,
+        "apps": {},
+        "users": {},
+        "active_user": None,
     }
 
     print_out("Creating config file at <blue>{}</blue>".format(path))
