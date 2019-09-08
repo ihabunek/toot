@@ -1,25 +1,39 @@
-# -*- coding: utf-8 -*-
-
-import os
 import json
+import os
+import sys
 
 from functools import wraps
-from os.path import dirname
+from os.path import dirname, join, expanduser
 
 from toot import User, App
 from toot.exceptions import ConsoleError
 from toot.output import print_out
 
 
-def get_config_file_path():
-    """Returns the path to toot config file
+TOOT_CONFIG_DIR_NAME = "toot"
+TOOT_CONFIG_FILE_NAME = "config.json"
 
-    Attempts to locate config home dir from XDG_CONFIG_HOME env variable.
-    See: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
-    If not found, defaults to `~/.config`.
-    """
-    config_dir = os.getenv('XDG_CONFIG_HOME', '~/.config')
-    return os.path.expanduser(config_dir + '/toot/config.json')
+
+def get_config_dir():
+    """Returns the path to toot config directory"""
+
+    # On Windows, store the config in roaming appdata
+    if sys.platform == "win32" and "APPDATA" in os.environ:
+        return join(os.getenv("APPDATA"), TOOT_CONFIG_DIR_NAME)
+
+    # Respect XDG_CONFIG_HOME env variable if set
+    # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    if "XDG_CONFIG_HOME" in os.environ:
+        config_home = expanduser(os.environ["XDG_CONFIG_HOME"])
+        return join(config_home, TOOT_CONFIG_DIR_NAME)
+
+    # Default to ~/.config/toot/
+    return join(expanduser("~"), ".config", TOOT_CONFIG_DIR_NAME)
+
+
+def get_config_file_path():
+    """Returns the path to toot config file."""
+    return join(get_config_dir(), TOOT_CONFIG_FILE_NAME)
 
 
 CONFIG_FILE = get_config_file_path()
