@@ -192,7 +192,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
         "exact mathematical design, but\nwhat's missing is the eyebrows." in out)
 
     assert "111111111111111111" in lines[-3]
-    assert "↻ Reblogged \x1b[34m@jc\x1b[0m" in lines[-3]
+    assert "↻ Reblogged @jc" in lines[-3]
 
     assert err == ""
 
@@ -336,10 +336,10 @@ def test_search(mock_get, capsys):
     })
 
     out, err = capsys.readouterr()
-    assert "Hashtags:\n\033[32m#foo\033[0m, \033[32m#bar\033[0m, \033[32m#baz\033[0m" in out
+    assert "Hashtags:\n#foo, #bar, #baz" in out
     assert "Accounts:" in out
-    assert "\033[32m@thequeen\033[0m Freddy Mercury" in out
-    assert "\033[32m@thequeen@other.instance\033[0m Mercury Freddy" in out
+    assert "@thequeen Freddy Mercury" in out
+    assert "@thequeen@other.instance Mercury Freddy" in out
 
 
 @mock.patch('toot.http.post')
