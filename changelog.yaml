@@ -4,6 +4,7 @@
   changes:
     - "CLI: Don't use ANSI colors if not supported by terminal or when not in a tty"
     - "TUI: Implement deleting own status messages"
+    - "On Windows store config files under %APPDATA%"
 
 0.23.1:
   date: 2019-09-04
