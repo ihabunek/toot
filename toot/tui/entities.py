@@ -42,7 +42,9 @@ class Status:
         return Author(acct, data['account']['display_name'])
 
     def get_account(self):
-        acct = self.data['account']['acct']
+        reblog = self.data.get("reblog")
+        account = reblog['account'] if reblog else self.data['account']
+        acct = account['acct']
         return acct if "@" in acct else "{}@{}".format(acct, self.default_instance)
 
     def __repr__(self):
