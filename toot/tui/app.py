@@ -14,6 +14,8 @@ from .utils import show_media
 
 logger = logging.getLogger(__name__)
 
+urwid.set_encoding('UTF-8')
+
 
 class Header(urwid.WidgetWrap):
     def __init__(self, app, user):
