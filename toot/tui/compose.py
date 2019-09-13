@@ -14,7 +14,15 @@ class StatusComposer(urwid.Frame):
 
     def __init__(self, in_reply_to=None):
         self.in_reply_to = in_reply_to
-        self.content_edit = EditBox(multiline=True, allow_tab=True)
+        text, edit_pos = '', None
+        if in_reply_to is not None:
+            text = f'@{in_reply_to.account} '
+            edit_pos = len(text)
+            mentions = [f'@{m["acct"]}' for m in in_reply_to.mentions]
+            if mentions:
+                text += '\n\n{}'.format(' '.join(mentions))
+        self.content_edit = EditBox(edit_text=text, edit_pos=edit_pos,
+                                    multiline=True, allow_tab=True)
 
         self.cw_edit = None
         self.cw_add_button = Button("Add content warning",
