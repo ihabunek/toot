@@ -209,7 +209,7 @@ class StatusDetails(urwid.Pile):
         return super().__init__(widget_list)
 
     def content_generator(self, status):
-        if status.data["reblog"]:
+        if status.reblog:
             boosted_by = status.data["account"]["display_name"]
             yield ("pack", urwid.Text(("gray", "♺ {} boosted".format(boosted_by))))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
