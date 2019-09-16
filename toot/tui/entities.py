@@ -29,9 +29,11 @@ class Status:
         self.author = self.get_author()
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
-        self.in_reply_to = data.get("in_reply_to_id")
-
         self.reblog = reblog = data.get("reblog")
+        self.in_reply_to = (
+            reblog.get("in_reply_to_id")
+            if reblog else data.get("in_reply_to_id")
+        )
         self.url = reblog.get("url") if reblog else data.get("url")
         self.media_attachments = (
             reblog["media_attachments"]
