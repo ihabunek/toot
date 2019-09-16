@@ -335,7 +335,7 @@ class TUI(urwid.Frame):
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):
-        urls = [m["url"] for m in status.data["media_attachments"]]
+        urls = [m["url"] for m in status.media_attachments]
         if urls:
             show_media(urls)
 

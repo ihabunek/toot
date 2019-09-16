@@ -231,7 +231,7 @@ class StatusDetails(urwid.Pile):
             for line in format_content(status.data["content"]):
                 yield ("pack", urwid.Text(highlight_hashtags(line)))
 
-        media = status.data["media_attachments"]
+        media = status.media_attachments
         if media:
             for m in media:
                 yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
