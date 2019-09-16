@@ -256,9 +256,9 @@ class StatusDetails(urwid.Pile):
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
         yield ("pack", urwid.Text([
-            ("gray", "⤶ {} ".format(status.data["replies_count"])),
-            ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.data["reblogs_count"])),
-            ("yellow" if status.favourited else "gray", "★ {}".format(status.data["favourites_count"])),
+            ("gray", "⤶ {} ".format(status.replies_count)),
+            ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.reblogs_count)),
+            ("yellow" if status.favourited else "gray", "★ {}".format(status.favourites_count)),
             ("gray", " · {}".format(application) if application else ""),
         ]))
 

@@ -37,6 +37,18 @@ class Status:
             reblog["media_attachments"]
             if reblog else data["media_attachments"]
         )
+        self.favourites_count = (
+            reblog["favourites_count"]
+            if reblog else data["favourites_count"]
+        )
+        self.replies_count = (
+            reblog["replies_count"]
+            if reblog else data["replies_count"]
+        )
+        self.reblogs_count = (
+            reblog["reblogs_count"]
+            if reblog else data["reblogs_count"]
+        )
 
     def get_author(self):
         # Show the author, not the persopn who reblogged
