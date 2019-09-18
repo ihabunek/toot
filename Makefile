@@ -11,7 +11,7 @@ publish :
 	twine upload dist/*.tar.gz dist/*.whl
 
 test:
-	pytest -v -s
+	pytest -v
 
 coverage:
 	py.test --cov=toot --cov-report html tests/
