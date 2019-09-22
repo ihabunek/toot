@@ -210,7 +210,7 @@ def upload_media(app, user, file):
 
 
 def search(app, user, query, resolve):
-    return http.get(app, user, '/api/v1/search', {
+    return http.get(app, user, '/api/v2/search', {
         'q': query,
         'resolve': resolve,
     }).json()

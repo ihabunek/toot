@@ -141,7 +141,7 @@ def print_search_results(results):
 
     if hashtags:
         print_out("\nHashtags:")
-        print_out(", ".join(["<green>#{}</green>".format(t) for t in hashtags]))
+        print_out(", ".join(["<green>#{}</green>".format(t["name"]) for t in hashtags]))
 
     if not accounts and not hashtags:
         print_out("<yellow>Nothing found</yellow>")
