@@ -226,7 +226,7 @@ class TUI(urwid.Frame):
 
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
-        context = api.context(self.app, self.user, status.id)
+        context = api.context(self.app, self.user, status.original.id)
         ancestors = [self.make_status(s) for s in context["ancestors"]]
         descendants = [self.make_status(s) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants
@@ -337,7 +337,7 @@ class TUI(urwid.Frame):
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):
-        urls = [m["url"] for m in status.data["media_attachments"]]
+        urls = [m["url"] for m in status.original.data["media_attachments"]]
         if urls:
             show_media(urls)
 

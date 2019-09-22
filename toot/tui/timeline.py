@@ -136,7 +136,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("s", "S"):
-            status.show_sensitive = True
+            status.original.show_sensitive = True
             self.refresh_status_details()
             return
 
@@ -149,8 +149,8 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("v", "V"):
-            if status.url:
-                webbrowser.open(status.url)
+            if status.original.url:
+                webbrowser.open(status.original.url)
             return
 
         return super().keypress(size, key)
@@ -204,14 +204,24 @@ class Timeline(urwid.Columns):
 
 class StatusDetails(urwid.Pile):
     def __init__(self, status, in_thread):
+        """
+        Parameters
+        ----------
+        status : Status
+            The status to render.
+
+        in_thread : bool
+            Whether the status is rendered from a thread status list.
+        """
         self.in_thread = in_thread
-        widget_list = list(self.content_generator(status))
+        reblogged_by = status.author if status.reblog else None
+        widget_list = list(self.content_generator(status.original, reblogged_by))
         return super().__init__(widget_list)
 
-    def content_generator(self, status):
-        if status.data["reblog"]:
-            boosted_by = status.data["account"]["display_name"]
-            yield ("pack", urwid.Text(("gray", "♺ {} boosted".format(boosted_by))))
+    def content_generator(self, status, reblogged_by):
+        if reblogged_by:
+            text = "♺ {} boosted".format(reblogged_by.display_name)
+            yield ("pack", urwid.Text(("gray", text)))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
         if status.author.display_name:
@@ -315,10 +325,10 @@ class StatusDetails(urwid.Pile):
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
         created_at = status.created_at.strftime("%Y-%m-%d %H:%M")
-        favourited = ("yellow", "★") if status.favourited else " "
-        reblogged = ("yellow", "♺") if status.reblogged else " "
+        favourited = ("yellow", "★") if status.original.favourited else " "
+        reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
-        is_reply = ("cyan", "⤶") if status.in_reply_to else " "
+        is_reply = ("cyan", "⤶") if status.original.in_reply_to else " "
 
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
@@ -327,7 +337,7 @@ class StatusListItem(SelectableColumns):
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
-            urwid.Text(("green", status.account), wrap="clip"),
+            urwid.Text(("green", status.original.account), wrap="clip"),
             ("pack", urwid.Text(is_reply)),
             ("pack", urwid.Text(is_reblog)),
             ("pack", urwid.Text(" ")),
