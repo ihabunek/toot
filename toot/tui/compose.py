@@ -16,9 +16,9 @@ class StatusComposer(urwid.Frame):
         self.in_reply_to = in_reply_to
         text, edit_pos = '', None
         if in_reply_to is not None:
-            text = f'@{in_reply_to.account} '
+            text = '@{} '.format(in_reply_to.account)
             edit_pos = len(text)
-            mentions = [f'@{m["acct"]}' for m in in_reply_to.mentions]
+            mentions = ['@{}'.format(m["acct"]) for m in in_reply_to.mentions]
             if mentions:
                 text += '\n\n{}'.format(' '.join(mentions))
         self.content_edit = EditBox(edit_text=text, edit_pos=edit_pos,

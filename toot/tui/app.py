@@ -26,7 +26,7 @@ class Header(urwid.WidgetWrap):
         self.text = urwid.Text("")
         self.cols = urwid.Columns([
             ("pack", urwid.Text(('header_bold', 'toot'))),
-            ("pack", urwid.Text(('header', f' | {user.username}@{app.instance}'))),
+            ("pack", urwid.Text(('header', ' | {}@{}'.format(user.username, app.instance)))),
             ("pack", self.text),
         ])
 
