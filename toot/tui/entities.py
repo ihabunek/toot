@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from .utils import parse_datetime
 
-Author = namedtuple("Author", ["account", "display_name"])
+Author = namedtuple("Author", ["account", "display_name", "username"])
 
 
 class Status:
@@ -73,7 +73,7 @@ class Status:
     def _get_author(self):
         acct = self.data['account']['acct']
         acct = acct if "@" in acct else "{}@{}".format(acct, self.default_instance)
-        return Author(acct, self.data['account']['display_name'])
+        return Author(acct, self.data['account']['display_name'], self.data['account']['username'])
 
     def _get_account(self):
         acct = self.data['account']['acct']
