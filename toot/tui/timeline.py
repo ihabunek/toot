@@ -220,7 +220,7 @@ class StatusDetails(urwid.Pile):
 
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
-            text = "♺ {} boosted".format(reblogged_by.display_name)
+            text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
             yield ("pack", urwid.Text(("gray", text)))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
