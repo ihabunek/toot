@@ -201,7 +201,7 @@ TUI_COMMANDS = [
         name="tui",
         description="Launches the toot terminal user interface",
         arguments=[],
-        require_auth=False,
+        require_auth=True,
     ),
     Command(
         name="curses",
