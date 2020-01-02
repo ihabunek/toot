@@ -58,7 +58,7 @@ def editor(value):
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
 
 
-# Aruguments added to every command
+# Arguments added to every command
 common_args = [
     (["--no-color"], {
         "help": "don't use ANSI colors in output",
