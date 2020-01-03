@@ -3,6 +3,7 @@ import logging
 
 from .constants import VISIBILITY_OPTIONS
 from .widgets import Button, EditBox
+
 logger = logging.getLogger(__name__)
 
 
@@ -12,17 +13,16 @@ class StatusComposer(urwid.Frame):
     """
     signals = ["close", "post"]
 
-    def __init__(self, in_reply_to=None):
+    def __init__(self, max_chars, in_reply_to=None):
         self.in_reply_to = in_reply_to
-        text, edit_pos = '', None
-        if in_reply_to is not None:
-            text = '@{} '.format(in_reply_to.account)
-            edit_pos = len(text)
-            mentions = ['@{}'.format(m["acct"]) for m in in_reply_to.mentions]
-            if mentions:
-                text += '\n\n{}'.format(' '.join(mentions))
-        self.content_edit = EditBox(edit_text=text, edit_pos=edit_pos,
-                                    multiline=True, allow_tab=True)
+        self.max_chars = max_chars
+
+        text = self.get_initial_text(in_reply_to)
+        self.content_edit = EditBox(
+            edit_text=text, edit_pos=len(text), multiline=True, allow_tab=True)
+        urwid.connect_signal(self.content_edit.edit, "change", self.text_changed)
+
+        self.char_count = urwid.Text(["0/{}".format(max_chars)])
 
         self.cw_edit = None
         self.cw_add_button = Button("Add content warning",
@@ -42,6 +42,23 @@ class StatusComposer(urwid.Frame):
         self.listbox = urwid.ListBox(self.walker)
         return super().__init__(self.listbox)
 
+    def get_initial_text(self, in_reply_to):
+        if not in_reply_to:
+            return ""
+
+        text = '@{} '.format(in_reply_to.account)
+        mentions = ['@{}'.format(m["acct"]) for m in in_reply_to.mentions]
+        if mentions:
+            text += '\n\n{}'.format(' '.join(mentions))
+
+        return text
+
+    def text_changed(self, edit, text):
+        count = self.max_chars - len(text)
+        text = "{}/{}".format(count, self.max_chars)
+        color = "warning" if count < 0 else ""
+        self.char_count.set_text((color, text))
+
     def generate_list_items(self):
         if self.in_reply_to:
             yield urwid.Text(("gray", "Replying to {}".format(self.in_reply_to.account)))
@@ -49,6 +66,7 @@ class StatusComposer(urwid.Frame):
 
         yield urwid.Text("Status message")
         yield self.content_edit
+        yield self.char_count
         yield urwid.Divider()
 
         if self.cw_edit:

@@ -99,6 +99,9 @@ class TUI(urwid.Frame):
         self.footer = Footer()
         self.footer.set_status("Loading...")
 
+        # Default max status length, updated on startup
+        self.max_toot_chars = 500
+
         self.timeline = None
         self.overlay = None
         self.exception = None
@@ -106,8 +109,9 @@ class TUI(urwid.Frame):
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
-        self.loop.set_alarm_in(0, lambda *args:
-            self.async_load_timeline(is_initial=True, timeline_name="home"))
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
+            is_initial=True, timeline_name="home"))
         self.loop.run()
         self.executor.shutdown(wait=False)
 
@@ -269,6 +273,21 @@ class TUI(urwid.Frame):
         return self.run_in_thread(_load_statuses,
             done_callback=_done_initial if is_initial else _done_next)
 
+    def async_load_instance(self):
+        """
+        Attempt to update max_toot_chars from instance data.
+        Does not work on vanilla Mastodon, works on Pleroma.
+        See: https://github.com/tootsuite/mastodon/issues/4915
+        """
+        def _load_instance():
+            return api.get_instance(self.app.instance)
+
+        def _done(instance):
+            if "max_toot_chars" in instance:
+                self.max_toot_chars
+
+        return self.run_in_thread(_load_instance, done_callback=_done)
+
     def refresh_footer(self, timeline):
         """Show status details in footer."""
         status, index, count = timeline.get_focused_status_with_counts()
@@ -296,7 +315,7 @@ class TUI(urwid.Frame):
         def _post(timeline, *args):
             self.post_status(*args)
 
-        composer = StatusComposer(in_reply_to)
+        composer = StatusComposer(self.max_toot_chars, in_reply_to)
         urwid.connect_signal(composer, "close", _close)
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")

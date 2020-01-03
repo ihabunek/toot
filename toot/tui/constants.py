@@ -34,6 +34,7 @@ PALETTE = [
     ('green_selected', 'white,bold', 'dark green'),
     ('yellow', 'yellow', ''),
     ('yellow_bold', 'yellow,bold', ''),
+    ('warning', 'light red', ''),
 ]
 
 VISIBILITY_OPTIONS = [

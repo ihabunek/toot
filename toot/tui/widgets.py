@@ -32,8 +32,8 @@ class SelectableColumns(Clickable, urwid.Columns):
 class EditBox(urwid.AttrWrap):
     """Styled edit box."""
     def __init__(self, *args, **kwargs):
-        edit = urwid.Edit(*args, **kwargs)
-        return super().__init__(edit, "editbox", "editbox_focused")
+        self.edit = urwid.Edit(*args, **kwargs)
+        return super().__init__(self.edit, "editbox", "editbox_focused")
 
 
 class Button(urwid.AttrWrap):
