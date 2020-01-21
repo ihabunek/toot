@@ -317,7 +317,23 @@ def test_upload(mock_post, capsys):
 @mock.patch('toot.http.get')
 def test_search(mock_get, capsys):
     mock_get.return_value = MockResponse({
-        'hashtags': ['foo', 'bar', 'baz'],
+        'hashtags': [
+            {
+                'history': [],
+                'name': 'foo',
+                'url': 'https://mastodon.social/tags/foo'
+            },
+            {
+                'history': [],
+                'name': 'bar',
+                'url': 'https://mastodon.social/tags/bar'
+            },
+            {
+                'history': [],
+                'name': 'baz',
+                'url': 'https://mastodon.social/tags/baz'
+            },
+        ],
         'accounts': [{
             'acct': 'thequeen',
             'display_name': 'Freddy Mercury'
@@ -330,7 +346,7 @@ def test_search(mock_get, capsys):
 
     console.run_command(app, user, 'search', ['freddy'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/search', {
+    mock_get.assert_called_once_with(app, user, '/api/v2/search', {
         'q': 'freddy',
         'resolve': False,
     })
