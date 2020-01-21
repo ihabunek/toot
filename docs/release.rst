@@ -12,7 +12,7 @@ Bump & tag version
 * Update the version number in ``setup.py``
 * Update the version number in ``toot/__init__.py``
 * Update ``changelog.yaml`` with the release notes & date
-* Run ``./scripts/generate_changelog`` to generate a human readable changelog
+* Run ``./scripts/generate_changelog > CHANGELOG.md`` to generate a human readable changelog
 * Commit the changes
 * Run ``./scripts/tag_release <version>`` to tag a release in git
 * Run ``git push --follow-tags`` to upload changes and tag to Github
