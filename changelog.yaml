@@ -1,3 +1,11 @@
+0.25.0:
+  date: 2020-01-21
+  changes:
+    - "Show character count when composing (#121)"
+    - "Include changelog and license in sourceballs (#133)"
+    - "Fix searching by hashtag which include the '#' (#134)"
+    - "Upgrade search to v2 (#135)"
+    - "Fix compatibility with Python < 3.6 (don't use fstrings)"
 
 0.24.0:
   date: 2019-09-18
