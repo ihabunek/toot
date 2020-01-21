@@ -193,7 +193,7 @@ def public_timeline_generator(instance, local=False, limit=20):
 
 
 def tag_timeline_generator(instance, hashtag, local=False, limit=20):
-    path = '/api/v1/timelines/tag/{}'.format(hashtag)
+    path = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
     params = {'local': str_bool(local), 'limit': limit}
     return _anon_timeline_generator(instance, path, params)
 
