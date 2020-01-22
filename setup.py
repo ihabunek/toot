@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+from distutils.command.install import INSTALL_SCHEMES
+for scheme in INSTALL_SCHEMES.values():
+    scheme['data'] = scheme['purelib']
+
 
 long_description = """
 Toot is a CLI and TUI tool for interacting with Mastodon instances from the
@@ -34,6 +38,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8'
     ],
     packages=['toot', 'toot.ui', 'toot.tui'],
     python_requires=">=3.4",
@@ -48,7 +53,5 @@ setup(
             'toot=toot.console:main',
         ],
     },
-    data_files=[
-        ("", ["LICENSE", "CHANGELOG.md"])
-    ]
+    data_files=[('', ['CHANGELOG.md', 'LICENSE'])]
 )
