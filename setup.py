@@ -47,8 +47,5 @@ setup(
         'console_scripts': [
             'toot=toot.console:main',
         ],
-    },
-    data_files=[
-        ("", ["LICENSE", "CHANGELOG.md"])
-    ]
+    }
 )
