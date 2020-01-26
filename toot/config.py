@@ -72,7 +72,7 @@ def load_config():
 
 def save_config(config):
     with open(CONFIG_FILE, 'w') as f:
-        return json.dump(config, f, indent=True)
+        return json.dump(config, f, indent=True, sort_keys=True)
 
 
 def extract_user_app(config, user_id):
