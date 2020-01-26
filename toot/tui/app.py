@@ -519,6 +519,11 @@ class TUI(urwid.Frame):
         elif key == 'esc':
             if self.overlay:
                 self.close_overlay()
+            elif self.timeline.name != "home":
+                # similar to goto_home_timeline() but without handling overlay (absent here)
+                self.timeline_generator = api.home_timeline_generator(
+                    self.app, self.user, limit=40)
+                self.async_load_timeline(is_initial=True, timeline_name="home")
 
         elif key in ('q', 'Q'):
             if self.overlay:
