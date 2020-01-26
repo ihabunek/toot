@@ -203,7 +203,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "links", _links)
 
-    def build_timeline(self, name, statuses):
+    def build_timeline(self, name, statuses, local):
         def _close(*args):
             raise urwid.ExitMainLoop()
 
@@ -213,12 +213,21 @@ class TUI(urwid.Frame):
         def _thread(timeline, status):
             self.show_thread(status)
 
+        def _save(timeline, status):
+            if not timeline.name.startswith("#"):
+                return
+            hashtag = timeline.name[1:]
+            assert isinstance(local, bool), local
+            self.config.setdefault("timelines", {})[hashtag] = {"local": local}
+            config.save_config(self.config)
+
         timeline = Timeline(name, statuses)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
         urwid.connect_signal(timeline, "close", _close)
         urwid.connect_signal(timeline, "thread", _thread)
+        urwid.connect_signal(timeline, "save", _save)
 
         return timeline
 
@@ -249,7 +258,7 @@ class TUI(urwid.Frame):
         self.body = timeline
         self.refresh_footer(timeline)
 
-    def async_load_timeline(self, is_initial, timeline_name=None):
+    def async_load_timeline(self, is_initial, timeline_name=None, local=None):
         """Asynchronously load a list of statuses."""
 
         def _load_statuses():
@@ -265,7 +274,7 @@ class TUI(urwid.Frame):
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
-            self.timeline = self.build_timeline(timeline_name, statuses)
+            self.timeline = self.build_timeline(timeline_name, statuses, local)
             self.timeline.refresh_status_details()  # Draw first status
             self.refresh_footer(self.timeline)
             self.body = self.timeline
@@ -367,7 +376,9 @@ class TUI(urwid.Frame):
     def goto_tag_timeline(self, tag, local):
         self.timeline_generator = api.tag_timeline_generator(
             self.app, self.user, tag, local=local, limit=40)
-        promise = self.async_load_timeline(is_initial=True, timeline_name="#{}".format(tag))
+        promise = self.async_load_timeline(
+            is_initial=True, timeline_name="#{}".format(tag), local=local,
+        )
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):

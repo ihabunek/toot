@@ -28,6 +28,7 @@ class Timeline(urwid.Columns):
         "source",     # Show status source
         "links",      # Show status links
         "thread",     # Show thread for status
+        "save",       # Save current timeline
     ]
 
     def __init__(self, name, statuses, focus=0, is_thread=False):
@@ -156,6 +157,10 @@ class Timeline(urwid.Columns):
         if key in ("v", "V"):
             if status.original.url:
                 webbrowser.open(status.original.url)
+            return
+
+        if key in ("p", "P"):
+            self._emit("save", status)
             return
 
         return super().keypress(size, key)
