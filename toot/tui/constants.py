@@ -39,7 +39,7 @@ PALETTE = [
 
 VISIBILITY_OPTIONS = [
     ("public", "Public", "Post to public timelines"),
-    ("private", "Private", "Do not post to public timelines"),
-    ("unlisted", "Unlisted", "Post to followers only"),
+    ("unlisted", "Unlisted", "Do not post to public timelines"),
+    ("private", "Private", "Post to followers only"),
     ("direct", "Direct", "Post to mentioned users only"),
 ]
