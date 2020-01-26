@@ -3,7 +3,7 @@ import urwid
 
 from concurrent.futures import ThreadPoolExecutor
 
-from toot import api, __version__
+from toot import api, config, __version__
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -88,6 +88,7 @@ class TUI(urwid.Frame):
     def __init__(self, app, user):
         self.app = app
         self.user = user
+        self.config = config.load_config()
 
         self.loop = None  # set in `create`
         self.executor = ThreadPoolExecutor(max_workers=1)
@@ -334,7 +335,8 @@ class TUI(urwid.Frame):
         self.open_overlay(composer, title="Compose status")
 
     def show_goto_menu(self):
-        menu = GotoMenu()
+        user_timelines = self.config.get("timelines", {})
+        menu = GotoMenu(user_timelines)
         urwid.connect_signal(menu, "home_timeline",
             lambda x: self.goto_home_timeline())
         urwid.connect_signal(menu, "public_timeline",
@@ -344,7 +346,7 @@ class TUI(urwid.Frame):
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=9,
+            valign="middle", height=9 + len(user_timelines),
         ))
 
     def show_help(self):

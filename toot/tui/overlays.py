@@ -68,17 +68,17 @@ class GotoMenu(urwid.ListBox):
         "hashtag_timeline",
     ]
 
-    def __init__(self):
+    def __init__(self, user_timelines):
         self.hash_edit = EditBox(caption="Hashtag: ")
 
-        actions = list(self.generate_actions())
+        actions = list(self.generate_actions(user_timelines))
         walker = urwid.SimpleFocusListWalker(actions)
         super().__init__(walker)
 
     def get_hashtag(self):
         return self.hash_edit.edit_text.strip()
 
-    def generate_actions(self):
+    def generate_actions(self, user_timelines):
         def _home(button):
             self._emit("home_timeline")
 
@@ -95,7 +95,18 @@ class GotoMenu(urwid.ListBox):
             else:
                 self.set_focus(4)
 
+        def mk_on_press_user_hashtag(tag, local):
+            def on_press(btn):
+                self._emit("hashtag_timeline", tag, local)
+            return on_press
+
         yield Button("Home timeline", on_press=_home)
+
+        for tag, cfg in user_timelines.items():
+            is_local = cfg["local"]
+            yield Button("#{}".format(tag) + (" (local)" if is_local else ""),
+                         on_press=mk_on_press_user_hashtag(tag, is_local))
+
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
         yield urwid.Divider()
