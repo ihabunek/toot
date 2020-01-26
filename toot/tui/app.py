@@ -8,10 +8,10 @@ from toot import api, __version__
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
-from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource
+from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks
 from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
-from .utils import show_media
+from .utils import parse_content_links, show_media
 
 logger = logging.getLogger(__name__)
 
@@ -182,6 +182,9 @@ class TUI(urwid.Frame):
         def _source(timeline, status):
             self.show_status_source(status)
 
+        def _links(timeline, status):
+            self.show_links(status)
+
         def _media(timeline, status):
             self.show_media(status)
 
@@ -197,6 +200,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
         urwid.connect_signal(timeline, "reply", _reply)
         urwid.connect_signal(timeline, "source", _source)
+        urwid.connect_signal(timeline, "links", _links)
 
     def build_timeline(self, name, statuses):
         def _close(*args):
@@ -300,6 +304,14 @@ class TUI(urwid.Frame):
         self.open_overlay(
             widget=StatusSource(status),
             title="Status source",
+        )
+
+    def show_links(self, status):
+        links = parse_content_links(status.data["content"])
+        self.open_overlay(
+            widget=StatusLinks(links),
+            title="Status links",
+            options={"height": len(links) + 2},
         )
 
     def show_exception(self, exception):
