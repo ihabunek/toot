@@ -1,3 +1,4 @@
+from html.parser import HTMLParser
 import re
 import shutil
 import subprocess
@@ -74,3 +75,30 @@ def show_media(paths):
         raise Exception("Cannot find an image viewer")
 
     subprocess.run([viewer] + paths)
+
+
+class LinkParser(HTMLParser):
+
+    def reset(self):
+        super().reset()
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            href, title = None, None
+            for name, value in attrs:
+                if name == "href":
+                    href = value
+                if name == "title":
+                    title = value
+            if href:
+                self.links.append((href, title))
+
+
+def parse_content_links(content):
+    """Parse <a> tags from status's `content` and return them as a list of
+    (href, title), where `title` may be None.
+    """
+    parser = LinkParser()
+    parser.feed(content)
+    return parser.links[:]

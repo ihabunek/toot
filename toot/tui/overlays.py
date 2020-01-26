@@ -20,6 +20,20 @@ class StatusSource(urwid.ListBox):
         super().__init__(walker)
 
 
+class StatusLinks(urwid.ListBox):
+    """Shows status links."""
+
+    def __init__(self, links):
+
+        def widget(url, title):
+            return Button(title or url, on_press=lambda btn: webbrowser.open(url))
+
+        walker = urwid.SimpleFocusListWalker(
+            [widget(url, title) for url, title in links]
+        )
+        super().__init__(walker)
+
+
 class ExceptionStackTrace(urwid.ListBox):
     """Shows an exception stack trace."""
     def __init__(self, ex):
@@ -132,6 +146,7 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [R] - Reply to current status"))
         yield urwid.Text(h("  [S] - Show text marked as sensitive"))
         yield urwid.Text(h("  [T] - Show status thread (replies)"))
+        yield urwid.Text(h("  [L] - Show the status links"))
         yield urwid.Text(h("  [U] - Show the status data in JSON as received from the server"))
         yield urwid.Text(h("  [V] - Open status in default browser"))
         yield urwid.Divider()

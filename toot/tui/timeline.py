@@ -26,6 +26,7 @@ class Timeline(urwid.Columns):
         "reblog",     # Reblog status
         "reply",      # Compose a reply to a status
         "source",     # Show status source
+        "links",      # Show status links
         "thread",     # Show thread for status
     ]
 
@@ -138,6 +139,10 @@ class Timeline(urwid.Columns):
         if key in ("s", "S"):
             status.original.show_sensitive = True
             self.refresh_status_details()
+            return
+
+        if key in ("l", "L"):
+            self._emit("links", status)
             return
 
         if key in ("t", "T"):
@@ -281,6 +286,7 @@ class StatusDetails(urwid.Pile):
             "[F]avourite",
             "[V]iew",
             "[T]hread" if not self.in_thread else "",
+            "[L]inks",
             "[R]eply",
             "So[u]rce",
             "[H]elp",
