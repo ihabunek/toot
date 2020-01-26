@@ -213,12 +213,16 @@ class TUI(urwid.Frame):
         def _thread(timeline, status):
             self.show_thread(status)
 
-        def _save(timeline, status):
+        def _toggle_save(timeline, status):
             if not timeline.name.startswith("#"):
                 return
             hashtag = timeline.name[1:]
             assert isinstance(local, bool), local
-            self.config.setdefault("timelines", {})[hashtag] = {"local": local}
+            timelines = self.config.setdefault("timelines", {})
+            if hashtag in timelines:
+                del timelines[hashtag]
+            else:
+                timelines[hashtag] = {"local": local}
             config.save_config(self.config)
 
         timeline = Timeline(name, statuses)
@@ -227,7 +231,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "next", _next)
         urwid.connect_signal(timeline, "close", _close)
         urwid.connect_signal(timeline, "thread", _thread)
-        urwid.connect_signal(timeline, "save", _save)
+        urwid.connect_signal(timeline, "save", _toggle_save)
 
         return timeline
 

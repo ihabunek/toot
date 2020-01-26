@@ -145,7 +145,7 @@ class Help(urwid.Padding):
         yield urwid.Divider()
         yield urwid.Text(h("  [Q] - quit toot"))
         yield urwid.Text(h("  [G] - go to - switch timelines"))
-        yield urwid.Text(h("  [P] - save (pin) current timeline"))
+        yield urwid.Text(h("  [P] - save/unsave (pin) current timeline"))
         yield urwid.Text(h("  [H] - show this help"))
         yield urwid.Divider()
         yield urwid.Text(("bold", "Status keys"))
