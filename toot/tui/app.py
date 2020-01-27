@@ -221,8 +221,11 @@ class TUI(urwid.Frame):
             timelines = self.config.setdefault("timelines", {})
             if hashtag in timelines:
                 del timelines[hashtag]
+                self.footer.set_message("#{} unpinned".format(hashtag))
             else:
                 timelines[hashtag] = {"local": local}
+                self.footer.set_message("#{} pinned".format(hashtag))
+            self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
         timeline = Timeline(name, statuses)
