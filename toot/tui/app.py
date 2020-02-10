@@ -197,6 +197,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
         urwid.connect_signal(timeline, "reply", _reply)
         urwid.connect_signal(timeline, "source", _source)
+        urwid.connect_signal(timeline, "follow", self.async_toggle_follow)
 
     def build_timeline(self, name, statuses):
         def _close(*args):
@@ -444,7 +445,21 @@ class TUI(urwid.Frame):
             timeline.remove_status(status)
 
         return self.run_in_thread(_delete, done_callback=_done)
-
+    
+    def async_toggle_follow(self, timeline, status):
+        def _relationship():
+            return api.relationship(self.app, self.user, status.account.id)
+        
+        def _follow():
+            api.follow(self.app, self.user, status.account.id)
+        
+        def _unfollow():
+            api.unfollow(self.app, self.user, status.account.id)
+        
+        self.run_in_thread(
+            _unfollow if _relationship().following else _follow
+        )
+        
     # --- Overlay handling -----------------------------------------------------
 
     default_overlay_options = dict(

@@ -27,6 +27,7 @@ class Timeline(urwid.Columns):
         "reply",      # Compose a reply to a status
         "source",     # Show status source
         "thread",     # Show thread for status
+        "follow",     # Follow the creator of the status
     ]
 
     def __init__(self, name, statuses, focus=0, is_thread=False):
@@ -152,6 +153,9 @@ class Timeline(urwid.Columns):
             if status.original.url:
                 webbrowser.open(status.original.url)
             return
+            
+        if key in ("w", "W"):
+            self._emit("follow", status)
 
         return super().keypress(size, key)
 
@@ -282,6 +286,7 @@ class StatusDetails(urwid.Pile):
             "[V]iew",
             "[T]hread" if not self.in_thread else "",
             "[R]eply",
+            "follo[W]" if not status.is_mine else "",
             "So[u]rce",
             "[H]elp",
         ]
