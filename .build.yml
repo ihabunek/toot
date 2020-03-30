@@ -1,6 +1,7 @@
 image: alpine/edge
 packages:
   - python3
+  - py3-setuptools
 secrets:
   - 88b90083-3598-4b5d-b3dd-3861add21a7d
 sources:
