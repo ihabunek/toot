@@ -1,3 +1,11 @@
+0.26.0:
+  date: 2020-04-15
+  changes:
+    - "Fix datetime parsing on Python 3.5 (#162)"
+    - "TUI: Display status links and open them (#154, thanks @dlax)"
+    - "TUI: Fix visibility descriptions (#153, thanks @finnoleary)"
+    - "**IMPORTANT:** Starting from this release, new releases will not be uploaded to the APT package repository at `bezdomni.net`. Please use the official Debian or Ubuntu repos or choose another [installation option](https://toot.readthedocs.io/en/latest/install.html)."
+
 0.25.2:
   date: 2020-01-23
   changes:
