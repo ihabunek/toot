@@ -308,11 +308,12 @@ class TUI(urwid.Frame):
 
     def show_links(self, status):
         links = parse_content_links(status.data["content"])
-        self.open_overlay(
-            widget=StatusLinks(links),
-            title="Status links",
-            options={"height": len(links) + 2},
-        )
+        if links:
+            self.open_overlay(
+                widget=StatusLinks(links),
+                title="Status links",
+                options={"height": len(links) + 2},
+            )
 
     def show_exception(self, exception):
         self.open_overlay(
