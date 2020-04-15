@@ -8,10 +8,29 @@ toot is packaged for various platforms.
     :local:
     :backlinks: none
 
-Debian Buster
--------------
+.. warning::
 
-If you're running Debian Buster (testing), toot is available in the Debian package repository.
+    There used to be an **APT package repository** at `bezdomni.net`, managed by
+    myself. Since toot is now available in the Debian and Ubuntu repos, the repo
+    is no longer required and will be removed soon.
+
+    If you have previously added the repository, remove it by deleting the file
+    at: ``/etc/apt/sources.list.d/bezdomni.list``.
+
+Overview
+--------
+
+Packaging overview provided by `repology.org <https://repology.org/project/toot/versions>`_.
+
+.. image :: https://repology.org/badge/vertical-allrepos/toot.svg
+   :alt: Packaging status
+   :target: https://repology.org/project/toot/versions
+
+Debian & Ubuntu
+---------------
+
+Since Debian 10 (buster) and Ubuntu 19.04 (disco), toot is available in the
+official package repository.
 
 .. code-block:: bash
 
@@ -19,26 +38,6 @@ If you're running Debian Buster (testing), toot is available in the Debian packa
 
 Debian package is maintained by `Jonathan Carter <https://mastodon.xyz/@highvoltage>`_.
 
-
-APT package repository
-----------------------
-
-This works for Debian, Ubuntu and derivatives. The repo is signed with my
-`keybase.io <https://keybase.io/ihabunek>`_ key.
-
-Add the `bezdomni.net` repository:
-
-.. code-block:: bash
-
-    echo "deb http://bezdomni.net/packages/ ./" | sudo tee /etc/apt/sources.list.d/bezdomni.list
-    curl https://keybase.io/ihabunek/pgp_keys.asc | sudo apt-key add -
-
-Install the package:
-
-.. code-block:: bash
-
-    sudo apt update
-    sudo apt install python3-toot
 
 Arch Linux
 ----------
@@ -98,11 +97,11 @@ OpenBSD port is maintained by `Klemens Nanni <mailto:kl3@posteo.org>`_
 Python Package Index
 --------------------
 
-Install from PyPI using pip, preferably into a virtual environment:
+Install from PyPI using pip, preferably into a virtual environment.
 
 .. code-block:: bash
 
-    pip install toot
+    pip install --user toot
 
 Source
 ------
