@@ -7,6 +7,7 @@ Changelog
 
 * Fix access to public and tag timelines when on private mastodon instances
   (#168)
+* TUI: Add opton to pin/save tag timelines (#163, thanks @dlax)
 
 **0.26.0 (2020-04-15)**
 
