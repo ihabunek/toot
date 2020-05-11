@@ -238,6 +238,11 @@ READ_COMMANDS = [
                 "action": 'store_true',
                 "default": False,
             }),
+            (["-r", "--reverse"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Reverse the order of the shown notifications (newest on top)",
+            }),
         ],
         require_auth=True,
     ),

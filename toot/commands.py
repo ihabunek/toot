@@ -321,6 +321,9 @@ def notifications(app, user, args):
         print_out("<yellow>No notification</yellow>")
         return
 
+    if args.reverse:
+        notifications = reversed(notifications)
+
     print_notifications(notifications)
 
 
