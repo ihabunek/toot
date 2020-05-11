@@ -173,6 +173,28 @@ def _timeline_generator(app, user, path, params=None):
         path = _get_next_path(response.headers)
 
 
+def home_timeline_generator(app, user, limit=20):
+    path = '/api/v1/timelines/home?limit={}'.format(limit)
+    return _timeline_generator(app, user, path)
+
+
+def public_timeline_generator(app, user, local=False, limit=20):
+    path = '/api/v1/timelines/public'
+    params = {'local': str_bool(local), 'limit': limit}
+    return _timeline_generator(app, user, path, params)
+
+
+def tag_timeline_generator(app, user, hashtag, local=False, limit=20):
+    path = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
+    params = {'local': str_bool(local), 'limit': limit}
+    return _timeline_generator(app, user, path, params)
+
+
+def timeline_list_generator(app, user, list_id, limit=20):
+    path = '/api/v1/timelines/list/{}'.format(list_id)
+    return _timeline_generator(app, user, path, {'limit': limit})
+
+
 def _anon_timeline_generator(instance, path, params=None):
     while path:
         url = "https://{}{}".format(instance, path)
@@ -181,26 +203,16 @@ def _anon_timeline_generator(instance, path, params=None):
         path = _get_next_path(response.headers)
 
 
-def home_timeline_generator(app, user, limit=20):
-    path = '/api/v1/timelines/home?limit={}'.format(limit)
-    return _timeline_generator(app, user, path)
-
-
-def public_timeline_generator(instance, local=False, limit=20):
+def anon_public_timeline_generator(instance, local=False, limit=20):
     path = '/api/v1/timelines/public'
     params = {'local': str_bool(local), 'limit': limit}
     return _anon_timeline_generator(instance, path, params)
 
 
-def tag_timeline_generator(instance, hashtag, local=False, limit=20):
+def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     path = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
     params = {'local': str_bool(local), 'limit': limit}
     return _anon_timeline_generator(instance, path, params)
-
-
-def timeline_list_generator(app, user, list_id, limit=20):
-    path = '/api/v1/timelines/list/{}'.format(list_id)
-    return _timeline_generator(app, user, path, {'limit': limit})
 
 
 def upload_media(app, user, file):

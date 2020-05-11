@@ -358,13 +358,13 @@ class TUI(urwid.Frame):
 
     def goto_public_timeline(self, local):
         self.timeline_generator = api.public_timeline_generator(
-            self.app.instance, local=local, limit=40)
+            self.app, self.user, local=local, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="public")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_tag_timeline(self, tag, local):
         self.timeline_generator = api.tag_timeline_generator(
-            self.app.instance, tag, local=local, limit=40)
+            self.app, self.user, tag, local=local, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="#{}".format(tag))
         promise.add_done_callback(lambda *args: self.close_overlay())
 

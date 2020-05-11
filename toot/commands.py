@@ -22,11 +22,9 @@ def get_timeline_generator(app, user, args):
         raise ConsoleError("The --instance option is only valid alongside --public or --tag.")
 
     if args.public:
-        instance = args.instance or app.instance
-        return api.public_timeline_generator(instance, local=args.local, limit=args.count)
+        return api.public_timeline_generator(app, user, local=args.local, limit=args.count)
     elif args.tag:
-        instance = args.instance or app.instance
-        return api.tag_timeline_generator(instance, args.tag, local=args.local, limit=args.count)
+        return api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
     elif args.list:
         return api.timeline_list_generator(app, user, args.list, limit=args.count)
     else:
