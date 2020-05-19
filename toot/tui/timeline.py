@@ -36,7 +36,10 @@ class Timeline(urwid.Columns):
         self.is_thread = is_thread
         self.statuses = statuses
         self.status_list = self.build_status_list(statuses, focus=focus)
-        self.status_details = StatusDetails(statuses[focus], is_thread)
+        try:
+            self.status_details = StatusDetails(statuses[focus], is_thread)
+        except IndexError:
+            self.status_details = StatusDetails(None, is_thread)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -64,7 +67,10 @@ class Timeline(urwid.Columns):
         })
 
     def get_focused_status(self):
-        return self.statuses[self.status_list.body.focus]
+        try:
+            return self.statuses[self.status_list.body.focus]
+        except TypeError:
+            return None
 
     def get_focused_status_with_counts(self):
         """Returns a tuple of:
@@ -97,9 +103,13 @@ class Timeline(urwid.Columns):
         status = self.get_focused_status()
         command = self._command_map[key]
 
+        if not status:
+            return super().keypress(size, key)
+
         # If down is pressed on last status in list emit a signal to load more.
         # TODO: Consider pre-loading statuses earlier
-        if command in [urwid.CURSOR_DOWN, urwid.CURSOR_PAGE_DOWN]:
+        if command in [urwid.CURSOR_DOWN, urwid.CURSOR_PAGE_DOWN] \
+                and self.status_list.body.focus:
             index = self.status_list.body.focus + 1
             count = len(self.statuses)
             if index >= count:
@@ -224,8 +234,9 @@ class StatusDetails(urwid.Pile):
             Whether the status is rendered from a thread status list.
         """
         self.in_thread = in_thread
-        reblogged_by = status.author if status.reblog else None
-        widget_list = list(self.content_generator(status.original, reblogged_by))
+        reblogged_by = status.author if status and status.reblog else None
+        widget_list = list(self.content_generator(status.original, reblogged_by)
+            if status else ())
         return super().__init__(widget_list)
 
     def content_generator(self, status, reblogged_by):

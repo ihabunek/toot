@@ -314,8 +314,8 @@ class TUI(urwid.Frame):
         status, index, count = timeline.get_focused_status_with_counts()
         self.footer.set_status([
             ("footer_status_bold", "[{}] ".format(timeline.name)),
-            status.id, " - status ", str(index + 1), " of ", str(count),
-        ])
+        ] + ([status.id, " - status ", str(index + 1), " of ", str(count)]
+            if status else ["no focused status"]))
 
     def show_status_source(self, status):
         self.open_overlay(
@@ -324,7 +324,7 @@ class TUI(urwid.Frame):
         )
 
     def show_links(self, status):
-        links = parse_content_links(status.data["content"])
+        links = parse_content_links(status.data["content"]) if status else []
         if links:
             self.open_overlay(
                 widget=StatusLinks(links),
