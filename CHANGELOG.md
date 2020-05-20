@@ -9,6 +9,7 @@ Changelog
   (#168)
 * Add `--reverse` option to `toot notifications` (#151)
 * TUI: Add opton to pin/save tag timelines (#163, thanks @dlax)
+* TUI: Fixed crash on empty timeline (#138, thanks ecs)
 
 **0.26.0 (2020-04-15)**
 
