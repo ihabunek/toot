@@ -103,6 +103,17 @@ Install from PyPI using pip, preferably into a virtual environment.
 
     pip install --user toot
 
+Homebrew
+--------------------
+
+This works on Mac OSX with `homebrew <https://brew.sh/>`_ installed.
+Tested with on Catalina, Mojave, and High Sierra.
+
+.. code-block:: bash
+
+    brew update
+    brew install toot
+
 Source
 ------
 
