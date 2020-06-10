@@ -46,6 +46,6 @@ toot includes a curses-based terminal user interface (TUI). Run it with ``toot t
 License
 -------
 
-Copyright 2018 Ivan Habunek <ivan@habunek.com>
+Copyright 2020 Ivan Habunek <ivan@habunek.com>
 
 Licensed under `GPLv3 <http://www.gnu.org/licenses/gpl-3.0.html>`_, see `LICENSE <LICENSE>`_.
