@@ -66,6 +66,6 @@ Please report any issues there. Pull requests are welcome.
 License
 -------
 
-Copyright 2018 Ivan Habunek <ivan@habunek.com>
+Copyright Ivan Habunek <ivan@habunek.com> and contributors.
 
 Licensed under `GPLv3 <http://www.gnu.org/licenses/gpl-3.0.html>`_.
