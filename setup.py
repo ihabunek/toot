@@ -35,7 +35,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    packages=['toot', 'toot.ui', 'toot.tui'],
+    packages=['toot', 'toot.tui'],
     python_requires=">=3.4",
     install_requires=[
         "requests>=2.13,<3.0",

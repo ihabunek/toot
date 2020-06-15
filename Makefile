@@ -1,4 +1,4 @@
-.PHONY: clean publish test
+.PHONY: clean publish test docs
 
 dist :
 	python setup.py sdist --formats=gztar,zip

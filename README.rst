@@ -36,7 +36,7 @@ Features
 Terminal User Interface
 -----------------------
 
-toot includes a curses-based terminal user interface (TUI). Run it with ``toot tui``.
+toot includes a terminal user interface (TUI). Run it with ``toot tui``.
 
 .. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_list.png
 

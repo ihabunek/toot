@@ -75,12 +75,6 @@ def thread(app, user, args):
     print_timeline(thread)
 
 
-def curses(app, user, args):
-    generator = get_timeline_generator(app, user, args)
-    from toot.ui.app import TimelineApp
-    TimelineApp(app, user, generator).run()
-
-
 def post(app, user, args):
     # TODO: this might be achievable, explore options
     if args.editor and not sys.stdin.isatty():
