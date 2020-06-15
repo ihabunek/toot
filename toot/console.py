@@ -155,14 +155,6 @@ timeline_args = common_timeline_args + [
     }),
 ]
 
-curses_args = common_timeline_args + [
-    (["-c", "--count"], {
-        "type": timeline_count,
-        "help": "number of toots to show per page (1-20, default 20).",
-        "default": 20,
-    }),
-]
-
 AUTH_COMMANDS = [
     Command(
         name="login",
@@ -202,12 +194,6 @@ TUI_COMMANDS = [
         description="Launches the toot terminal user interface",
         arguments=[],
         require_auth=True,
-    ),
-    Command(
-        name="curses",
-        description="An experimental timeline app (DEPRECATED, use 'toot tui' instead)",
-        arguments=curses_args,
-        require_auth=False,
     ),
 ]
 
