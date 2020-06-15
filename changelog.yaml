@@ -1,7 +1,7 @@
 0.27.0:
-  date: "TBD"
+  date: 2020-06-15
   changes:
-    - "Fix access to public and tag timelines when on private mastodon instances (#168)"
+    - "TUI: Fix access to public and tag timelines when on private mastodon instances (#168)"
     - "Add `--reverse` option to `toot notifications` (#151)"
     - "Fix `toot timeline` to respect `--instance` option"
     - "TUI: Add opton to pin/save tag timelines (#163, thanks @dlax)"
