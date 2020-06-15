@@ -11,7 +11,7 @@ Toot is a CLI and TUI tool for interacting with Mastodon instances from the comm
 .. image:: https://img.shields.io/badge/author-%40ihabunek-blue.svg?maxAge=3600&style=flat-square
    :target: https://mastodon.social/@ihabunek
 .. image:: https://img.shields.io/github/license/ihabunek/toot.svg?maxAge=3600&style=flat-square
-   :target: https://opensource.org/licenses/MIT
+   :target: https://opensource.org/licenses/GPL-3.0
 .. image:: https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square
    :target: https://pypi.python.org/pypi/toot
 
