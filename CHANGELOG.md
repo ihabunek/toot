@@ -8,6 +8,7 @@ Changelog
 * Fix access to public and tag timelines when on private mastodon instances
   (#168)
 * Add `--reverse` option to `toot notifications` (#151)
+* Fix `toot timeline` to respect `--instance` option
 * TUI: Add opton to pin/save tag timelines (#163, thanks @dlax)
 * TUI: Fixed crash on empty timeline (#138, thanks ecs)
 
