@@ -43,7 +43,7 @@ class Timeline(urwid.Columns):
 
         super().__init__([
             ("weight", 40, self.status_list),
-            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
+            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "columns_divider")),
             ("weight", 60, urwid.Padding(self.status_details, left=1)),
         ])
 
@@ -59,11 +59,11 @@ class Timeline(urwid.Columns):
         urwid.connect_signal(item, "click", lambda *args:
             self._emit("menu", status))
         return urwid.AttrMap(item, None, focus_map={
-            "blue": "green_selected",
-            "green": "green_selected",
-            "yellow": "green_selected",
-            "cyan": "green_selected",
-            None: "green_selected",
+            "timeline_datetime": "timeline_selected",
+            "green": "timeline_selected",
+            "yellow": "timeline_selected",
+            "cyan": "timeline_selected",
+            None: "timeline_selected",
         })
 
     def get_focused_status(self):
@@ -237,7 +237,7 @@ class StatusDetails(urwid.Pile):
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
-        return super().__init__(widget_list)
+        super().__init__(widget_list)
 
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
@@ -352,8 +352,8 @@ class StatusListItem(SelectableColumns):
         is_reblog = ("cyan", "♺") if status.reblog else " "
         is_reply = ("cyan", "⤶") if status.original.in_reply_to else " "
 
-        return super().__init__([
-            ("pack", SelectableText(("blue", created_at), wrap="clip")),
+        super().__init__([
+            ("pack", SelectableText(("timeline_datetime", created_at), wrap="clip")),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),

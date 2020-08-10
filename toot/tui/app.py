@@ -1,9 +1,11 @@
 import logging
 import urwid
+import pprint
 
 from concurrent.futures import ThreadPoolExecutor
 
 from toot import api, config, __version__
+from toot.settings import settings
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -16,7 +18,6 @@ from .utils import parse_content_links, show_media
 logger = logging.getLogger(__name__)
 
 urwid.set_encoding('UTF-8')
-
 
 class Header(urwid.WidgetWrap):
     def __init__(self, app, user):
@@ -46,7 +47,7 @@ class Footer(urwid.Pile):
         self.status = urwid.Text("")
         self.message = urwid.Text("")
 
-        return super().__init__([
+        super().__init__([
             urwid.AttrMap(self.status, "footer_status"),
             urwid.AttrMap(self.message, "footer_message"),
         ])
@@ -81,6 +82,7 @@ class TUI(urwid.Frame):
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
         )
+        loop.screen.set_terminal_properties(colors=256)
         tui.loop = loop
 
         return tui

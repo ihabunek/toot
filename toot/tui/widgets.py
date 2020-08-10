@@ -33,7 +33,7 @@ class EditBox(urwid.AttrWrap):
     """Styled edit box."""
     def __init__(self, *args, **kwargs):
         self.edit = urwid.Edit(*args, **kwargs)
-        return super().__init__(self.edit, "editbox", "editbox_focused")
+        super().__init__(self.edit, "editbox", "editbox_focused")
 
 
 class Button(urwid.AttrWrap):
@@ -41,7 +41,7 @@ class Button(urwid.AttrWrap):
     def __init__(self, *args, **kwargs):
         button = urwid.Button(*args, **kwargs)
         padding = urwid.Padding(button, width=len(args[0]) + 4)
-        return super().__init__(padding, "button", "button_focused")
+        super().__init__(padding, "button", "button_focused")
 
     def set_label(self, *args, **kwargs):
         self.original_widget.original_widget.set_label(*args, **kwargs)
