@@ -63,7 +63,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         '--visibility', 'unlisted',
         '--sensitive',
         '--spoiler-text', 'Spoiler!',
-        '--reply-to', '123',
+        '--reply-to', '123a',
         '--language', 'hrv',
     ]
 

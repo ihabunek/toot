@@ -305,7 +305,7 @@ class TUI(urwid.Frame):
 
         def _done(instance):
             if "max_toot_chars" in instance:
-                self.max_toot_chars
+                self.max_toot_chars = instance["max_toot_chars"]
 
         return self.run_in_thread(_load_instance, done_callback=_done)
 
