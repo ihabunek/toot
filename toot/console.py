@@ -108,7 +108,7 @@ scheme_arg = (["--disable-https"], {
 
 status_id_arg = (["status_id"], {
     "help": "ID of the status",
-    "type": int,
+    "type": str,
 })
 
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
@@ -132,7 +132,7 @@ common_timeline_args = [
         "help": "mastodon instance from which to read (public and tag timelines only)",
     }),
     (["--list"], {
-        "type": int,
+        "type": str,
         "help": "show timeline for given list.",
     }),
 ]
