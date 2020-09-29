@@ -79,7 +79,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         'visibility': 'unlisted',
         'sensitive': "true",
         'spoiler_text': "Spoiler!",
-        'in_reply_to_id': 123,
+        'in_reply_to_id': '123a',
         'language': 'hrv',
     }, headers={"Idempotency-Key": "up-the-irons"})
 
