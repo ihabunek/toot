@@ -144,7 +144,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("r", "R"):
-            self._emit("reply", status)
+            self._emit("reply", status.original)
             return
 
         if key in ("s", "S"):
@@ -157,7 +157,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("t", "T"):
-            self._emit("thread", status)
+            self._emit("thread", status.original)
             return
 
         if key in ("u", "U"):
