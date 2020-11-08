@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
@@ -179,7 +180,8 @@ def auth(app, user, args):
 
 def login_cli(app, user, args):
     app = create_app_interactive(instance=args.instance, scheme=args.scheme)
-    login_interactive(app, args.email)
+    password = os.getenv('TOOT_LOGIN_CLI_PASSWORD', None)
+    login_interactive(app, args.email, password)
 
     print_out()
     print_out("<green>✓ Successfully logged in.</green>")
