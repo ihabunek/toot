@@ -57,7 +57,7 @@ def create_user(app, access_token):
     return user
 
 
-def login_interactive(app, email=None):
+def login_interactive(app, email=None, password=None):
     print_out("Log in to <green>{}</green>".format(app.instance))
 
     if email:
@@ -66,7 +66,8 @@ def login_interactive(app, email=None):
     while not email:
         email = input('Email: ')
 
-    password = getpass('Password: ')
+    if not password:
+        password = getpass('Password: ')
 
     try:
         print_out("Authenticating...")
