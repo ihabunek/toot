@@ -92,6 +92,7 @@ def post_status(
     spoiler_text=None,
     in_reply_to_id=None,
     language=None,
+    scheduled_at=None,
 ):
     """
     Posts a new status.
@@ -110,6 +111,7 @@ def post_status(
         'spoiler_text': spoiler_text,
         'in_reply_to_id': in_reply_to_id,
         'language': language,
+        'scheduled_at': scheduled_at
     }, headers=headers).json()
 
 

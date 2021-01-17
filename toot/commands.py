@@ -114,9 +114,13 @@ def post(app, user, args):
         spoiler_text=args.spoiler_text,
         in_reply_to_id=args.reply_to,
         language=args.language,
+        scheduled_at=args.scheduled_at,
     )
 
-    print_out("Toot posted: <green>{}</green>".format(response.get('url')))
+    if "scheduled_at" in response:
+        print_out("Toot scheduled for: <green>{}</green>".format(response["scheduled_at"]))
+    else:
+        print_out("Toot posted: <green>{}</green>".format(response.get('url')))
 
 
 def delete(app, user, args):

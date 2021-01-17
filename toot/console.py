@@ -326,6 +326,11 @@ POST_COMMANDS = [
                 "help": "Specify an editor to compose your toot, "
                         "defaults to editor defined in $EDITOR env variable.",
             }),
+            (["--scheduled-at"], {
+                "type": str,
+                "help": "ISO 8601 Datetime at which to schedule a status. Must "
+                        "be at least 5 minutes in the future.",
+            }),
         ],
         require_auth=True,
     ),

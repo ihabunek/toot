@@ -1,3 +1,8 @@
+0.28.0:
+  date: TBA
+  changes:
+    - "Add `--scheduled-at` option to `toot post`, allows scheduling toots"
+
 0.27.0:
   date: 2020-06-15
   changes:
