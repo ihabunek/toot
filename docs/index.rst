@@ -20,8 +20,9 @@ Resources
 * Homepage: https://github.com/ihabunek/toot
 * Issues: https://github.com/ihabunek/toot/issues
 * Documentation: https://toot.readthedocs.io/en/latest/
-* Discussion and support: `#toot IRC channel on freenode.net
-  <https://webchat.freenode.net/?channels=toot>`_
+* Mailing list for discussion, support and patches:
+  https://lists.sr.ht/~ihabunek/toot-discuss
+* Informal discussion: #toot IRC channel on `libera.chat <https://libera.chat/>`_
 
 Features
 --------
