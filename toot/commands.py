@@ -52,7 +52,7 @@ def timeline(app, user, args):
 
         print_timeline(items)
 
-        if args.once:
+        if args.once or not sys.stdout.isatty():
             break
 
         char = input("\nContinue? [Y/n] ")
