@@ -316,7 +316,12 @@ def notifications(app, user, args):
         print_out("<green>Cleared notifications</green>")
         return
 
-    notifications = api.get_notifications(app, user)
+    exclude = []
+    if args.mentions:
+        # Filter everything except mentions
+        # https://docs.joinmastodon.org/methods/notifications/
+        exclude = ["follow", "favourite", "reblog", "poll", "follow_request"]
+    notifications = api.get_notifications(app, user, exclude_types=exclude)
     if not notifications:
         print_out("<yellow>No notification</yellow>")
         return

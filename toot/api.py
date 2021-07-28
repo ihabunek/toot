@@ -268,8 +268,9 @@ def single_status(app, user, status_id):
     return http.get(app, user, url).json()
 
 
-def get_notifications(app, user):
-    return http.get(app, user, '/api/v1/notifications').json()
+def get_notifications(app, user, exclude_types=[], limit=20):
+    params={"exclude_types[]": exclude_types, "limit": limit}
+    return http.get(app, user, '/api/v1/notifications', params).json()
 
 
 def clear_notifications(app, user):

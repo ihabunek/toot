@@ -229,6 +229,11 @@ READ_COMMANDS = [
                 "default": False,
                 "help": "Reverse the order of the shown notifications (newest on top)",
             }),
+            (["-m", "--mentions"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Only print mentions",
+            })
         ],
         require_auth=True,
     ),
