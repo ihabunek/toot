@@ -55,7 +55,7 @@ Install the package:
 
 .. code-block:: bash
 
-    pkg install py36-toot
+    pkg install py38-toot
 
 Build and install from sources:
 
