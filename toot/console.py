@@ -297,6 +297,10 @@ POST_COMMANDS = [
                 "help": "path to the media file to attach (specify multiple "
                         "times to attach up to 4 files)"
             }),
+            (["-d", "--description"], {
+                "type": str,
+                "help": 'A plain-text description of the media, for accessibility purposes.'
+            }),
             (["-v", "--visibility"], {
                 "type": visibility,
                 "default": "public",

@@ -92,6 +92,7 @@ def post_status(
     spoiler_text=None,
     in_reply_to_id=None,
     language=None,
+    description=None,
 ):
     """
     Posts a new status.
@@ -110,6 +111,7 @@ def post_status(
         'spoiler_text': spoiler_text,
         'in_reply_to_id': in_reply_to_id,
         'language': language,
+        'description': description,
     }, headers=headers).json()
 
 
@@ -215,9 +217,21 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     return _anon_timeline_generator(instance, path, params)
 
 
-def upload_media(app, user, file):
+def upload_media(app, user, file, description=None):
+    # this print confirms that the 'description' argument is being supplied correctly
+    # when toot is invoked like:
+    # toot post --description "a cute fluffy animal" --media cute-animal.png
+    print('upload_media:', '"', description, '"')
+    # however, when actually supplied below, the mastodon web UI displays
+    # the following for the 'alt' and 'title' attributes:
+    # "#<ActionDispatch::Http::UploadedFile:0x00007fa2aff698d0>"
+
+    # I also tried supplying http.post with a named data argument
+    # data={ 'description': description }
+    # but that seems to have no effect
     return http.post(app, user, '/api/v1/media', files={
-        'file': file
+        'file': file,
+        'description': description,
     }).json()
 
 

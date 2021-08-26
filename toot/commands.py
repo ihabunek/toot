@@ -88,7 +88,7 @@ def post(app, user, args):
         args.text = sys.stdin.read().rstrip()
 
     if args.media:
-        media = [_do_upload(app, user, file) for file in args.media]
+        media = [_do_upload(app, user, file, description=args.description) for file in args.media]
         media_ids = [m["id"] for m in media]
     else:
         media = None
@@ -114,6 +114,7 @@ def post(app, user, args):
         spoiler_text=args.spoiler_text,
         in_reply_to_id=args.reply_to,
         language=args.language,
+        description=args.description,
     )
 
     print_out("Toot posted: <green>{}</green>".format(response.get('url')))
@@ -222,9 +223,9 @@ def search(app, user, args):
     print_search_results(response)
 
 
-def _do_upload(app, user, file):
+def _do_upload(app, user, file, description=None):
     print_out("Uploading media: <green>{}</green>".format(file.name))
-    return api.upload_media(app, user, file)
+    return api.upload_media(app, user, file, description=description)
 
 
 def _find_account(app, user, account_name):
