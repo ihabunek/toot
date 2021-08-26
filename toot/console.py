@@ -297,6 +297,12 @@ POST_COMMANDS = [
                 "help": "path to the media file to attach (specify multiple "
                         "times to attach up to 4 files)"
             }),
+            (["-d", "--description"], {
+                "action": "append",
+                "type": str,
+                "help": "plain-text description of the media for accessibility "
+                        "purposes, one per attached media"
+            }),
             (["-v", "--visibility"], {
                 "type": visibility,
                 "default": "public",
@@ -341,7 +347,11 @@ POST_COMMANDS = [
             (["file"], {
                 "help": "Path to the file to upload",
                 "type": FileType('rb')
-            })
+            }),
+            (["-d", "--description"], {
+                "type": str,
+                "help": "plain-text description of the media for accessibility purposes"
+            }),
         ],
         require_auth=True,
     ),

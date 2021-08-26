@@ -87,15 +87,20 @@ def post(app, user, args):
     if not args.text and not sys.stdin.isatty():
         args.text = sys.stdin.read().rstrip()
 
-    if args.media:
-        media = [_do_upload(app, user, file) for file in args.media]
-        media_ids = [m["id"] for m in media]
-    else:
-        media = None
-        media_ids = None
+    # Match media to corresponding description and upload
+    media = args.media or []
+    descriptions = args.description or []
+    uploaded_media = []
 
-    if media and not args.text:
-        args.text = "\n".join(m['text_url'] for m in media)
+    for idx, file in enumerate(media):
+        description = descriptions[idx].strip() if idx < len(descriptions) else None
+        result = _do_upload(app, user, file, description)
+        uploaded_media.append(result)
+
+    media_ids = [m["id"] for m in uploaded_media]
+
+    if uploaded_media and not args.text:
+        args.text = "\n".join(m['text_url'] for m in uploaded_media)
 
     if args.editor:
         args.text = editor_input(args.editor, args.text)
@@ -210,7 +215,7 @@ def activate(app, user, args):
 
 
 def upload(app, user, args):
-    response = _do_upload(app, user, args.file)
+    response = _do_upload(app, user, args.file, args.description)
 
     msg = "Successfully uploaded media ID <yellow>{}</yellow>, type '<yellow>{}</yellow>'"
 
@@ -226,9 +231,9 @@ def search(app, user, args):
     print_search_results(response)
 
 
-def _do_upload(app, user, file):
+def _do_upload(app, user, file, description):
     print_out("Uploading media: <green>{}</green>".format(file.name))
-    return api.upload_media(app, user, file)
+    return api.upload_media(app, user, file, description=description)
 
 
 def _find_account(app, user, account_name):

@@ -217,10 +217,11 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     return _anon_timeline_generator(instance, path, params)
 
 
-def upload_media(app, user, file):
-    return http.post(app, user, '/api/v1/media', files={
-        'file': file
-    }).json()
+def upload_media(app, user, file, description=None):
+    return http.post(app, user, '/api/v1/media',
+        data={'description': description},
+        files={'file': file}
+    ).json()
 
 
 def search(app, user, query, resolve):
