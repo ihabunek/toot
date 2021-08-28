@@ -11,7 +11,7 @@ Running ``toot <command> -h`` shows the documentation for the given command.
     $ toot
 
     toot - a Mastodon CLI client
-    v0.23.0
+    v0.27.0
 
     Authentication:
       toot login           Log into a mastodon instance using your browser (recommended)
@@ -74,7 +74,7 @@ access your account, and will be given an **authorization code** in return which
 you need to enter to log in.
 
 The application and user access tokens will be saved in the configuration file
-located at ``~/.config/toot/instances/config.json``.
+located at ``~/.config/toot/config.json``.
 
 Using multiple accounts
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,11 +91,8 @@ that one time.
 Finally you can logout from an account by using ``toot logout``. This will
 remove the stored access tokens for that account.
 
-Examples
---------
-
-Post
-~~~~
+Post a status
+-------------
 
 The simplest action is posting a status.
 
@@ -103,31 +100,74 @@ The simplest action is posting a status.
 
   toot post "hello there"
 
-You can also attach media:
+You can also pipe in the status text:
 
 .. code-block:: bash
 
-  toot post "hello media" --media path/to/image.png
+  echo "Text to post" | toot post
+  cat post.txt | toot post
+  toot post < post.txt
+
+If no status text is given, you will be prompted to enter some:
+
+.. code-block:: bash
+
+  $ toot post
+  Write or paste your toot. Press Ctrl-D to post it.
+
+Finally, you can launch your favourite editor:
+
+.. code-block:: bash
+
+  toot post --editor vim
+
+Define your editor preference in the ``EDITOR`` environment variable, then you
+don't need to specify it explicity:
+
+.. code-block:: bash
+
+  export EDITOR=vim
+  toot post --editor
+
+Attachments
+~~~~~~~~~~~
+
+You can attach media to your status. Mastodon supports images, video and audio
+files. For details on supported formats see `Mastodon docs on attachments
+<https://docs.joinmastodon.org/user/posting/#attachments>`_.
+
+It is encouraged to add a plain-text description to the attached media for
+accessiblity purposes by adding a ``--description`` option.
+
+To attach an image:
+
+.. code-block:: bash
+
+  toot post "hello media" --media path/to/image.png --description "Cool image"
+
+You can attach upto 4 attachments by giving multiple ``--media`` and
+``--description`` options:
+
+.. code-block:: bash
+
+  toot post "hello media" \
+    --media path/to/image1.png --description "First image" \
+    --media path/to/image2.png --description "Second image" \
+    --media path/to/image3.png --description "Third image" \
+    --media path/to/image4.png --description "Fourth image"
+
+The order of options is not relevant, except that the first given media will be
+matched to the first given description and so on.
 
 If the media is sensitive, mark it as such and people will need to click to show
-it:
+it. This affects all attachments.
 
 .. code-block:: bash
 
   toot post "naughty pics ahoy" --media nsfw.png --sensitive
 
-
-It is possible to pipe in the status text:
-
-.. code-block:: bash
-
-    echo "Text to post" | toot post
-    cat post.txt | toot post
-    toot post < post.txt
-
-
 View timeline
-~~~~~~~~~~~~~
+-------------
 
 View what's on your home timeline:
 
@@ -146,7 +186,7 @@ Timeline takes various options:
   toot timeline --once            # don't promopt to fetch more toots
 
 Status actions
-~~~~~~~~~~~~~~
+--------------
 
 The timeline lists the status ID at the bottom of each toot. Using that status
 you can do various actions to it, e.g.:
@@ -164,7 +204,7 @@ If it's your own status you can also delete pin or delete it:
   toot delete 123456
 
 Account actions
-~~~~~~~~~~~~~~~
+---------------
 
 Find a user by their name or account name:
 
@@ -189,7 +229,7 @@ If you get bored of them:
   toot unfollow someone@someplace.social
 
 Using the Curses UI
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 toot has a curses-based terminal user interface. The command to start it is ``toot tui``.
 
