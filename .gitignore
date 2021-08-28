@@ -14,3 +14,4 @@
 /tmp/
 /toot-*.tar.gz
 debug.log
+/pyrightconfig.json
