@@ -7,3 +7,4 @@ sphinx-autobuild
 stdeb
 twine
 wheel
+pyyaml

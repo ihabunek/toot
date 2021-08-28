@@ -1,5 +1,5 @@
 0.28.0:
-  date: TBA
+  date: 2021-08-28
   changes:
     - "**BREAKING**: Removed `toot curses`, deprecated since 2019-09-03"
     - "Add `--scheduled-at` option to `toot post`, allows scheduling toots"
