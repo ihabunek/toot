@@ -120,6 +120,7 @@ def post(app, user, args):
         in_reply_to_id=args.reply_to,
         language=args.language,
         scheduled_at=args.scheduled_at,
+        content_type=args.content_type
     )
 
     if "scheduled_at" in response:

@@ -93,6 +93,7 @@ def post_status(
     in_reply_to_id=None,
     language=None,
     scheduled_at=None,
+    content_type=None,
 ):
     """
     Posts a new status.
@@ -103,7 +104,7 @@ def post_status(
     # if the request is retried.
     headers = {"Idempotency-Key": uuid.uuid4().hex}
 
-    return http.post(app, user, '/api/v1/statuses', {
+    params = {
         'status': status,
         'media_ids[]': media_ids,
         'visibility': visibility,
@@ -112,7 +113,12 @@ def post_status(
         'in_reply_to_id': in_reply_to_id,
         'language': language,
         'scheduled_at': scheduled_at
-    }, headers=headers).json()
+    }
+
+    if content_type:
+        params['content_type'] = content_type
+
+    return http.post(app, user, '/api/v1/statuses', params, headers=headers).json()
 
 
 def delete_status(app, user, status_id):

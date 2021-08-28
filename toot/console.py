@@ -337,6 +337,10 @@ POST_COMMANDS = [
                 "help": "ISO 8601 Datetime at which to schedule a status. Must "
                         "be at least 5 minutes in the future.",
             }),
+            (["-t", "--content-type"], {
+                "type": str,
+                "help": "MIME type for the status text (not supported on all instances)",
+            }),
         ],
         require_auth=True,
     ),
