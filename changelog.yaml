@@ -1,10 +1,14 @@
 0.28.0:
   date: TBA
   changes:
+    - "**BREAKING**: Removed `toot curses`, deprecated since 2019-09-03"
     - "Add `--scheduled-at` option to `toot post`, allows scheduling toots"
     - "Add `--description` option to `toot post`, for adding descriptions to media attachments (thanks @ansuz)"
-    - "Disable paging timeline when output is piped (thanks @stacyharper)"
+    - "Add `--mentions` option to `toot notifications` to show only mentions (thanks @alexwennerberg)"
+    - "Allow post IDs to be strings as used on Pleroma (thanks Sandra Snan)"
+    - "TUI: Allow posts longer than 500 characters if so configured on the server (thanks Sandra Snan)"
     - "Allow piping the password to login_cli for testing purposes (thanks @NinjaTrappeur)"
+    - "Disable paging timeline when output is piped (thanks @stacyharper)"
 
 0.27.0:
   date: 2020-06-15
