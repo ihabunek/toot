@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import webbrowser
 
 from builtins import input
@@ -66,7 +67,13 @@ def login_interactive(app, email=None):
     while not email:
         email = input('Email: ')
 
-    password = getpass('Password: ')
+    # Accept password piped from stdin, useful for testing purposes but not
+    # documented so people won't get ideas. Otherwise prompt for password.
+    if sys.stdin.isatty():
+        password = getpass('Password: ')
+    else:
+        password = sys.stdin.read().strip()
+        print_out("Password: <green>read from stdin</green>")
 
     try:
         print_out("Authenticating...")
