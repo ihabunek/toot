@@ -8,7 +8,7 @@ from toot import api, config, __version__
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
-from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks
+from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
@@ -192,6 +192,9 @@ class TUI(urwid.Frame):
         def _menu(timeline, status):
             self.show_context_menu(status)
 
+        def _zoom(timeline, status_details):
+            self.show_status_zoom(status_details)
+
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "delete", _delete)
         urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
@@ -202,6 +205,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "reply", _reply)
         urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "links", _links)
+        urwid.connect_signal(timeline, "zoom", _zoom)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -336,6 +340,12 @@ class TUI(urwid.Frame):
                 title="Status links",
                 options={"height": len(links) + 2},
             )
+
+    def show_status_zoom(self, status_details):
+        self.open_overlay(
+            widget=StatusZoom(status_details),
+            title="Status zoom",
+        )
 
     def show_exception(self, exception):
         self.open_overlay(

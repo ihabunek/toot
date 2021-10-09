@@ -29,6 +29,7 @@ class Timeline(urwid.Columns):
         "links",      # Show status links
         "thread",     # Show thread for status
         "save",       # Save current timeline
+        "zoom",       # Open status in scrollable popup window
     ]
 
     def __init__(self, name, statuses, focus=0, is_thread=False):
@@ -173,6 +174,10 @@ class Timeline(urwid.Columns):
             self._emit("save", status)
             return
 
+        if key in ("z", "Z"):
+            self._emit("zoom", self.status_details)
+            return
+
         return super().keypress(size, key)
 
     def append_status(self, status):
@@ -305,6 +310,7 @@ class StatusDetails(urwid.Pile):
             "[L]inks",
             "[R]eply",
             "So[u]rce",
+            "[Z]oom",
             "[H]elp",
         ]
         options = " ".join(o for o in options if o)

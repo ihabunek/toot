@@ -20,6 +20,14 @@ class StatusSource(urwid.ListBox):
         super().__init__(walker)
 
 
+class StatusZoom(urwid.ListBox):
+    """Opens status in scrollable popup window"""
+    def __init__(self, status_details):
+        ll = list(filter(lambda x: getattr(x, "rows", None), status_details.widget_list))
+        walker = urwid.SimpleFocusListWalker(ll)
+        super().__init__(walker)
+
+
 class StatusLinks(urwid.ListBox):
     """Shows status links."""
 
@@ -162,6 +170,7 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [L] - Show the status links"))
         yield urwid.Text(h("  [U] - Show the status data in JSON as received from the server"))
         yield urwid.Text(h("  [V] - Open status in default browser"))
+        yield urwid.Text(h("  [Z] - Open status in scrollable popup window"))
         yield urwid.Divider()
         yield urwid.Text(("bold", "Links"))
         yield urwid.Divider()
