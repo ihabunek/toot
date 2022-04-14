@@ -325,6 +325,11 @@ class TUI(urwid.Frame):
 
     def show_links(self, status):
         links = parse_content_links(status.data["content"]) if status else []
+        post_attachments = status.data["media_attachments"] or []
+        reblog_attachments = (status.data["reblog"]["media_attachments"] if status.data["reblog"] else None) or []
+        for a in post_attachments + reblog_attachments:
+            url = a["remote_url"] or a["url"]
+            links.append((url, a["description"] if a["description"] else url))
         if links:
             self.open_overlay(
                 widget=StatusLinks(links),
