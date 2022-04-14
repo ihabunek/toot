@@ -13,7 +13,9 @@ def parse_datetime(value):
 
     # In Python < 3.7, `%z` does not match `Z` offset
     # https://docs.python.org/3.7/library/datetime.html#strftime-and-strptime-behavior
-    if value.endswith("Z"):
+    if value is None:
+        return datetime(2099, 12, 31)
+    elif value.endswith("Z"):
         dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
     else:
         dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
