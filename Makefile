@@ -1,20 +1,24 @@
 .PHONY: clean publish test docs
 
+PYTHON ?= python
+PYTEST ?= pytest
+PY_TEST ?= py.test
+
 dist :
-	python setup.py sdist --formats=gztar,zip
-	python setup.py bdist_wheel --python-tag=py3
+	$(PYTHON) setup.py sdist --formats=gztar,zip
+	$(PYTHON) setup.py bdist_wheel --python-tag=py3
 
 deb_dist:
-	python setup.py --command-packages=stdeb.command bdist_deb
+	$(PYTHON) setup.py --command-packages=stdeb.command bdist_deb
 
 publish :
 	twine upload dist/*.tar.gz dist/*.whl
 
 test:
-	pytest -v
+	$(PYTEST) -v
 
 coverage:
-	py.test --cov=toot --cov-report html tests/
+	$(PY_TEST) --cov=toot --cov-report html tests/
 
 clean :
 	find . -name "*pyc" | xargs rm -rf $1
