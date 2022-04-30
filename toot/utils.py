@@ -115,21 +115,19 @@ def multiline_input():
     return "\n".join(lines).strip()
 
 
-EDITOR_INPUT_INSTRUCTIONS = """
-# Please enter your toot. Lines starting with '#' will be ignored, and an empty
-# message aborts the post.
-# Metadata comments can be set for media, description, lang, spoiler, reply-to, visibility, sensitive
+EDITOR_INPUT_INSTRUCTIONS = """--
+help: Please enter your toot. An empty message aborts the post.
+help: This initial block between -- will be ignored.
+help: Metadata can be added in this block in key: value form.
+help: Supported keys are: media, description, lang, spoiler, reply-to, visibility, sensitive
 """
 
 def parse_editor_meta(line, args):
-    """Parse a comment metadata line in the editor box. Returns false if the line is a text line"""
-    if not line.startswith('#'):
-        return False
-    line = line.lstrip('# \t')
+    """Parse a metadata line in the editor box."""
     key, sep, val = line.partition(':')
     key = key.strip().lower()
     val = val.strip()
-    if sep == '' or val == '':
+    if key == 'help'  or sep == '' or val == '':
         return True
     # TODO override user with 'from'
     if key == 'media':
@@ -148,9 +146,9 @@ def parse_editor_meta(line, args):
         # 0, f, false, n, no will count as not-sensitive, any other value will be taken as a yes
         args.sensitive = val.lower() not in [ '0', 'f', 'false', 'n', 'no' ]
     else:
-        print_out("Ignoring unsupported comment metadata <red>{}</red> with value <yellow>{}</yellow>.".format(key, val))
+        print_out("Ignoring unsupported metadata <red>{}</red> with value <yellow>{}</yellow>.".format(key, val))
+        return False
     return True
-
 
 def parse_editor_input(args):
     """Lets user input text using an editor."""
@@ -160,38 +158,38 @@ def parse_editor_input(args):
     # they get reset if removed from the metacomments
     meta = ""
     if args.reply_to:
-        meta += "# reply_to: " + args.reply_to + "\n"
+        meta += "reply_to: " + args.reply_to + "\n"
         args.reply_to = None
     if args.visibility:
-        meta += "# visibility: " + args.visibility + "\n"
+        meta += "visibility: " + args.visibility + "\n"
         args.visibility = 'public' # TODO can we take the default from the command definition?
     if args.language:
-        meta += "# lang: " + args.language + "\n"
+        meta += "lang: " + args.language + "\n"
         args.language = None
     if args.spoiler_text:
-        meta += "# spoiler: " + args.spoiler_text + "\n"
+        meta += "spoiler: " + args.spoiler_text + "\n"
         args.spoiler_text = None
     if args.sensitive:
-        meta += "# sensitive: " + args.sensitive + "\n"
+        meta += "sensitive: " + args.sensitive + "\n"
         args.sensitive = False
 
     media = args.media or []
     descriptions = args.description or []
     if len(media) > 0:
         for idx, file in enumerate(media):
-            meta += "# media: " + file.name + "\n"
+            meta += "media: " + file.name + "\n"
             # encourage the user to add descriptions, always present the meta field
             desc = descriptions[idx].strip() if idx < len(descriptions) else ''
-            meta += "# description: " + desc + "\n"
+            meta += "description: " + desc + "\n"
     if len(descriptions) > len(media):
         for idx, desc in enumerate(descriptions):
             if idx < len(media):
                 continue
-            meta += "# description: "+ descriptions[idx].strip() + "\n"
+            meta += "description: "+ descriptions[idx].strip() + "\n"
 
     args.media = []
     args.description = []
-    text = meta + (args.text or "") + EDITOR_INPUT_INSTRUCTIONS
+    text = "{}{}--\n{}".format(EDITOR_INPUT_INSTRUCTIONS, meta, (args.text or ""))
 
     # loop to avoid losing text if something goes wrong (e.g. wrong visibility setting)
     with tempfile.NamedTemporaryFile() as f:
@@ -206,16 +204,33 @@ def parse_editor_input(args):
                 f.seek(0)
                 text = f.read().decode()
 
-                lines = text.strip().splitlines()
-                lines = (l for l in lines if not parse_editor_meta(l, args))
-                args.text = "\n".join(lines)
+                chunks = text.split("--\n", 3)
+                pre = ''
+                meta = ''
+                toot = ''
+
+                try:
+                    pre, meta, toot = chunks
+                except ValueError:
+                    toot = text
+
+                # pre should be empty
+                if pre:
+                    raise ValueError("metadata block offset")
+
+                for l in meta.splitlines():
+                    parse_editor_meta(l, args)
+                args.text = toot.strip()
 
                 # sanity check: this wll be checked by post() too, but we want to catch this early so that
                 # the user can still fix things in the editor
                 if args.media and len(args.media) > 4:
                     raise ConsoleError("Cannot attach more than 4 files.")
             except Exception as e:
-                text += "\n#" + str(e)
+                if len(text) < 3:
+                    text = "--\nerror: {}\n--\n{}".format(str(e), text)
+                else:
+                    text = text[:3] + "error: {}\n".format(str(e)) + text[3:]
                 continue
             break
 
