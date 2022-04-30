@@ -94,13 +94,39 @@ def multiline_input():
 
 EDITOR_INPUT_INSTRUCTIONS = """
 # Please enter your toot. Lines starting with '#' will be ignored, and an empty
-# message aborts the post.
+# message aborts the post. Metadata comments can be set for media, description, lang, spoiler
 """
 
+def parse_editor_meta(line, args):
+    """Parse a comment metadata line in the editor box. Returns false if the line is a text line"""
+    if not line.startswith('#'):
+        return False
+    line = line.lstrip('# \t')
+    key, sep, val = line.partition(':')
+    key = key.strip()
+    val = val.strip()
+    if sep == '' or val == '':
+        return True
+    # TODO override user with 'from'
+    if key == 'media':
+        args.media = args.media or []
+        args.media.append(val)
+    elif key == 'description':
+        args.description = args.description or []
+        args.description.append(val)
+    elif key == 'lang' or key == 'language':
+        args.language = val
+    elif key == 'spoiler':
+        args.spoiler_text = val
+    else:
+        print_out("Ignoring unsupported comment metadata <red>{}</red> with value <yellow>{}</yellow>.".format(key, val))
+    return True
 
-def editor_input(editor, initial_text):
+
+def parse_editor_input(args):
+    editor = args.editor
     """Lets user input text using an editor."""
-    initial_text = (initial_text or "") + EDITOR_INPUT_INSTRUCTIONS
+    initial_text = (args.text or "") + EDITOR_INPUT_INSTRUCTIONS
 
     with tempfile.NamedTemporaryFile() as f:
         f.write(initial_text.encode())
@@ -112,5 +138,6 @@ def editor_input(editor, initial_text):
         text = f.read().decode()
 
     lines = text.strip().splitlines()
-    lines = (l for l in lines if not l.startswith("#"))
-    return "\n".join(lines)
+    lines = (l for l in lines if not parse_editor_meta(l, args))
+    args.text = "\n".join(lines)
+    return args
