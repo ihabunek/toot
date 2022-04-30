@@ -12,6 +12,27 @@ from bs4 import BeautifulSoup
 
 from toot.exceptions import ConsoleError
 
+VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
+
+def language(value):
+    """Validates the language parameter"""
+    if len(value) != 3:
+        raise ArgumentTypeError(
+            "Invalid language specified: '{}'. Expected a 3 letter "
+            "abbreviation according to ISO 639-2 standard.".format(value)
+        )
+
+    return value
+
+def visibility(value):
+    """Validates the visibility parameter"""
+    if value not in VISIBILITY_CHOICES:
+        raise ValueError("Invalid visibility value")
+
+    return value
+
+def visibility_choices():
+    return ", ".join(VISIBILITY_CHOICES)
 
 def str_bool(b):
     """Convert boolean to string, in the way expected by the API."""
@@ -94,7 +115,8 @@ def multiline_input():
 
 EDITOR_INPUT_INSTRUCTIONS = """
 # Please enter your toot. Lines starting with '#' will be ignored, and an empty
-# message aborts the post. Metadata comments can be set for media, description, lang, spoiler
+# message aborts the post.
+# Metadata comments can be set for media, description, lang, spoiler, reply-to, visibility
 """
 
 def parse_editor_meta(line, args):
@@ -103,7 +125,7 @@ def parse_editor_meta(line, args):
         return False
     line = line.lstrip('# \t')
     key, sep, val = line.partition(':')
-    key = key.strip()
+    key = key.strip().lower()
     val = val.strip()
     if sep == '' or val == '':
         return True
@@ -115,29 +137,44 @@ def parse_editor_meta(line, args):
         args.description = args.description or []
         args.description.append(val)
     elif key == 'lang' or key == 'language':
-        args.language = val
+        args.language = language(val)
     elif key == 'spoiler':
         args.spoiler_text = val
+    elif key == 'reply-to' or key == 'reply_to' or key == 'replyto':
+        args.reply_to = val
+    elif key == 'visibility':
+        args.visibility = visibility(val)
     else:
         print_out("Ignoring unsupported comment metadata <red>{}</red> with value <yellow>{}</yellow>.".format(key, val))
     return True
 
 
 def parse_editor_input(args):
-    editor = args.editor
     """Lets user input text using an editor."""
-    initial_text = (args.text or "") + EDITOR_INPUT_INSTRUCTIONS
 
+    editor = args.editor
+    # TODO initialize metacomments from the args field
+    text = (args.text or "") + EDITOR_INPUT_INSTRUCTIONS
+
+    # loop to avoid losing text if something goes wrong (e.g. wrong visibility setting)
     with tempfile.NamedTemporaryFile() as f:
-        f.write(initial_text.encode())
-        f.flush()
+        while True:
+            try:
+                f.seek(0)
+                f.write(text.encode())
+                f.flush()
 
-        subprocess.run([editor, f.name])
+                subprocess.run([editor, f.name])
 
-        f.seek(0)
-        text = f.read().decode()
+                f.seek(0)
+                text = f.read().decode()
 
-    lines = text.strip().splitlines()
-    lines = (l for l in lines if not parse_editor_meta(l, args))
-    args.text = "\n".join(lines)
+                lines = text.strip().splitlines()
+                lines = (l for l in lines if not parse_editor_meta(l, args))
+                args.text = "\n".join(lines)
+            except Exception as e:
+                text += "\n#" + str(e)
+                continue
+            break
+
     return args
