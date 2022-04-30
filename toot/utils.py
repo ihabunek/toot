@@ -136,16 +136,16 @@ def parse_editor_meta(line, args):
         args.media.append(FileType('rb')(val))
     elif key == 'description':
         args.description.append(val)
-    elif key == 'lang' or key == 'language':
+    elif key in ['lang', 'language']:
         args.language = language(val)
-    elif key == 'spoiler' or key == 'spoiler-text' or key == 'spoiler_text':
+    elif key in ['spoiler', 'spoiler-text', 'spoiler_text']:
         args.spoiler_text = val
-    elif key == 'reply-to' or key == 'reply_to' or key == 'replyto':
+    elif key in ['reply-to', 'reply_to', 'replyto', 'in-reply-to', 'in_reply_to']:
         args.reply_to = val
     elif key == 'visibility':
         args.visibility = visibility(val)
-    elif key == 'sensitive':
-        # 0, f, false, n will count s not-sensitive, any other value will be taken as a yes'
+    elif key in ['sensitive', 'nsfw']:
+        # 0, f, false, n, no will count as not-sensitive, any other value will be taken as a yes
         args.sensitive = val.lower() not in [ '0', 'f', 'false', 'n', 'no' ]
     else:
         print_out("Ignoring unsupported comment metadata <red>{}</red> with value <yellow>{}</yellow>.".format(key, val))
