@@ -119,7 +119,7 @@ EDITOR_INPUT_INSTRUCTIONS = """--
 help: Please enter your toot. An empty message aborts the post.
 help: This initial block between -- will be ignored.
 help: Metadata can be added in this block in key: value form.
-help: Supported keys are: media, description, lang, spoiler, reply-to, visibility, sensitive
+help: Supported keys are: from, media, description, lang, spoiler, reply-to, visibility, sensitive
 """
 
 def parse_editor_meta(line, args):
@@ -129,8 +129,9 @@ def parse_editor_meta(line, args):
     val = val.strip()
     if key == 'help'  or sep == '' or val == '':
         return True
-    # TODO override user with 'from'
-    if key == 'media':
+    if key in ['from', 'using']:
+        args.using = val
+    elif key == 'media':
         args.media.append(FileType('rb')(val))
     elif key == 'description':
         args.description.append(val)
@@ -157,6 +158,8 @@ def parse_editor_input(args):
     # initialize metacomments from the args field, and reset them in args so that
     # they get reset if removed from the metacomments
     meta = ""
+    if args.using:
+        meta += "from: " + args.using + "\n"
     if args.reply_to:
         meta += "reply_to: " + args.reply_to + "\n"
         args.reply_to = None
@@ -190,6 +193,8 @@ def parse_editor_input(args):
     args.media = []
     args.description = []
     text = "{}{}--\n{}".format(EDITOR_INPUT_INSTRUCTIONS, meta, (args.text or ""))
+
+    prev_using = args.using
 
     # loop to avoid losing text if something goes wrong (e.g. wrong visibility setting)
     with tempfile.NamedTemporaryFile() as f:
@@ -226,6 +231,16 @@ def parse_editor_input(args):
                 # the user can still fix things in the editor
                 if args.media and len(args.media) > 4:
                     raise ConsoleError("Cannot attach more than 4 files.")
+
+                # if the user specified a different account, we check if it is valid here,
+                # so that the message is not lost in case of errors
+                # TODO FIXME this way of doing things is leading to a lot of duplicate code,
+                # the whole system should be refactored so that this error handling (with the retry)
+                # is handled at a higher level
+                if args.using != prev_using:
+                    user, app = config.get_user_app(parsed_args.using)
+                    if not user or not app:
+                        raise ConsoleError("User '{}' not found".format(parsed_args.using))
             except Exception as e:
                 if len(text) < 3:
                     text = "--\nerror: {}\n--\n{}".format(str(e), text)

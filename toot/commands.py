@@ -80,7 +80,13 @@ def post(app, user, args):
         # TODO: this might be achievable, explore options
         if not sys.stdin.isatty():
             raise ConsoleError("Cannot run editor if not in tty.")
+        prev_using = args.using
         args = parse_editor_input(args)
+        # The user may have changed the account
+        if args.using != prev_using:
+            user, app = config.get_user_app(parsed_args.using)
+            # no need to check, this was done in parse_editor_input()
+
 
     if args.media and len(args.media) > 4:
         raise ConsoleError("Cannot attach more than 4 files.")
