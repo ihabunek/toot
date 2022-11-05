@@ -251,7 +251,8 @@ def _find_account(app, user, account_name):
         account_name = account_name[1:]
 
     for account in accounts:
-        if account['acct'] == account_name:
+        # Normalise string matching because usernames are case insensitive
+        if account['acct'].lower() == account_name.lower():
             return account
 
     raise ConsoleError("Account not found")
