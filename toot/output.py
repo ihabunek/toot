@@ -4,7 +4,7 @@ import os
 import re
 import sys
 
-from datetime import datetime
+from datetime import datetime, timezone
 from textwrap import wrap
 from wcwidth import wcswidth
 
@@ -147,6 +147,10 @@ def print_search_results(results):
         print_out("<yellow>Nothing found</yellow>")
 
 
+def utc_to_local(utc_dt):
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone()
+
+
 def print_status(status, width):
     reblog = status['reblog']
     content = reblog['content'] if reblog else status['content']
@@ -155,7 +159,8 @@ def print_status(status, width):
 
     time = status['created_at']
     time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
-    time = time.strftime('%Y-%m-%d %H:%M%z')
+    time = utc_to_local(time)
+    time = time.strftime('%Y-%m-%d %H:%M %Z')
 
     username = "@" + status['account']['acct']
     spacing = width - wcswidth(username) - wcswidth(time)
