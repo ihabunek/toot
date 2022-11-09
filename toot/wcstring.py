@@ -75,7 +75,7 @@ def trunc(text, length):
     if length < 1:
         raise ValueError("length should be 1 or larger")
 
-    # Remove whitespace first so no unneccesary truncation is done.
+    # Remove whitespace first so no unnecessary truncation is done.
     text = text.strip()
     text_length = wcswidth(text)
 
