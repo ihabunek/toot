@@ -10,27 +10,7 @@ from collections import namedtuple
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
-
-VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
-
-
-def language(value):
-    """Validates the language parameter"""
-    if len(value) != 3:
-        raise ArgumentTypeError(
-            "Invalid language specified: '{}'. Expected a 3 letter "
-            "abbreviation according to ISO 639-2 standard.".format(value)
-        )
-
-    return value
-
-
-def visibility(value):
-    """Validates the visibility parameter"""
-    if value not in VISIBILITY_CHOICES:
-        raise ValueError("Invalid visibility value")
-
-    return value
+from toot.utils import language, visibility, visibility_choices
 
 
 def timeline_count(value):
@@ -306,7 +286,7 @@ POST_COMMANDS = [
             (["-v", "--visibility"], {
                 "type": visibility,
                 "default": "public",
-                "help": 'post visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
+                "help": 'post visibility, one of: %s' % visibility_choices(),
             }),
             (["-s", "--sensitive"], {
                 "action": 'store_true',
