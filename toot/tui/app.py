@@ -150,7 +150,7 @@ class TUI(urwid.Frame):
 
         def _default_error_callback(ex):
             self.exception = ex
-            self.footer.set_error_message("An exeption occured, press E to view")
+            self.footer.set_error_message("An exception occurred, press E to view")
 
         _error_callback = error_callback or _default_error_callback
 

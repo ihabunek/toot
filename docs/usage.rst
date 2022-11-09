@@ -122,7 +122,7 @@ Finally, you can launch your favourite editor:
   toot post --editor vim
 
 Define your editor preference in the ``EDITOR`` environment variable, then you
-don't need to specify it explicity:
+don't need to specify it explicitly:
 
 .. code-block:: bash
 
@@ -137,7 +137,7 @@ files. For details on supported formats see `Mastodon docs on attachments
 <https://docs.joinmastodon.org/user/posting/#attachments>`_.
 
 It is encouraged to add a plain-text description to the attached media for
-accessiblity purposes by adding a ``--description`` option.
+accessibility purposes by adding a ``--description`` option.
 
 To attach an image:
 
@@ -183,7 +183,7 @@ Timeline takes various options:
   toot timeline --public --local  # public timeline, only this instance
   toot timeline --tag photo       # posts tagged with #photo
   toot timeline --count 5         # fetch 5 toots (max 20)
-  toot timeline --once            # don't promopt to fetch more toots
+  toot timeline --once            # don't prompt to fetch more toots
 
 Status actions
 --------------

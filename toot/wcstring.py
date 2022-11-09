@@ -70,12 +70,12 @@ def trunc(text, length):
     """
     Truncates text to given length, taking into account wide characters.
 
-    If truncated, the last char is replaced by an elipsis.
+    If truncated, the last char is replaced by an ellipsis.
     """
     if length < 1:
         raise ValueError("length should be 1 or larger")
 
-    # Remove whitespace first so no unneccesary truncation is done.
+    # Remove whitespace first so no unnecessary truncation is done.
     text = text.strip()
     text_length = wcswidth(text)
 
@@ -93,7 +93,7 @@ def trunc(text, length):
         if text_length - trunc_length <= length:
             break
 
-    # Additional char to make room for elipsis
+    # Additional char to make room for ellipsis
     n = chars_to_truncate + 1
     return text[:-n].strip() + '…'
 
