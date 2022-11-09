@@ -183,7 +183,7 @@ Timeline takes various options:
   toot timeline --public --local  # public timeline, only this instance
   toot timeline --tag photo       # posts tagged with #photo
   toot timeline --count 5         # fetch 5 toots (max 20)
-  toot timeline --once            # don't promopt to fetch more toots
+  toot timeline --once            # don't prompt to fetch more toots
 
 Status actions
 --------------
