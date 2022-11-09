@@ -122,7 +122,7 @@ Finally, you can launch your favourite editor:
   toot post --editor vim
 
 Define your editor preference in the ``EDITOR`` environment variable, then you
-don't need to specify it explicity:
+don't need to specify it explicitly:
 
 .. code-block:: bash
 
