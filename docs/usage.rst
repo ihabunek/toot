@@ -137,7 +137,7 @@ files. For details on supported formats see `Mastodon docs on attachments
 <https://docs.joinmastodon.org/user/posting/#attachments>`_.
 
 It is encouraged to add a plain-text description to the attached media for
-accessiblity purposes by adding a ``--description`` option.
+accessibility purposes by adding a ``--description`` option.
 
 To attach an image:
 
