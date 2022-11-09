@@ -15,7 +15,7 @@ Bump & tag version
 * Run ``make changelog`` to generate a human readable changelog
 * Commit the changes
 * Run ``./scripts/tag_version <version>`` to tag a release in git
-* Run ``git push --follow-tags`` to upload changes and tag to Github
+* Run ``git push --follow-tags`` to upload changes and tag to GitHub
 
 Publishing to PyPI
 ------------------
@@ -23,7 +23,7 @@ Publishing to PyPI
 * ``make dist`` to create source and wheel distributions
 * ``make publish`` to push them to PyPI
 
-Github release
+GitHub release
 --------------
 
 * `Create a release <https://github.com/ihabunek/toot/releases/>`_ for the newly

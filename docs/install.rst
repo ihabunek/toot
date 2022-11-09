@@ -118,4 +118,4 @@ Source
 ------
 
 Finally, you can get the latest source distribution, wheel or debian package
-`from Github <https://github.com/ihabunek/toot/releases/latest/>`_.
+`from GitHub <https://github.com/ihabunek/toot/releases/latest/>`_.
