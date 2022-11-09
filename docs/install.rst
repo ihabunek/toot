@@ -48,6 +48,17 @@ Install from `AUR <https://aur.archlinux.org/packages/toot/>`_.
 
     yay -S toot
 
+
+Fedora
+-------------
+
+Toot is available from the Fedora package repository.
+
+.. code-block:: bash
+
+    sudo dnf install toot
+
+
 FreeBSD ports
 -------------
 
