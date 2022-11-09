@@ -22,7 +22,7 @@ TODO/Ideas:
 * Think about how to show media
     * download media and use local image viewer?
     * convert to ascii art?
-* interaction with clipboard - how to copy a status to clipbard?
+* interaction with clipboard - how to copy a status to clipboard?
 * Show **notifications**
 * Status source
     * shortcut to copy source
