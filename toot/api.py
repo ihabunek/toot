@@ -238,17 +238,11 @@ def search(app, user, query, resolve):
 
 
 def search_accounts(app, user, query):
-    try:
-        return http.get(app, user, '/api/v1/accounts/search', {
-            'q': query,
-        }).json()
-
-    # some servers does not support v1 account search, try v2
-    except NotFoundError:
-        return http.get(app, user, '/api/v2/search', {
-            'q': query,
-            'resolve': True,
-        }).json()['accounts']
+    return http.get(app, user, '/api/v2/search', {
+        'q': query,
+        'type': 'accounts',
+        'resolve': True,
+    }).json()['accounts']
 
 
 def follow(app, user, account):
