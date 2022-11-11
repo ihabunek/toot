@@ -102,7 +102,7 @@ def editor_input(editor, initial_text):
     """Lets user input text using an editor."""
     initial_text = (initial_text or "") + EDITOR_INPUT_INSTRUCTIONS
 
-    with tempfile.NamedTemporaryFile() as f:
+    with tempfile.NamedTemporaryFile(suffix='.toot') as f:
         f.write(initial_text.encode())
         f.flush()
 
