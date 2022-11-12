@@ -40,7 +40,7 @@ setup(
     install_requires=[
         "requests>=2.13,<3.0",
         "beautifulsoup4>=4.5.0,<5.0",
-        "wcwidth>=0.1.7,<2.0",
+        "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
     ],
     entry_points={
