@@ -146,7 +146,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
     assert "Frank Zappa 🎸" in lines[1]
     assert "@fz" in lines[1]
-    assert "2017-04-12 15:53" in lines[1]
+    assert "2017-04-12 17:53 CEST" in lines[1]
 
     assert (
         "The computer can't tell you the emotional story. It can give you the "
@@ -187,7 +187,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
 
     assert "Frank Zappa" in lines[1]
     assert "@fz" in lines[1]
-    assert "2017-04-12 15:53" in lines[1]
+    assert "2017-04-12 17:53 CEST" in lines[1]
 
     assert (
         "The computer can't tell you the emotional story. It can give you the "
@@ -363,45 +363,69 @@ def test_search(mock_get, capsys):
 @mock.patch('toot.http.post')
 @mock.patch('toot.http.get')
 def test_follow(mock_get, mock_post, capsys):
-    mock_get.return_value = MockResponse([
-        {'id': 123, 'acct': 'blixa@other.acc'},
-        {'id': 321, 'acct': 'blixa'},
-    ])
+    mock_get.return_value = MockResponse({
+        "accounts": [
+            {"id": 123, "acct": "blixa@other.acc"},
+            {"id": 321, "acct": "blixa"},
+        ]
+    })
     mock_post.return_value = MockResponse()
 
     console.run_command(app, user, 'follow', ['blixa'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/accounts/search', {'q': 'blixa'})
+    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
     mock_post.assert_called_once_with(app, user, '/api/v1/accounts/321/follow')
 
     out, err = capsys.readouterr()
     assert "You are now following blixa" in out
 
 
+@mock.patch('toot.http.post')
+@mock.patch('toot.http.get')
+def test_follow_case_insensitive(mock_get, mock_post, capsys):
+    mock_get.return_value = MockResponse({
+        "accounts": [
+            {"id": 123, "acct": "blixa@other.acc"},
+            {"id": 321, "acct": "blixa"},
+        ]
+    })
+    mock_post.return_value = MockResponse()
+
+    console.run_command(app, user, 'follow', ['bLiXa@oThEr.aCc'])
+
+    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'bLiXa@oThEr.aCc', 'type': 'accounts', 'resolve': True})
+    mock_post.assert_called_once_with(app, user, '/api/v1/accounts/123/follow')
+
+    out, err = capsys.readouterr()
+    assert "You are now following bLiXa@oThEr.aCc" in out
+
+
 @mock.patch('toot.http.get')
 def test_follow_not_found(mock_get, capsys):
-    mock_get.return_value = MockResponse()
+    mock_get.return_value = MockResponse({"accounts": []})
 
     with pytest.raises(ConsoleError) as ex:
         console.run_command(app, user, 'follow', ['blixa'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/accounts/search', {'q': 'blixa'})
+    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
     assert "Account not found" == str(ex.value)
 
 
 @mock.patch('toot.http.post')
 @mock.patch('toot.http.get')
 def test_unfollow(mock_get, mock_post, capsys):
-    mock_get.return_value = MockResponse([
-        {'id': 123, 'acct': 'blixa@other.acc'},
-        {'id': 321, 'acct': 'blixa'},
-    ])
+    mock_get.return_value = MockResponse({
+        "accounts": [
+            {'id': 123, 'acct': 'blixa@other.acc'},
+            {'id': 321, 'acct': 'blixa'},
+        ]
+    })
 
     mock_post.return_value = MockResponse()
 
     console.run_command(app, user, 'unfollow', ['blixa'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/accounts/search', {'q': 'blixa'})
+    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
     mock_post.assert_called_once_with(app, user, '/api/v1/accounts/321/unfollow')
 
     out, err = capsys.readouterr()
@@ -410,12 +434,12 @@ def test_unfollow(mock_get, mock_post, capsys):
 
 @mock.patch('toot.http.get')
 def test_unfollow_not_found(mock_get, capsys):
-    mock_get.return_value = MockResponse([])
+    mock_get.return_value = MockResponse({"accounts": []})
 
     with pytest.raises(ConsoleError) as ex:
         console.run_command(app, user, 'unfollow', ['blixa'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/accounts/search', {'q': 'blixa'})
+    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
 
     assert "Account not found" == str(ex.value)
 
@@ -536,33 +560,32 @@ def test_notifications(mock_get, capsys):
     out, err = capsys.readouterr()
     out = uncolorize(out)
 
-    width = 100
     assert not err
     assert out == "\n".join([
-        "─" * width,
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Frank Zappa @frank@zappa.social now follows you",
-        "─" * width,
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Dweezil Zappa @dweezil@zappa.social mentioned you in",
-        "Dweezil Zappa @dweezil@zappa.social                                                 2017-04-12 15:53",
+        "Dweezil Zappa @dweezil@zappa.social                                            2017-04-12 17:53 CEST",
         "",
         "We still have fans in 2017 @fan123",
         "",
         "ID 111111111111111111  ",
-        "─" * width,
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Terry Bozzio @terry@bozzio.social reblogged your status",
-        "Zappa Fan @fan123@zappa-fans.social                                                 1983-11-04 15:53",
+        "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 16:53 CET",
         "",
         "The Black Page, a masterpiece",
         "",
         "ID 1234  ",
-        "─" * width,
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Zappa Old Fan @fan9@zappa-fans.social favourited your status",
-        "Zappa Fan @fan123@zappa-fans.social                                                 1983-11-04 15:53",
+        "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 16:53 CET",
         "",
         "The Black Page, a masterpiece",
         "",
         "ID 1234  ",
-        "─" * width,
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "",
     ])
 
