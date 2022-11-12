@@ -1,3 +1,13 @@
+0.28.1:
+  date: 2022-11-12
+  changes:
+    - "Fix account search to be case insensitive (thanks @TheJokersThief)"
+    - "Fix account search to use v2 endpoint, since v1 endpoint was removed on some instances (thanks @kaja47)"
+    - "Add '.toot' extension to temporary files when composing toot in an editor (thanks @larsks)"
+    - "Display localized datetimes in timeline (thanks @mmmmmmbeer)"
+    - "Don't use # for comments when composing toot in an editor, since that made it impossible to post lines starting with #."
+    - "TUI: Fix crash when poll does not have an expiry date"
+
 0.28.0:
   date: 2021-08-28
   changes:
