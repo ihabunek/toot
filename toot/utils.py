@@ -92,9 +92,13 @@ def multiline_input():
     return "\n".join(lines).strip()
 
 
-EDITOR_INPUT_INSTRUCTIONS = """
-# Please enter your toot. Lines starting with '#' will be ignored, and an empty
-# message aborts the post.
+EDITOR_DIVIDER = "------------------------ >8 ------------------------"
+
+EDITOR_INPUT_INSTRUCTIONS = f"""
+{EDITOR_DIVIDER}
+Do not modify or remove the line above.
+Enter your toot above it.
+Everything below it will be ignored.
 """
 
 
@@ -111,6 +115,4 @@ def editor_input(editor, initial_text):
         f.seek(0)
         text = f.read().decode()
 
-    lines = text.strip().splitlines()
-    lines = (l for l in lines if not l.startswith("#"))
-    return "\n".join(lines)
+    return text.split(EDITOR_DIVIDER)[0].strip()
