@@ -8,15 +8,6 @@ toot is packaged for various platforms.
     :local:
     :backlinks: none
 
-.. warning::
-
-    There used to be an **APT package repository** at `bezdomni.net`, managed by
-    myself. Since toot is now available in the Debian and Ubuntu repos, the repo
-    is no longer required and will be removed soon.
-
-    If you have previously added the repository, remove it by deleting the file
-    at: ``/etc/apt/sources.list.d/bezdomni.list``.
-
 Overview
 --------
 

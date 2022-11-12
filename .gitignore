@@ -7,7 +7,6 @@
 /.envrc
 /.pytest_cache/
 /build/
-/deb_dist/
 /dist/
 /docs/_build/
 /htmlcov/

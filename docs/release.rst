@@ -31,6 +31,5 @@ GitHub release
 * Upload the assets generated in previous two steps to the release:
     * source dist (.zip and .tar.gz)
     * wheel distribution (.whl)
-    * debian package (.deb)
 
 TODO: this can be automated: https://developer.github.com/v3/repos/releases/
