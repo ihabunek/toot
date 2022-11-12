@@ -334,13 +334,15 @@ class StatusDetails(urwid.Pile):
             yield urwid.Text(option["title"])
             yield urwid.ProgressBar("", "poll_bar", perc)
 
-        if poll["expired"]:
-            status = "Closed"
-        else:
-            expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
-            status = "Closes on {}".format(expires_at)
+        status = "Poll · {} votes".format(poll["votes_count"])
 
-        status = "Poll · {} votes · {}".format(poll["votes_count"], status)
+        if poll["expired"]:
+            status += " · Closed"
+
+        if poll["expires_at"]:
+            expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
+            status += " · Closes on {}".format(expires_at)
+
         yield urwid.Text(("gray", status))
 
 
