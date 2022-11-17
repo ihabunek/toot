@@ -260,6 +260,22 @@ def follow(app, user, account):
 def unfollow(app, user, account):
     return _account_action(app, user, account, 'unfollow')
 
+def _get_account_list(app, user, path):
+    accounts = []
+    while path:
+        response = http.get(app, user, path)
+        accounts += response.json()
+        path = _get_next_path(response.headers)
+    return accounts
+
+def following(app, user, account):
+    path = '/api/v1/accounts/{}/{}'.format(account, 'following')
+    return _get_account_list(app, user, path)
+
+def followers(app, user, account):
+    path = '/api/v1/accounts/{}/{}'.format(account, 'followers')
+    return _get_account_list(app, user, path)
+
 
 def mute(app, user, account):
     return _account_action(app, user, account, 'mute')

@@ -5,7 +5,7 @@ import sys
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
-from toot.output import (print_out, print_instance, print_account,
+from toot.output import (print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications)
 from toot.utils import assert_domain_exists, editor_input, multiline_input, EOF_KEY
 
@@ -278,6 +278,16 @@ def unfollow(app, user, args):
     account = _find_account(app, user, args.account)
     api.unfollow(app, user, account['id'])
     print_out("<green>✓ You are no longer following {}</green>".format(args.account))
+
+def following(app, user, args):
+    account = _find_account(app, user, args.account)
+    response = api.following(app, user, account['id'])
+    print_acct_list(response)
+
+def followers(app, user, args):
+    account = _find_account(app, user, args.account)
+    response = api.followers(app, user, account['id'])
+    print_acct_list(response)
 
 
 def mute(app, user, args):
