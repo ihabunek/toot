@@ -442,6 +442,22 @@ ACCOUNTS_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="following",
+        description="List accounts followed by the given account",
+        arguments=[
+            account_arg,
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="followers",
+        description="List accounts following the given account",
+        arguments=[
+            account_arg,
+        ],
+        require_auth=True,
+    ),
+    Command(
         name="mute",
         description="Mute an account",
         arguments=[
