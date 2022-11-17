@@ -410,6 +410,18 @@ STATUS_COMMANDS = [
         arguments=[status_id_arg],
         require_auth=True,
     ),
+    Command(
+        name="bookmark",
+        description="Bookmark a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="unbookmark",
+        description="Unbookmark a status",
+        arguments=[status_id_arg],
+        require_auth=True,
+    ),
 ]
 
 ACCOUNTS_COMMANDS = [

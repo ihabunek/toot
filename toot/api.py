@@ -153,6 +153,14 @@ def unpin(app, user, status_id):
     return _status_action(app, user, status_id, 'unpin')
 
 
+def bookmark(app, user, status_id):
+    return _status_action(app, user, status_id, 'bookmark')
+
+
+def unbookmark(app, user, status_id):
+    return _status_action(app, user, status_id, 'unbookmark')
+
+
 def context(app, user, status_id):
     url = '/api/v1/statuses/{}/context'.format(status_id)
 

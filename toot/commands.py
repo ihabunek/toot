@@ -164,6 +164,16 @@ def unpin(app, user, args):
     print_out("<green>✓ Status unpinned</green>")
 
 
+def bookmark(app, user, args):
+    api.bookmark(app, user, args.status_id)
+    print_out("<green>✓ Status bookmarked</green>")
+
+
+def unbookmark(app, user, args):
+    api.unbookmark(app, user, args.status_id)
+    print_out("<green>✓ Status unbookmarked</green>")
+
+
 def reblogged_by(app, user, args):
     for account in api.reblogged_by(app, user, args.status_id):
         print_out("{}\n @{}".format(account['display_name'], account['acct']))
