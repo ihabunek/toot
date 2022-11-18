@@ -443,7 +443,7 @@ ACCOUNTS_COMMANDS = [
     ),
     Command(
         name="following",
-        description="List accounts followed by the given account",
+        description="List accounts following the given account",
         arguments=[
             account_arg,
         ],
@@ -451,7 +451,7 @@ ACCOUNTS_COMMANDS = [
     ),
     Command(
         name="followers",
-        description="List accounts following the given account",
+        description="List accounts followed by the given account",
         arguments=[
             account_arg,
         ],
