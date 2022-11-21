@@ -1,4 +1,5 @@
 from html.parser import HTMLParser
+import os
 import re
 import shutil
 import subprocess
@@ -17,6 +18,11 @@ def parse_datetime(value):
         dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
     else:
         dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+    # When running tests return datetime in UTC so that tests don't depend on
+    # the local timezone
+    if "PYTEST_CURRENT_TEST" in os.environ:
+        return dttm.astimezone(timezone.utc)
 
     return dttm.astimezone()
 

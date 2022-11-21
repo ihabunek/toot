@@ -146,7 +146,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
     assert "Frank Zappa 🎸" in lines[1]
     assert "@fz" in lines[1]
-    assert "2017-04-12 17:53 CEST" in lines[1]
+    assert "2017-04-12 15:53 UTC" in lines[1]
 
     assert (
         "The computer can't tell you the emotional story. It can give you the "
@@ -187,7 +187,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
 
     assert "Frank Zappa" in lines[1]
     assert "@fz" in lines[1]
-    assert "2017-04-12 17:53 CEST" in lines[1]
+    assert "2017-04-12 15:53 UTC" in lines[1]
 
     assert (
         "The computer can't tell you the emotional story. It can give you the "
@@ -566,21 +566,21 @@ def test_notifications(mock_get, capsys):
         "Frank Zappa @frank@zappa.social now follows you",
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Dweezil Zappa @dweezil@zappa.social mentioned you in",
-        "Dweezil Zappa @dweezil@zappa.social                                            2017-04-12 17:53 CEST",
+        "Dweezil Zappa @dweezil@zappa.social                                             2017-04-12 15:53 UTC",
         "",
         "We still have fans in 2017 @fan123",
         "",
         "ID 111111111111111111  ",
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Terry Bozzio @terry@bozzio.social reblogged your status",
-        "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 16:53 CET",
+        "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 15:53 UTC",
         "",
         "The Black Page, a masterpiece",
         "",
         "ID 1234  ",
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Zappa Old Fan @fan9@zappa-fans.social favourited your status",
-        "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 16:53 CET",
+        "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 15:53 UTC",
         "",
         "The Black Page, a masterpiece",
         "",
