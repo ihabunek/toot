@@ -1,3 +1,11 @@
+0.29.0:
+  date: TBA
+  changes:
+    - "Add `bookmark` and `unbookmark` commands"
+    - "Add `following` and `followers` commands (thanks @Oblomov)"
+    - "TUI: Show media attachments in links list (thanks @PeterFidelman)"
+    - "Fix tests so that they don't depend on the local timezone"
+
 0.28.1:
   date: 2022-11-12
   changes:
