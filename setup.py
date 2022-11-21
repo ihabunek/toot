@@ -12,7 +12,7 @@ and blocking accounts and other actions.
 
 setup(
     name='toot',
-    version='0.28.1',
+    version='0.29.0',
     description='Mastodon CLI client',
     long_description=long_description.strip(),
     author='Ivan Habunek',

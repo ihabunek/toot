@@ -1,5 +1,5 @@
 0.29.0:
-  date: TBA
+  date: 2022-11-21
   changes:
     - "Add `bookmark` and `unbookmark` commands"
     - "Add `following` and `followers` commands (thanks @Oblomov)"
