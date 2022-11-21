@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timezone
 from textwrap import wrap
 from wcwidth import wcswidth
+from toot.tui.utils import parse_datetime
 
 from toot.utils import format_content, get_text, parse_html
 from toot.wcstring import wc_wrap
@@ -149,19 +150,13 @@ def print_search_results(results):
         print_out("<yellow>Nothing found</yellow>")
 
 
-def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone()
-
-
 def print_status(status, width):
     reblog = status['reblog']
     content = reblog['content'] if reblog else status['content']
     media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
     in_reply_to = status['in_reply_to_id']
 
-    time = status['created_at']
-    time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
-    time = utc_to_local(time)
+    time = parse_datetime(status['created_at'])
     time = time.strftime('%Y-%m-%d %H:%M %Z')
 
     username = "@" + status['account']['acct']
