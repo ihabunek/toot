@@ -1,4 +1,6 @@
 from requests import Request, Session
+from requests.exceptions import RequestException
+
 from toot import __version__
 from toot.exceptions import NotFoundError, ApiError
 from toot.logging import log_request, log_response
@@ -11,10 +13,13 @@ def send_request(request, allow_redirects=True):
 
     log_request(request)
 
-    with Session() as session:
-        prepared = session.prepare_request(request)
-        settings = session.merge_environment_settings(prepared.url, {}, None, None, None)
-        response = session.send(prepared, allow_redirects=allow_redirects, **settings)
+    try:
+        with Session() as session:
+            prepared = session.prepare_request(request)
+            settings = session.merge_environment_settings(prepared.url, {}, None, None, None)
+            response = session.send(prepared, allow_redirects=allow_redirects, **settings)
+    except RequestException as ex:
+        raise ApiError(f"Request failed: {str(ex)}")
 
     log_response(response)
 
