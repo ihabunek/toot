@@ -524,6 +524,12 @@ class TUI(urwid.Frame):
             if not self.overlay:
                 self.show_help()
 
+        elif key in (','):
+            if not self.overlay:
+                self.timeline_generator = api.home_timeline_generator(
+                    self.app, self.user, limit=40)
+                self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
+
         elif key == 'esc':
             if self.overlay:
                 self.close_overlay()
