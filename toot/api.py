@@ -128,8 +128,8 @@ def post_status(
     content_type=None,
 ):
     """
-    Posts a new status.
-    https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#posting-a-new-status
+    Publish a new status.
+    https://docs.joinmastodon.org/methods/statuses/#create
     """
 
     # Idempotency key assures the same status is not posted multiple times
@@ -151,6 +151,14 @@ def post_status(
         json['content_type'] = content_type
 
     return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
+
+
+def fetch_status(app, user, id):
+    """
+    Fetch a single status
+    https://docs.joinmastodon.org/methods/statuses/#get
+    """
+    return http.get(app, user, f"/api/v1/statuses/{id}").json()
 
 
 def delete_status(app, user, status_id):
