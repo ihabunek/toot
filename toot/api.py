@@ -300,6 +300,7 @@ def follow(app, user, account):
 def unfollow(app, user, account):
     return _account_action(app, user, account, 'unfollow')
 
+
 def _get_account_list(app, user, path):
     accounts = []
     while path:
@@ -308,9 +309,11 @@ def _get_account_list(app, user, path):
         path = _get_next_path(response.headers)
     return accounts
 
+
 def following(app, user, account):
     path = '/api/v1/accounts/{}/{}'.format(account, 'following')
     return _get_account_list(app, user, path)
+
 
 def followers(app, user, account):
     path = '/api/v1/accounts/{}/{}'.format(account, 'followers')
@@ -344,7 +347,7 @@ def single_status(app, user, status_id):
 
 
 def get_notifications(app, user, exclude_types=[], limit=20):
-    params={"exclude_types[]": exclude_types, "limit": limit}
+    params = {"exclude_types[]": exclude_types, "limit": limit}
     return http.get(app, user, '/api/v1/notifications', params).json()
 
 

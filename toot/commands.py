@@ -279,10 +279,12 @@ def unfollow(app, user, args):
     api.unfollow(app, user, account['id'])
     print_out("<green>✓ You are no longer following {}</green>".format(args.account))
 
+
 def following(app, user, args):
     account = _find_account(app, user, args.account)
     response = api.following(app, user, account['id'])
     print_acct_list(response)
+
 
 def followers(app, user, args):
     account = _find_account(app, user, args.account)

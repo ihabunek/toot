@@ -138,12 +138,14 @@ HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 def highlight_hashtags(line):
     return re.sub(HASHTAG_PATTERN, '<cyan>\\1</cyan>', line)
 
+
 def print_acct_list(accounts):
     for account in accounts:
         print_out("* <green>@{}</green> {}".format(
             account['acct'],
             account['display_name']
         ))
+
 
 def print_search_results(results):
     accounts = results['accounts']
