@@ -3,13 +3,13 @@
 import os
 import re
 import sys
+import textwrap
 
-from datetime import datetime, timezone
 from textwrap import wrap
-from wcwidth import wcswidth
 from toot.tui.utils import parse_datetime
+from wcwidth import wcswidth
 
-from toot.utils import format_content, get_text, parse_html
+from toot.utils import get_text, parse_html
 from toot.wcstring import wc_wrap
 
 
@@ -88,17 +88,28 @@ def print_instance(instance):
     print_out("<green>{}</green>".format(instance['title']))
     print_out("<blue>{}</blue>".format(instance['uri']))
     print_out("running Mastodon {}".format(instance['version']))
-    print_out("")
+    print_out()
 
-    description = instance['description'].strip()
-    if not description:
-        return
+    description = instance.get("description")
+    if description:
+        for paragraph in re.split(r"[\r\n]+", description.strip()):
+            paragraph = get_text(paragraph)
+            print_out(textwrap.fill(paragraph, width=80))
+            print_out()
 
-    lines = [line.strip() for line in format_content(description) if line.strip()]
-    for line in lines:
-        for l in wrap(line.strip()):
-            print_out(l)
-        print_out()
+    rules = instance.get("rules")
+    if rules:
+        print_out("Rules:")
+        for ordinal, rule in enumerate(rules):
+            ordinal = f"{ordinal + 1}."
+            lines = textwrap.wrap(rule["text"], 80 - len(ordinal))
+            first = True
+            for line in lines:
+                if first:
+                    print_out(f"{ordinal} {line}")
+                    first = False
+                else:
+                    print_out(f"{' ' * len(ordinal)} {line}")
 
 
 def print_account(account):
