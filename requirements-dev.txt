@@ -1,10 +1,10 @@
 keyring
+psycopg2
 pytest
 pytest-cov
 pyxdg
+pyyaml
 sphinx
 sphinx-autobuild
-stdeb
 twine
 wheel
-pyyaml
