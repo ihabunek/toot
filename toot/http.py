@@ -47,8 +47,8 @@ def process_response(response):
     return response
 
 
-def get(app, user, url, params=None, headers=None):
-    url = app.base_url + url
+def get(app, user, path, params=None, headers=None):
+    url = app.base_url + path
 
     headers = headers or {}
     headers["Authorization"] = f"Bearer {user.access_token}"
@@ -66,8 +66,8 @@ def anon_get(url, params=None):
     return process_response(response)
 
 
-def post(app, user, url, data=None, files=None, allow_redirects=True, headers=None):
-    url = app.base_url + url
+def post(app, user, path, data=None, files=None, allow_redirects=True, headers=None):
+    url = app.base_url + path
 
     headers = headers or {}
     headers["Authorization"] = f"Bearer {user.access_token}"
@@ -78,8 +78,8 @@ def post(app, user, url, data=None, files=None, allow_redirects=True, headers=No
     return process_response(response)
 
 
-def delete(app, user, url, data=None, headers=None):
-    url = app.base_url + url
+def delete(app, user, path, data=None, headers=None):
+    url = app.base_url + path
 
     headers = headers or {}
     headers["Authorization"] = f"Bearer {user.access_token}"
