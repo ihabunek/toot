@@ -27,14 +27,14 @@ def _status_action(app, user, status_id, action):
 def create_app(domain, scheme='https'):
     url = '{}://{}/api/v1/apps'.format(scheme, domain)
 
-    data = {
+    json = {
         'client_name': CLIENT_NAME,
         'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob',
         'scopes': SCOPES,
         'website': CLIENT_WEBSITE,
     }
 
-    return http.anon_post(url, data).json()
+    return http.anon_post(url, json=json).json()
 
 
 def login(app, username, password):
@@ -49,7 +49,7 @@ def login(app, username, password):
         'scope': SCOPES,
     }
 
-    response = http.anon_post(url, data, allow_redirects=False)
+    response = http.anon_post(url, data=data, allow_redirects=False)
 
     # If auth fails, it redirects to the login page
     if response.is_redirect:
@@ -79,7 +79,7 @@ def request_access_token(app, authorization_code):
         'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
     }
 
-    return http.anon_post(url, data, allow_redirects=False).json()
+    return http.anon_post(url, data=data, allow_redirects=False).json()
 
 
 def post_status(
@@ -104,9 +104,9 @@ def post_status(
     # if the request is retried.
     headers = {"Idempotency-Key": uuid.uuid4().hex}
 
-    params = {
+    json = {
         'status': status,
-        'media_ids[]': media_ids,
+        'media_ids': media_ids,
         'visibility': visibility,
         'sensitive': str_bool(sensitive),
         'spoiler_text': spoiler_text,
@@ -116,9 +116,9 @@ def post_status(
     }
 
     if content_type:
-        params['content_type'] = content_type
+        json['content_type'] = content_type
 
-    return http.post(app, user, '/api/v1/statuses', params, headers=headers).json()
+    return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
 
 
 def delete_status(app, user, status_id):

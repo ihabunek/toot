@@ -17,7 +17,7 @@ def test_create_app(mock_post):
 
     create_app('bigfish.software')
 
-    mock_post.assert_called_once_with('https://bigfish.software/api/v1/apps', {
+    mock_post.assert_called_once_with('https://bigfish.software/api/v1/apps', json={
         'website': CLIENT_WEBSITE,
         'client_name': CLIENT_NAME,
         'scopes': SCOPES,
@@ -48,7 +48,7 @@ def test_login(mock_post):
     login(app, 'user', 'pass')
 
     mock_post.assert_called_once_with(
-        'https://bigfish.software/oauth/token', data, allow_redirects=False)
+        'https://bigfish.software/oauth/token', data=data, allow_redirects=False)
 
 
 @mock.patch('toot.http.anon_post')
@@ -70,4 +70,4 @@ def test_login_failed(mock_post):
         login(app, 'user', 'pass')
 
     mock_post.assert_called_once_with(
-        'https://bigfish.software/oauth/token', data, allow_redirects=False)
+        'https://bigfish.software/oauth/token', data=data, allow_redirects=False)

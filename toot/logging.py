@@ -1,3 +1,5 @@
+import json
+
 from logging import getLogger
 
 logger = getLogger('toot')
@@ -22,6 +24,9 @@ def log_request(request):
     if request.data:
         logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
 
+    if request.json:
+        logger.debug(">>> JSON:    \033[33m{}\033[0m".format(json.dumps(request.json)))
+
     if request.files:
         logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
 
@@ -32,10 +37,10 @@ def log_request(request):
 def log_response(response):
     if response.ok:
         logger.debug("<<< \033[32m{}\033[0m".format(response))
-        logger.debug("<<< \033[33m{}\033[0m".format(response.content))
+        logger.debug("<<< \033[33m{}\033[0m".format(response.content.decode()))
     else:
         logger.debug("<<< \033[31m{}\033[0m".format(response))
-        logger.debug("<<< \033[31m{}\033[0m".format(response.content))
+        logger.debug("<<< \033[31m{}\033[0m".format(response.content.decode()))
 
 
 def log_debug(*msgs):

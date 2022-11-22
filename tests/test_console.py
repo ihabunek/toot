@@ -38,10 +38,10 @@ def test_post_defaults(mock_post, mock_uuid, capsys):
 
     console.run_command(app, user, 'post', ['Hello world'])
 
-    mock_post.assert_called_once_with(app, user, '/api/v1/statuses', {
+    mock_post.assert_called_once_with(app, user, '/api/v1/statuses', json={
         'status': 'Hello world',
         'visibility': 'public',
-        'media_ids[]': [],
+        'media_ids': [],
         'sensitive': "false",
         'spoiler_text': None,
         'in_reply_to_id': None,
@@ -74,9 +74,9 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
 
     console.run_command(app, user, 'post', args)
 
-    mock_post.assert_called_once_with(app, user, '/api/v1/statuses', {
+    mock_post.assert_called_once_with(app, user, '/api/v1/statuses', json={
         'status': 'Hello world',
-        'media_ids[]': [],
+        'media_ids': [],
         'visibility': 'unlisted',
         'sensitive': "true",
         'spoiler_text': "Spoiler!",

@@ -47,9 +47,11 @@ def process_response(response):
     return response
 
 
-def get(app, user, url, params=None):
-    url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
+def get(app, user, path, params=None, headers=None):
+    url = app.base_url + path
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
 
     request = Request('GET', url, headers, params=params)
     response = send_request(request)
@@ -64,29 +66,29 @@ def anon_get(url, params=None):
     return process_response(response)
 
 
-def post(app, user, url, data=None, files=None, allow_redirects=True, headers={}):
-    url = app.base_url + url
+def post(app, user, path, headers=None, files=None, data=None, json=None, allow_redirects=True):
+    url = app.base_url + path
 
-    headers["Authorization"] = "Bearer " + user.access_token
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
 
-    request = Request('POST', url, headers, files, data)
-    response = send_request(request, allow_redirects)
-
-    return process_response(response)
+    return anon_post(url, headers=headers, files=files, data=data, json=json, allow_redirects=allow_redirects)
 
 
-def delete(app, user, url, data=None):
-    url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
+def delete(app, user, path, data=None, headers=None):
+    url = app.base_url + path
 
-    request = Request('DELETE', url, headers=headers, data=data)
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
+
+    request = Request('DELETE', url, headers=headers, json=data)
     response = send_request(request)
 
     return process_response(response)
 
 
-def anon_post(url, data=None, files=None, allow_redirects=True):
-    request = Request('POST', url, {}, files, data)
+def anon_post(url, headers=None, files=None, data=None, json=None, allow_redirects=True):
+    request = Request(method="POST", url=url, headers=headers, files=files, data=data, json=json)
     response = send_request(request, allow_redirects)
 
     return process_response(response)
