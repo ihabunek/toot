@@ -37,6 +37,38 @@ def create_app(domain, scheme='https'):
     return http.anon_post(url, data).json()
 
 
+def register_account(app, username, email, password, locale="en", agreement=True):
+    """
+    Register an account
+    https://docs.joinmastodon.org/methods/accounts/#create
+    """
+    token = fetch_app_token(app)["access_token"]
+    url = f"{app.base_url}/api/v1/accounts"
+    headers = {"Authorization": f"Bearer {token}"}
+
+    data = {
+        "username": username,
+        "email": email,
+        "password": password,
+        "agreement": agreement,
+        "locale": locale
+    }
+
+    return http.anon_post(url, data=data, headers=headers).json()
+
+
+def fetch_app_token(app):
+    data = {
+        "client_id": app.client_id,
+        "client_secret": app.client_secret,
+        "grant_type": "client_credentials",
+        "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+        "scope": "read write"
+    }
+
+    return http.anon_post(f"{app.base_url}/oauth/token", data).json()
+
+
 def login(app, username, password):
     url = app.base_url + '/oauth/token'
 
