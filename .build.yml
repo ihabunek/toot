@@ -1,0 +1,16 @@
+image: debian/bookworm
+packages:
+  - python3-venv
+  - postgresql
+sources:
+  - https://github.com/ihabunek/toot
+tasks:
+  - test: |
+      cd toot
+      python3 -m venv venv
+      . ./venv/bin/activate
+      pip install -e .
+      pip install pytest
+      pip install psycopg2-binary
+      pytest
+shell: true
