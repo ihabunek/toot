@@ -69,7 +69,7 @@ def post(app, user, url, data=None, files=None, allow_redirects=True, headers={}
 
     headers["Authorization"] = "Bearer " + user.access_token
 
-    request = Request('POST', url, headers, files, data)
+    request = Request('POST', url, headers, files, json=data)
     response = send_request(request, allow_redirects)
 
     return process_response(response)
@@ -79,14 +79,14 @@ def delete(app, user, url, data=None):
     url = app.base_url + url
     headers = {"Authorization": "Bearer " + user.access_token}
 
-    request = Request('DELETE', url, headers=headers, data=data)
+    request = Request('DELETE', url, headers=headers, json=data)
     response = send_request(request)
 
     return process_response(response)
 
 
 def anon_post(url, data=None, files=None, allow_redirects=True):
-    request = Request('POST', url, {}, files, data)
+    request = Request('POST', url, {}, files, json=data)
     response = send_request(request, allow_redirects)
 
     return process_response(response)

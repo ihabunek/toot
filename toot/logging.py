@@ -22,6 +22,9 @@ def log_request(request):
     if request.data:
         logger.debug(">>> DATA:    \033[33m{}\033[0m".format(request.data))
 
+    if request.json:
+        logger.debug(">>> JSON:    \033[33m{}\033[0m".format(request.json))
+
     if request.files:
         logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
 
