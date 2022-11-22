@@ -47,9 +47,11 @@ def process_response(response):
     return response
 
 
-def get(app, user, url, params=None):
+def get(app, user, url, params=None, headers=None):
     url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
 
     request = Request('GET', url, headers, params=params)
     response = send_request(request)
@@ -64,10 +66,11 @@ def anon_get(url, params=None):
     return process_response(response)
 
 
-def post(app, user, url, data=None, files=None, allow_redirects=True, headers={}):
+def post(app, user, url, data=None, files=None, allow_redirects=True, headers=None):
     url = app.base_url + url
 
-    headers["Authorization"] = "Bearer " + user.access_token
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
 
     request = Request('POST', url, headers, files, json=data)
     response = send_request(request, allow_redirects)
@@ -75,9 +78,11 @@ def post(app, user, url, data=None, files=None, allow_redirects=True, headers={}
     return process_response(response)
 
 
-def delete(app, user, url, data=None):
+def delete(app, user, url, data=None, headers=None):
     url = app.base_url + url
-    headers = {"Authorization": "Bearer " + user.access_token}
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
 
     request = Request('DELETE', url, headers=headers, json=data)
     response = send_request(request)
@@ -85,8 +90,8 @@ def delete(app, user, url, data=None):
     return process_response(response)
 
 
-def anon_post(url, data=None, files=None, allow_redirects=True):
-    request = Request('POST', url, {}, files, json=data)
+def anon_post(url, data=None, files=None, allow_redirects=True, headers=None):
+    request = Request('POST', url, headers, files, json=data)
     response = send_request(request, allow_redirects)
 
     return process_response(response)
