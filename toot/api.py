@@ -358,3 +358,7 @@ def clear_notifications(app, user):
 def get_instance(domain, scheme="https"):
     url = "{}://{}/api/v1/instance".format(scheme, domain)
     return http.anon_get(url).json()
+
+
+def get_instance_by_url(url):
+    return http.anon_get(f"{url}/api/v1/instance").json()

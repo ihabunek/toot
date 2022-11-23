@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from argparse import ArgumentTypeError
 import os
 import re
 import socket
 import subprocess
 import tempfile
 import unicodedata
+from urllib.parse import urlparse
 import warnings
 
 from bs4 import BeautifulSoup
@@ -116,3 +118,8 @@ def editor_input(editor, initial_text):
         text = f.read().decode()
 
     return text.split(EDITOR_DIVIDER)[0].strip()
+
+
+def is_url(value):
+    url = urlparse(value)
+    return all((url.scheme, url.netloc))

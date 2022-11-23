@@ -10,6 +10,7 @@ from collections import namedtuple
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
+from toot.utils import is_url
 
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
 
@@ -55,6 +56,12 @@ def editor(value):
     return exe
 
 
+def url(value):
+    if not is_url(value):
+        raise ArgumentTypeError("Invalid URL")
+    return value
+
+
 Command = namedtuple("Command", ["name", "description", "require_auth", "arguments"])
 
 
@@ -91,6 +98,11 @@ account_arg = (["account"], {
 instance_arg = (["-i", "--instance"], {
     "type": str,
     "help": 'mastodon instance to log into e.g. "mastodon.social"',
+})
+
+instance_url_arg = (["-i", "--instance"], {
+    "type": url,
+    "help": "Mastodon instance URL",
 })
 
 email_arg = (["-e", "--email"], {
@@ -156,6 +168,12 @@ timeline_args = common_timeline_args + [
 ]
 
 AUTH_COMMANDS = [
+    Command(
+        name="register",
+        description="Register a new account",
+        arguments=[instance_url_arg],
+        require_auth=False,
+    ),
     Command(
         name="login",
         description="Log into a mastodon instance using your browser (recommended)",

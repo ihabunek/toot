@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import textwrap
+
+from pprint import pprint
+from urllib.parse import urlparse
+
+from urwid.escape import re
 
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ConsoleError, NotFoundError
-from toot.output import (print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_timeline, print_notifications)
-from toot.utils import assert_domain_exists, editor_input, multiline_input, EOF_KEY
+from toot.output import (print_err, print_out, print_instance, print_account, print_acct_list,
+                         print_search_results, print_timeline, print_notifications, prompt)
+from toot.utils import assert_domain_exists, editor_input, get_text, is_url, multiline_input, EOF_KEY, parse_html
 
 
 def get_timeline_generator(app, user, args):
@@ -195,6 +201,31 @@ def auth(app, user, args):
 
     path = config.get_config_file_path()
     print_out("\nAuth tokens are stored in: <blue>{}</blue>".format(path))
+
+
+def register(app, user, args):
+    instance_url = args.instance or prompt("Instance URL", validate=is_url)
+    instance_url = instance_url.rstrip("/")
+
+    parsed_url = urlparse(instance_url)
+    assert_domain_exists(parsed_url.netloc)
+    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+    print(base_url)
+
+    try:
+        instance = api.get_instance_by_url(base_url)
+    except NotFoundError:
+        raise ConsoleError(f"Mastdon instance not found at {base_url}")
+
+    print_out()
+    print_instance(instance)
+
+
+    # pprint(instance)
+
+    # app = create_app_interactive(instance=args.instance, scheme=args.scheme)
+    # print(app)
+    # print(user)
 
 
 def login_cli(app, user, args):

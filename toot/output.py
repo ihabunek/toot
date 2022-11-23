@@ -72,6 +72,27 @@ USE_ANSI_COLOR = use_ansi_color()
 QUIET = "--quiet" in sys.argv
 
 
+def prompt(caption, default=None, validate=None):
+    default_label = f" [default: {default}]" if default else ""
+
+    while True:
+        print_out(f"{caption}{default_label}: ", end="")
+        value = input().strip()
+
+        if not value:
+            if default:
+                return default
+            else:
+                continue
+
+        if validate:
+            if not validate(value):
+                print_out("<red>Invalid value</red>")
+                continue
+
+        return value
+
+
 def print_out(*args, **kwargs):
     if not QUIET:
         args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
