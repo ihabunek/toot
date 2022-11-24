@@ -9,7 +9,7 @@ your test server and database:
 
 ```
 export TOOT_TEST_HOSTNAME="localhost:3000"
-export TOOT_TEST_DATABASE_DSN="mastodon_development"
+export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 ```
 """
 
