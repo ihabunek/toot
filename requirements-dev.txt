@@ -1,7 +1,8 @@
 keyring
-psycopg2
+psycopg2-binary
 pytest
 pytest-cov
+pytest-xdist[psutil]
 pyxdg
 pyyaml
 sphinx
