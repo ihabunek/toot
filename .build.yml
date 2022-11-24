@@ -12,4 +12,7 @@ tasks:
       pip install pytest
       pip install psycopg2-binary
       pytest
-shell: true
+triggers:
+  - action: email
+    condition: failure
+    to: ivan@habunek.com
