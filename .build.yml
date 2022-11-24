@@ -1,7 +1,6 @@
 image: debian/bookworm
 packages:
   - python3-venv
-  - postgresql
 sources:
   - https://github.com/ihabunek/toot
 tasks:
