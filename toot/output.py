@@ -14,6 +14,7 @@ from toot.wcstring import wc_wrap
 
 
 START_CODES = {
+    'dim': '\033[2m',
     'red': '\033[31m',
     'green': '\033[32m',
     'yellow': '\033[33m',

@@ -8,9 +8,9 @@ from urllib.parse import urlparse
 
 from urwid.escape import re
 
-from toot import api, config
+from toot import App, api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
-from toot.exceptions import ConsoleError, NotFoundError
+from toot.exceptions import ApiError, ConsoleError, NotFoundError
 from toot.output import (print_err, print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications, prompt)
 from toot.utils import assert_domain_exists, editor_input, get_text, is_url, multiline_input, EOF_KEY, parse_html
@@ -205,27 +205,34 @@ def auth(app, user, args):
 
 def register(app, user, args):
     instance_url = args.instance or prompt("Instance URL", validate=is_url)
-    instance_url = instance_url.rstrip("/")
-
     parsed_url = urlparse(instance_url)
-    assert_domain_exists(parsed_url.netloc)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
-    print(base_url)
+    domain = parsed_url.netloc
 
     try:
+        print_out(f"<dim>Looking for an instance at {base_url}...</dim>")
         instance = api.get_instance_by_url(base_url)
-    except NotFoundError:
+    except ApiError:
         raise ConsoleError(f"Mastdon instance not found at {base_url}")
 
     print_out()
     print_instance(instance)
+    print_out()
 
+    if not instance["registrations"]:
+        raise ConsoleError("This instance is not currently allowing new registrations")
 
-    # pprint(instance)
+    app = config.load_app(domain)
+    if not app:
+        try:
+            print_out("<dim>Registering application...</dim>")
+            response = api.create_app(base_url)
+            app = App(domain, base_url, response["client_id"], response["client_secret"])
+            config.save_app(app)
+        except ApiError:
+            raise ConsoleError("Registration failed.")
 
-    # app = create_app_interactive(instance=args.instance, scheme=args.scheme)
-    # print(app)
-    # print(user)
+    print(app)
 
 
 def login_cli(app, user, args):
