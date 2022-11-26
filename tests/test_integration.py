@@ -43,8 +43,9 @@ if not HOSTNAME or not DATABASE_DSN:
 
 
 def create_app():
-    response = api.create_app(HOSTNAME, scheme="http")
-    return App(HOSTNAME, f"http://{HOSTNAME}", response["client_id"], response["client_secret"])
+    base_url = f"http://{HOSTNAME}"
+    response = api.create_app(base_url)
+    return App(HOSTNAME, base_url, response["client_id"], response["client_secret"])
 
 
 def register_account(app: App):

@@ -15,7 +15,7 @@ def test_create_app(mock_post):
         'client_secret': 'bar',
     })
 
-    create_app('bigfish.software')
+    create_app('https://bigfish.software')
 
     mock_post.assert_called_once_with('https://bigfish.software/api/v1/apps', json={
         'website': CLIENT_WEBSITE,

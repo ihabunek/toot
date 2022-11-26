@@ -18,15 +18,15 @@ def register_app(domain, scheme='https'):
     print_out("Found instance <blue>{}</blue> running Mastodon version <yellow>{}</yellow>".format(
         instance['title'], instance['version']))
 
+    base_url = f"{scheme}://{domain}"
+
     try:
         print_out("Registering application...")
-        response = api.create_app(domain, scheme)
+        response = api.create_app(base_url)
     except ApiError:
         raise ConsoleError("Registration failed.")
 
-    base_url = scheme + '://' + domain
-
-    app = App(domain, base_url, response['client_id'], response['client_secret'])
+    app = App(domain, base_url, response["client_id"], response["client_secret"])
     config.save_app(app)
 
     print_out("Application tokens saved.")

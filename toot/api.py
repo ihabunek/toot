@@ -24,8 +24,8 @@ def _status_action(app, user, status_id, action):
     return http.post(app, user, url).json()
 
 
-def create_app(domain, scheme='https'):
-    url = '{}://{}/api/v1/apps'.format(scheme, domain)
+def create_app(base_url):
+    url = f"{base_url}/api/v1/apps"
 
     json = {
         'client_name': CLIENT_NAME,
