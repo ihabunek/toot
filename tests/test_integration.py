@@ -17,12 +17,13 @@ import os
 import psycopg2
 import pytest
 import re
+import time
 import uuid
 
 from os import path
 from toot import CLIENT_NAME, CLIENT_WEBSITE, api, App, User
 from toot.console import run_command
-from toot.exceptions import NotFoundError
+from toot.exceptions import ConsoleError, NotFoundError
 from toot.utils import get_text
 
 # Host name of a test instance to run integration tests against
@@ -72,9 +73,24 @@ def user(app):
     return register_account(app)
 
 
+@pytest.fixture(scope="session")
+def friend(app):
+    return register_account(app)
+
+
+@pytest.fixture
+def run(app, user, capsys):
+    def _run(command, *params, as_user=None):
+        run_command(app, as_user or user, command, params or [])
+        out, err = capsys.readouterr()
+        assert err == ""
+        return strip_ansi(out)
+    return _run
+
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
+
 
 def test_get_instance(app):
     response = api.get_instance(HOSTNAME, scheme="http")
@@ -82,10 +98,10 @@ def test_get_instance(app):
     assert response["uri"] == app.instance
 
 
-def test_post(app, user, capsys):
+def test_post(app, user, run):
     text = "i wish i was a #lumberjack"
-    run_command(app, user, "post", [text])
-    status_id = _posted_status_id(capsys)
+    out = run("post", text)
+    status_id = _posted_status_id(out)
 
     status = api.fetch_status(app, user, status_id)
     assert text == get_text(status["content"])
@@ -97,15 +113,15 @@ def test_post(app, user, capsys):
     assert status["spoiler_text"] == ""
 
 
-def test_post_visibility(app, user, capsys):
+def test_post_visibility(app, user, run):
     for visibility in ["public", "unlisted", "private", "direct"]:
-        run_command(app, user, "post", ["foo", "--visibility", visibility])
-        status_id = _posted_status_id(capsys)
+        out = run("post", "foo", "--visibility", visibility)
+        status_id = _posted_status_id(out)
         status = api.fetch_status(app, user, status_id)
         assert status["visibility"] == visibility
 
 
-def test_media_attachments(app, user, capsys):
+def test_media_attachments(app, user, run):
     assets_dir = path.realpath(path.join(path.dirname(__file__), "assets"))
 
     path1 = path.join(assets_dir, "test1.png")
@@ -113,7 +129,8 @@ def test_media_attachments(app, user, capsys):
     path3 = path.join(assets_dir, "test3.png")
     path4 = path.join(assets_dir, "test4.png")
 
-    run_command(app, user, "post", [
+    out = run(
+        "post",
         "--media", path1,
         "--media", path2,
         "--media", path3,
@@ -123,9 +140,9 @@ def test_media_attachments(app, user, capsys):
         "--description", "Test 3",
         "--description", "Test 4",
         "some text"
-    ])
+    )
 
-    status_id = _posted_status_id(capsys)
+    status_id = _posted_status_id(out)
     status = api.fetch_status(app, user, status_id)
 
     [a1, a2, a3, a4] = status["media_attachments"]
@@ -141,111 +158,161 @@ def test_media_attachments(app, user, capsys):
     assert a4["description"] == "Test 4"
 
 
-def test_delete_status(app, user):
+def test_delete_status(app, user, run):
     status = api.post_status(app, user, "foo")
 
-    response = api.delete_status(app, user, status["id"]).json()
-    assert response["id"] == status["id"]
+    out = run("delete", status["id"])
+    assert out == "✓ Status deleted"
 
     with pytest.raises(NotFoundError):
-        api.fetch_status(app, user, response["id"])
+        api.fetch_status(app, user, status["id"])
 
 
-def test_favourite(app, user, capsys):
+def test_reply_thread(app, user, friend, run):
+    status = api.post_status(app, friend, "This is the status")
+
+    out = run("post", "--reply-to", status["id"], "This is the reply")
+    status_id = _posted_status_id(out)
+    reply = api.fetch_status(app, user, status_id)
+
+    assert reply["in_reply_to_id"] == status["id"]
+
+    out = run("thread", status["id"])
+    [s1, s2] = [s.strip() for s in re.split(r"─+", out) if s.strip()]
+
+    assert "This is the status" in s1
+    assert "This is the reply" in s2
+    assert friend.username in s1
+    assert user.username in s2
+    assert status["id"] in s1
+    assert reply["id"] in s2
+
+
+def test_favourite(app, user, run):
     status = api.post_status(app, user, "foo")
     assert not status["favourited"]
 
-    run_command(app, user, "favourite", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status favourited"
-    assert err == ""
+    out = run("favourite", status["id"])
+    assert out == "✓ Status favourited"
 
     status = api.fetch_status(app, user, status["id"])
     assert status["favourited"]
 
-    run_command(app, user, "unfavourite", [status["id"]])
+    out = run("unfavourite", status["id"])
+    assert out == "✓ Status unfavourited"
 
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status unfavourited"
-    assert err == ""
+    # A short delay is required before the server returns new data
+    time.sleep(0.1)
 
     status = api.fetch_status(app, user, status["id"])
     assert not status["favourited"]
 
 
-def test_reblog(app, user, capsys):
+def test_reblog(app, user, run):
     status = api.post_status(app, user, "foo")
     assert not status["reblogged"]
 
-    run_command(app, user, "reblog", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status reblogged"
-    assert err == ""
+    out = run("reblog", status["id"])
+    assert out == "✓ Status reblogged"
 
     status = api.fetch_status(app, user, status["id"])
     assert status["reblogged"]
 
-    run_command(app, user, "reblogged_by", [status["id"]])
+    out = run("reblogged_by", status["id"])
+    assert out == f"@{user.username}"
 
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == f"@{user.username}"
-
-    run_command(app, user, "unreblog", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status unreblogged"
-    assert err == ""
+    out = run("unreblog", status["id"])
+    assert out == "✓ Status unreblogged"
 
     status = api.fetch_status(app, user, status["id"])
     assert not status["reblogged"]
 
 
-def test_pin(app, user, capsys):
+def test_pin(app, user, run):
     status = api.post_status(app, user, "foo")
     assert not status["pinned"]
 
-    run_command(app, user, "pin", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status pinned"
-    assert err == ""
+    out = run("pin", status["id"])
+    assert out == "✓ Status pinned"
 
     status = api.fetch_status(app, user, status["id"])
     assert status["pinned"]
 
-    run_command(app, user, "unpin", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status unpinned"
-    assert err == ""
+    out = run("unpin", status["id"])
+    assert out == "✓ Status unpinned"
 
     status = api.fetch_status(app, user, status["id"])
     assert not status["pinned"]
 
 
-def test_bookmark(app, user, capsys):
+def test_bookmark(app, user, run):
     status = api.post_status(app, user, "foo")
     assert not status["bookmarked"]
 
-    run_command(app, user, "bookmark", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status bookmarked"
-    assert err == ""
+    out = run("bookmark", status["id"])
+    assert out == "✓ Status bookmarked"
 
     status = api.fetch_status(app, user, status["id"])
     assert status["bookmarked"]
 
-    run_command(app, user, "unbookmark", [status["id"]])
-
-    out, err = capsys.readouterr()
-    assert strip_ansi(out) == "✓ Status unbookmarked"
-    assert err == ""
+    out = run("unbookmark", status["id"])
+    assert out == "✓ Status unbookmarked"
 
     status = api.fetch_status(app, user, status["id"])
     assert not status["bookmarked"]
+
+
+def test_whoami(user, run):
+    out = run("whoami")
+    # TODO: test other fields once updating account is supported
+    assert f"@{user.username}" in out
+    assert f"http://localhost:3000/@{user.username}" in out
+
+
+def test_whois(friend, run):
+    out = run("whois", friend.username)
+
+    assert f"@{friend.username}" in out
+    assert f"http://localhost:3000/@{friend.username}" in out
+
+
+def test_search_account(friend, run):
+    out = run("search", friend.username)
+    assert out == f"Accounts:\n* @{friend.username}"
+
+
+def test_search_hashtag(app, user, run):
+    api.post_status(app, user, "#hashtag_x")
+    api.post_status(app, user, "#hashtag_y")
+    api.post_status(app, user, "#hashtag_z")
+
+    out = run("search", "#hashtag")
+    assert out == "Hashtags:\n#hashtag_x, #hashtag_y, #hashtag_z"
+
+
+def test_follow(friend, run):
+    out = run("follow", friend.username)
+    assert out == f"✓ You are now following {friend.username}"
+
+    out = run("unfollow", friend.username)
+    assert out == f"✓ You are no longer following {friend.username}"
+
+
+def test_follow_case_insensitive(friend, run):
+    username = friend.username.upper()
+
+    out = run("follow", username)
+    assert out == f"✓ You are now following {username}"
+
+    out = run("unfollow", username)
+    assert out == f"✓ You are no longer following {username}"
+
+
+# TODO: improve testing stderr, catching exceptions is not optimal
+def test_follow_not_found(run):
+    with pytest.raises(ConsoleError) as ex_info:
+        run("follow", "banana")
+    assert str(ex_info.value) == "Account not found"
 
 
 # ------------------------------------------------------------------------------
@@ -259,11 +326,7 @@ def strip_ansi(string):
     return strip_ansi_pattern.sub("", string).strip()
 
 
-def _posted_status_id(capsys):
-    out, err = capsys.readouterr()
-    out = strip_ansi(out)
-    assert err == ""
-
+def _posted_status_id(out):
     pattern = re.compile(r"Toot posted: http://([^/]+)/@([^/]+)/(.+)")
     match = re.search(pattern, out)
     assert match
