@@ -524,7 +524,7 @@ class TUI(urwid.Frame):
             if not self.overlay:
                 self.show_help()
 
-        elif key in (','):
+        elif key == ',':
             if not self.overlay:
                 self.timeline_generator = api.home_timeline_generator(
                     self.app, self.user, limit=40)
