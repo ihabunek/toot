@@ -350,6 +350,7 @@ def test_search(mock_get, capsys):
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {
         'q': 'freddy',
+        'type': None,
         'resolve': False,
     })
 

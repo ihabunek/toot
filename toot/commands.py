@@ -255,14 +255,11 @@ def _find_account(app, user, account_name):
     if not account_name:
         raise ConsoleError("Empty account name given")
 
-    accounts = api.search_accounts(app, user, account_name)
+    normalized_name = account_name.lstrip("@").lower()
 
-    if account_name[0] == "@":
-        account_name = account_name[1:]
-
-    for account in accounts:
-        # Normalise string matching because usernames are case insensitive
-        if account['acct'].lower() == account_name.lower():
+    response = api.search(app, user, account_name, type="accounts", resolve=True)
+    for account in response["accounts"]:
+        if account["acct"].lower() == normalized_name:
             return account
 
     raise ConsoleError("Account not found")

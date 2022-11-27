@@ -278,19 +278,16 @@ def upload_media(app, user, file, description=None):
     ).json()
 
 
-def search(app, user, query, resolve):
-    return http.get(app, user, '/api/v2/search', {
-        'q': query,
-        'resolve': resolve,
+def search(app, user, query, resolve=False, type=None):
+    """
+    Perform a search.
+    https://docs.joinmastodon.org/methods/search/#v2
+    """
+    return http.get(app, user, "/api/v2/search", {
+        "q": query,
+        "resolve": resolve,
+        "type": type
     }).json()
-
-
-def search_accounts(app, user, query):
-    return http.get(app, user, '/api/v2/search', {
-        'q': query,
-        'type': 'accounts',
-        'resolve': True,
-    }).json()['accounts']
 
 
 def follow(app, user, account):
