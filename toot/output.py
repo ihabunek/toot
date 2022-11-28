@@ -168,6 +168,7 @@ def print_status(status, width):
     content = reblog['content'] if reblog else status['content']
     media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
     in_reply_to = status['in_reply_to_id']
+    poll = reblog['poll'] if reblog else status['poll']
 
     time = parse_datetime(status['created_at'])
     time = time.strftime('%Y-%m-%d %H:%M %Z')
@@ -198,6 +199,31 @@ def print_status(status, width):
             url = attachment['text_url'] or attachment['url']
             for line in wc_wrap(url, width):
                 print_out(line)
+
+    if poll:
+        print_out("")
+        for idx, option in enumerate(poll["options"]):
+            perc = (round(100 * option["votes_count"] / poll["votes_count"])
+                if poll["votes_count"] else 0)
+
+            if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
+                voted_for = " <yellow>✓<yellow>"
+            else:
+                voted_for = ""
+
+            print_out(option["title"] + " - {}%".format(perc) + voted_for)
+
+        poll_footer = "Poll · {} votes".format(poll["votes_count"])
+
+        if poll["expired"]:
+            poll_footer += " · Closed"
+
+        if poll["expires_at"]:
+            expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
+            poll_footer += " · Closes on {}".format(expires_at)
+
+        print_out("\n{}".format(poll_footer))
+
 
     print_out("\n{}{}{}".format(
         "ID <yellow>{}</yellow>  ".format(status['id']),

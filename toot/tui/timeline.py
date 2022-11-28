@@ -328,10 +328,16 @@ class StatusDetails(urwid.Pile):
         yield urwid.Text(("link", card["url"]))
 
     def poll_generator(self, poll):
-        for option in poll["options"]:
+        for idx, option in enumerate(poll["options"]):
             perc = (round(100 * option["votes_count"] / poll["votes_count"])
                 if poll["votes_count"] else 0)
-            yield urwid.Text(option["title"])
+
+            if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
+                voted_for = " ✓"
+            else:
+                voted_for = ""
+
+            yield urwid.Text(option["title"] + voted_for)
             yield urwid.ProgressBar("", "poll_bar", perc)
 
         status = "Poll · {} votes".format(poll["votes_count"])
