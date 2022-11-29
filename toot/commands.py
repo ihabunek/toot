@@ -4,10 +4,10 @@ import sys
 
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
-from toot.exceptions import ApiError, ConsoleError, NotFoundError
+from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications)
-from toot.utils import assert_domain_exists, editor_input, multiline_input, EOF_KEY
+from toot.utils import editor_input, multiline_input, EOF_KEY
 
 
 def get_timeline_generator(app, user, args):
