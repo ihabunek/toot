@@ -168,7 +168,7 @@ def print_status(status, width):
     content = reblog['content'] if reblog else status['content']
     media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
     in_reply_to = status['in_reply_to_id']
-    poll = reblog['poll'] if reblog else status['poll']
+    poll = reblog.get('poll') if reblog else status.get('poll')
 
     time = parse_datetime(status['created_at'])
     time = time.strftime('%Y-%m-%d %H:%M %Z')
