@@ -201,35 +201,38 @@ def print_status(status, width):
                 print_out(line)
 
     if poll:
-        print_out("")
-        for idx, option in enumerate(poll["options"]):
-            perc = (round(100 * option["votes_count"] / poll["votes_count"])
-                if poll["votes_count"] else 0)
-
-            if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
-                voted_for = " <yellow>✓<yellow>"
-            else:
-                voted_for = ""
-
-            print_out(option["title"] + " - {}%".format(perc) + voted_for)
-
-        poll_footer = "Poll · {} votes".format(poll["votes_count"])
-
-        if poll["expired"]:
-            poll_footer += " · Closed"
-
-        if poll["expires_at"]:
-            expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
-            poll_footer += " · Closes on {}".format(expires_at)
-
-        print_out("\n{}".format(poll_footer))
-
+        print_poll(poll)
 
     print_out("\n{}{}{}".format(
         "ID <yellow>{}</yellow>  ".format(status['id']),
         "↲ In reply to <yellow>{}</yellow>  ".format(in_reply_to) if in_reply_to else "",
         "↻ Reblogged <blue>@{}</blue>  ".format(reblog['account']['acct']) if reblog else "",
     ))
+
+
+def print_poll(poll):
+    print_out()
+    for idx, option in enumerate(poll["options"]):
+        perc = (round(100 * option["votes_count"] / poll["votes_count"])
+            if poll["votes_count"] else 0)
+
+        if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
+            voted_for = " <yellow>✓</yellow>"
+        else:
+            voted_for = ""
+
+        print_out(f'{option["title"]} - {perc}% {voted_for}')
+
+    poll_footer = f'Poll · {poll["votes_count"]} votes'
+
+    if poll["expired"]:
+        poll_footer += " · Closed"
+
+    if poll["expires_at"]:
+        expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
+        poll_footer += f" · Closes on {expires_at}"
+
+    print_out("\n{}".format(poll_footer))
 
 
 def print_timeline(items, width=100):
