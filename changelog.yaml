@@ -1,3 +1,11 @@
+0.30.0:
+  date: 2022-11-29
+  changes:
+    - "Display polls in `timeline` (thanks Daniel Schwarz)"
+    - "TUI: Add [,] shortcut to reload timeline (thanks Daniel Schwarz)"
+    - "TUI: Add [Z] shortcut to zoom status - allows scrolling (thanks @PeterFidelman)"
+    - "Internals: add integration tests against a local mastodon instance"
+
 0.29.0:
   date: 2022-11-21
   changes:
