@@ -11,7 +11,9 @@ test:
 	pytest -v
 
 coverage:
-	py.test --cov=toot --cov-report html tests/
+	coverage erase
+	coverage run
+	coverage report
 
 clean :
 	find . -name "*pyc" | xargs rm -rf $1

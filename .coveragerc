@@ -1,0 +1,3 @@
+[run]
+source=./toot
+command_line=-m pytest

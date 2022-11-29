@@ -1,7 +1,7 @@
+coverage
 keyring
 psycopg2-binary
 pytest
-pytest-cov
 pytest-xdist[psutil]
 pyxdg
 pyyaml
