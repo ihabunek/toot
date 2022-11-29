@@ -87,15 +87,38 @@ def run(app, user, capsys):
         return strip_ansi(out)
     return _run
 
+
+@pytest.fixture
+def run_anon(capsys):
+    def _run(command, *params):
+        run_command(None, None, command, params or [])
+        out, err = capsys.readouterr()
+        assert err == ""
+        return strip_ansi(out)
+    return _run
+
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
 
 
-def test_get_instance(app):
-    response = api.get_instance(HOSTNAME, scheme="http")
-    assert response["title"] == "Mastodon"
-    assert response["uri"] == app.instance
+def test_instance(app, run):
+    out = run("instance", "--disable-https")
+    assert "Mastodon" in out
+    assert app.instance in out
+    assert "running Mastodon" in out
+
+
+def test_instance_anon(app, run_anon):
+    out = run_anon("instance", "--disable-https", "localhost:3000")
+    assert "Mastodon" in out
+    assert app.instance in out
+    assert "running Mastodon" in out
+
+    # Need to specify the instance name when running anon
+    with pytest.raises(ConsoleError) as exc:
+        run_anon("instance")
+    assert str(exc.value) == "Please specify instance name."
 
 
 def test_post(app, user, run):
