@@ -76,41 +76,20 @@ def thread(app, user, args):
 
 
 def post(app, user, args):
-    # TODO: this might be achievable, explore options
     if args.editor and not sys.stdin.isatty():
         raise ConsoleError("Cannot run editor if not in tty.")
 
     if args.media and len(args.media) > 4:
         raise ConsoleError("Cannot attach more than 4 files.")
 
-    # Read any text that might be piped to stdin
-    if not args.text and not sys.stdin.isatty():
-        args.text = sys.stdin.read().rstrip()
+    media_ids = _upload_media(app, user, args)
+    status_text = _get_status_text(args.text, args.editor)
 
-    # Match media to corresponding description and upload
-    media = args.media or []
-    descriptions = args.description or []
-    uploaded_media = []
-
-    for idx, file in enumerate(media):
-        description = descriptions[idx].strip() if idx < len(descriptions) else None
-        result = _do_upload(app, user, file, description)
-        uploaded_media.append(result)
-
-    media_ids = [m["id"] for m in uploaded_media]
-
-    if sys.stdin.isatty():
-        if args.editor:
-            args.text = editor_input(args.editor, args.text)
-        elif not args.text:
-            print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
-            args.text = multiline_input()
-
-    if not args.text and not uploaded_media:
+    if not status_text and not media_ids:
         raise ConsoleError("You must specify either text or media to post.")
 
     response = api.post_status(
-        app, user, args.text,
+        app, user, status_text,
         visibility=args.visibility,
         media_ids=media_ids,
         sensitive=args.sensitive,
@@ -125,6 +104,36 @@ def post(app, user, args):
         print_out("Toot scheduled for: <green>{}</green>".format(response["scheduled_at"]))
     else:
         print_out("Toot posted: <green>{}</green>".format(response.get('url')))
+
+
+def _get_status_text(text, editor):
+    isatty = sys.stdin.isatty()
+
+    if not text and not isatty:
+        text = sys.stdin.read().rstrip()
+
+    if isatty:
+        if editor:
+            text = editor_input(editor, text)
+        elif not text:
+            print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
+            text = multiline_input()
+
+    return text
+
+
+def _upload_media(app, user, args):
+    # Match media to corresponding description and upload
+    media = args.media or []
+    descriptions = args.description or []
+    uploaded_media = []
+
+    for idx, file in enumerate(media):
+        description = descriptions[idx].strip() if idx < len(descriptions) else None
+        result = _do_upload(app, user, file, description)
+        uploaded_media.append(result)
+
+    return [m["id"] for m in uploaded_media]
 
 
 def delete(app, user, args):
