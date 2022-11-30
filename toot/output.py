@@ -196,7 +196,7 @@ def print_status(status, width):
     if media_attachments:
         print_out("\nMedia:")
         for attachment in media_attachments:
-            url = attachment['text_url'] or attachment['url']
+            url = attachment["url"]
             for line in wc_wrap(url, width):
                 print_out(line)
 

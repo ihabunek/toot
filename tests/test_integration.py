@@ -25,6 +25,7 @@ from toot import CLIENT_NAME, CLIENT_WEBSITE, api, App, User
 from toot.console import run_command
 from toot.exceptions import ConsoleError, NotFoundError
 from toot.utils import get_text
+from unittest import mock
 
 # Host name of a test instance to run integration tests against
 # DO NOT USE PUBLIC INSTANCES!!!
@@ -179,6 +180,27 @@ def test_media_attachments(app, user, run):
     assert a2["description"] == "Test 2"
     assert a3["description"] == "Test 3"
     assert a4["description"] == "Test 4"
+
+
+@mock.patch("toot.utils.multiline_input")
+@mock.patch("sys.stdin.read")
+def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
+    # No status from stdin or readline
+    mock_read.return_value = ""
+    mock_ml.return_value = ""
+
+    assets_dir = path.realpath(path.join(path.dirname(__file__), "assets"))
+    media_path = path.join(assets_dir, "test1.png")
+
+    out = run("post", "--media", media_path)
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    assert status["content"] == ""
+
+    [attachment] = status["media_attachments"]
+    assert attachment["meta"]["original"]["size"] == "50x50"
+    assert attachment["description"] is None
 
 
 def test_delete_status(app, user, run):

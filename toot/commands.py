@@ -100,15 +100,16 @@ def post(app, user, args):
     media_ids = [m["id"] for m in uploaded_media]
 
     if uploaded_media and not args.text:
-        args.text = "\n".join(m['text_url'] for m in uploaded_media)
+        args.text = "\n".join(m['url'] for m in uploaded_media)
 
-    if args.editor:
-        args.text = editor_input(args.editor, args.text)
-    elif not args.text:
-        print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
-        args.text = multiline_input()
+    if sys.stdin.isatty():
+        if args.editor:
+            args.text = editor_input(args.editor, args.text)
+        elif not args.text:
+            print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
+            args.text = multiline_input()
 
-    if not args.text:
+    if not args.text and not uploaded_media:
         raise ConsoleError("You must specify either text or media to post.")
 
     response = api.post_status(
@@ -232,9 +233,8 @@ def upload(app, user, args):
 
     print_out()
     print_out(msg.format(response['id'], response['type']))
-    print_out("Original URL: <green>{}</green>".format(response['url']))
+    print_out("URL: <green>{}</green>".format(response['url']))
     print_out("Preview URL:  <green>{}</green>".format(response['preview_url']))
-    print_out("Text URL:     <green>{}</green>".format(response['text_url']))
 
 
 def search(app, user, args):

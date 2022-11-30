@@ -274,8 +274,7 @@ class StatusDetails(urwid.Pile):
                 yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                 if m["description"]:
                     yield ("pack", urwid.Text(m["description"]))
-                url = m.get("text_url") or m["url"]
-                yield ("pack", urwid.Text(("link", url)))
+                yield ("pack", urwid.Text(("link", m["url"])))
 
         poll = status.data.get("poll")
         if poll:
