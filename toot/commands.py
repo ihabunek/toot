@@ -99,9 +99,6 @@ def post(app, user, args):
 
     media_ids = [m["id"] for m in uploaded_media]
 
-    if uploaded_media and not args.text:
-        args.text = "\n".join(m['url'] for m in uploaded_media)
-
     if sys.stdin.isatty():
         if args.editor:
             args.text = editor_input(args.editor, args.text)
