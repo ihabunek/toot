@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import shutil
 import sys
 
@@ -38,6 +39,24 @@ def timeline_count(value):
     if not 0 < n <= 20:
         raise ArgumentTypeError("Number of toots should be between 1 and 20.")
     return n
+
+
+DURATION_UNITS = {
+    "m": 60,
+    "h": 60 * 60,
+    "d": 60 * 60 * 24,
+}
+
+
+def duration(value):
+    match = re.match(r"^([0-9]+)(m|h|d)?$", value)
+    if not match:
+        raise ArgumentTypeError(f"Invalid duration: {value}")
+
+    amount = int(match.group(1))
+    unit = match.group(2)
+    multiplier = DURATION_UNITS.get(unit) if unit else 1
+    return amount * multiplier
 
 
 def editor(value):
@@ -340,6 +359,15 @@ POST_COMMANDS = [
             (["-t", "--content-type"], {
                 "type": str,
                 "help": "MIME type for the status text (not supported on all instances)",
+            }),
+            (["--poll-option"], {
+                "type": str,
+                "help": "Possible answer to the poll.",
+            }),
+            (["--poll-expires"], {
+                "type": duration,
+                "help": "How long until the poll expires in seconds, or using units: 30m, 24h, 3d. (default: 24h)",
+                "default": "24h"
             }),
         ],
         require_auth=True,
