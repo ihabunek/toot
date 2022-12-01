@@ -161,6 +161,14 @@ def fetch_status(app, user, id):
     return http.get(app, user, f"/api/v1/statuses/{id}").json()
 
 
+def scheduled_statuses(app, user):
+    """
+    List scheduled statuses
+    https://docs.joinmastodon.org/methods/scheduled_statuses/#get
+    """
+    return http.get(app, user, "/api/v1/scheduled_statuses").json()
+
+
 def delete_status(app, user, status_id):
     """
     Deletes a status with given ID.

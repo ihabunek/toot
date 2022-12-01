@@ -20,6 +20,7 @@ import re
 import time
 import uuid
 
+from datetime import datetime, timedelta, timezone
 from os import path
 from toot import CLIENT_NAME, CLIENT_WEBSITE, api, App, User
 from toot.console import run_command
@@ -143,6 +144,17 @@ def test_post_visibility(app, user, run):
         status_id = _posted_status_id(out)
         status = api.fetch_status(app, user, status_id)
         assert status["visibility"] == visibility
+
+
+def test_post_scheduled(app, user, run):
+    scheduled_at = datetime.now(timezone.utc).replace(microsecond=0) + timedelta(minutes=10)
+
+    out = run("post", "foo", "--scheduled-at", scheduled_at.isoformat())
+    assert "Toot scheduled for" in out
+
+    [status] = api.scheduled_statuses(app, user)
+    assert status["params"]["text"] == "foo"
+    assert datetime.strptime(status["scheduled_at"], "%Y-%m-%dT%H:%M:%S.%f%z") == scheduled_at
 
 
 def test_media_attachments(app, user, run):
