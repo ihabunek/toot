@@ -1,3 +1,7 @@
+from argparse import ArgumentTypeError
+import pytest
+
+from toot.console import duration
 from toot.wcstring import wc_wrap, trunc, pad, fit_text
 
 
@@ -155,3 +159,45 @@ def test_wc_wrap_indented():
         "dolores. Illo reiciendis nulla ea. Facilis nostrum",
         "non qui inventore sit.",
     ]
+
+
+def test_duration():
+    # Long hand
+    assert duration("1 second") == 1
+    assert duration("1 seconds") == 1
+    assert duration("100 second") == 100
+    assert duration("100 seconds") == 100
+    assert duration("5 minutes") == 5 * 60
+    assert duration("5 minutes 10 seconds") == 5 * 60 + 10
+    assert duration("1 hour 5 minutes") == 3600 + 5 * 60
+    assert duration("1 hour 5 minutes 1 second") == 3600 + 5 * 60 + 1
+    assert duration("5 days") == 5 * 86400
+    assert duration("5 days 3 minutes") == 5 * 86400 + 3 * 60
+    assert duration("5 days 10 hours 3 minutes 1 second") == 5 * 86400 + 10 * 3600 + 3 * 60 + 1
+
+    # Short hand
+    assert duration("1s") == 1
+    assert duration("100s") == 100
+    assert duration("5m") == 5 * 60
+    assert duration("5m10s") == 5 * 60 + 10
+    assert duration("5m 10s") == 5 * 60 + 10
+    assert duration("1h5m1s") == 3600 + 5 * 60 + 1
+    assert duration("1h 5m 1s") == 3600 + 5 * 60 + 1
+    assert duration("5d") == 5 * 86400
+    assert duration("5d3m") == 5 * 86400 + 3 * 60
+    assert duration("5d 3m") == 5 * 86400 + 3 * 60
+    assert duration("5d 10h 3m 1s") == 5 * 86400 + 10 * 3600 + 3 * 60 + 1
+    assert duration("5d10h3m1s") == 5 * 86400 + 10 * 3600 + 3 * 60 + 1
+
+    with pytest.raises(ArgumentTypeError):
+        duration("")
+
+    with pytest.raises(ArgumentTypeError):
+        duration("100")
+
+    # Wrong order
+    with pytest.raises(ArgumentTypeError):
+        duration("1m1d")
+
+    with pytest.raises(ArgumentTypeError):
+        duration("banana")

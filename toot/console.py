@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import shutil
 import sys
 
@@ -38,6 +39,42 @@ def timeline_count(value):
     if not 0 < n <= 20:
         raise ArgumentTypeError("Number of toots should be between 1 and 20.")
     return n
+
+
+DURATION_UNITS = {
+    "m": 60,
+    "h": 60 * 60,
+    "d": 60 * 60 * 24,
+}
+
+
+def duration(value: str):
+    match = re.match(r"""^
+        (([0-9]+)\s*(days|day|d))?\s*
+        (([0-9]+)\s*(hours|hour|h))?\s*
+        (([0-9]+)\s*(minutes|minute|m))?\s*
+        (([0-9]+)\s*(seconds|second|s))?\s*
+    $""", value, re.X)
+
+    if not match:
+        raise ArgumentTypeError(f"Invalid duration: {value}")
+
+    days = match.group(2)
+    hours = match.group(5)
+    minutes = match.group(8)
+    seconds = match.group(11)
+
+    days = int(match.group(2) or 0) * 60 * 60 * 24
+    hours = int(match.group(5) or 0) * 60 * 60
+    minutes = int(match.group(8) or 0) * 60
+    seconds = int(match.group(11) or 0)
+
+    duration = days + hours + minutes + seconds
+
+    if duration == 0:
+        raise ArgumentTypeError("Empty duration")
+
+    return duration
 
 
 def editor(value):
