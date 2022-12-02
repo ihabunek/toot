@@ -1,8 +1,5 @@
 coverage
 keyring
-psycopg2-binary
-pytest
-pytest-xdist[psutil]
 pyxdg
 pyyaml
 sphinx
