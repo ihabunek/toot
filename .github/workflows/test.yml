@@ -23,3 +23,6 @@ jobs:
       - name: Run tests
         run: |
           pytest
+      - name: Validate minimum required version
+        run: |
+          vermin --target=3.6 --no-tips .
