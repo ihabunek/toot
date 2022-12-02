@@ -13,39 +13,93 @@ from toot.utils import get_text, parse_html
 from toot.wcstring import wc_wrap
 
 
-START_CODES = {
-    'red': '\033[31m',
-    'green': '\033[32m',
-    'yellow': '\033[33m',
-    'blue': '\033[34m',
-    'magenta': '\033[35m',
-    'cyan': '\033[36m',
+STYLES = {
+    'reset': '\033[0m',
+    'bold': '\033[1m',
+    'dim': '\033[2m',
+    'italic': '\033[3m',
+    'underline': '\033[4m',
+    'red': '\033[91m',
+    'green': '\033[92m',
+    'yellow': '\033[93m',
+    'blue': '\033[94m',
+    'magenta': '\033[95m',
+    'cyan': '\033[96m',
 }
 
-END_CODE = '\033[0m'
-
-START_PATTERN = "<(" + "|".join(START_CODES.keys()) + ")>"
-
-END_PATTERN = "</(" + "|".join(START_CODES.keys()) + ")>"
-
-
-def start_code(match):
-    name = match.group(1)
-    return START_CODES[name]
+STYLE_TAG_PATTERN = re.compile(r"""
+    (?<!\\)     # not preceeded by a backslash - allows escaping
+    <           # literal
+    (/)?        # optional closing - first group
+    (.*?)       # style names - ungreedy - second group
+    >           # literal
+""", re.X)
 
 
-def colorize(text):
-    text = re.sub(START_PATTERN, start_code, text)
-    text = re.sub(END_PATTERN, END_CODE, text)
+def colorize(message):
+    """
+    Replaces style tags in `message` with ANSI escape codes.
 
-    return text
+    Markup is inspired by HTML, but you can use multiple words pre tag, e.g.:
+
+        <red bold>alert!</red bold> a thing happened
+
+    Empty closing tag will reset all styes:
+
+        <red bold>alert!</> a thing happened
+
+    Styles can be nested:
+
+        <red>red <underline>red and underline</underline> red</red>
+    """
+
+    def _codes(styles):
+        for style in styles:
+            yield STYLES.get(style, "")
+
+    def _generator(message):
+        # A list is used instead of a set because we want to keep style order
+        # This allows nesting colors, e.g. "<blue>foo<red>bar</red>baz</blue>"
+        position = 0
+        active_styles = []
+
+        for match in re.finditer(STYLE_TAG_PATTERN, message):
+            is_closing = bool(match.group(1))
+            styles = match.group(2).strip().split()
+
+            start, end = match.span()
+            # Replace backslash for escaped <
+            yield message[position:start].replace("\\<", "<")
+
+            if is_closing:
+                yield STYLES["reset"]
+
+                # Empty closing tag resets all styles
+                if styles == []:
+                    active_styles = []
+                else:
+                    active_styles = [s for s in active_styles if s not in styles]
+                    yield from _codes(active_styles)
+            else:
+                active_styles = active_styles + styles
+                yield from _codes(styles)
+
+            position = end
+
+        if position == 0:
+            # Nothing matched, yield the original string
+            yield message
+        else:
+            # Yield the remaining fragment
+            yield message[position:]
+            # Reset styles at the end to prevent leaking
+            yield STYLES["reset"]
+
+    return "".join(_generator(message))
 
 
-def strip_tags(text):
-    text = re.sub(START_PATTERN, '', text)
-    text = re.sub(END_PATTERN, '', text)
-
-    return text
+def strip_tags(message):
+    return re.sub(STYLE_TAG_PATTERN, "", message)
 
 
 def use_ansi_color():
