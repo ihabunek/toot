@@ -2,11 +2,13 @@
 
 import sys
 
+from datetime import datetime, timedelta
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications)
+from toot.tui.utils import parse_datetime
 from toot.utils import editor_input, multiline_input, EOF_KEY
 
 
@@ -84,6 +86,7 @@ def post(app, user, args):
 
     media_ids = _upload_media(app, user, args)
     status_text = _get_status_text(args.text, args.editor)
+    scheduled_at = _get_scheduled_at(args.scheduled_at, args.scheduled_in)
 
     if not status_text and not media_ids:
         raise ConsoleError("You must specify either text or media to post.")
@@ -96,14 +99,16 @@ def post(app, user, args):
         spoiler_text=args.spoiler_text,
         in_reply_to_id=args.reply_to,
         language=args.language,
-        scheduled_at=args.scheduled_at,
+        scheduled_at=scheduled_at,
         content_type=args.content_type
     )
 
     if "scheduled_at" in response:
-        print_out("Toot scheduled for: <green>{}</green>".format(response["scheduled_at"]))
+        scheduled_at = parse_datetime(response["scheduled_at"])
+        scheduled_at = datetime.strftime(scheduled_at, "%Y-%m-%d %H:%M:%S%z")
+        print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
     else:
-        print_out("Toot posted: <green>{}</green>".format(response.get('url')))
+        print_out(f"Toot posted: <green>{response['url']}")
 
 
 def _get_status_text(text, editor):
@@ -120,6 +125,17 @@ def _get_status_text(text, editor):
             text = multiline_input()
 
     return text
+
+
+def _get_scheduled_at(scheduled_at, scheduled_in):
+    if scheduled_at:
+        return scheduled_at
+
+    if scheduled_in:
+        scheduled_at = datetime.utcnow() + timedelta(seconds=scheduled_in)
+        return scheduled_at.isoformat()
+
+    return None
 
 
 def _upload_media(app, user, args):

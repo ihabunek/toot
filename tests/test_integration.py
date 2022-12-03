@@ -25,6 +25,7 @@ from os import path
 from toot import CLIENT_NAME, CLIENT_WEBSITE, api, App, User
 from toot.console import run_command
 from toot.exceptions import ConsoleError, NotFoundError
+from toot.tui.utils import parse_datetime
 from toot.utils import get_text
 from unittest import mock
 
@@ -146,15 +147,48 @@ def test_post_visibility(app, user, run):
         assert status["visibility"] == visibility
 
 
-def test_post_scheduled(app, user, run):
+def test_post_scheduled_at(app, user, run):
+    text = str(uuid.uuid4())
     scheduled_at = datetime.now(timezone.utc).replace(microsecond=0) + timedelta(minutes=10)
 
-    out = run("post", "foo", "--scheduled-at", scheduled_at.isoformat())
+    out = run("post", text, "--scheduled-at", scheduled_at.isoformat())
     assert "Toot scheduled for" in out
 
-    [status] = api.scheduled_statuses(app, user)
-    assert status["params"]["text"] == "foo"
+    statuses = api.scheduled_statuses(app, user)
+    [status] = [s for s in statuses if s["params"]["text"] == text]
     assert datetime.strptime(status["scheduled_at"], "%Y-%m-%dT%H:%M:%S.%f%z") == scheduled_at
+
+
+def test_post_scheduled_in(app, user, run):
+    text = str(uuid.uuid4())
+
+    variants = [
+        ("1 day", timedelta(days=1)),
+        ("1 day 6 hours", timedelta(days=1, hours=6)),
+        ("1 day 6 hours 13 minutes", timedelta(days=1, hours=6, minutes=13)),
+        ("1 day 6 hours 13 minutes 51 second", timedelta(days=1, hours=6, minutes=13, seconds=51)),
+        ("2d", timedelta(days=2)),
+        ("2d6h", timedelta(days=2, hours=6)),
+        ("2d6h13m", timedelta(days=2, hours=6, minutes=13)),
+        ("2d6h13m51s", timedelta(days=2, hours=6, minutes=13, seconds=51)),
+    ]
+
+    datetimes = []
+    for scheduled_in, delta in variants:
+        out = run("post", text, "--scheduled-in", scheduled_in)
+        dttm = datetime.utcnow() + delta
+        assert out.startswith(f"Toot scheduled for: {str(dttm)[:16]}")
+        datetimes.append(dttm)
+
+    scheduled = api.scheduled_statuses(app, user)
+    scheduled = [s for s in scheduled if s["params"]["text"] == text]
+    scheduled = sorted(scheduled, key=lambda s: s["scheduled_at"])
+    assert len(scheduled) == 8
+
+    for expected, status in zip(datetimes, scheduled):
+        actual = datetime.strptime(status["scheduled_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        delta = expected - actual
+        assert delta.total_seconds() < 5
 
 
 def test_media_attachments(app, user, run):

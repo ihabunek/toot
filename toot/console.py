@@ -374,6 +374,14 @@ POST_COMMANDS = [
                 "help": "ISO 8601 Datetime at which to schedule a status. Must "
                         "be at least 5 minutes in the future.",
             }),
+            (["--scheduled-in"], {
+                "type": duration,
+                "help": """Schedule the toot to be posted after a given amount
+                        of time. Examples: "1 day", "2 hours 30 minutes",
+                        "5 minutes 30 seconds" or any combination of above.
+                        Shorthand: "1d", "2h30m", "5m30s". Must be at least 5
+                        minutes.""",
+            }),
             (["-t", "--content-type"], {
                 "type": str,
                 "help": "MIME type for the status text (not supported on all instances)",
