@@ -99,6 +99,7 @@ EDITOR_INPUT_INSTRUCTIONS = f"""
 Do not modify or remove the line above.
 Enter your toot above it.
 Everything below it will be ignored.
+vim:backupcopy=yes
 """
 
 
