@@ -317,6 +317,19 @@ READ_COMMANDS = [
         arguments=timeline_args,
         require_auth=True,
     ),
+    Command(
+        name="scheduled",
+        description="Show pending scheduled statuses",
+        arguments=[
+            (["id"], {
+                "help": "Optional status ID, to show a single scheduled "
+                        "status, omit to list all",
+                "type": str,
+                "nargs": "?",
+            })
+        ],
+        require_auth=True,
+    ),
 ]
 
 POST_COMMANDS = [

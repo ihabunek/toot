@@ -161,6 +161,14 @@ def fetch_status(app, user, id):
     return http.get(app, user, f"/api/v1/statuses/{id}").json()
 
 
+def scheduled_status(app, user, id):
+    """
+    Return a scheduled status by id
+    https://docs.joinmastodon.org/methods/scheduled_statuses/#get-one
+    """
+    return http.get(app, user, f"/api/v1/scheduled_statuses/{id}").json()
+
+
 def scheduled_statuses(app, user):
     """
     List scheduled statuses

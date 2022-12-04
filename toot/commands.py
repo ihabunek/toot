@@ -77,6 +77,33 @@ def thread(app, user, args):
     print_timeline(thread)
 
 
+def scheduled(app, user, args):
+    if args.id:
+        _show_scheduled(app, user, args.id)
+    else:
+        _list_scheduled(app, user)
+
+
+def _list_scheduled(app, user):
+    statuses = api.scheduled_statuses(app, user)
+    for status in statuses:
+        print_scheduled(status)
+
+
+def _show_scheduled(app, user, id):
+    status = api.scheduled_status(app, user, id)
+    print_scheduled_full(status)
+
+
+def print_scheduled(status):
+    print_out(f'{status["id"]}')
+
+
+def print_scheduled_full(status):
+    print_out(f'ID: {status["id"]}')
+    print_out(f'Scheduled at: {status["scheduled_at"]}')
+
+
 def post(app, user, args):
     if args.editor and not sys.stdin.isatty():
         raise ConsoleError("Cannot run editor if not in tty.")
