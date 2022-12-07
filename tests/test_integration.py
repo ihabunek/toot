@@ -113,7 +113,7 @@ def test_instance(app, run):
 
 
 def test_instance_anon(app, run_anon):
-    out = run_anon("instance", "--disable-https", "localhost:3000")
+    out = run_anon("instance", "--disable-https", HOSTNAME)
     assert "Mastodon" in out
     assert app.instance in out
     assert "running Mastodon" in out
@@ -357,14 +357,14 @@ def test_whoami(user, run):
     out = run("whoami")
     # TODO: test other fields once updating account is supported
     assert f"@{user.username}" in out
-    assert f"http://localhost:3000/@{user.username}" in out
+    assert f"http://{HOSTNAME}/@{user.username}" in out
 
 
 def test_whois(friend, run):
     out = run("whois", friend.username)
 
     assert f"@{friend.username}" in out
-    assert f"http://localhost:3000/@{friend.username}" in out
+    assert f"http://{HOSTNAME}/@{friend.username}" in out
 
 
 def test_search_account(friend, run):
