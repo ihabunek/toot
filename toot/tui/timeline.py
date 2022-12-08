@@ -20,6 +20,7 @@ class Timeline(urwid.Columns):
         "delete",     # Delete own status
         "favourite",  # Favourite status
         "focus",      # Focus changed
+        "bookmark",   # Bookmark status
         "media",      # Display media attachments
         "menu",       # Show a context menu
         "next",       # Fetch more statuses
@@ -151,6 +152,10 @@ class Timeline(urwid.Columns):
         if key in ("s", "S"):
             status.original.show_sensitive = True
             self.refresh_status_details()
+            return
+
+        if key in ("k", "K"):
+            self._emit("bookmark", status)
             return
 
         if key in ("l", "L"):
@@ -291,6 +296,7 @@ class StatusDetails(urwid.Pile):
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
         yield ("pack", urwid.Text([
+            ("warning" if status.bookmarked else "gray", "🠷" if status.bookmarked else " "),
             ("gray", "⤶ {} ".format(status.data["replies_count"])),
             ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.data["reblogs_count"])),
             ("yellow" if status.favourited else "gray", "★ {}".format(status.data["favourites_count"])),
@@ -304,6 +310,7 @@ class StatusDetails(urwid.Pile):
             "[B]oost",
             "[D]elete" if status.is_mine else "",
             "[F]avourite",
+            "Boo[k]mark",
             "[V]iew",
             "[T]hread" if not self.in_thread else "",
             "[L]inks",
@@ -360,6 +367,7 @@ class StatusDetails(urwid.Pile):
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
         created_at = status.created_at.strftime("%Y-%m-%d %H:%M")
+        bookmarked = ("warning", "🠷") if status.original.bookmarked else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
@@ -367,6 +375,8 @@ class StatusListItem(SelectableColumns):
 
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
+            ("pack", urwid.Text(" ")),
+            ("pack", urwid.Text(bookmarked)),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),

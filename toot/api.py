@@ -256,6 +256,12 @@ def tag_timeline_generator(app, user, hashtag, local=False, limit=20):
     return _timeline_generator(app, user, path, params)
 
 
+def bookmark_timeline_generator(app, user, limit=20):
+    path = '/api/v1/bookmarks'
+    params = {'limit': limit}
+    return _timeline_generator(app, user, path, params)
+
+
 def timeline_list_generator(app, user, list_id, limit=20):
     path = '/api/v1/timelines/list/{}'.format(list_id)
     return _timeline_generator(app, user, path, {'limit': limit})
@@ -279,7 +285,6 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     path = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
     params = {'local': str_bool(local), 'limit': limit}
     return _anon_timeline_generator(instance, path, params)
-
 
 def upload_media(app, user, file, description=None):
     return http.post(app, user, '/api/v1/media',
