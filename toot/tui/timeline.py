@@ -164,7 +164,7 @@ class Timeline(urwid.Columns):
                 self._emit("translate", status)
             return
 
-        if key in ("r", "R"):
+        if key in ("t", "T"):
             self._emit("thread", status)
             return
 
