@@ -209,6 +209,10 @@ def unbookmark(app, user, status_id):
     return _status_action(app, user, status_id, 'unbookmark')
 
 
+def translate(app, user, status_id):
+    return _status_action(app, user, status_id, 'translate')
+
+
 def context(app, user, status_id):
     url = '/api/v1/statuses/{}/context'.format(status_id)
 

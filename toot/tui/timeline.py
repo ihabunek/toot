@@ -4,7 +4,7 @@ import webbrowser
 
 from toot.utils import format_content
 
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
+from .utils import Option, highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
 
 logger = logging.getLogger("toot")
@@ -28,19 +28,21 @@ class Timeline(urwid.Columns):
         "source",     # Show status source
         "links",      # Show status links
         "thread",     # Show thread for status
+        "translate",  # Translate status
         "save",       # Save current timeline
         "zoom",       # Open status in scrollable popup window
     ]
 
-    def __init__(self, name, statuses, focus=0, is_thread=False):
+    def __init__(self, name, statuses, can_translate, focus=0, is_thread=False):
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
+        self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         try:
-            self.status_details = StatusDetails(statuses[focus], is_thread)
+            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate)
         except IndexError:
-            self.status_details = StatusDetails(None, is_thread)
+            self.status_details = StatusDetails(None, is_thread, can_translate)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -97,7 +99,7 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status, self.is_thread)
+        self.status_details = StatusDetails(status, self.is_thread, self.can_translate)
         self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
 
     def keypress(self, size, key):
@@ -157,7 +159,12 @@ class Timeline(urwid.Columns):
             self._emit("links", status)
             return
 
-        if key in ("t", "T"):
+        if key in ("n", "N"):
+            if self.can_translate != Option.NO:
+                self._emit("translate", status)
+            return
+
+        if key in ("r", "R"):
             self._emit("thread", status)
             return
 
@@ -226,9 +233,11 @@ class Timeline(urwid.Columns):
         del(self.status_list.body[index])
         self.refresh_status_details()
 
+    def update_can_translate(self, can_translate):
+        self.can_translate = can_translate
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread):
+    def __init__(self, status, in_thread, can_translate=Option.UNKNOWN):
         """
         Parameters
         ----------
@@ -239,6 +248,7 @@ class StatusDetails(urwid.Pile):
             Whether the status is rendered from a thread status list.
         """
         self.in_thread = in_thread
+        self.can_translate = can_translate
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -290,10 +300,14 @@ class StatusDetails(urwid.Pile):
         application = application.get("name")
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
+
+        translated = status.data.get("detected_source_language")
+
         yield ("pack", urwid.Text([
             ("gray", "⤶ {} ".format(status.data["replies_count"])),
             ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.data["reblogs_count"])),
             ("yellow" if status.favourited else "gray", "★ {}".format(status.data["favourites_count"])),
+            ("yellow" if translated else "gray", " · Translated from {} ".format(translated) if translated else ""),
             ("gray", " · {}".format(application) if application else ""),
         ]))
 
@@ -310,6 +324,9 @@ class StatusDetails(urwid.Pile):
             "[R]eply",
             "So[u]rce",
             "[Z]oom",
+            "Tra[n]slate" if self.can_translate == Option.YES \
+            else "Tra[n]slate?" if self.can_translate == Option.UNKNOWN \
+            else "",
             "[H]elp",
         ]
         options = " ".join(o for o in options if o)

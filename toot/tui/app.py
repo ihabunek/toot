@@ -11,7 +11,7 @@ from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
-from .utils import parse_content_links, show_media
+from .utils import Option, parse_content_links, show_media, versiontuple
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +106,7 @@ class TUI(urwid.Frame):
         self.timeline = None
         self.overlay = None
         self.exception = None
+        self.can_translate = Option.UNKNOWN
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -206,6 +207,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
+        urwid.connect_signal(timeline, "translate", self.async_translate)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -232,7 +234,7 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses)
+        timeline = Timeline(name, statuses, self.can_translate)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -261,8 +263,8 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, focus, is_thread=True)
-
+        timeline = Timeline("thread", statuses, can_translate, focus,
+                            is_thread=True)
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
 
@@ -303,6 +305,11 @@ class TUI(urwid.Frame):
         Attempt to update max_toot_chars from instance data.
         Does not work on vanilla Mastodon, works on Pleroma.
         See: https://github.com/tootsuite/mastodon/issues/4915
+
+        Also attempt to update translation flag from instance
+        data. Translation is only present on Mastodon 4+ servers
+        where the administrator has enabled this feature.
+        See: https://github.com/mastodon/mastodon/issues/19328
         """
         def _load_instance():
             return api.get_instance(self.app.instance)
@@ -310,8 +317,19 @@ class TUI(urwid.Frame):
         def _done(instance):
             if "max_toot_chars" in instance:
                 self.max_toot_chars = instance["max_toot_chars"]
+            if "translation" in instance:
+                # instance is advertising translation service
+                self.can_translate = Option.YES
+            else:
+                if "version" in instance and versiontuple(instance["version"])[0] < 4:
+                    # Mastodon versions < 4 do not have translation service
+                    self.can_translate = Option.NO
 
-        return self.run_in_thread(_load_instance, done_callback=_done)
+            # translation service for Mastodon version 4.0.0-4.0.2 that do not advertise
+            # is indeterminate; as of now versions up to 4.0.2 cannot advertise
+            # even if they provide the service, but future versions, perhaps 4.0.3+
+            # will be able to advertise.
+
 
     def refresh_footer(self, timeline):
         """Show status details in footer."""
@@ -483,6 +501,41 @@ class TUI(urwid.Frame):
             _unreblog if status.reblogged else _reblog,
             done_callback=_done
         )
+
+    def async_translate(self, timeline, status):
+        def _translate():
+            logger.info("Translating {}".format(status))
+            self.footer.set_message("Translating status {}".format(status.id))
+
+            try:
+                response = api.translate(self.app, self.user, status.id)
+                # we were successful so we know translation service is available.
+                # make our timeline aware of that right away.
+                self.can_translate = Option.YES
+                timeline.update_can_translate(Option.YES)
+            except:
+                response = None
+            finally:
+                self.footer.clear_message()
+
+            return response
+
+        def _done(response):
+            if response is not None:
+                # Create a new Status that is translated
+                new_data = status.data
+                new_data["content"] = response["content"]
+                new_data["detected_source_language"] = response["detected_source_language"]
+                new_status = self.make_status(new_data)
+
+                timeline.update_status(new_status)
+                self.footer.set_message(f"Translated status {status.id} from {response['detected_source_language']}")
+            else:
+                self.footer.set_error_message("Translate server error")
+
+            self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
+
+        self.run_in_thread(_translate, done_callback=_done )
 
     def async_delete_status(self, timeline, status):
         def _delete():

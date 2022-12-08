@@ -165,7 +165,6 @@ def print_instance(instance):
                 else:
                     print_out(f"{' ' * len(ordinal)} {line}")
 
-
 def print_account(account):
     print_out("<green>@{}</green> {}".format(account['acct'], account['display_name']))
 
