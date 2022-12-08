@@ -164,6 +164,7 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [B] - Boost/unboost status"))
         yield urwid.Text(h("  [C] - Compose new status"))
         yield urwid.Text(h("  [F] - Favourite/unfavourite status"))
+        yield urwid.Text(h("  [N] - Translate status, if possible"))
         yield urwid.Text(h("  [R] - Reply to current status"))
         yield urwid.Text(h("  [S] - Show text marked as sensitive"))
         yield urwid.Text(h("  [T] - Show status thread (replies)"))
