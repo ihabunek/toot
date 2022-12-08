@@ -11,7 +11,7 @@ from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
-from .utils import Option, parse_content_links, show_media, versiontuple
+from .utils import parse_content_links, show_media
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +74,7 @@ class TUI(urwid.Frame):
     def create(cls, app, user):
         """Factory method, sets up TUI and an event loop."""
 
+
         tui = cls(app, user)
         loop = urwid.MainLoop(
             tui,
@@ -106,7 +107,7 @@ class TUI(urwid.Frame):
         self.timeline = None
         self.overlay = None
         self.exception = None
-        self.can_translate = Option.UNKNOWN
+        self.can_translate = False
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -263,7 +264,7 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, can_translate, focus,
+        timeline = Timeline("thread", statuses, self.can_translate, focus,
                             is_thread=True)
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
@@ -319,17 +320,17 @@ class TUI(urwid.Frame):
                 self.max_toot_chars = instance["max_toot_chars"]
             if "translation" in instance:
                 # instance is advertising translation service
-                self.can_translate = Option.YES
+                self.can_translate = instance["translation"]["enabled"]
             else:
-                if "version" in instance and versiontuple(instance["version"])[0] < 4:
+                if "version" in instance:
+                    # fallback check:
+                    # get the major version number of the server
+                    # this works for Mastodon and Pleroma version strings
                     # Mastodon versions < 4 do not have translation service
-                    self.can_translate = Option.NO
+                    # Revisit this logic if Pleroma implements translation
+                    self.can_translate = int(instance["version"][0]) > 3
 
-            # translation service for Mastodon version 4.0.0-4.0.2 that do not advertise
-            # is indeterminate; as of now versions up to 4.0.2 cannot advertise
-            # even if they provide the service, but future versions, perhaps 4.0.3+
-            # will be able to advertise.
-
+        return self.run_in_thread(_load_instance, done_callback=_done)
 
     def refresh_footer(self, timeline):
         """Show status details in footer."""
@@ -509,10 +510,6 @@ class TUI(urwid.Frame):
 
             try:
                 response = api.translate(self.app, self.user, status.id)
-                # we were successful so we know translation service is available.
-                # make our timeline aware of that right away.
-                self.can_translate = Option.YES
-                timeline.update_can_translate(Option.YES)
             except:
                 response = None
             finally:

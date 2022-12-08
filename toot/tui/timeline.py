@@ -4,7 +4,7 @@ import webbrowser
 
 from toot.utils import format_content
 
-from .utils import Option, highlight_hashtags, parse_datetime, highlight_keys
+from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
 
 logger = logging.getLogger("toot")
@@ -160,7 +160,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("n", "N"):
-            if self.can_translate != Option.NO:
+            if self.can_translate:
                 self._emit("translate", status)
             return
 
@@ -233,11 +233,8 @@ class Timeline(urwid.Columns):
         del(self.status_list.body[index])
         self.refresh_status_details()
 
-    def update_can_translate(self, can_translate):
-        self.can_translate = can_translate
-
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread, can_translate=Option.UNKNOWN):
+    def __init__(self, status, in_thread, can_translate=False):
         """
         Parameters
         ----------
@@ -324,9 +321,7 @@ class StatusDetails(urwid.Pile):
             "[R]eply",
             "So[u]rce",
             "[Z]oom",
-            "Tra[n]slate" if self.can_translate == Option.YES \
-            else "Tra[n]slate?" if self.can_translate == Option.UNKNOWN \
-            else "",
+            "Tra[n]slate" if self.can_translate else "",
             "[H]elp",
         ]
         options = " ".join(o for o in options if o)

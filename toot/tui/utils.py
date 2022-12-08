@@ -108,14 +108,3 @@ def parse_content_links(content):
     parser = LinkParser()
     parser.feed(content)
     return parser.links[:]
-
-# This is not as robust as using distutils.version.LooseVersion but for our needs
-# it works fine and doesn't require importing a ton of dependences
-
-def versiontuple(v):
-    return tuple(map(int, (v.split("."))))
-
-class Option:
-    NO = 0
-    YES = 1
-    UNKNOWN = 2
