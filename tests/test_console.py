@@ -42,11 +42,7 @@ def test_post_defaults(mock_post, mock_uuid, capsys):
         'status': 'Hello world',
         'visibility': 'public',
         'media_ids': [],
-        'sensitive': "false",
-        'spoiler_text': None,
-        'in_reply_to_id': None,
-        'language': None,
-        'scheduled_at': None,
+        'sensitive': False,
     }, headers={"Idempotency-Key": "rock-on"})
 
     out, err = capsys.readouterr()
@@ -78,11 +74,10 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         'status': 'Hello world',
         'media_ids': [],
         'visibility': 'unlisted',
-        'sensitive': "true",
+        'sensitive': True,
         'spoiler_text': "Spoiler!",
         'in_reply_to_id': '123a',
         'language': 'hrv',
-        'scheduled_at': None,
     }, headers={"Idempotency-Key": "up-the-irons"})
 
     out, err = capsys.readouterr()

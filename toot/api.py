@@ -140,15 +140,17 @@ def post_status(
         'status': status,
         'media_ids': media_ids,
         'visibility': visibility,
-        'sensitive': str_bool(sensitive),
-        'spoiler_text': spoiler_text,
+        'sensitive': sensitive,
         'in_reply_to_id': in_reply_to_id,
         'language': language,
-        'scheduled_at': scheduled_at
+        'scheduled_at': scheduled_at,
+        'content_type': content_type,
+        'spoiler_text': spoiler_text
     }
 
-    if content_type:
-        json['content_type'] = content_type
+    # Strip keys for which value is None
+    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
+    json = {k: v for k, v in json.items() if v is not None}
 
     return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
 

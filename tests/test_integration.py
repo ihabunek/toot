@@ -25,7 +25,6 @@ from os import path
 from toot import CLIENT_NAME, CLIENT_WEBSITE, api, App, User
 from toot.console import run_command
 from toot.exceptions import ConsoleError, NotFoundError
-from toot.tui.utils import parse_datetime
 from toot.utils import get_text
 from unittest import mock
 
@@ -113,7 +112,7 @@ def test_instance(app, run):
 
 
 def test_instance_anon(app, run_anon):
-    out = run_anon("instance", "--disable-https", "localhost:3000")
+    out = run_anon("instance", "--disable-https", HOSTNAME)
     assert "Mastodon" in out
     assert app.instance in out
     assert "running Mastodon" in out
@@ -131,12 +130,14 @@ def test_post(app, user, run):
 
     status = api.fetch_status(app, user, status_id)
     assert text == get_text(status["content"])
-    assert status["account"]["acct"] == user.username
-    assert status["application"]["name"] == CLIENT_NAME
-    assert status["application"]["website"] == CLIENT_WEBSITE
     assert status["visibility"] == "public"
     assert status["sensitive"] is False
     assert status["spoiler_text"] == ""
+
+    # Pleroma doesn't return the application
+    if status["application"]:
+        assert status["application"]["name"] == CLIENT_NAME
+        assert status["application"]["website"] == CLIENT_WEBSITE
 
 
 def test_post_visibility(app, user, run):
@@ -217,10 +218,12 @@ def test_media_attachments(app, user, run):
 
     [a1, a2, a3, a4] = status["media_attachments"]
 
-    assert a1["meta"]["original"]["size"] == "50x50"
-    assert a2["meta"]["original"]["size"] == "50x60"
-    assert a3["meta"]["original"]["size"] == "50x70"
-    assert a4["meta"]["original"]["size"] == "50x80"
+    # Pleroma doesn't send metadata
+    if "meta" in a1:
+        assert a1["meta"]["original"]["size"] == "50x50"
+        assert a2["meta"]["original"]["size"] == "50x60"
+        assert a3["meta"]["original"]["size"] == "50x70"
+        assert a4["meta"]["original"]["size"] == "50x80"
 
     assert a1["description"] == "Test 1"
     assert a2["description"] == "Test 2"
@@ -245,8 +248,11 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
     assert status["content"] == ""
 
     [attachment] = status["media_attachments"]
-    assert attachment["meta"]["original"]["size"] == "50x50"
-    assert attachment["description"] is None
+    assert not attachment["description"]
+
+    # Pleroma doesn't send metadata
+    if "meta" in attachment:
+        assert attachment["meta"]["original"]["size"] == "50x50"
 
 
 def test_delete_status(app, user, run):
@@ -357,14 +363,14 @@ def test_whoami(user, run):
     out = run("whoami")
     # TODO: test other fields once updating account is supported
     assert f"@{user.username}" in out
-    assert f"http://localhost:3000/@{user.username}" in out
+    assert f"http://{HOSTNAME}/@{user.username}" in out
 
 
 def test_whois(friend, run):
     out = run("whois", friend.username)
 
     assert f"@{friend.username}" in out
-    assert f"http://localhost:3000/@{friend.username}" in out
+    assert f"http://{HOSTNAME}/@{friend.username}" in out
 
 
 def test_search_account(friend, run):
@@ -418,7 +424,7 @@ def strip_ansi(string):
 
 
 def _posted_status_id(out):
-    pattern = re.compile(r"Toot posted: http://([^/]+)/@([^/]+)/(.+)")
+    pattern = re.compile(r"Toot posted: http://([^/]+)/([^/]+)/(.+)")
     match = re.search(pattern, out)
     assert match
 

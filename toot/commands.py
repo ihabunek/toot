@@ -2,7 +2,7 @@
 
 import sys
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from toot import api, config
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ApiError, ConsoleError
@@ -132,8 +132,8 @@ def _get_scheduled_at(scheduled_at, scheduled_in):
         return scheduled_at
 
     if scheduled_in:
-        scheduled_at = datetime.utcnow() + timedelta(seconds=scheduled_in)
-        return scheduled_at.isoformat()
+        scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=scheduled_in)
+        return scheduled_at.replace(microsecond=0).isoformat()
 
     return None
 
