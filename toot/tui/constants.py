@@ -34,6 +34,7 @@ PALETTE = [
     ('green_selected', 'white,bold', 'dark green'),
     ('yellow', 'yellow', ''),
     ('yellow_bold', 'yellow,bold', ''),
+    ('red', 'dark red', ''),
     ('warning', 'light red', ''),
 ]
 
