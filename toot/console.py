@@ -17,10 +17,10 @@ VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
 
 def language(value):
     """Validates the language parameter"""
-    if len(value) != 3:
+    if len(value) != 2:
         raise ArgumentTypeError(
-            "Invalid language specified: '{}'. Expected a 3 letter "
-            "abbreviation according to ISO 639-2 standard.".format(value)
+            "Invalid language. Expected a 2 letter abbreviation according to "
+            "the ISO 639-1 standard."
         )
 
     return value

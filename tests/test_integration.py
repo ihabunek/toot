@@ -192,6 +192,18 @@ def test_post_scheduled_in(app, user, run):
         assert delta.total_seconds() < 5
 
 
+def test_post_language(app, user, run):
+    out = run("post", "test", "--language", "hr")
+    status_id = _posted_status_id(out)
+    status = api.fetch_status(app, user, status_id)
+    assert status["language"] == "hr"
+
+    out = run("post", "test", "--language", "zh")
+    status_id = _posted_status_id(out)
+    status = api.fetch_status(app, user, status_id)
+    assert status["language"] == "zh"
+
+
 def test_media_attachments(app, user, run):
     assets_dir = path.realpath(path.join(path.dirname(__file__), "assets"))
 

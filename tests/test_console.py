@@ -61,7 +61,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         '--sensitive',
         '--spoiler-text', 'Spoiler!',
         '--reply-to', '123a',
-        '--language', 'hrv',
+        '--language', 'hr',
     ]
 
     mock_post.return_value = MockResponse({
@@ -77,7 +77,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         'sensitive': True,
         'spoiler_text': "Spoiler!",
         'in_reply_to_id': '123a',
-        'language': 'hrv',
+        'language': 'hr',
     }, headers={"Idempotency-Key": "up-the-irons"})
 
     out, err = capsys.readouterr()
