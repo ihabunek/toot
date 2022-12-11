@@ -3,6 +3,7 @@ import urwid
 import webbrowser
 
 from toot.utils import format_content
+from toot.utils.language import language_name
 
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
@@ -300,14 +301,18 @@ class StatusDetails(urwid.Pile):
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
 
-        translated = status.show_translation and status.translated_from
+        translated_from = (
+            language_name(status.translated_from)
+            if status.show_translation and status.translated_from
+            else None
+        )
 
         yield ("pack", urwid.Text([
-            ("gray", "⤶ {} ".format(status.data["replies_count"])),
-            ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.data["reblogs_count"])),
-            ("yellow" if status.favourited else "gray", "★ {}".format(status.data["favourites_count"])),
-            ("yellow" if translated else "gray", " · Translated from {} ".format(translated) if translated else ""),
-            ("gray", " · {}".format(application) if application else ""),
+            ("gray", f"⤶ {status.data['replies_count']} "),
+            ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
+            ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            ("yellow", f" · Translated from {translated_from} ") if translated_from else "",
+            ("gray", f" · {application}" if application else ""),
         ]))
 
         # Push things to bottom
