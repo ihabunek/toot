@@ -272,7 +272,8 @@ class StatusDetails(urwid.Pile):
         if status.data["spoiler_text"] and not status.show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
-            for line in format_content(status.data["content"]):
+            content = status.translation if status.show_translation else status.data["content"]
+            for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line)))
 
         media = status.data["media_attachments"]
@@ -299,7 +300,7 @@ class StatusDetails(urwid.Pile):
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
 
-        translated = status.data.get("detected_source_language")
+        translated = status.show_translation and status.translated_from
 
         yield ("pack", urwid.Text([
             ("gray", "⤶ {} ".format(status.data["replies_count"])),

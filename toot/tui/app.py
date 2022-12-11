@@ -317,17 +317,17 @@ class TUI(urwid.Frame):
         def _done(instance):
             if "max_toot_chars" in instance:
                 self.max_toot_chars = instance["max_toot_chars"]
+
             if "translation" in instance:
                 # instance is advertising translation service
                 self.can_translate = instance["translation"]["enabled"]
-            else:
-                if "version" in instance:
-                    # fallback check:
-                    # get the major version number of the server
-                    # this works for Mastodon and Pleroma version strings
-                    # Mastodon versions < 4 do not have translation service
-                    # Revisit this logic if Pleroma implements translation
-                    self.can_translate = int(instance["version"][0]) > 3
+            elif "version" in instance:
+                # fallback check:
+                # get the major version number of the server
+                # this works for Mastodon and Pleroma version strings
+                # Mastodon versions < 4 do not have translation service
+                # Revisit this logic if Pleroma implements translation
+                self.can_translate = int(instance["version"][0]) > 3
 
         return self.run_in_thread(_load_instance, done_callback=_done)
 
@@ -509,29 +509,31 @@ class TUI(urwid.Frame):
 
             try:
                 response = api.translate(self.app, self.user, status.id)
+                if response["content"]:
+                    self.footer.set_message("Status translated")
+                else:
+                    self.footer.set_error_message("Server returned empty translation")
+                    response = None
             except:
                 response = None
-            finally:
-                self.footer.clear_message()
+                self.footer.set_error_message("Translate server error")
 
+            self.loop.set_alarm_in(3, lambda *args: self.footer.clear_message())
             return response
 
         def _done(response):
             if response is not None:
-                # Create a new Status that is translated
-                new_data = status.data
-                new_data["content"] = response["content"]
-                new_data["detected_source_language"] = response["detected_source_language"]
-                new_status = self.make_status(new_data)
+                status.translation = response["content"]
+                status.translated_from = response["detected_source_language"]
+                status.show_translation = True
+                timeline.update_status(status)
 
-                timeline.update_status(new_status)
-                self.footer.set_message(f"Translated status {status.id} from {response['detected_source_language']}")
-            else:
-                self.footer.set_error_message("Translate server error")
-
-            self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
-
-        self.run_in_thread(_translate, done_callback=_done )
+        # If already translated, toggle showing translation
+        if status.translation:
+            status.show_translation = not status.show_translation
+            timeline.update_status(status)
+        else:
+            self.run_in_thread(_translate, done_callback=_done)
 
     def async_delete_status(self, timeline, status):
         def _delete():
