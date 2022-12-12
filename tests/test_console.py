@@ -472,7 +472,7 @@ def test_whoami(mock_get, capsys):
     assert "A developer." in out
     assert "https://mastodon.social/@ihabunek" in out
     assert "ID: 46103" in out
-    assert "Since: 2017-04-04 @ 13:23:09" in out
+    assert "Since: 2017-04-04" in out
     assert "Followers: 5" in out
     assert "Following: 9" in out
     assert "Statuses: 19" in out

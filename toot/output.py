@@ -177,7 +177,7 @@ def print_account(account):
 
     print_out("")
     print_out("ID: <green>{}</green>".format(account['id']))
-    print_out("Since: <green>{}</green>".format(account['created_at'][:19].replace('T', ' @ ')))
+    print_out("Since: <green>{}</green>".format(account['created_at'][:10]))
     print_out("")
     print_out("Followers: <yellow>{}</yellow>".format(account['followers_count']))
     print_out("Following: <yellow>{}</yellow>".format(account['following_count']))
