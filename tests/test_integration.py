@@ -378,11 +378,18 @@ def test_whoami(user, run):
     assert f"http://{HOSTNAME}/@{user.username}" in out
 
 
-def test_whois(friend, run):
-    out = run("whois", friend.username)
+def test_whois(app, friend, run):
+    variants = [
+        friend.username,
+        f"@{friend.username}",
+        f"{friend.username}@{app.instance}",
+        f"@{friend.username}@{app.instance}",
+    ]
 
-    assert f"@{friend.username}" in out
-    assert f"http://{HOSTNAME}/@{friend.username}" in out
+    for username in variants:
+        out = run("whois", username)
+        assert f"@{friend.username}" in out
+        assert f"http://{HOSTNAME}/@{friend.username}" in out
 
 
 def test_search_account(friend, run):
