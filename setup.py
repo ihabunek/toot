@@ -31,7 +31,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
     ],
-    packages=['toot', 'toot.tui'],
+    packages=['toot', 'toot.tui', 'toot.utils'],
     python_requires=">=3.6",
     install_requires=[
         "requests>=2.13,<3.0",
