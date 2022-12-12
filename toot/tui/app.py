@@ -106,6 +106,7 @@ class TUI(urwid.Frame):
         self.timeline = None
         self.overlay = None
         self.exception = None
+        self.can_translate = False
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -208,6 +209,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "source", _source)
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
+        urwid.connect_signal(timeline, "translate", self.async_translate)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -234,7 +236,7 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses)
+        timeline = Timeline(name, statuses, self.can_translate)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -263,8 +265,8 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, focus, is_thread=True)
-
+        timeline = Timeline("thread", statuses, self.can_translate, focus,
+                            is_thread=True)
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
 
@@ -305,6 +307,11 @@ class TUI(urwid.Frame):
         Attempt to update max_toot_chars from instance data.
         Does not work on vanilla Mastodon, works on Pleroma.
         See: https://github.com/tootsuite/mastodon/issues/4915
+
+        Also attempt to update translation flag from instance
+        data. Translation is only present on Mastodon 4+ servers
+        where the administrator has enabled this feature.
+        See: https://github.com/mastodon/mastodon/issues/19328
         """
         def _load_instance():
             return api.get_instance(self.app.instance)
@@ -312,6 +319,17 @@ class TUI(urwid.Frame):
         def _done(instance):
             if "max_toot_chars" in instance:
                 self.max_toot_chars = instance["max_toot_chars"]
+
+            if "translation" in instance:
+                # instance is advertising translation service
+                self.can_translate = instance["translation"]["enabled"]
+            elif "version" in instance:
+                # fallback check:
+                # get the major version number of the server
+                # this works for Mastodon and Pleroma version strings
+                # Mastodon versions < 4 do not have translation service
+                # Revisit this logic if Pleroma implements translation
+                self.can_translate = int(instance["version"][0]) > 3
 
         return self.run_in_thread(_load_instance, done_callback=_done)
 
@@ -494,6 +512,39 @@ class TUI(urwid.Frame):
             _unreblog if status.reblogged else _reblog,
             done_callback=_done
         )
+
+    def async_translate(self, timeline, status):
+        def _translate():
+            logger.info("Translating {}".format(status))
+            self.footer.set_message("Translating status {}".format(status.id))
+
+            try:
+                response = api.translate(self.app, self.user, status.id)
+                if response["content"]:
+                    self.footer.set_message("Status translated")
+                else:
+                    self.footer.set_error_message("Server returned empty translation")
+                    response = None
+            except:
+                response = None
+                self.footer.set_error_message("Translate server error")
+
+            self.loop.set_alarm_in(3, lambda *args: self.footer.clear_message())
+            return response
+
+        def _done(response):
+            if response is not None:
+                status.translation = response["content"]
+                status.translated_from = response["detected_source_language"]
+                status.show_translation = True
+                timeline.update_status(status)
+
+        # If already translated, toggle showing translation
+        if status.translation:
+            status.show_translation = not status.show_translation
+            timeline.update_status(status)
+        else:
+            self.run_in_thread(_translate, done_callback=_done)
 
     def async_toggle_bookmark(self, timeline, status):
         def _bookmark():

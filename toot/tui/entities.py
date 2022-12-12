@@ -44,6 +44,11 @@ class Status:
         # This can be toggled by the user
         self.show_sensitive = False
 
+        # Set when status is translated
+        self.show_translation = False
+        self.translation = None
+        self.translated_from = None
+
         # TODO: clean up
         self.id = self.data["id"]
         self.account = self._get_account()

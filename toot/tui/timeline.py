@@ -3,6 +3,7 @@ import urwid
 import webbrowser
 
 from toot.utils import format_content
+from toot.utils.language import language_name
 
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
@@ -29,19 +30,21 @@ class Timeline(urwid.Columns):
         "source",     # Show status source
         "links",      # Show status links
         "thread",     # Show thread for status
+        "translate",  # Translate status
         "save",       # Save current timeline
         "zoom",       # Open status in scrollable popup window
     ]
 
-    def __init__(self, name, statuses, focus=0, is_thread=False):
+    def __init__(self, name, statuses, can_translate, focus=0, is_thread=False):
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
+        self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         try:
-            self.status_details = StatusDetails(statuses[focus], is_thread)
+            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate)
         except IndexError:
-            self.status_details = StatusDetails(None, is_thread)
+            self.status_details = StatusDetails(None, is_thread, can_translate)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -99,7 +102,7 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status, self.is_thread)
+        self.status_details = StatusDetails(status, self.is_thread, self.can_translate)
         self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
 
     def keypress(self, size, key):
@@ -161,6 +164,11 @@ class Timeline(urwid.Columns):
 
         if key in ("l", "L"):
             self._emit("links", status)
+            return
+
+        if key in ("n", "N"):
+            if self.can_translate:
+                self._emit("translate", status)
             return
 
         if key in ("t", "T"):
@@ -234,7 +242,7 @@ class Timeline(urwid.Columns):
 
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread):
+    def __init__(self, status, in_thread, can_translate=False):
         """
         Parameters
         ----------
@@ -245,6 +253,7 @@ class StatusDetails(urwid.Pile):
             Whether the status is rendered from a thread status list.
         """
         self.in_thread = in_thread
+        self.can_translate = can_translate
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -270,7 +279,8 @@ class StatusDetails(urwid.Pile):
         if status.data["spoiler_text"] and not status.show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
-            for line in format_content(status.data["content"]):
+            content = status.translation if status.show_translation else status.data["content"]
+            for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line)))
 
         media = status.data["media_attachments"]
@@ -296,12 +306,20 @@ class StatusDetails(urwid.Pile):
         application = application.get("name")
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
+
+        translated_from = (
+            language_name(status.translated_from)
+            if status.show_translation and status.translated_from
+            else None
+        )
+
         yield ("pack", urwid.Text([
-            ("red" if status.bookmarked else "gray", "🠷 " if status.bookmarked else "  "),
-            ("gray", "⤶ {} ".format(status.data["replies_count"])),
-            ("yellow" if status.reblogged else "gray", "♺ {} ".format(status.data["reblogs_count"])),
-            ("yellow" if status.favourited else "gray", "★ {}".format(status.data["favourites_count"])),
-            ("gray", " · {}".format(application) if application else ""),
+            ("red" if status.bookmarked else "gray", "🠷" if status.bookmarked else " "),
+            ("gray", f"⤶ {status.data['replies_count']} "),
+            ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
+            ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            ("yellow", f" · Translated from {translated_from} ") if translated_from else "",
+            ("gray", f" · {application}" if application else ""),
         ]))
 
         # Push things to bottom
@@ -318,6 +336,7 @@ class StatusDetails(urwid.Pile):
             "[R]eply",
             "So[u]rce",
             "[Z]oom",
+            "Tra[n]slate" if self.can_translate else "",
             "[H]elp",
         ]
         options = " ".join(o for o in options if o)
@@ -368,7 +387,6 @@ class StatusDetails(urwid.Pile):
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
         created_at = status.created_at.strftime("%Y-%m-%d %H:%M")
-#        bookmarked = ("red", "🠷 ") if status.original.bookmarked else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
@@ -377,8 +395,6 @@ class StatusListItem(SelectableColumns):
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
             ("pack", urwid.Text(" ")),
- #           ("pack", urwid.Text(bookmarked)),
- #           ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
