@@ -133,15 +133,15 @@ def print_out(*args, **kwargs):
 
 
 def print_err(*args, **kwargs):
-    args = ["<red>{}</red>".format(a) for a in args]
+    args = [f"<red>{a}</red>" for a in args]
     args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
     print(*args, file=sys.stderr, **kwargs)
 
 
 def print_instance(instance):
-    print_out("<green>{}</green>".format(instance['title']))
-    print_out("<blue>{}</blue>".format(instance['uri']))
-    print_out("running Mastodon {}".format(instance['version']))
+    print_out(f"<green>{instance['title']}</green>")
+    print_out(f"<blue>{instance['uri']}</blue>")
+    print_out(f"running Mastodon {instance['version']}")
     print_out()
 
     description = instance.get("description")
@@ -167,7 +167,7 @@ def print_instance(instance):
 
 
 def print_account(account):
-    print_out("<green>@{}</green> {}".format(account['acct'], account['display_name']))
+    print_out(f"<green>@{account['acct']}</green> {account['display_name']}")
 
     note = get_text(account['note'])
 
@@ -176,14 +176,14 @@ def print_account(account):
         print_out("\n".join(wrap(note)))
 
     print_out("")
-    print_out("ID: <green>{}</green>".format(account['id']))
-    print_out("Since: <green>{}</green>".format(account['created_at'][:19].replace('T', ' @ ')))
+    print_out(f"ID: <green>{account['id']}</green>")
+    print_out(f"Since: <green>{account['created_at'][:10]}</green>")
     print_out("")
-    print_out("Followers: <yellow>{}</yellow>".format(account['followers_count']))
-    print_out("Following: <yellow>{}</yellow>".format(account['following_count']))
-    print_out("Statuses: <yellow>{}</yellow>".format(account['statuses_count']))
+    print_out(f"Followers: <yellow>{account['followers_count']}</yellow>")
+    print_out(f"Following: <yellow>{account['following_count']}</yellow>")
+    print_out(f"Statuses: <yellow>{account['statuses_count']}</yellow>")
     print_out("")
-    print_out(account['url'])
+    print_out(account["url"])
 
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
@@ -195,10 +195,7 @@ def highlight_hashtags(line):
 
 def print_acct_list(accounts):
     for account in accounts:
-        print_out("* <green>@{}</green> {}".format(
-            account['acct'],
-            account['display_name']
-        ))
+        print_out(f"* <green>@{account['acct']}</green> {account['display_name']}")
 
 
 def print_search_results(results):
@@ -211,7 +208,7 @@ def print_search_results(results):
 
     if hashtags:
         print_out("\nHashtags:")
-        print_out(", ".join(["<green>#{}</green>".format(t["name"]) for t in hashtags]))
+        print_out(", ".join([f"<green>#{t['name']}</green>" for t in hashtags]))
 
     if not accounts and not hashtags:
         print_out("<yellow>Nothing found</yellow>")
@@ -228,18 +225,18 @@ def print_status(status, width):
     time = time.strftime('%Y-%m-%d %H:%M %Z')
 
     username = "@" + status['account']['acct']
-    spacing = width - wcswidth(username) - wcswidth(time)
+    spacing = width - wcswidth(username) - wcswidth(time) - 2
 
     display_name = status['account']['display_name']
     if display_name:
         spacing -= wcswidth(display_name) + 1
 
-    print_out("{}{}{}{}".format(
-        "<green>{}</green> ".format(display_name) if display_name else "",
-        "<blue>{}</blue>".format(username),
+    print_out(
+        f"<green>{display_name}</green>" if display_name else "",
+        f"<blue>{username}</blue>",
         " " * spacing,
-        "<yellow>{}</yellow>".format(time),
-    ))
+        f"<yellow>{time}</yellow>",
+    )
 
     for paragraph in parse_html(content):
         print_out("")
@@ -257,11 +254,12 @@ def print_status(status, width):
     if poll:
         print_poll(poll)
 
-    print_out("\n{}{}{}".format(
-        "ID <yellow>{}</yellow>  ".format(status['id']),
-        "↲ In reply to <yellow>{}</yellow>  ".format(in_reply_to) if in_reply_to else "",
-        "↻ Reblogged <blue>@{}</blue>  ".format(reblog['account']['acct']) if reblog else "",
-    ))
+    print_out()
+    print_out(
+        f"ID <yellow>{status['id']}</yellow> ",
+        f"↲ In reply to <yellow>{in_reply_to}</yellow> " if in_reply_to else "",
+        f"↻ Reblogged <blue>@{reblog['account']['acct']}</blue> " if reblog else "",
+    )
 
 
 def print_poll(poll):
@@ -286,7 +284,8 @@ def print_poll(poll):
         expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
         poll_footer += f" · Closes on {expires_at}"
 
-    print_out("\n{}".format(poll_footer))
+    print_out()
+    print_out(poll_footer)
 
 
 def print_timeline(items, width=100):

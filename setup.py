@@ -12,7 +12,7 @@ and blocking accounts and other actions.
 
 setup(
     name='toot',
-    version='0.31.0',
+    version='0.32.1',
     description='Mastodon CLI client',
     long_description=long_description.strip(),
     author='Ivan Habunek',
@@ -31,7 +31,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
     ],
-    packages=['toot', 'toot.tui'],
+    packages=['toot', 'toot.tui', 'toot.utils'],
     python_requires=">=3.6",
     install_requires=[
         "requests>=2.13,<3.0",

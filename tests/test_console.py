@@ -472,7 +472,7 @@ def test_whoami(mock_get, capsys):
     assert "A developer." in out
     assert "https://mastodon.social/@ihabunek" in out
     assert "ID: 46103" in out
-    assert "Since: 2017-04-04 @ 13:23:09" in out
+    assert "Since: 2017-04-04" in out
     assert "Followers: 5" in out
     assert "Following: 9" in out
     assert "Statuses: 19" in out
@@ -567,21 +567,21 @@ def test_notifications(mock_get, capsys):
         "",
         "We still have fans in 2017 @fan123",
         "",
-        "ID 111111111111111111  ",
+        "ID 111111111111111111   ",
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Terry Bozzio @terry@bozzio.social reblogged your status",
         "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 15:53 UTC",
         "",
         "The Black Page, a masterpiece",
         "",
-        "ID 1234  ",
+        "ID 1234   ",
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "Zappa Old Fan @fan9@zappa-fans.social favourited your status",
         "Zappa Fan @fan123@zappa-fans.social                                             1983-11-04 15:53 UTC",
         "",
         "The Black Page, a masterpiece",
         "",
-        "ID 1234  ",
+        "ID 1234   ",
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "",
     ])
