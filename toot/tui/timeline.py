@@ -277,24 +277,24 @@ class StatusDetails(urwid.Pile):
             for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line)))
 
-        media = status.data["media_attachments"]
-        if media:
-            for m in media:
-                yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
-                yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
-                if m["description"]:
-                    yield ("pack", urwid.Text(m["description"]))
-                yield ("pack", urwid.Text(("link", m["url"])))
+            media = status.data["media_attachments"]
+            if media:
+                for m in media:
+                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                    yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
+                    if m["description"]:
+                        yield ("pack", urwid.Text(m["description"]))
+                    yield ("pack", urwid.Text(("link", m["url"])))
 
-        poll = status.data.get("poll")
-        if poll:
-            yield ("pack", urwid.Divider())
-            yield ("pack", self.build_linebox(self.poll_generator(poll)))
+            poll = status.data.get("poll")
+            if poll:
+                yield ("pack", urwid.Divider())
+                yield ("pack", self.build_linebox(self.poll_generator(poll)))
 
-        card = status.data.get("card")
-        if card:
-            yield ("pack", urwid.Divider())
-            yield ("pack", self.build_linebox(self.card_generator(card)))
+            card = status.data.get("card")
+            if card:
+                yield ("pack", urwid.Divider())
+                yield ("pack", self.build_linebox(self.card_generator(card)))
 
         application = status.data.get("application") or {}
         application = application.get("name")
