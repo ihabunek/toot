@@ -223,6 +223,12 @@ AUTH_COMMANDS = [
         arguments=[],
         require_auth=False,
     ),
+    Command(
+        name="env",
+        description="Print environment information for inclusion in bug reports.",
+        arguments=[],
+        require_auth=False,
+    ),
 ]
 
 TUI_COMMANDS = [

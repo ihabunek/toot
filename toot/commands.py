@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import platform
 
 from datetime import datetime, timedelta, timezone
-from toot import api, config
+from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_out, print_instance, print_account, print_acct_list,
@@ -218,6 +219,12 @@ def auth(app, user, args):
 
     path = config.get_config_file_path()
     print_out("\nAuth tokens are stored in: <blue>{}</blue>".format(path))
+
+
+def env(app, user, args):
+    print_out(f"toot {__version__}")
+    print_out(f"Python {sys.version}")
+    print_out(platform.platform())
 
 
 def login_cli(app, user, args):
