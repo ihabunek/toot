@@ -198,6 +198,11 @@ def print_acct_list(accounts):
         print_out(f"* <green>@{account['acct']}</green> {account['display_name']}")
 
 
+def print_tag_list(tags):
+    for tag in tags:
+        print_out(f"* <green>#{tag['name']}\t</green> {tag['url']}")
+
+
 def print_search_results(results):
     accounts = results['accounts']
     hashtags = results['hashtags']

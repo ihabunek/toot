@@ -8,7 +8,8 @@ from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_timeline, print_notifications)
+                         print_search_results, print_timeline, print_notifications,
+                         print_tag_list)
 from toot.tui.utils import parse_datetime
 from toot.utils import editor_input, multiline_input, EOF_KEY
 
@@ -321,6 +322,23 @@ def followers(app, user, args):
     account = _find_account(app, user, args.account)
     response = api.followers(app, user, account['id'])
     print_acct_list(response)
+
+
+def follow_tag(app, user, args):
+    tn = args.tag_name if not args.tag_name.startswith("#") else args.tag_name[1:]
+    api.follow_tag(app, user, tn)
+    print_out("<green>✓ You are now following #{}</green>".format(tn))
+
+
+def unfollow_tag(app, user, args):
+    tn = args.tag_name if not args.tag_name.startswith("#") else args.tag_name[1:]
+    api.unfollow_tag(app, user, tn)
+    print_out("<green>✓ You are no longer following #{}</green>".format(tn))
+
+
+def followed_tags(app, user, args):
+    response = api.followed_tags(app, user)
+    print_tag_list(response)
 
 
 def mute(app, user, args):

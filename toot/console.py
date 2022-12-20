@@ -161,6 +161,10 @@ visibility_arg = (["-v", "--visibility"], {
             "the TOOT_POST_VISIBILITY environment variable",
 })
 
+tag_arg = (["tag_name"], {
+    "type": str,
+    "help": "tag name, e.g. Caturday, or \"#Caturday\"",
+})
 
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
 common_timeline_args = [
@@ -552,7 +556,28 @@ ACCOUNTS_COMMANDS = [
     ),
 ]
 
-COMMANDS = AUTH_COMMANDS + READ_COMMANDS + TUI_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS
+TAG_COMMANDS = [
+    Command(
+        name="follow_tag",
+        description="Follow a hashtag",
+        arguments=[tag_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="unfollow_tag",
+        description="Unfollow a hashtag",
+        arguments=[tag_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="followed_tags",
+        description="List hashtags you follow",
+        arguments=[],
+        require_auth=True,
+    ),
+]
+
+COMMANDS = AUTH_COMMANDS + READ_COMMANDS + TUI_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS + TAG_COMMANDS
 
 
 def print_usage():
@@ -565,6 +590,7 @@ def print_usage():
         ("Post", POST_COMMANDS),
         ("Status", STATUS_COMMANDS),
         ("Accounts", ACCOUNTS_COMMANDS),
+        ("Hashtags", TAG_COMMANDS),
     ]
 
     print_out("<green>{}</green>".format(CLIENT_NAME))
