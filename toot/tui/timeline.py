@@ -36,16 +36,17 @@ class Timeline(urwid.Columns):
         "clear-screen",  # Clear the screen (used internally)
     ]
 
-    def __init__(self, name, statuses, can_translate, focus=0, is_thread=False):
+    def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
+        self.followed_tags = followed_tags
         try:
-            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate)
+            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate, followed_tags)
         except IndexError:
-            self.status_details = StatusDetails(None, is_thread, can_translate)
+            self.status_details = StatusDetails(None, is_thread, can_translate, followed_tags)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -103,7 +104,7 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status, self.is_thread, self.can_translate)
+        self.status_details = StatusDetails(status, self.is_thread, self.can_translate, self.followed_tags)
         self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
 
     def keypress(self, size, key):
@@ -245,7 +246,7 @@ class Timeline(urwid.Columns):
 
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread, can_translate=False):
+    def __init__(self, status, in_thread, can_translate=False, followed_tags=[]):
         """
         Parameters
         ----------
@@ -257,6 +258,7 @@ class StatusDetails(urwid.Pile):
         """
         self.in_thread = in_thread
         self.can_translate = can_translate
+        self.followed_tags = followed_tags
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -284,7 +286,7 @@ class StatusDetails(urwid.Pile):
         else:
             content = status.translation if status.show_translation else status.data["content"]
             for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line)))
+                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
 
             media = status.data["media_attachments"]
             if media:
