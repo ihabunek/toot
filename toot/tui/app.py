@@ -112,6 +112,7 @@ class TUI(urwid.Frame):
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_tags())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
         self.loop.run()
@@ -234,7 +235,7 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses, self.can_translate)
+        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -263,8 +264,9 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, self.can_translate, focus,
-                            is_thread=True)
+        timeline = Timeline("thread", statuses, self.can_translate,
+                            self.followed_tags, focus, is_thread=True)
+
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
 
@@ -330,6 +332,28 @@ class TUI(urwid.Frame):
                 self.can_translate = int(instance["version"][0]) > 3
 
         return self.run_in_thread(_load_instance, done_callback=_done)
+
+    def async_load_followed_tags(self):
+        def _load_tag_list():
+            logger.info("Loading tags")
+            try:
+                return api.followed_tags(self.app, self.user)
+            except:
+                # not supported by all Mastodon servers so fail silently if necessary
+                return []
+
+        def _done_tag_list(tags):
+            if len(tags) > 0:
+                self.followed_tags = [t["name"] for t in tags]
+            else:
+                self.followed_tags = []
+            logger.info("Loaded tags. Followed tags = {}".format(self.followed_tags))
+
+        self.run_in_thread(
+            _load_tag_list, done_callback=_done_tag_list
+        )
+
+
 
     def refresh_footer(self, timeline):
         """Show status details in footer."""
