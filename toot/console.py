@@ -568,8 +568,8 @@ TAG_COMMANDS= [
     ),
     Command(
         name="followed_tags",
-        description="List hashtags followed by the given account",
-        arguments=[account_arg],
+        description="List hashtags you follow",
+        arguments=[],
         require_auth=True,
     ),
     ]

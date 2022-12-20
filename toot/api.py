@@ -24,6 +24,9 @@ def _status_action(app, user, status_id, action):
     return http.post(app, user, url).json()
 
 def _tag_action(app, user, tag_name, action):
+    # documentation on this API is here, for now
+    # https://github.com/mastodon/mastodon/pull/18809
+    # supported by Mastodon 4+    
     url = '/api/v1/tags/{}/{}'.format(tag_name, action)
 
     return http.post(app, user, url).json()
@@ -336,12 +339,12 @@ def _get_response_list(app, user, path):
 
 def following(app, user, account):
     path = '/api/v1/accounts/{}/{}'.format(account, 'following')
-    return _get_responselist(app, user, path)
+    return _get_response_list(app, user, path)
 
 
 def followers(app, user, account):
     path = '/api/v1/accounts/{}/{}'.format(account, 'followers')
-    return _get_account_list(app, user, path)
+    return _get_response_list(app, user, path)
 
 def followed_tags(app, user):
     path = '/api/v1/followed_tags'

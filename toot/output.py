@@ -200,7 +200,7 @@ def print_acct_list(accounts):
 
 def print_tag_list(tags):
     for tag in tags:
-        print_out(f"* <green>#{tag['name']}\t\t</green> {tag['url']}")
+        print_out(f"* <green>#{tag['name']}\t</green> {tag['url']}")
 
 
 def print_search_results(results):
