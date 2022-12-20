@@ -23,6 +23,11 @@ def _status_action(app, user, status_id, action):
 
     return http.post(app, user, url).json()
 
+def _tag_action(app, user, tag_name, action):
+    url = '/api/v1/tags/{}/{}'.format(tag_name, action)
+
+    return http.post(app, user, url).json()
+
 
 def create_app(domain, scheme='https'):
     url = '{}://{}/api/v1/apps'.format(scheme, domain)
@@ -312,24 +317,36 @@ def unfollow(app, user, account):
     return _account_action(app, user, account, 'unfollow')
 
 
-def _get_account_list(app, user, path):
-    accounts = []
+def follow_tag(app, user, tag_name):
+    return _tag_action(app, user, tag_name, 'follow')
+
+
+def unfollow_tag(app, user, tag_name):
+    return _tag_action(app, user, tag_name, 'unfollow')
+
+
+def _get_response_list(app, user, path):
+    items = []
     while path:
         response = http.get(app, user, path)
-        accounts += response.json()
+        items += response.json()
         path = _get_next_path(response.headers)
-    return accounts
+    return items
 
 
 def following(app, user, account):
     path = '/api/v1/accounts/{}/{}'.format(account, 'following')
-    return _get_account_list(app, user, path)
+    return _get_responselist(app, user, path)
 
 
 def followers(app, user, account):
     path = '/api/v1/accounts/{}/{}'.format(account, 'followers')
     return _get_account_list(app, user, path)
 
+def followed_tags(app, user):
+    path = '/api/v1/followed_tags'
+    return _get_response_list(app, user, path)
+    
 
 def mute(app, user, account):
     return _account_action(app, user, account, 'mute')
