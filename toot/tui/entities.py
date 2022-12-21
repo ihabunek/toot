@@ -60,6 +60,7 @@ class Status:
         self.url = data.get("url")
         self.mentions = data.get("mentions")
         self.reblog = self._get_reblog()
+        self.visibility = data.get("visibility")
 
     @property
     def original(self):

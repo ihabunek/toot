@@ -497,6 +497,13 @@ class TUI(urwid.Frame):
             new_status = self.make_status(new_data)
             timeline.update_status(new_status)
 
+        # Check if status is rebloggable
+        no_reblog_because_private = status.visibility == "private" and not status.is_mine
+        no_reblog_because_direct = status.visibility == "direct"
+        if no_reblog_because_private or no_reblog_because_direct:
+            self.footer.set_error_message("You may not reblog this {} status".format(status.visibility))
+            return
+
         self.run_in_thread(
             _unreblog if status.reblogged else _reblog,
             done_callback=_done
