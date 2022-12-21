@@ -18,10 +18,10 @@ def _account_action(app, user, account, action):
     return http.post(app, user, url).json()
 
 
-def _status_action(app, user, status_id, action):
+def _status_action(app, user, status_id, action, data=None):
     url = '/api/v1/statuses/{}/{}'.format(status_id, action)
 
-    return http.post(app, user, url).json()
+    return http.post(app, user, url, data=data).json()
 
 
 def create_app(domain, scheme='https'):
@@ -187,8 +187,8 @@ def unfavourite(app, user, status_id):
     return _status_action(app, user, status_id, 'unfavourite')
 
 
-def reblog(app, user, status_id):
-    return _status_action(app, user, status_id, 'reblog')
+def reblog(app, user, status_id, visibility="public"):
+    return _status_action(app, user, status_id, 'reblog', data={"visibility": visibility})
 
 
 def unreblog(app, user, status_id):

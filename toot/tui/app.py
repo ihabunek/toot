@@ -1,5 +1,6 @@
 import logging
 import urwid
+import os
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -494,7 +495,7 @@ class TUI(urwid.Frame):
     def async_toggle_reblog(self, timeline, status):
         def _reblog():
             logger.info("Reblogging {}".format(status))
-            api.reblog(self.app, self.user, status.id)
+            api.reblog(self.app, self.user, status.id, visibility=os.getenv("TOOT_VISIBILITY", "public"))
 
         def _unreblog():
             logger.info("Unreblogging {}".format(status))

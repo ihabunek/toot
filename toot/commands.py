@@ -169,7 +169,7 @@ def unfavourite(app, user, args):
 
 
 def reblog(app, user, args):
-    api.reblog(app, user, args.status_id)
+    api.reblog(app, user, args.status_id, visibility=args.visibility)
     print_out("<green>✓ Status reblogged</green>")
 
 

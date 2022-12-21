@@ -434,7 +434,12 @@ STATUS_COMMANDS = [
     Command(
         name="reblog",
         description="Reblog a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg,
+            (["-v", "--visibility"], {
+                "type": visibility,
+                "default": os.getenv("TOOT_VISIBILITY", "public"),
+                "help": 'boost visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
+            })],
         require_auth=True,
     ),
     Command(
