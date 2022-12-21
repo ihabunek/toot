@@ -46,7 +46,7 @@ class StatusComposer(urwid.Frame):
         if not in_reply_to:
             return ""
 
-        text = '@{} '.format(in_reply_to.account)
+        text = '@{} '.format(in_reply_to.original.account)
         mentions = ['@{}'.format(m["acct"]) for m in in_reply_to.mentions]
         if mentions:
             text += '\n\n{}'.format(' '.join(mentions))
@@ -61,7 +61,7 @@ class StatusComposer(urwid.Frame):
 
     def generate_list_items(self):
         if self.in_reply_to:
-            yield urwid.Text(("gray", "Replying to {}".format(self.in_reply_to.account)))
+            yield urwid.Text(("gray", "Replying to {}".format(self.in_reply_to.original.account)))
             yield urwid.AttrWrap(urwid.Divider("-"), "gray")
 
         yield urwid.Text("Status message")
