@@ -348,7 +348,7 @@ POST_COMMANDS = [
             }),
             (["-v", "--visibility"], {
                 "type": visibility,
-                "default": "public",
+                "default": os.getenv("TOOT_VISIBILITY", "public"),
                 "help": 'post visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
             }),
             (["-s", "--sensitive"], {

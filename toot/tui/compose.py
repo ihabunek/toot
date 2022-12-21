@@ -1,5 +1,6 @@
 import urwid
 import logging
+import os
 
 from .constants import VISIBILITY_OPTIONS
 from .widgets import Button, EditBox
@@ -31,7 +32,7 @@ class StatusComposer(urwid.Frame):
         self.cw_remove_button = Button("Remove content warning",
             on_press=self.remove_content_warning)
 
-        self.visibility = "public"
+        self.visibility = os.getenv("TOOT_VISIBILITY", "public")
         self.visibility_button = Button("Visibility: {}".format(self.visibility),
             on_press=self.choose_visibility)
 
