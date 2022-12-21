@@ -313,11 +313,19 @@ class StatusDetails(urwid.Pile):
             else None
         )
 
+        visibility_colors = {
+            "public": "gray",
+            "unlisted": "white",
+            "private": "cyan",
+            "direct": "yellow"
+        }
+
         yield ("pack", urwid.Text([
             ("red", "🠷 ") if status.bookmarked else "",
             ("gray", f"⤶ {status.data['replies_count']} "),
             ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
             ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            (visibility_colors[status.visibility], f" · {status.visibility}"),
             ("yellow", f" · Translated from {translated_from} ") if translated_from else "",
             ("gray", f" · {application}" if application else ""),
         ]))
