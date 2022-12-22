@@ -32,6 +32,7 @@ class Timeline(urwid.Columns):
         "translate",  # Translate status
         "save",       # Save current timeline
         "zoom",       # Open status in scrollable popup window
+        "clear-screen", # clear the screen (used internally)
     ]
 
     def __init__(self, name, statuses, can_translate, focus=0, is_thread=False):
@@ -176,6 +177,8 @@ class Timeline(urwid.Columns):
         if key in ("v", "V"):
             if status.original.url:
                 webbrowser.open(status.original.url)
+                # force a screen refresh; necessary with console browsers
+                self._emit("clear-screen")
             return
 
         if key in ("p", "P"):

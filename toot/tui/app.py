@@ -208,6 +208,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
         urwid.connect_signal(timeline, "translate", self.async_translate)
+        urwid.connect_signal(timeline, "clear-screen", self.loop.screen.clear)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -345,6 +346,9 @@ class TUI(urwid.Frame):
             title="Status source",
         )
 
+    def _clear_screen(self,  widget):
+            self.loop.screen.clear()
+
     def show_links(self, status):
         links = parse_content_links(status.data["content"]) if status else []
         post_attachments = status.data["media_attachments"] or []
@@ -353,8 +357,10 @@ class TUI(urwid.Frame):
             url = a["remote_url"] or a["url"]
             links.append((url, a["description"] if a["description"] else url))
         if links:
+            sl_widget=StatusLinks(links)
+            urwid.connect_signal(sl_widget, "clear-screen", self._clear_screen)
             self.open_overlay(
-                widget=StatusLinks(links),
+                widget=sl_widget,
                 title="Status links",
                 options={"height": len(links) + 2},
             )

@@ -30,16 +30,22 @@ class StatusZoom(urwid.ListBox):
 
 class StatusLinks(urwid.ListBox):
     """Shows status links."""
+    signals = ["clear-screen"]
 
     def __init__(self, links):
 
         def widget(url, title):
-            return Button(title or url, on_press=lambda btn: webbrowser.open(url))
+            return Button(title or url, on_press=lambda btn: self.browse(url))
 
         walker = urwid.SimpleFocusListWalker(
             [widget(url, title) for url, title in links]
         )
         super().__init__(walker)
+
+    def browse(self, url):
+        webbrowser.open(url)
+        # force a screen refresh; necessary with console browsers
+        self._emit("clear-screen")
 
 
 class ExceptionStackTrace(urwid.ListBox):
