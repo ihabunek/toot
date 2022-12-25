@@ -45,7 +45,7 @@ class StatusLinks(urwid.ListBox):
 class ExceptionStackTrace(urwid.ListBox):
     """Shows an exception stack trace."""
     def __init__(self, ex):
-        lines = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        lines = traceback.format_exception(type(ex), value=ex, tb=ex.__traceback__)
         walker = urwid.SimpleFocusListWalker([
             urwid.Text(line) for line in lines
         ])

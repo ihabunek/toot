@@ -1,12 +1,16 @@
 import logging
+import math
 import urwid
 import webbrowser
 
 from toot.utils import format_content
 from toot.utils.language import language_name
 
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
-from .widgets import SelectableText, SelectableColumns
+from toot.tui.utils import highlight_hashtags, parse_datetime, highlight_keys, resize_image
+from toot.tui.widgets import SelectableText, SelectableColumns
+from toot.tui.ansiwidget import ANSIGraphicsWidget
+from toot.tui.scroll import Scrollable, ScrollBar
+from PIL import Image
 
 logger = logging.getLogger("toot")
 
@@ -32,6 +36,7 @@ class Timeline(urwid.Columns):
         "translate",  # Translate status
         "save",       # Save current timeline
         "zoom",       # Open status in scrollable popup window
+        "load-image",  # used internally. asynchronously load image
     ]
 
     def __init__(self, name, statuses, can_translate, focus=0, is_thread=False):
@@ -40,16 +45,29 @@ class Timeline(urwid.Columns):
         self.statuses = statuses
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
+
+        opts_footer = (urwid.Text(self.get_option_text(statuses[focus])))
+
         try:
-            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate)
+            self.status_details = \
+            urwid.Frame(body=\
+                ScrollBar(Scrollable(\
+                    StatusDetails(self, statuses[focus], is_thread, can_translate)),\
+                    thumb_char='\u2588', trough_char='\u2591'),\
+                footer=opts_footer)
+
         except IndexError:
-            self.status_details = StatusDetails(None, is_thread, can_translate)
+            # we have no statuses to display
+            self.status_details = StatusDetails(self, None, is_thread, can_translate)
 
         super().__init__([
             ("weight", 40, self.status_list),
             ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
             ("weight", 60, urwid.Padding(self.status_details, left=1)),
         ])
+
+    def selectable(self):
+        return True
 
     def build_status_list(self, statuses, focus):
         items = [self.build_list_item(status) for status in statuses]
@@ -88,6 +106,24 @@ class Timeline(urwid.Columns):
             len(self.statuses),
         )
 
+    def get_option_text(self, status):
+        options = [
+            "[B]oost",
+            "[D]elete" if status.is_mine else "",
+            "[F]avourite",
+            "[V]iew",
+            "[T]hread" if not self.is_thread else "",
+            "[L]inks",
+            "[R]eply",
+            "So[u]rce",
+            "[Z]oom",
+            "Tra[n]slate" if self.can_translate else "",
+            "[H]elp",
+        ]
+        options = "\n" + " ".join(o for o in options if o)
+        options = highlight_keys(options, "cyan_bold", "cyan")
+        return options
+
     def modified(self):
         """Called when the list focus switches to a new status"""
         status, index, count = self.get_focused_status_with_counts()
@@ -100,8 +136,16 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status, self.is_thread, self.can_translate)
-        self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
+        opts_footer = urwid.Text(self.get_option_text(status))
+        self.status_details = StatusDetails(self, status, self.is_thread, self.can_translate)
+        self.contents[2] = \
+            (urwid.Padding(\
+                urwid.Frame(body=\
+                ScrollBar(Scrollable(\
+                        self.status_details),\
+                    thumb_char='\u2588', trough_char='\u2591'),\
+                footer=opts_footer), left=1)),\
+            ("weight", 60, False)
 
     def keypress(self, size, key):
         status = self.get_focused_status()
@@ -236,7 +280,7 @@ class Timeline(urwid.Columns):
 
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread, can_translate=False):
+    def __init__(self, timeline, status, in_thread, can_translate=False):
         """
         Parameters
         ----------
@@ -248,6 +292,9 @@ class StatusDetails(urwid.Pile):
         """
         self.in_thread = in_thread
         self.can_translate = can_translate
+        self.timeline = timeline
+        self.status = status
+
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -265,6 +312,15 @@ class StatusDetails(urwid.Pile):
         yield ("pack", urwid.Text(("yellow", status.author.account)))
         yield ("pack", urwid.Divider())
 
+#        if status.data["account"]["avatar_static"]:
+#            try:
+#                avatar = self.load_image(6, status.data["account"]["avatar_static"])
+#                rows = avatar.size[1]
+#                yield ("pack", urwid.BoxAdapter(ANSIGraphicsWidget(avatar),math.ceil(rows/2)))
+#                yield ("pack", urwid.Divider())
+#            finally:
+#                pass #ignore any error
+
         if status.data["spoiler_text"]:
             yield ("pack", urwid.Text(status.data["spoiler_text"]))
             yield ("pack", urwid.Divider())
@@ -277,24 +333,25 @@ class StatusDetails(urwid.Pile):
             for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line)))
 
-        media = status.data["media_attachments"]
-        if media:
-            for m in media:
-                yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
-                yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
-                if m["description"]:
-                    yield ("pack", urwid.Text(m["description"]))
-                yield ("pack", urwid.Text(("link", m["url"])))
+            media = status.data["media_attachments"]
+            if media:
+                for m in media:
+                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                    yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
+                    if m["description"]:
+                        yield ("pack", urwid.Text(m["description"]))
+                    if m["url"]:
+                        yield ("pack", urwid.Text(m["url"]))
 
-        poll = status.data.get("poll")
-        if poll:
-            yield ("pack", urwid.Divider())
-            yield ("pack", self.build_linebox(self.poll_generator(poll)))
+            poll = status.data.get("poll")
+            if poll:
+                yield ("pack", urwid.Divider())
+                yield ("pack", self.build_linebox(self.poll_generator(poll)))
 
-        card = status.data.get("card")
-        if card:
-            yield ("pack", urwid.Divider())
-            yield ("pack", self.build_linebox(self.card_generator(card)))
+            card = status.data.get("card")
+            if card:
+                yield ("pack", urwid.Divider())
+                yield ("pack", self.build_linebox(self.card_generator(card)))
 
         application = status.data.get("application") or {}
         application = application.get("name")
@@ -316,25 +373,8 @@ class StatusDetails(urwid.Pile):
         ]))
 
         # Push things to bottom
-        yield ("weight", 1, urwid.SolidFill(" "))
+        yield ("weight", 1, urwid.BoxAdapter(urwid.SolidFill(" "),1))
 
-        options = [
-            "[B]oost",
-            "[D]elete" if status.is_mine else "",
-            "[F]avourite",
-            "[V]iew",
-            "[T]hread" if not self.in_thread else "",
-            "[L]inks",
-            "[R]eply",
-            "So[u]rce",
-            "[Z]oom",
-            "Tra[n]slate" if self.can_translate else "",
-            "[H]elp",
-        ]
-        options = " ".join(o for o in options if o)
-
-        options = highlight_keys(options, "cyan_bold", "cyan")
-        yield ("pack", urwid.Text(options))
 
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
@@ -349,7 +389,26 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
+
         yield urwid.Text(("link", card["url"]))
+
+        if card["image"]:
+            if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg')):
+                yield urwid.Text("")
+
+                ratio = int(card["height"]) / int(card["width"])
+                rows = math.ceil(20 * ratio)
+
+                img = None
+                if hasattr(self.status,'images'):
+                    img = self.status.images.get(str(hash(card["image"])))
+                if img:
+                    img = resize_image(40, img)
+                    yield("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img),rows))
+                else:
+                    self.timeline._emit("load-image", self.timeline, self.status, card["image"])
+                    yield("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "),rows))
+
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):
