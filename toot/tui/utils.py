@@ -5,6 +5,7 @@ import shutil
 import subprocess
 
 from datetime import datetime, timezone
+from PIL import Image
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
@@ -108,3 +109,11 @@ def parse_content_links(content):
     parser = LinkParser()
     parser.feed(content)
     return parser.links[:]
+
+
+def resize_image(basewidth: int, img: Image) -> Image:
+        wpercent = (basewidth/float(img.size[0]))
+        hsize = int((float(img.size[1])*float(wpercent)))
+        img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+        img = img.convert('RGB')
+        return img
