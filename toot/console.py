@@ -114,7 +114,7 @@ common_args = [
         "default": False,
     }),
     (["--debugger"], {
-        "help": "launch with pydebug",
+        "help": "launch with vscode debugpy",
         "action": 'store_true',
         "default": False,
     }),
