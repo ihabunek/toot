@@ -314,7 +314,7 @@ class StatusDetails(urwid.Pile):
         )
 
         yield ("pack", urwid.Text([
-            ("red" if status.bookmarked else "gray", "🠷" if status.bookmarked else " "),
+            ("red", "🠷 ") if status.bookmarked else "",
             ("gray", f"⤶ {status.data['replies_count']} "),
             ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
             ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
