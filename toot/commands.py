@@ -43,7 +43,7 @@ def get_timeline_generator(app, user, args):
 def timeline(app, user, args):
     generator = get_timeline_generator(app, user, args)
 
-    while(True):
+    while True:
         try:
             items = next(generator)
         except StopIteration:

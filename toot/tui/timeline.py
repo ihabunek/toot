@@ -236,8 +236,8 @@ class Timeline(urwid.Columns):
         index = self.get_status_index(status.id)
         assert self.statuses[index].id == status.id  # Sanity check
 
-        del(self.statuses[index])
-        del(self.status_list.body[index])
+        del self.statuses[index]
+        del self.status_list.body[index]
         self.refresh_status_details()
 
 
