@@ -196,6 +196,7 @@ class TUI(urwid.Frame):
         def _zoom(timeline, status_details):
             self.show_status_zoom(status_details)
 
+        urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "delete", _delete)
         urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
@@ -390,12 +391,15 @@ class TUI(urwid.Frame):
             lambda x: self.goto_home_timeline())
         urwid.connect_signal(menu, "public_timeline",
             lambda x, local: self.goto_public_timeline(local))
+        urwid.connect_signal(menu, "bookmark_timeline",
+            lambda x, local: self.goto_bookmarks())
+
         urwid.connect_signal(menu, "hashtag_timeline",
             lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=9 + len(user_timelines),
+            valign="middle", height=10 + len(user_timelines),
         ))
 
     def show_help(self):
@@ -411,6 +415,12 @@ class TUI(urwid.Frame):
         self.timeline_generator = api.public_timeline_generator(
             self.app, self.user, local=local, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="public")
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_bookmarks(self):
+        self.timeline_generator = api.bookmark_timeline_generator(
+            self.app, self.user, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name="bookmarks")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_tag_timeline(self, tag, local):
@@ -541,6 +551,27 @@ class TUI(urwid.Frame):
             timeline.update_status(status)
         else:
             self.run_in_thread(_translate, done_callback=_done)
+
+    def async_toggle_bookmark(self, timeline, status):
+        def _bookmark():
+            logger.info("Bookmarking {}".format(status))
+            api.bookmark(self.app, self.user, status.id)
+
+        def _unbookmark():
+            logger.info("Unbookmarking {}".format(status))
+            api.unbookmark(self.app, self.user, status.id)
+
+        def _done(loop):
+            # Create a new Status with flipped bookmarked flag
+            new_data = status.data
+            new_data["bookmarked"] = not status.bookmarked
+            new_status = self.make_status(new_data)
+            timeline.update_status(new_status)
+
+        self.run_in_thread(
+            _unbookmark if status.bookmarked else _bookmark,
+            done_callback=_done
+        )
 
     def async_delete_status(self, timeline, status):
         def _delete():

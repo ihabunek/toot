@@ -21,6 +21,7 @@ class Timeline(urwid.Columns):
         "delete",     # Delete own status
         "favourite",  # Favourite status
         "focus",      # Focus changed
+        "bookmark",   # Bookmark status
         "media",      # Display media attachments
         "menu",       # Show a context menu
         "next",       # Fetch more statuses
@@ -67,6 +68,7 @@ class Timeline(urwid.Columns):
             "green": "green_selected",
             "yellow": "green_selected",
             "cyan": "green_selected",
+            "red": "green_selected",
             None: "green_selected",
         })
 
@@ -154,6 +156,10 @@ class Timeline(urwid.Columns):
         if key in ("s", "S"):
             status.original.show_sensitive = True
             self.refresh_status_details()
+            return
+
+        if key in ("k", "K"):
+            self._emit("bookmark", status)
             return
 
         if key in ("l", "L"):
@@ -308,6 +314,7 @@ class StatusDetails(urwid.Pile):
         )
 
         yield ("pack", urwid.Text([
+            ("red" if status.bookmarked else "gray", "🠷" if status.bookmarked else " "),
             ("gray", f"⤶ {status.data['replies_count']} "),
             ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
             ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
@@ -322,6 +329,7 @@ class StatusDetails(urwid.Pile):
             "[B]oost",
             "[D]elete" if status.is_mine else "",
             "[F]avourite",
+            "Boo[k]mark",
             "[V]iew",
             "[T]hread" if not self.in_thread else "",
             "[L]inks",

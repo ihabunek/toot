@@ -45,7 +45,7 @@ class StatusLinks(urwid.ListBox):
 class ExceptionStackTrace(urwid.ListBox):
     """Shows an exception stack trace."""
     def __init__(self, ex):
-        lines = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        lines = traceback.format_exception(type(ex), value=ex, tb=ex.__traceback__)
         walker = urwid.SimpleFocusListWalker([
             urwid.Text(line) for line in lines
         ])
@@ -74,6 +74,7 @@ class GotoMenu(urwid.ListBox):
         "home_timeline",
         "public_timeline",
         "hashtag_timeline",
+        "bookmark_timeline",
     ]
 
     def __init__(self, user_timelines):
@@ -96,6 +97,9 @@ class GotoMenu(urwid.ListBox):
         def _global_public(button):
             self._emit("public_timeline", False)
 
+        def _bookmarks(button):
+            self._emit("bookmark_timeline", False)
+
         def _hashtag(local):
             hashtag = self.get_hashtag()
             if hashtag:
@@ -117,6 +121,7 @@ class GotoMenu(urwid.ListBox):
 
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
+        yield Button("Bookmarks", on_press=_bookmarks)
         yield urwid.Divider()
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
@@ -164,6 +169,7 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [B] - Boost/unboost status"))
         yield urwid.Text(h("  [C] - Compose new status"))
         yield urwid.Text(h("  [F] - Favourite/unfavourite status"))
+        yield urwid.Text(h("  [K] - Bookmark/unbookmark status"))
         yield urwid.Text(h("  [N] - Translate status if possible (toggle)"))
         yield urwid.Text(h("  [R] - Reply to current status"))
         yield urwid.Text(h("  [S] - Show text marked as sensitive"))
