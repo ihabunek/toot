@@ -158,7 +158,7 @@ class Timeline(urwid.Columns):
             self.refresh_status_details()
             return
 
-        if key in ("k", "K"):
+        if key in ("o", "O"):
             self._emit("bookmark", status)
             return
 
@@ -329,7 +329,7 @@ class StatusDetails(urwid.Pile):
             "[B]oost",
             "[D]elete" if status.is_mine else "",
             "[F]avourite",
-            "Boo[k]mark",
+            "B[o]okmark",
             "[V]iew",
             "[T]hread" if not self.in_thread else "",
             "[L]inks",
