@@ -521,7 +521,7 @@ class TUI(urwid.Frame):
                 else:
                     self.footer.set_error_message("Server returned empty translation")
                     response = None
-            except:
+            except Exception:
                 response = None
                 self.footer.set_error_message("Translate server error")
 
