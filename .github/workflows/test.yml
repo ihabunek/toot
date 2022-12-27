@@ -28,3 +28,6 @@ jobs:
       - name: Validate minimum required version
         run: |
           vermin --target=3.6 --no-tips .
+      - name: Check style
+        run: |
+          flake8
