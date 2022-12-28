@@ -379,7 +379,7 @@ class TUI(urwid.Frame):
         def _post(timeline, *args):
             self.post_status(*args)
 
-        composer = StatusComposer(self.max_toot_chars, in_reply_to)
+        composer = StatusComposer(self.max_toot_chars, self.user.username, in_reply_to)
         urwid.connect_signal(composer, "close", _close)
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")

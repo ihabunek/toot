@@ -13,9 +13,10 @@ class StatusComposer(urwid.Frame):
     """
     signals = ["close", "post"]
 
-    def __init__(self, max_chars, in_reply_to=None):
+    def __init__(self, max_chars, username, in_reply_to=None):
         self.in_reply_to = in_reply_to
         self.max_chars = max_chars
+        self.username = username
 
         text = self.get_initial_text(in_reply_to)
         self.content_edit = EditBox(
@@ -46,8 +47,8 @@ class StatusComposer(urwid.Frame):
         if not in_reply_to:
             return ""
 
-        text = '@{} '.format(in_reply_to.original.account)
-        mentions = ['@{}'.format(m["acct"]) for m in in_reply_to.mentions]
+        text = '' if in_reply_to.is_mine else '@{} '.format(in_reply_to.original.account)
+        mentions = ['@{}'.format(m["acct"]) for m in in_reply_to.mentions if m["acct"] != self.username]
         if mentions:
             text += '\n\n{}'.format(' '.join(mentions))
 
