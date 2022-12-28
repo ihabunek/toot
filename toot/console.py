@@ -16,7 +16,7 @@ VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
 
 
 def get_default_visibility():
-    return os.getenv("TOOT_VISIBILITY", "public")
+    return os.getenv("TOOT_POST_VISIBILITY", "public")
 
 
 def language(value):
