@@ -72,19 +72,19 @@ class ANSIGraphicsCanvas(urwid.canvas.Canvas):
 
         ansi_reset = '\x1b[0m'.encode('utf-8')
 
-#        if trim_top or rows < self.maxrows:
-#            self.text_lines = self.text_lines[trim_top:trim_top+rows]
+        self.text_lines = []
+        width, height = self.img.size
+        for i in range(1, height-1, 2):
+            line = ''
+            for j in range(1, width):
+                    ra, ga, ba = self.img.getpixel((j, i))
+                    rb, gb, bb = self.img.getpixel((j, i+1))
+                    # render via unicode half-blocks
+                    line += color('\u2584', fg=(rb, gb, bb), bg=(ra, ga, ba))
+            self.text_lines.append(line)
 
-        if len(self.text_lines) == 0:
-             width, height = self.img.size
-             for i in range(1, height-1, 2):
-                line = ''
-                for j in range(1, width):
-                        ra, ga, ba = self.img.getpixel((j, i))
-                        rb, gb, bb = self.img.getpixel((j, i+1))
-                        # render via unicode half-blocks
-                        line += color('\u2584', fg=(rb, gb, bb), bg=(ra, ga, ba))
-                self.text_lines.append(line)
+        if trim_top or rows < self.maxrows:
+            self.text_lines = self.text_lines[trim_top:trim_top+rows]
 
         for i in range(rows):
             if  i < len(self.text_lines):
