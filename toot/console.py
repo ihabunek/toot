@@ -13,6 +13,7 @@ from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
 
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
+VISIBILITY_CHOICES_STR = ", ".join(f"'{v}'" for v in VISIBILITY_CHOICES)
 
 
 def get_default_visibility():
@@ -151,6 +152,15 @@ status_id_arg = (["status_id"], {
     "help": "ID of the status",
     "type": str,
 })
+
+visibility_arg = (["-v", "--visibility"], {
+    "type": visibility,
+    "default": get_default_visibility(),
+    "help": f"Post visibility. One of: {VISIBILITY_CHOICES_STR}. Defaults to "
+            f"'{get_default_visibility()}' which can be overridden by setting "
+            "the TOOT_POST_VISIBILITY environment variable",
+})
+
 
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
 common_timeline_args = [
@@ -350,11 +360,7 @@ POST_COMMANDS = [
                 "help": "plain-text description of the media for accessibility "
                         "purposes, one per attached media"
             }),
-            (["-v", "--visibility"], {
-                "type": visibility,
-                "default": get_default_visibility(),
-                "help": 'post visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
-            }),
+            visibility_arg,
             (["-s", "--sensitive"], {
                 "action": 'store_true',
                 "default": False,
@@ -438,12 +444,7 @@ STATUS_COMMANDS = [
     Command(
         name="reblog",
         description="Reblog a status",
-        arguments=[status_id_arg,
-            (["-v", "--visibility"], {
-                "type": visibility,
-                "default": get_default_visibility(),
-                "help": 'boost visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
-            })],
+        arguments=[status_id_arg, visibility_arg],
         require_auth=True,
     ),
     Command(
