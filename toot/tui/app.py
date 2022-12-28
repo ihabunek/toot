@@ -1,10 +1,10 @@
 import logging
 import urwid
-import os
 
 from concurrent.futures import ThreadPoolExecutor
 
 from toot import api, config, __version__
+from toot.console import get_default_visibility
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -495,7 +495,7 @@ class TUI(urwid.Frame):
     def async_toggle_reblog(self, timeline, status):
         def _reblog():
             logger.info("Reblogging {}".format(status))
-            api.reblog(self.app, self.user, status.id, visibility=os.getenv("TOOT_VISIBILITY", "public"))
+            api.reblog(self.app, self.user, status.id, visibility=get_default_visibility())
 
         def _unreblog():
             logger.info("Unreblogging {}".format(status))

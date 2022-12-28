@@ -15,6 +15,10 @@ from toot.output import print_out, print_err
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
 
 
+def get_default_visibility():
+    return os.getenv("TOOT_VISIBILITY", "public")
+
+
 def language(value):
     """Validates the language parameter"""
     if len(value) != 2:
@@ -348,7 +352,7 @@ POST_COMMANDS = [
             }),
             (["-v", "--visibility"], {
                 "type": visibility,
-                "default": os.getenv("TOOT_VISIBILITY", "public"),
+                "default": get_default_visibility(),
                 "help": 'post visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
             }),
             (["-s", "--sensitive"], {
@@ -437,7 +441,7 @@ STATUS_COMMANDS = [
         arguments=[status_id_arg,
             (["-v", "--visibility"], {
                 "type": visibility,
-                "default": os.getenv("TOOT_VISIBILITY", "public"),
+                "default": get_default_visibility(),
                 "help": 'boost visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
             })],
         require_auth=True,
