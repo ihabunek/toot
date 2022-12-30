@@ -1,5 +1,6 @@
 import logging
 import urwid
+import requests
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -14,6 +15,8 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
+from .scroll import Scrollable, ScrollBar
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -215,6 +218,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
         urwid.connect_signal(timeline, "translate", self.async_translate)
+        urwid.connect_signal(timeline, "load-image", self.async_load_image)
         urwid.connect_signal(timeline, "clear-screen", _clear)
 
     def build_timeline(self, name, statuses, local):
@@ -615,6 +619,19 @@ class TUI(urwid.Frame):
             timeline.remove_status(status)
 
         return self.run_in_thread(_delete, done_callback=_done)
+
+    def async_load_image(self, self2, timeline, status, path):
+        def _load():
+            if not hasattr(status, "images"):
+                status.images = dict()
+            # fixme this is likely not threadsafe.
+            status.images[str(hash(path))] = Image.open(requests.get(path, stream=True).raw)
+
+        def _done(loop):
+            timeline.update_status(status)
+
+        return self.run_in_thread(_load, done_callback=_done)
+
 
     # --- Overlay handling -----------------------------------------------------
 
