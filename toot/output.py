@@ -199,8 +199,11 @@ def print_acct_list(accounts):
 
 
 def print_tag_list(tags):
-    for tag in tags:
-        print_out(f"* <green>#{tag['name']}\t</green> {tag['url']}")
+    if tags:
+        for tag in tags:
+            print_out(f"* <green>#{tag['name']}\t</green> {tag['url']}")
+    else:
+        print_out("You're not following any hashtags.")
 
 
 def print_search_results(results):
