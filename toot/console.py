@@ -559,21 +559,21 @@ ACCOUNTS_COMMANDS = [
 
 TAG_COMMANDS = [
     Command(
-        name="follow_tag",
+        name="tags_followed",
+        description="List hashtags you follow",
+        arguments=[],
+        require_auth=True,
+    ),
+    Command(
+        name="tags_follow",
         description="Follow a hashtag",
         arguments=[tag_arg],
         require_auth=True,
     ),
     Command(
-        name="unfollow_tag",
+        name="tags_unfollow",
         description="Unfollow a hashtag",
         arguments=[tag_arg],
-        require_auth=True,
-    ),
-    Command(
-        name="followed_tags",
-        description="List hashtags you follow",
-        arguments=[],
         require_auth=True,
     ),
 ]

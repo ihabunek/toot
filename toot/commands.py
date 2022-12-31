@@ -324,19 +324,19 @@ def followers(app, user, args):
     print_acct_list(response)
 
 
-def follow_tag(app, user, args):
+def tags_follow(app, user, args):
     tn = args.tag_name if not args.tag_name.startswith("#") else args.tag_name[1:]
     api.follow_tag(app, user, tn)
     print_out("<green>✓ You are now following #{}</green>".format(tn))
 
 
-def unfollow_tag(app, user, args):
+def tags_unfollow(app, user, args):
     tn = args.tag_name if not args.tag_name.startswith("#") else args.tag_name[1:]
     api.unfollow_tag(app, user, tn)
     print_out("<green>✓ You are no longer following #{}</green>".format(tn))
 
 
-def followed_tags(app, user, args):
+def tags_followed(app, user, args):
     response = api.followed_tags(app, user)
     print_tag_list(response)
 
