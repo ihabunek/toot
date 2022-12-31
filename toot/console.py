@@ -191,7 +191,7 @@ common_timeline_args = [
     }),
 ]
 
-timeline_args = common_timeline_args + [
+timeline_and_bookmark_args = [
     (["-c", "--count"], {
         "type": timeline_count,
         "help": "number of toots to show per page (1-20, default 10).",
@@ -208,6 +208,8 @@ timeline_args = common_timeline_args + [
         "help": "Only show the first <count> toots, do not prompt to continue.",
     }),
 ]
+
+timeline_args = common_timeline_args + timeline_and_bookmark_args
 
 AUTH_COMMANDS = [
     Command(
@@ -338,6 +340,12 @@ READ_COMMANDS = [
         name="timeline",
         description="Show recent items in a timeline (home by default)",
         arguments=timeline_args,
+        require_auth=True,
+    ),
+    Command(
+        name="bookmarks",
+        description="Show bookmarked posts",
+        arguments=timeline_and_bookmark_args,
         require_auth=True,
     ),
 ]
