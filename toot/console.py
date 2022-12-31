@@ -605,7 +605,7 @@ def print_usage():
 
     print_out("")
     print_out("To get help for each command run:")
-    print_out("  <yellow>toot <command> --help</yellow>")
+    print_out("  <yellow>toot \\<command> --help</yellow>")
     print_out("")
     print_out("<green>{}</green>".format(CLIENT_WEBSITE))
 
@@ -630,8 +630,8 @@ def run_command(app, user, name, args):
     command = next((c for c in COMMANDS if c.name == name), None)
 
     if not command:
-        print_err("Unknown command '{}'\n".format(name))
-        print_usage()
+        print_err(f"Unknown command '{name}'")
+        print_out("Run <yellow>toot --help</yellow> to show a list of available commands.")
         return
 
     parser = get_argument_parser(name, command)
