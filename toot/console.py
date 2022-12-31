@@ -8,6 +8,7 @@ import sys
 
 from argparse import ArgumentParser, FileType, ArgumentTypeError
 from collections import namedtuple
+from itertools import chain
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
@@ -577,26 +578,26 @@ TAG_COMMANDS = [
     ),
 ]
 
-COMMANDS = AUTH_COMMANDS + READ_COMMANDS + TUI_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS + TAG_COMMANDS
+COMMAND_GROUPS = [
+    ("Authentication", AUTH_COMMANDS),
+    ("TUI", TUI_COMMANDS),
+    ("Read", READ_COMMANDS),
+    ("Post", POST_COMMANDS),
+    ("Status", STATUS_COMMANDS),
+    ("Accounts", ACCOUNTS_COMMANDS),
+    ("Hashtags", TAG_COMMANDS),
+]
+
+COMMANDS = list(chain(*[commands for _, commands in COMMAND_GROUPS]))
 
 
 def print_usage():
-    max_name_len = max(len(command.name) for command in COMMANDS)
-
-    groups = [
-        ("Authentication", AUTH_COMMANDS),
-        ("TUI", TUI_COMMANDS),
-        ("Read", READ_COMMANDS),
-        ("Post", POST_COMMANDS),
-        ("Status", STATUS_COMMANDS),
-        ("Accounts", ACCOUNTS_COMMANDS),
-        ("Hashtags", TAG_COMMANDS),
-    ]
+    max_name_len = max(len(name) for name, _ in COMMAND_GROUPS)
 
     print_out("<green>{}</green>".format(CLIENT_NAME))
     print_out("<blue>v{}</blue>".format(__version__))
 
-    for name, cmds in groups:
+    for name, cmds in COMMAND_GROUPS:
         print_out("")
         print_out(name + ":")
 
