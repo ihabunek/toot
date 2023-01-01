@@ -16,24 +16,24 @@ class Timeline(urwid.Columns):
     Displays a list of statuses to the left, and status details on the right.
     """
     signals = [
-        "close",      # Close thread
-        "compose",    # Compose a new toot
-        "delete",     # Delete own status
-        "favourite",  # Favourite status
-        "focus",      # Focus changed
-        "bookmark",   # Bookmark status
-        "media",      # Display media attachments
-        "menu",       # Show a context menu
-        "next",       # Fetch more statuses
-        "reblog",     # Reblog status
-        "reply",      # Compose a reply to a status
-        "source",     # Show status source
-        "links",      # Show status links
-        "thread",     # Show thread for status
-        "translate",  # Translate status
-        "save",       # Save current timeline
-        "zoom",       # Open status in scrollable popup window
-        "clear-screen", # clear the screen (used internally)
+        "close",         # Close thread
+        "compose",       # Compose a new toot
+        "delete",        # Delete own status
+        "favourite",     # Favourite status
+        "focus",         # Focus changed
+        "bookmark",      # Bookmark status
+        "media",         # Display media attachments
+        "menu",          # Show a context menu
+        "next",          # Fetch more statuses
+        "reblog",        # Reblog status
+        "reply",         # Compose a reply to a status
+        "source",        # Show status source
+        "links",         # Show status links
+        "thread",        # Show thread for status
+        "translate",     # Translate status
+        "save",          # Save current timeline
+        "zoom",          # Open status in scrollable popup window
+        "clear-screen",  # Clear the screen (used internally)
     ]
 
     def __init__(self, name, statuses, can_translate, focus=0, is_thread=False):
