@@ -5,38 +5,41 @@ import urwid
 from PIL import Image
 from colors import color
 
+
 class ANSIGraphicsCanvas(urwid.canvas.Canvas):
     def __init__(self, size: Tuple[int, int], img: Image) -> None:
         super().__init__()
 
-        self.maxcols = size[0]
+        self.maxcol = size[0]
         if len(size) > 1:
-            self.maxrows = size[1]
+            self.maxrow = size[1]
 
         self.img = img
         self.text_lines = []
-        self.ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        self.ansi_escape_capture = re.compile(r'(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))')
+        self.ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        self.ansi_escape_capture = re.compile(
+            r"(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))"
+        )
 
     def cols(self) -> int:
-        return self.maxcols
+        return self.maxcol
 
     def rows(self) -> int:
-        return self.maxrows
+        return self.maxrow
 
     def strip_ansi_codes(self, ansi_text):
-        return self.ansi_escape.sub('', ansi_text)
+        return self.ansi_escape.sub("", ansi_text)
 
     def truncate_ansi_safe(self, ansi_text, trim_left, maxlength):
         if len(self.strip_ansi_codes(ansi_text)) <= maxlength:
             return ansi_text
 
-        trunc_text = ''
+        trunc_text = ""
         real_len = 0
         token_pt_len = 0
 
         for token in re.split(self.ansi_escape_capture, ansi_text):
-            if token and token[0] == '\x1b':
+            if token and token[0] == "\x1b":
                 # this token is an ANSI sequence so just add it
                 trunc_text += token
             else:
@@ -63,42 +66,51 @@ class ANSIGraphicsCanvas(urwid.canvas.Canvas):
 
     def content(
         self,
-        trim_left: int = 0, trim_top: int = 0,
-        cols: Optional[int] = None, rows: Optional[int] = None,
-        attr_map: Optional[Any] = None
+        trim_left: int = 0,
+        trim_top: int = 0,
+        cols: Optional[int] = None,
+        rows: Optional[int] = None,
+        attr_map: Optional[Any] = None,
     ) -> Iterable[List[Tuple[None, str, bytes]]]:
-        assert cols is not None
-        assert rows is not None
 
-        ansi_reset = '\x1b[0m'.encode('utf-8')
+        maxcol, maxrow = self.cols(), self.rows()
+        if not cols:
+            cols = maxcol - trim_left
+        if not rows:
+            rows = maxrow - trim_top
 
-# FIXME: optimize the code that follows
+        assert trim_left >= 0 and trim_left < maxcol
+        assert cols > 0 and trim_left + cols <= maxcol
+        assert trim_top >= 0 and trim_top < maxrow
+        assert rows > 0 and trim_top + rows <= maxrow
+
+        ansi_reset = "\x1b[0m".encode("utf-8")
 
         self.text_lines = []
         width, height = self.img.size
-        for i in range(1, height-1, 2):
-            line = ''
+        for i in range(1, height - 1, 2):
+            line = ""
             for j in range(1, width):
-                    ra, ga, ba = self.img.getpixel((j, i))
-                    rb, gb, bb = self.img.getpixel((j, i+1))
-                    # render via unicode half-blocks
-                    line += color('\u2584', fg=(rb, gb, bb), bg=(ra, ga, ba))
+                ra, ga, ba = self.img.getpixel((j, i))
+                rb, gb, bb = self.img.getpixel((j, i + 1))
+                # render via unicode half-blocks
+                line += color("\u2584", fg=(rb, gb, bb), bg=(ra, ga, ba))
             self.text_lines.append(line)
 
-        if trim_top or rows < self.maxrows:
-            self.text_lines = self.text_lines[trim_top:trim_top+rows]
+        if trim_top or rows < self.maxrow:
+            self.text_lines = self.text_lines[trim_top:trim_top + rows]
 
         for i in range(rows):
-            if  i < len(self.text_lines):
+            if i < len(self.text_lines):
                 text = self.truncate_ansi_safe(self.text_lines[i], trim_left, cols - 1)
                 real_len = len(self.strip_ansi_codes(text))
-                text_bytes = text.encode('utf-8')
+                text_bytes = text.encode("utf-8")
             else:
-                text_bytes = b''
+                text_bytes = b""
                 real_len = 0
 
             padding = bytes().rjust(max(0, cols - real_len))
-            line = [(None, 'U', text_bytes + padding + ansi_reset)]
+            line = [(None, "U", text_bytes + padding + ansi_reset)]
             yield line
 
 
@@ -107,7 +119,7 @@ class ANSIGraphicsWidget(urwid.Widget):
     ignore_focus = True
 
     def __init__(self, img: Image) -> None:
-        urwid.set_encoding('utf8')
+        urwid.set_encoding("utf8")
         self.img = img
 
     def set_content(self, img: Image) -> None:

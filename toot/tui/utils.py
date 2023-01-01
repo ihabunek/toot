@@ -120,8 +120,8 @@ def parse_content_links(content):
 
 
 def resize_image(basewidth: int, img: Image) -> Image:
-        wpercent = (basewidth/float(img.size[0]))
-        hsize = int((float(img.size[1])*float(wpercent)))
-        img = img.resize((basewidth,hsize), Image.ANTIALIAS)
-        img = img.convert('RGB')
-        return img
+    wpercent = (basewidth / float(img.size[0]))
+    hsize = int((float(img.size[1]) * float(wpercent)))
+    img = img.resize((basewidth, hsize), Image.ANTIALIAS)
+    img = img.convert('RGB')
+    return img

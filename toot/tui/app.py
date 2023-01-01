@@ -15,7 +15,6 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
-from .scroll import Scrollable, ScrollBar
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -624,14 +623,12 @@ class TUI(urwid.Frame):
         def _load():
             if not hasattr(status, "images"):
                 status.images = dict()
-            # fixme this is likely not threadsafe.
             status.images[str(hash(path))] = Image.open(requests.get(path, stream=True).raw)
 
         def _done(loop):
             timeline.update_status(status)
 
         return self.run_in_thread(_load, done_callback=_done)
-
 
     # --- Overlay handling -----------------------------------------------------
 

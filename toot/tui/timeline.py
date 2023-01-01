@@ -10,7 +10,6 @@ from toot.tui.utils import highlight_hashtags, parse_datetime, highlight_keys, r
 from toot.tui.widgets import SelectableText, SelectableColumns
 from toot.tui.ansiwidget import ANSIGraphicsWidget
 from toot.tui.scroll import Scrollable, ScrollBar
-from PIL import Image
 
 logger = logging.getLogger("toot")
 
@@ -19,6 +18,7 @@ class Timeline(urwid.Columns):
     """
     Displays a list of statuses to the left, and status details on the right.
     """
+
     signals = [
         "close",         # Close thread
         "compose",       # Compose a new toot
@@ -49,21 +49,34 @@ class Timeline(urwid.Columns):
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
 
-        opts_footer = (urwid.Text(self.get_option_text(statuses[focus])))
+        opts_footer = urwid.Text(self.get_option_text(statuses[focus]))
 
         try:
-            self.status_details = \
-            urwid.Frame(body=\
-                ScrollBar(Scrollable(\
-                            urwid.Padding(\
-                    StatusDetails(self, statuses[focus], is_thread, can_translate, followed_tags),\
-                        right=1)),\
-                    thumb_char='\u2588', trough_char='\u2591'),\
-                footer=opts_footer)
+            self.status_details = urwid.Frame(
+                body=ScrollBar(
+                    Scrollable(
+                        urwid.Padding(
+                            StatusDetails(
+                                self,
+                                statuses[focus],
+                                is_thread,
+                                can_translate,
+                                followed_tags,
+                            ),
+                            right=1,
+                        )
+                    ),
+                    thumb_char="\u2588",
+                    trough_char="\u2591",
+                ),
+                footer=opts_footer,
+            )
 
         except IndexError:
             # we have no statuses to display
-            self.status_details = StatusDetails(self, None, is_thread, can_translate, followed_tags)
+            self.status_details = StatusDetails(
+                self, None, is_thread, can_translate, followed_tags
+            )
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -144,17 +157,22 @@ class Timeline(urwid.Columns):
 
     def draw_status_details(self, status):
         opts_footer = urwid.Text(self.get_option_text(status))
-        self.status_details = StatusDetails(self, status, self.is_thread, self.can_translate, self.followed_tags)
-        self.contents[2] = \
-            (urwid.Padding(\
-                urwid.Frame(body=\
-                ScrollBar(Scrollable(\
-                            urwid.Padding(\
-                                self.status_details,\
-                            right=1)),\
-                    thumb_char='\u2588', trough_char='\u2591'),\
-                footer=opts_footer), left=1)),\
-            ("weight", 60, False)
+        self.status_details = StatusDetails(
+            self, status, self.is_thread, self.can_translate, self.followed_tags
+        )
+        self.contents[2] = (
+            urwid.Padding(
+                urwid.Frame(
+                    body=ScrollBar(
+                        Scrollable(urwid.Padding(self.status_details, right=1)),
+                        thumb_char="\u2588",
+                        trough_char="\u2591",
+                    ),
+                    footer=opts_footer,
+                ),
+                left=1,
+            )
+        ), ("weight", 60, False)
 
     def keypress(self, size, key):
         status = self.get_focused_status()
@@ -328,15 +346,6 @@ class StatusDetails(urwid.Pile):
         yield ("pack", urwid.Text(("yellow", status.author.account)))
         yield ("pack", urwid.Divider())
 
-#        if status.data["account"]["avatar_static"]:
-#            try:
-#                avatar = self.load_image(6, status.data["account"]["avatar_static"])
-#                rows = avatar.size[1]
-#                yield ("pack", urwid.BoxAdapter(ANSIGraphicsWidget(avatar),math.ceil(rows/2)))
-#                yield ("pack", urwid.Divider())
-#            finally:
-#                pass #ignore any error
-
         if status.data["spoiler_text"]:
             yield ("pack", urwid.Text(status.data["spoiler_text"]))
             yield ("pack", urwid.Divider())
@@ -361,19 +370,22 @@ class StatusDetails(urwid.Pile):
                             yield urwid.Text("")
                             try:
                                 aspect = float(m["meta"]["original"]["aspect"])
-                            except:
-                                aspect = 3/2 # reasonable default
+                            except Exception:
+                                aspect = 3 / 2  # reasonable default
 
                             rows = math.ceil(20 / aspect)
                             img = None
-                            if hasattr(self.status,'images'):
+                            if hasattr(self.status, "images"):
                                 img = self.status.images.get(str(hash(m["url"])))
                             if img:
                                 img = resize_image(40, img)
-                                yield("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img),rows))
+                                yield (
+                                    "pack",
+                                    urwid.BoxAdapter(ANSIGraphicsWidget(img), rows),
+                                )
                             else:
                                 self.timeline._emit("load-image", self.timeline, self.status, m["url"])
-                                yield("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "),rows))
+                                yield ("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows))
                         yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.data.get("poll")
@@ -418,7 +430,7 @@ class StatusDetails(urwid.Pile):
         ]))
 
         # Push things to bottom
-        yield ("weight", 1, urwid.BoxAdapter(urwid.SolidFill(" "),1))
+        yield ("weight", 1, urwid.BoxAdapter(urwid.SolidFill(" "), 1))
 
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
@@ -442,21 +454,25 @@ class StatusDetails(urwid.Pile):
 
                 try:
                     ratio = int(card["height"]) / int(card["width"])
-                except:
-                    ratio = 3/2 # reasonable default
+                except Exception:
+                    ratio = 3 / 2  # reasonable default
 
                 rows = math.ceil(20 * ratio)
 
                 img = None
-                if hasattr(self.status,'images'):
+                if hasattr(self.status, "images"):
                     img = self.status.images.get(str(hash(card["image"])))
                 if img:
                     img = resize_image(40, img)
-                    yield("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img),rows))
+                    yield ("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img), rows))
                 else:
-                    self.timeline._emit("load-image", self.timeline, self.status, card["image"])
-                    yield("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "),rows))
-
+                    self.timeline._emit(
+                        "load-image", self.timeline, self.status, card["image"]
+                    )
+                    yield (
+                        "pack",
+                        urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows),
+                    )
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):
