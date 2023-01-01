@@ -352,7 +352,7 @@ class StatusDetails(urwid.Pile):
         ]
         options = " ".join(o for o in options if o)
 
-        options = highlight_keys(options, "cyan_bold", "cyan")
+        options = highlight_keys(options, "white_bold", "cyan")
         yield ("pack", urwid.Text(options))
 
     def build_linebox(self, contents):
