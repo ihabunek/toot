@@ -1,4 +1,4 @@
 [flake8]
-exclude=build,tests
+exclude=build,tests,tmp
 ignore=E128
 max-line-length=120

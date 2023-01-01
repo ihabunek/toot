@@ -9,6 +9,8 @@ publish :
 
 test:
 	pytest -v
+	flake8
+	vermin --target=3.6 --no-tips --violations .
 
 coverage:
 	coverage erase
