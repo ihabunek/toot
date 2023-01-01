@@ -36,6 +36,7 @@ PALETTE = [
     ('yellow_bold', 'yellow,bold', ''),
     ('red', 'dark red', ''),
     ('warning', 'light red', ''),
+    ('white_bold', 'white,bold', '')
 ]
 
 VISIBILITY_OPTIONS = [
