@@ -80,18 +80,6 @@ pip install -r requirements-test.txt
 While the virtual env is active, running `toot` will execute the one you checked
 out. This allows you to make changes and test them.
 
-Run tests:
-
-```
-pytest
-```
-
-Check code style:
-
-```
-flake8
-```
-
 #### Crafting good commits
 
 Please put some effort into breaking your contribution up into a series of well
@@ -114,8 +102,27 @@ Rules for commit messages:
 * wrap the body at 72 characters
 * use the body to explain what and why vs. how
 
-If you use vim to write your commit messages, it will already enforce these
-rules for you.
+For a more detailed explanation with examples see the guide at
+https://cbea.ms/git-commit/
+
+If you use vim to write your commit messages, it will already enforce some of
+these rules for you.
+
+#### Run tests before submitting
+
+You can run code and sytle tests by running:
+
+```
+make test
+```
+
+This runs three tools:
+
+* `pytest` runs the test suite
+* `flake8` checks code formatting
+* `vermin` checks that minimum python version
+
+Please ensure all three commands succeed before submitting your patches.
 
 #### Submitting patches
 
