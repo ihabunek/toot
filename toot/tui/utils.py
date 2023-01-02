@@ -51,17 +51,18 @@ def highlight_keys(text, high_attr, low_attr=""):
     return list(_gen())
 
 
-def highlight_hashtags(line, followed_tags, attr="hashtag",\
-                       followed_attr="followed_hashtag"):
+def highlight_hashtags(line, followed_tags, attr="hashtag", followed_attr="followed_hashtag"):
     hline = []
+
     for p in re.split(HASHTAG_PATTERN, line):
         if p.startswith("#"):
             if p[1:].lower() in (t.lower() for t in followed_tags):
-                hline.append((followed_attr,p))
+                hline.append((followed_attr, p))
             else:
-                hline.append((attr,p))
+                hline.append((attr, p))
         else:
             hline.append(p)
+
     return hline
 
 

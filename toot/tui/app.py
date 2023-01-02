@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from toot import api, config, __version__
 from toot.console import get_default_visibility
+from toot.exceptions import ApiError
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -338,10 +339,9 @@ class TUI(urwid.Frame):
 
     def async_load_followed_tags(self):
         def _load_tag_list():
-            logger.info("Loading tags")
             try:
                 return api.followed_tags(self.app, self.user)
-            except:
+            except ApiError:
                 # not supported by all Mastodon servers so fail silently if necessary
                 return []
 
@@ -350,13 +350,8 @@ class TUI(urwid.Frame):
                 self.followed_tags = [t["name"] for t in tags]
             else:
                 self.followed_tags = []
-            logger.info("Loaded tags. Followed tags = {}".format(self.followed_tags))
 
-        self.run_in_thread(
-            _load_tag_list, done_callback=_done_tag_list
-        )
-
-
+        self.run_in_thread(_load_tag_list, done_callback=_done_tag_list)
 
     def refresh_footer(self, timeline):
         """Show status details in footer."""
