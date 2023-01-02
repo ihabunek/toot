@@ -38,6 +38,14 @@ def create_app(domain, scheme='https'):
     return http.anon_post(url, json=json).json()
 
 
+def get_muted_accounts(app, user):
+    return http.get(app, user, "/api/v1/mutes").json()
+
+
+def get_blocked_accounts(app, user):
+    return http.get(app, user, "/api/v1/blocks").json()
+
+
 def register_account(app, username, email, password, locale="en", agreement=True):
     """
     Register an account

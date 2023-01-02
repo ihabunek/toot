@@ -15,6 +15,7 @@ test:
 coverage:
 	coverage erase
 	coverage run
+	coverage html
 	coverage report
 
 clean :
