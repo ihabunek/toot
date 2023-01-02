@@ -1,3 +1,19 @@
+0.33.0:
+  date: 2023-01-02
+  changes:
+    - "Add CONTRIBUTING.md containing a contribution guide"
+    - "Add `env` command which prints local env to include in issues"
+    - "Add TOOT_POST_VISIBILITY environment to control default post visibility (thanks Lim Ding Wen)"
+    - "Add `tags_followed`, `tags_follow`, and `tags_unfollow` commands (thanks Daniel Schwarz)"
+    - "Add `tags_bookmarks` command (thanks Giuseppe Bilotta)"
+    - "TUI: Show an error if attemptint to boost a private status (thanks Lim Ding Wen)"
+    - "TUI: Hide polls, cards and media attachments for sensitive posts (thanks Daniel Schwarz)"
+    - "TUI: Add bookmarking and bookmark timeline (thanks Daniel Schwarz)"
+    - "TUI: Show status visiblity (thanks Lim Ding Wen)"
+    - "TUI: Reply to original account instead of boosting account (thanks Lim Ding Wen)"
+    - "TUI: Refresh screen after exiting browser, required for text browsers (thanks Daniel Schwarz)"
+    - "TUI: Highlight followed tags (thanks Daniel Schwarz)"
+
 0.32.1:
   date: 2022-12-12
   changes:
