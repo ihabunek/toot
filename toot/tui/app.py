@@ -199,6 +199,9 @@ class TUI(urwid.Frame):
         def _zoom(timeline, status_details):
             self.show_status_zoom(status_details)
 
+        def _clear(*args):
+            self.clear_screen()
+
         urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "delete", _delete)
@@ -212,7 +215,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
         urwid.connect_signal(timeline, "translate", self.async_translate)
-        urwid.connect_signal(timeline, "clear-screen", self.loop.screen.clear)
+        urwid.connect_signal(timeline, "clear-screen", _clear)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -367,19 +370,24 @@ class TUI(urwid.Frame):
             title="Status source",
         )
 
-    def _clear_screen(self, widget):
+    def clear_screen(self):
         self.loop.screen.clear()
 
     def show_links(self, status):
         links = parse_content_links(status.data["content"]) if status else []
         post_attachments = status.data["media_attachments"] or []
         reblog_attachments = (status.data["reblog"]["media_attachments"] if status.data["reblog"] else None) or []
+
         for a in post_attachments + reblog_attachments:
             url = a["remote_url"] or a["url"]
             links.append((url, a["description"] if a["description"] else url))
+
+        def _clear(*args):
+            self.clear_screen()
+
         if links:
             sl_widget = StatusLinks(links)
-            urwid.connect_signal(sl_widget, "clear-screen", self._clear_screen)
+            urwid.connect_signal(sl_widget, "clear-screen", _clear)
             self.open_overlay(
                 widget=sl_widget,
                 title="Status links",
