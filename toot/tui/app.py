@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from toot import api, config, __version__
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
+from toot.commands import find_account
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -117,11 +118,13 @@ class TUI(urwid.Frame):
         self.exception = None
         self.can_translate = False
         self.screen = urwid.raw_display.Screen()
+        self.account = None
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_tags())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
@@ -263,7 +266,7 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags)
+        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags, self.followed_accounts)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -293,7 +296,7 @@ class TUI(urwid.Frame):
         focus = len(ancestors)
 
         timeline = Timeline("thread", statuses, self.can_translate,
-                            self.followed_tags, focus, is_thread=True)
+                            self.followed_tags, self.followed_accounts, focus, is_thread=True)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
@@ -361,6 +364,21 @@ class TUI(urwid.Frame):
                 self.can_translate = int(ch) > 3 if ch.isnumeric() else False
 
         return self.run_in_thread(_load_instance, done_callback=_done)
+
+    def async_load_followed_accounts(self):
+        def _load_accounts():
+            try:
+                acct = f'@{self.user.username}@{self.user.instance}'
+                self.account = find_account(self.app, self.user, acct)
+                return api.following(self.app, self.user, self.account["id"])
+            except ApiError:
+                # not supported by all Mastodon servers so fail silently if necessary
+                return []
+
+        def _done_accounts(accounts):
+            self.followed_accounts = {a["acct"] for a in accounts}
+
+        self.run_in_thread(_load_accounts, done_callback=_done_accounts)
 
     def async_load_followed_tags(self):
         def _load_tag_list():

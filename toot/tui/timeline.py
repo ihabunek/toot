@@ -50,13 +50,22 @@ class Timeline(urwid.Columns):
         "copy-status",   # Copy status to clipboard
     ]
 
-    def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
+    def __init__(self,
+                 name,
+                 statuses,
+                 can_translate,
+                 followed_tags=[],
+                 followed_accounts=[],
+                 focus=0,
+                 is_thread=False):
+
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
+        self.followed_accounts = followed_accounts
         self.can_render_pixels = can_render_pixels()
 
         try:
@@ -348,6 +357,7 @@ class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
         self.followed_tags = timeline.followed_tags
+        self.followed_accounts = timeline.followed_accounts
         self.timeline = timeline
         if self.status:
             self.status.placeholders = []
@@ -414,12 +424,14 @@ class StatusDetails(urwid.Pile):
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
 
+        account_color = "yellow" if self.status.original.author.account in self.followed_accounts else "blue"
+            
         atxt = urwid.Pile([("pack",
                             urwid.AttrMap(
                                 EmojiText(self.status.original.author.display_name,
                                         self.status.original.data["account"]["emojis"]),
                                 "green")),
-                           ("pack", urwid.Text(("yellow", self.status.original.author.account)))])
+                           ("pack", urwid.Text((account_color, self.status.original.author.account)))])
 
         columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
         return columns
@@ -439,6 +451,7 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
         yield self.author_header(reblogged_by)
+
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
