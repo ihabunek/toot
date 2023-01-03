@@ -280,7 +280,7 @@ def _do_upload(app, user, file, description):
     return api.upload_media(app, user, file, description=description)
 
 
-def _find_account(app, user, account_name):
+def find_account(app, user, account_name):
     if not account_name:
         raise ConsoleError("Empty account name given")
 
@@ -304,25 +304,25 @@ def _find_account(app, user, account_name):
 
 
 def follow(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.follow(app, user, account['id'])
     print_out("<green>✓ You are now following {}</green>".format(args.account))
 
 
 def unfollow(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.unfollow(app, user, account['id'])
     print_out("<green>✓ You are no longer following {}</green>".format(args.account))
 
 
 def following(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     response = api.following(app, user, account['id'])
     print_acct_list(response)
 
 
 def followers(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     response = api.followers(app, user, account['id'])
     print_acct_list(response)
 
@@ -345,25 +345,25 @@ def tags_followed(app, user, args):
 
 
 def mute(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.mute(app, user, account['id'])
     print_out("<green>✓ You have muted {}</green>".format(args.account))
 
 
 def unmute(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.unmute(app, user, account['id'])
     print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
 def block(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.block(app, user, account['id'])
     print_out("<green>✓ You are now blocking {}</green>".format(args.account))
 
 
 def unblock(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.unblock(app, user, account['id'])
     print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
@@ -374,7 +374,7 @@ def whoami(app, user, args):
 
 
 def whois(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     print_account(account)
 
 

@@ -36,17 +36,29 @@ class Timeline(urwid.Columns):
         "clear-screen",  # Clear the screen (used internally)
     ]
 
-    def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
+    def __init__(self,
+                 name,
+                 statuses,
+                 can_translate,
+                 followed_tags=[],
+                 followed_accounts=None,
+                 focus=0,
+                 is_thread=False):
+
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
+        self.followed_accounts = followed_accounts
+
         try:
-            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate, followed_tags)
+            self.status_details = StatusDetails(statuses[focus], is_thread,
+                                                can_translate, followed_tags, followed_accounts)
         except IndexError:
-            self.status_details = StatusDetails(None, is_thread, can_translate, followed_tags)
+            self.status_details = StatusDetails(None, is_thread,
+                                                can_translate, followed_tags, followed_accounts)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -104,7 +116,9 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status, self.is_thread, self.can_translate, self.followed_tags)
+        self.status_details = StatusDetails(status, self.is_thread,
+                                            self.can_translate, self.followed_tags,
+                                            self.followed_accounts)
         self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
 
     def keypress(self, size, key):
@@ -246,7 +260,7 @@ class Timeline(urwid.Columns):
 
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread, can_translate=False, followed_tags=[]):
+    def __init__(self, status, in_thread, can_translate=False, followed_tags=[], followed_accounts=None):
         """
         Parameters
         ----------
@@ -259,6 +273,7 @@ class StatusDetails(urwid.Pile):
         self.in_thread = in_thread
         self.can_translate = can_translate
         self.followed_tags = followed_tags
+        self.followed_accounts = followed_accounts
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -273,7 +288,8 @@ class StatusDetails(urwid.Pile):
         if status.author.display_name:
             yield ("pack", urwid.Text(("green", status.author.display_name)))
 
-        yield ("pack", urwid.Text(("yellow", status.author.account)))
+        yield ("pack", urwid.Text(("yellow" if status.author.account in self.followed_accounts else "gray",
+               status.author.account)))
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
