@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-__version__ = '0.33.0'
+__version__ = '0.33.1'
 
 App = namedtuple('App', ['instance', 'base_url', 'client_id', 'client_secret'])
 User = namedtuple('User', ['instance', 'username', 'access_token'])
