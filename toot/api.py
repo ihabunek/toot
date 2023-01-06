@@ -1,5 +1,7 @@
 import re
 import uuid
+import time
+import requests
 
 from urllib.parse import urlparse, urlencode, quote
 
@@ -299,11 +301,38 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
 
 
 def upload_media(app, user, file, description=None):
-    return http.post(app, user, '/api/v1/media',
-        data={'description': description},
-        files={'file': file}
-    ).json()
+    # When uploading media, wait to make sure the upload is
+    # available before continuing. If the media still isn't
+    # available after 'check' tries, retry the upload up
+    # to 'retry' times before giving up.
+    
+    retry = 2
+    while retry > 0:
+        post_response = http.post(app, user, '/api/v1/media',
+            data={'description': description},
+            files={'file': file}
+        ).json()
 
+        check = 12
+        while check > 0:
+            # Assume it worked, unless we can prove otherwise
+            if "url" in post_response and "preview_url" in post_response:
+                response = requests.head(post_response["url"])
+                success = response.status_code == 200
+                response = requests.head(post_response["preview_url"])
+                success = success and response.status_code == 200
+                if success:
+                    return post_response
+                check -= 1
+                time.sleep(10)
+            else:
+                # If the response doesn't have url and preview_url,
+                # then just give up. We've got nothing to check.
+                return post_response
+
+        retry -= 1
+
+    raise RuntimeError("Failed to upload media.")
 
 def search(app, user, query, resolve=False, type=None):
     """
