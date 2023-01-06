@@ -673,7 +673,7 @@ def main():
     command_name = sys.argv[1] if len(sys.argv) > 1 else None
     args = sys.argv[2:]
 
-    if not command_name:
+    if not command_name or command_name == "--help":
         return print_usage()
 
     user, app = config.get_active_user_app()
