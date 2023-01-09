@@ -7,6 +7,7 @@ from toot.utils.language import language_name
 
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
+from toot.tui.scroll import Scrollable, ScrollBar
 
 logger = logging.getLogger("toot")
 
@@ -43,10 +44,32 @@ class Timeline(urwid.Columns):
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
+        opts_footer = urwid.Text(self.get_option_text(statuses[focus]))
         try:
-            self.status_details = StatusDetails(statuses[focus], is_thread, can_translate, followed_tags)
+            self.status_details = urwid.Frame(
+                body=ScrollBar(
+                    Scrollable(
+                        urwid.Padding(
+                            StatusDetails(
+                                statuses[focus],
+                                is_thread,
+                                can_translate,
+                                followed_tags,
+                            ),
+                            right=1,
+                        )
+                    ),
+                    thumb_char="\u2588",
+                    trough_char="\u2591",
+                ),
+                footer=opts_footer,
+            )
+
         except IndexError:
-            self.status_details = StatusDetails(None, is_thread, can_translate, followed_tags)
+            # we have no statuses to display
+            self.status_details = StatusDetails(
+                None, is_thread, can_translate, followed_tags
+            )
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -73,6 +96,25 @@ class Timeline(urwid.Columns):
             "red": "green_selected",
             None: "green_selected",
         })
+
+    def get_option_text(self, status):
+        options = [
+            "[B]oost",
+            "[D]elete" if status.is_mine else "",
+            "B[o]okmark",
+            "[F]avourite",
+            "[V]iew",
+            "[T]hread" if not self.is_thread else "",
+            "[L]inks",
+            "[R]eply",
+            "So[u]rce",
+            "[Z]oom",
+            "Tra[n]slate" if self.can_translate else "",
+            "[H]elp",
+        ]
+        options = "\n" + " ".join(o for o in options if o)
+        options = highlight_keys(options, "white_bold", "cyan")
+        return options
 
     def get_focused_status(self):
         try:
@@ -104,8 +146,23 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        self.status_details = StatusDetails(status, self.is_thread, self.can_translate, self.followed_tags)
-        self.contents[2] = urwid.Padding(self.status_details, left=1), ("weight", 60, False)
+        opts_footer = urwid.Text(self.get_option_text(status))
+        self.status_details = StatusDetails(
+            status, self.is_thread, self.can_translate, self.followed_tags
+        )
+        self.contents[2] = (
+            urwid.Padding(
+                urwid.Frame(
+                    body=ScrollBar(
+                        Scrollable(urwid.Padding(self.status_details, right=1)),
+                        thumb_char="\u2588",
+                        trough_char="\u2591",
+                    ),
+                    footer=opts_footer,
+                ),
+                left=1,
+            )
+        ), ("weight", 60, False)
 
     def keypress(self, size, key):
         status = self.get_focused_status()
@@ -339,26 +396,7 @@ class StatusDetails(urwid.Pile):
         ]))
 
         # Push things to bottom
-        yield ("weight", 1, urwid.SolidFill(" "))
-
-        options = [
-            "[B]oost",
-            "[D]elete" if status.is_mine else "",
-            "[F]avourite",
-            "B[o]okmark",
-            "[V]iew",
-            "[T]hread" if not self.in_thread else "",
-            "[L]inks",
-            "[R]eply",
-            "So[u]rce",
-            "[Z]oom",
-            "Tra[n]slate" if self.can_translate else "",
-            "[H]elp",
-        ]
-        options = " ".join(o for o in options if o)
-
-        options = highlight_keys(options, "white_bold", "cyan")
-        yield ("pack", urwid.Text(options))
+        yield ("weight", 1, urwid.BoxAdapter(urwid.SolidFill(" "), 1))
 
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
