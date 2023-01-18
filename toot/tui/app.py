@@ -337,7 +337,7 @@ class TUI(urwid.Frame):
                 # Mastodon versions < 4 do not have translation service
                 # Revisit this logic if Pleroma implements translation
                 ch = instance["version"][0]
-                self.can_translate = int(ch) > 3 if ch.isnumeric() else False    
+                self.can_translate = int(ch) > 3 if ch.isnumeric() else False
 
         return self.run_in_thread(_load_instance, done_callback=_done)
 
