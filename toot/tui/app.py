@@ -497,9 +497,7 @@ class TUI(urwid.Frame):
             in_reply_to_id=in_reply_to_id)
         status = self.make_status(data)
 
-        # TODO: instead of this, fetch new items from the timeline?
-        self.timeline.prepend_status(status)
-        self.timeline.focus_status(status)
+        # TODO: fetch new items from the timeline?
 
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()
