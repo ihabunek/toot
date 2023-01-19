@@ -10,7 +10,7 @@ publish :
 test:
 	pytest -v
 	flake8
-	vermin --target=3.6 --no-tips --violations .
+	vermin --target=3.6 --no-tips --violations --exclude-regex venv/.* .
 
 coverage:
 	coverage erase
