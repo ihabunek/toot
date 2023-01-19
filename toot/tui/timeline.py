@@ -2,12 +2,14 @@ import logging
 import urwid
 import webbrowser
 
-from toot.utils import format_content
-from toot.utils.language import language_name
+from typing import Optional
 
+from .entities import Status
+from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
-from toot.tui.scroll import Scrollable, ScrollBar
+from toot.utils import format_content
+from toot.utils.language import language_name
 
 logger = logging.getLogger("toot")
 
@@ -50,12 +52,7 @@ class Timeline(urwid.Columns):
                 body=ScrollBar(
                     Scrollable(
                         urwid.Padding(
-                            StatusDetails(
-                                statuses[focus],
-                                is_thread,
-                                can_translate,
-                                followed_tags,
-                            ),
+                            StatusDetails(self, statuses[focus]),
                             right=1,
                         )
                     ),
@@ -67,9 +64,7 @@ class Timeline(urwid.Columns):
 
         except IndexError:
             # we have no statuses to display
-            self.status_details = StatusDetails(
-                None, is_thread, can_translate, followed_tags
-            )
+            self.status_details = StatusDetails(self, None)
 
         super().__init__([
             ("weight", 40, self.status_list),
@@ -147,9 +142,8 @@ class Timeline(urwid.Columns):
 
     def draw_status_details(self, status):
         opts_footer = urwid.Text(self.get_option_text(status))
-        self.status_details = StatusDetails(
-            status, self.is_thread, self.can_translate, self.followed_tags
-        )
+        self.status_details = StatusDetails(self, status)
+
         self.contents[2] = (
             urwid.Padding(
                 urwid.Frame(
@@ -303,19 +297,8 @@ class Timeline(urwid.Columns):
 
 
 class StatusDetails(urwid.Pile):
-    def __init__(self, status, in_thread, can_translate=False, followed_tags=[]):
-        """
-        Parameters
-        ----------
-        status : Status
-            The status to render.
-
-        in_thread : bool
-            Whether the status is rendered from a thread status list.
-        """
-        self.in_thread = in_thread
-        self.can_translate = can_translate
-        self.followed_tags = followed_tags
+    def __init__(self, timeline: Timeline, status: Optional[Status]):
+        self.followed_tags = timeline.followed_tags
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
