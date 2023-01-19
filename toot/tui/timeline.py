@@ -46,31 +46,34 @@ class Timeline(urwid.Columns):
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
-        opts_footer = urwid.Text(self.get_option_text(statuses[focus]))
-        try:
-            self.status_details = urwid.Frame(
-                body=ScrollBar(
-                    Scrollable(
-                        urwid.Padding(
-                            StatusDetails(self, statuses[focus]),
-                            right=1,
-                        )
-                    ),
-                    thumb_char="\u2588",
-                    trough_char="\u2591",
-                ),
-                footer=opts_footer,
-            )
 
+        try:
+            focused_status = statuses[focus]
         except IndexError:
-            # we have no statuses to display
-            self.status_details = StatusDetails(self, None)
+            focused_status = None
+
+        self.status_details = StatusDetails(self, focused_status)
+        status_widget = self.wrap_status_details(self.status_details)
 
         super().__init__([
             ("weight", 40, self.status_list),
             ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
-            ("weight", 60, urwid.Padding(self.status_details, left=1)),
+            ("weight", 60, status_widget),
         ])
+
+    def wrap_status_details(self, status_details: "StatusDetails") -> urwid.Widget:
+        """Wrap StatusDetails widget with a scollbar and footer."""
+        return urwid.Padding(
+            urwid.Frame(
+                body=ScrollBar(
+                    Scrollable(urwid.Padding(status_details, right=1)),
+                    thumb_char="\u2588",
+                    trough_char="\u2591",
+                ),
+                footer=self.get_option_text(status_details.status),
+            ),
+            left=1
+        )
 
     def build_status_list(self, statuses, focus):
         items = [self.build_list_item(status) for status in statuses]
@@ -92,7 +95,10 @@ class Timeline(urwid.Columns):
             None: "green_selected",
         })
 
-    def get_option_text(self, status):
+    def get_option_text(self, status: Optional[Status]) -> Optional[urwid.Text]:
+        if not status:
+            return None
+
         options = [
             "[B]oost",
             "[D]elete" if status.is_mine else "",
@@ -109,7 +115,7 @@ class Timeline(urwid.Columns):
         ]
         options = "\n" + " ".join(o for o in options if o)
         options = highlight_keys(options, "white_bold", "cyan")
-        return options
+        return urwid.Text(options)
 
     def get_focused_status(self):
         try:
@@ -141,22 +147,9 @@ class Timeline(urwid.Columns):
         self.draw_status_details(status)
 
     def draw_status_details(self, status):
-        opts_footer = urwid.Text(self.get_option_text(status))
         self.status_details = StatusDetails(self, status)
-
-        self.contents[2] = (
-            urwid.Padding(
-                urwid.Frame(
-                    body=ScrollBar(
-                        Scrollable(urwid.Padding(self.status_details, right=1)),
-                        thumb_char="\u2588",
-                        trough_char="\u2591",
-                    ),
-                    footer=opts_footer,
-                ),
-                left=1,
-            )
-        ), ("weight", 60, False)
+        widget = self.wrap_status_details(self.status_details)
+        self.contents[2] = widget, ("weight", 60, False)
 
     def keypress(self, size, key):
         status = self.get_focused_status()
@@ -298,7 +291,9 @@ class Timeline(urwid.Columns):
 
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
+        self.status = status
         self.followed_tags = timeline.followed_tags
+
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
