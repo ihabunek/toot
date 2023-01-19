@@ -116,6 +116,11 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--verbose"], {
+        "help": "show extra detail in debug log; used with --debug",
+        "action": 'store_true',
+        "default": False,
+    }),
 ]
 
 # Arguments added to commands which require authentication
