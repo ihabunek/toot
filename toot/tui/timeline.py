@@ -10,6 +10,7 @@ from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
 from toot.utils import format_content
 from toot.utils.language import language_name
+from toot.tui.utils import time_ago
 
 logger = logging.getLogger("toot")
 
@@ -364,12 +365,13 @@ class StatusDetails(urwid.Pile):
         visibility_color = visibility_colors.get(status.visibility, "gray")
 
         yield ("pack", urwid.Text([
-            ("red", "🠷 ") if status.bookmarked else "",
+            ("blue", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("red" if status.bookmarked else "gray", "🠷 "),
             ("gray", f"⤶ {status.data['replies_count']} "),
             ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
             ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
             (visibility_color, f" · {visibility}"),
-            ("yellow", f" · Translated from {translated_from} ") if translated_from else "",
+            ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
             ("gray", f" · {application}" if application else ""),
         ]))
 
@@ -418,7 +420,9 @@ class StatusDetails(urwid.Pile):
 
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
-        created_at = status.created_at.strftime("%Y-%m-%d %H:%M")
+        edited = status.data["edited_at"]
+        created_at = time_ago(status.created_at).ljust(3, " ")
+        edited_flag = "*" if edited else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
@@ -426,6 +430,7 @@ class StatusListItem(SelectableColumns):
 
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
+            ("pack", urwid.Text(("blue", edited_flag))),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),
