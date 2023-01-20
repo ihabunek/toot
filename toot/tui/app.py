@@ -44,9 +44,13 @@ class Header(urwid.WidgetWrap):
 
 
 class Footer(urwid.Pile):
-    def __init__(self):
+    def __init__(self, tui):
+        self.tui = tui
         self.status = urwid.Text("")
         self.message = urwid.Text("")
+        self.command = Command(tui)
+
+        urwid.connect_signal(self.command, "close", self.end_command)
 
         return super().__init__([
             urwid.AttrMap(self.status, "footer_status"),
@@ -67,6 +71,60 @@ class Footer(urwid.Pile):
 
     def clear_message(self):
         self.message.set_text("")
+
+    def start_command(self):
+        self.clear_message()
+        self.command.set_edit_text("")
+        self.contents[1] = (self.command, ("weight", 1))
+        self.focus_position = 1
+
+    def end_command(self, widget, success, message):
+        self.contents[1] = (self.message, ("weight", 1))
+        self.tui.focus_body()
+
+        if message:
+            if success:
+                self.set_message(message)
+            else:
+                self.set_error_message(message)
+
+
+class Command(urwid.Edit):
+    """Allows execution of vim-like commands in the footer"""
+    signals = ["close"]
+
+    tui: "TUI"
+
+    def __init__(self, tui):
+        self.tui = tui
+        super().__init__(":")
+
+    def keypress(self, size, key):
+        logger.debug((size, key))
+
+        if key == "enter":
+            self.run_command()
+
+        if key == "esc":
+            self.close()
+
+        return super().keypress(size, key)
+
+    def close(self, success=True, message=None):
+        self._emit("close", success, message)
+
+    def run_command(self):
+        command = self.get_edit_text()
+
+        if command in ("q", "quit"):
+            raise urwid.ExitMainLoop()
+
+        elif command in ("h", "help"):
+            self.tui.show_help()
+            self.close()
+
+        else:
+            self.close(False, f"Unknown command: {command}")
 
 
 class TUI(urwid.Frame):
@@ -99,7 +157,7 @@ class TUI(urwid.Frame):
         # Show intro screen while toots are being loaded
         self.body = self.build_intro()
         self.header = Header(app, user)
-        self.footer = Footer()
+        self.footer = Footer(self)
         self.footer.set_status("Loading...")
 
         # Default max status length, updated on startup
@@ -640,6 +698,12 @@ class TUI(urwid.Frame):
         self.body = self.overlay.bottom_w
         self.overlay = None
 
+    def focus_footer(self):
+        self.focus_part = "footer"
+
+    def focus_body(self):
+        self.focus_part = "body"
+
     # --- Keys -----------------------------------------------------------------
 
     def unhandled_input(self, key):
@@ -676,3 +740,7 @@ class TUI(urwid.Frame):
                 self.close_overlay()
             else:
                 raise urwid.ExitMainLoop()
+
+        elif key == ":" and not self.overlay:
+            self.focus_footer()
+            self.footer.start_command()
