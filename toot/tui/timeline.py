@@ -1,4 +1,5 @@
 import logging
+import math
 import urwid
 import webbrowser
 
@@ -6,18 +7,21 @@ from typing import Optional
 
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
+from .utils import highlight_hashtags, parse_datetime, highlight_keys, resize_image
 from .widgets import SelectableText, SelectableColumns
 from toot.utils import format_content
 from toot.utils.language import language_name
+from toot.tui.ansiwidget import ANSIGraphicsWidget
 
 logger = logging.getLogger("toot")
+screen = urwid.raw_display.Screen()
 
 
 class Timeline(urwid.Columns):
     """
     Displays a list of statuses to the left, and status details on the right.
     """
+
     signals = [
         "close",         # Close thread
         "compose",       # Compose a new toot
@@ -37,6 +41,7 @@ class Timeline(urwid.Columns):
         "save",          # Save current timeline
         "zoom",          # Open status in scrollable popup window
         "clear-screen",  # Clear the screen (used internally)
+        "load-image",  # used internally. asynchronously load image
     ]
 
     def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
@@ -293,6 +298,7 @@ class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
         self.followed_tags = timeline.followed_tags
+        self.timeline = timeline
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
@@ -330,7 +336,32 @@ class StatusDetails(urwid.Pile):
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    if m["url"]:
+                        if m["url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                            yield urwid.Text("")
+                            try:
+                                aspect = float(m["meta"]["original"]["aspect"])
+                            except Exception:
+                                aspect = 3 / 2  # reasonable default
+
+                            cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                            cols -= cols % 2
+                            rows = math.ceil((cols / 2) / aspect)
+                            rows -= rows % 2
+
+                            img = None
+                            if hasattr(self.status, "images"):
+                                img = self.status.images.get(str(hash(m["url"])))
+                            if img:
+                                img = resize_image(cols, img)
+                                yield (
+                                    "pack",
+                                    urwid.BoxAdapter(ANSIGraphicsWidget(img), rows),
+                                )
+                            else:
+                                self.timeline._emit("load-image", self.timeline, self.status, m["url"])
+                                yield ("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows))
+                        yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.data.get("poll")
             if poll:
@@ -389,7 +420,37 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
+
         yield urwid.Text(("link", card["url"]))
+
+        if card["image"]:
+            if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                yield urwid.Text("")
+
+                try:
+                    aspect = int(card["width"]) / int(card["height"])
+                except Exception:
+                    aspect = 3 / 2  # reasonable default
+
+                cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                cols -= cols % 2
+                rows = math.ceil((cols / 2) / aspect)
+                rows -= rows % 2
+
+                img = None
+                if hasattr(self.status, "images"):
+                    img = self.status.images.get(str(hash(card["image"])))
+                if img:
+                    img = resize_image(cols, img)
+                    yield ("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img), rows))
+                else:
+                    self.timeline._emit(
+                        "load-image", self.timeline, self.status, card["image"]
+                    )
+                    yield (
+                        "pack",
+                        urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows),
+                    )
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):

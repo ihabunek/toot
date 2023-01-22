@@ -250,11 +250,16 @@ AUTH_COMMANDS = [
     ),
 ]
 
+tui_arg = (["--256"], {
+    "help": "Use 256 colors for image display, rather than truecolor",
+    "action": "store_true"
+})
+
 TUI_COMMANDS = [
     Command(
         name="tui",
         description="Launches the toot terminal user interface",
-        arguments=[],
+        arguments=[tui_arg],
         require_auth=True,
     ),
 ]
