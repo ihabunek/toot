@@ -305,16 +305,32 @@ class StatusDetails(urwid.Pile):
             if status else ())
         return super().__init__(widget_list)
 
+    def author_header(self):
+        rows = 2
+        avatar_url = self.status.data["account"]["avatar_static"]
+        img = None
+        aimg = urwid.BoxAdapter(urwid.SolidFill(" "), rows)
+        if avatar_url:
+            if hasattr(self.status, "images"):
+                img = self.status.images.get(str(hash(avatar_url)))
+            if img:
+                img = resize_image(5, img)
+                aimg = urwid.BoxAdapter(ANSIGraphicsWidget(img), rows)
+            else:
+                self.timeline._emit("load-image", self.timeline, self.status, avatar_url)
+
+        atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
+                ("pack", urwid.Text(("yellow", self.status.author.account)))])
+        c = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        return c
+
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
             yield ("pack", urwid.Text(("gray", text)))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
-        if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
-
-        yield ("pack", urwid.Text(("yellow", status.author.account)))
+        yield self.author_header()
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
