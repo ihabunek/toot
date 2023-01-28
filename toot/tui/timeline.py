@@ -1,4 +1,5 @@
 import logging
+import math
 import urwid
 import webbrowser
 
@@ -6,18 +7,33 @@ from typing import Optional
 
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
+from .utils import highlight_hashtags, parse_datetime, highlight_keys, resize_image, get_cols_rows_pixh_pixw
 from .widgets import SelectableText, SelectableColumns
 from toot.utils import format_content
 from toot.utils.language import language_name
+from toot.tui.sixelwidget import SIXELGraphicsWidget
 
 logger = logging.getLogger("toot")
+screen = urwid.raw_display.Screen()
+
+SCREEN_COLS, SCREEN_ROWS, SCREEN_PIX_WIDTH, SCREEN_PIX_HEIGHT = get_cols_rows_pixh_pixw(screen)
+
+# VT340 default
+CELL_WIDTH = 10
+CELL_HEIGHT = 20
+
+if SCREEN_COLS > 0 and SCREEN_PIX_WIDTH > 0:
+    CELL_WIDTH = SCREEN_PIX_WIDTH / SCREEN_COLS
+
+if SCREEN_ROWS > 0 and SCREEN_PIX_HEIGHT > 0:
+    CELL_HEIGHT = SCREEN_PIX_HEIGHT / SCREEN_ROWS
 
 
 class Timeline(urwid.Columns):
     """
     Displays a list of statuses to the left, and status details on the right.
     """
+
     signals = [
         "close",         # Close thread
         "compose",       # Compose a new toot
@@ -37,6 +53,7 @@ class Timeline(urwid.Columns):
         "save",          # Save current timeline
         "zoom",          # Open status in scrollable popup window
         "clear-screen",  # Clear the screen (used internally)
+        "load-image",  # used internally. asynchronously load image
     ]
 
     def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
@@ -46,6 +63,9 @@ class Timeline(urwid.Columns):
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
+
+#        CELL_HEIGHT = 24.54
+#        CELL_WIDTH = 11
 
         try:
             focused_status = statuses[focus]
@@ -293,11 +313,33 @@ class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
         self.followed_tags = timeline.followed_tags
+        self.timeline = timeline
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
         return super().__init__(widget_list)
+
+    def author_header(self):
+        rows = 2
+        avatar_url = self.status.data["account"]["avatar_static"]
+        img = None
+        aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
+
+        if avatar_url:
+            if hasattr(self.status, "images"):
+                img = self.status.images.get(str(hash(avatar_url)))
+
+            if img:
+                img = resize_image(math.ceil(5 * CELL_WIDTH), img)
+                aimg = urwid.BoxAdapter(SIXELGraphicsWidget(img, CELL_WIDTH, CELL_HEIGHT), rows)
+            else:
+                self.timeline._emit("load-image", self.timeline, self.status, avatar_url)
+
+        atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
+                ("pack", urwid.Text(("yellow", self.status.author.account)))])
+        c = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        return c
 
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
@@ -305,10 +347,7 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("gray", text)))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
-        if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
-
-        yield ("pack", urwid.Text(("yellow", status.author.account)))
+        yield ("pack", self.author_header())
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
@@ -330,7 +369,27 @@ class StatusDetails(urwid.Pile):
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    if m["preview_url"]:
+                        if m["preview_url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                            yield urwid.Text("")
+
+#                            cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                            rows = math.ceil(m["meta"]["small"]["height"] / CELL_HEIGHT) + 1
+
+                            img = None
+                            if hasattr(self.status, "images"):
+                                img = self.status.images.get(str(hash(m["preview_url"])))
+                            if img:
+                                img = resize_image(math.ceil(CELL_WIDTH * 40), img)
+                                yield ("pack",
+                                urwid.BoxAdapter(SIXELGraphicsWidget(
+                                    img, CELL_WIDTH, CELL_HEIGHT),
+                                    rows)
+                                )
+                            else:
+                                self.timeline._emit("load-image", self.timeline, self.status, m["preview_url"])
+                                yield ("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows))
+                        yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.data.get("poll")
             if poll:
@@ -389,7 +448,37 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
+
         yield urwid.Text(("link", card["url"]))
+
+        if card["image"]:
+            if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                yield urwid.Text("")
+
+                max_cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                max_cols -= max_cols % 2
+
+                rows = math.ceil(card["height"] / CELL_HEIGHT)
+
+                # sanity check for embedded youtube stills etc.
+                # that lie about their size
+                if (rows < 2):
+                    rows = 20
+
+                img = None
+                if hasattr(self.status, "images"):
+                    img = self.status.images.get(str(hash(card["image"])))
+                if img:
+                    img = resize_image(math.ceil(CELL_WIDTH * 40), img)
+                    yield ("pack", urwid.BoxAdapter(SIXELGraphicsWidget(img, CELL_WIDTH, CELL_HEIGHT), rows))
+                else:
+                    self.timeline._emit(
+                        "load-image", self.timeline, self.status, card["image"]
+                    )
+                    yield (
+                        "pack",
+                        urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows),
+                    )
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):

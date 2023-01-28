@@ -3,8 +3,12 @@ import os
 import re
 import shutil
 import subprocess
-
+import fcntl
+import termios
+import struct
+import urwid
 from datetime import datetime, timezone
+from PIL import Image
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
@@ -116,3 +120,30 @@ def parse_content_links(content):
     parser = LinkParser()
     parser.feed(content)
     return parser.links[:]
+
+
+def resize_image(basewidth: int, img: Image) -> Image:
+    wpercent = (basewidth / float(img.size[0]))
+    hsize = int((float(img.size[1]) * float(wpercent)))
+    img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
+    img = img.convert('RGB')
+    return img
+
+
+def get_cols_rows_pixh_pixw(screen: urwid.raw_display.Screen):
+    """Return the terminal dimensions (num columns, num rows, pixel height, pixel width)."""
+# TBD: fallback to writing CSI 14t code and read response if the ioctl fails?
+# some terminals support CSI 14t that may not support the ioctl.
+# unfortunately Windows Terminal is among those that supports neither
+# but until WT supports SIXEL, it's a non-issue.
+    y, x = 24, 80
+    h, w = 480, 800  # VT340 default ¯\_(ツ)_/¯
+    try:
+        if hasattr(screen._term_output_file, 'fileno'):
+            buf = fcntl.ioctl(screen._term_output_file.fileno(),
+                            termios.TIOCGWINSZ, ' ' * 8)
+            y, x, h, w = struct.unpack('hhhh', buf)
+    except IOError:
+        # Term size could not be determined
+        pass
+    return x, y, h, w
