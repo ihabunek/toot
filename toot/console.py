@@ -254,7 +254,13 @@ TUI_COMMANDS = [
     Command(
         name="tui",
         description="Launches the toot terminal user interface",
-        arguments=[],
+        arguments=[
+            (["--relative-datetimes"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Show relative datetimes in status list.",
+            }),
+        ],
         require_auth=True,
     ),
 ]

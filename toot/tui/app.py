@@ -73,10 +73,10 @@ class TUI(urwid.Frame):
     """Main TUI frame."""
 
     @classmethod
-    def create(cls, app, user):
+    def create(cls, app, user, args):
         """Factory method, sets up TUI and an event loop."""
 
-        tui = cls(app, user)
+        tui = cls(app, user, args)
         loop = urwid.MainLoop(
             tui,
             palette=PALETTE,
@@ -87,9 +87,10 @@ class TUI(urwid.Frame):
 
         return tui
 
-    def __init__(self, app, user):
+    def __init__(self, app, user, args):
         self.app = app
         self.user = user
+        self.args = args
         self.config = config.load_config()
 
         self.loop = None  # set in `create`

@@ -1,4 +1,5 @@
 import logging
+import sys
 import urwid
 import webbrowser
 
@@ -421,7 +422,15 @@ class StatusDetails(urwid.Pile):
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
         edited = status.data["edited_at"]
-        created_at = time_ago(status.created_at).ljust(3, " ")
+
+        # TODO: hacky implementation to avoid creating conflicts for existing
+        # pull reuqests, refactor when merged.
+        created_at = (
+            time_ago(status.created_at).ljust(3, " ")
+            if "--relative-datetimes" in sys.argv
+            else status.created_at.strftime("%Y-%m-%d %H:%M")
+        )
+
         edited_flag = "*" if edited else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
