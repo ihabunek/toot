@@ -183,6 +183,8 @@ def print_account(account):
             name = field["name"].title()
             print_out(f'\n<yellow>{name}</yellow>:')
             print_html(field["value"])
+            if field["verified_at"]:
+                print_out("<green>✓ Verified</green>")
 
     print_out("")
     print_out(account["url"])
