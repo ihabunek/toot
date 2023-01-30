@@ -8,10 +8,11 @@ from typing import Optional
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
-from .widgets import SelectableText, SelectableColumns
+from .widgets import SelectableText, SelectableColumns, StatusList
 from toot.utils import format_content
 from toot.utils.language import language_name
 from toot.tui.utils import time_ago
+from urwid.util import is_mouse_press
 
 logger = logging.getLogger("toot")
 
@@ -55,34 +56,58 @@ class Timeline(urwid.Columns):
             focused_status = None
 
         self.status_details = StatusDetails(self, focused_status)
-        status_widget = self.wrap_status_details(self.status_details)
+        status_widget = self.wrap_status_details(self.status_details, False)
+        status_list_widget = self.wrap_status_list(self.status_list, True)
 
         super().__init__([
-            ("weight", 40, self.status_list),
-            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
+            ("weight", 40, status_list_widget),
+            ("weight", 0, urwid.AttrWrap(urwid.SolidFill(" "), "blue_selected")),
             ("weight", 60, status_widget),
         ])
 
-    def wrap_status_details(self, status_details: "StatusDetails") -> urwid.Widget:
-        """Wrap StatusDetails widget with a scollbar and footer."""
-        return urwid.Padding(
-            urwid.Frame(
-                body=ScrollBar(
-                    Scrollable(urwid.Padding(status_details, right=1)),
-                    thumb_char="\u2588",
-                    trough_char="\u2591",
-                ),
-                footer=self.get_option_text(status_details.status),
-            ),
-            left=1
-        )
+    def wrap_status_details(self, status_details: "StatusDetails", focus=False) -> urwid.Widget:
+        """Wrap StatusDetails widget with a scrollbar and footer."""
+        if (focus):
+            return urwid.LineBox(
+                urwid.Padding(
+                    urwid.Frame(
+                        body=ScrollBar(
+                            Scrollable(urwid.Padding(status_details, right=1)),
+                            thumb_char="\u2588",
+                            trough_char="\u2591",
+                        ),
+                        footer=self.get_option_text(status_details.status),
+                    ),
+                    left=1
+                ))
+        else:
+            return urwid.LineBox(
+                urwid.Padding(
+                    urwid.Frame(
+                        body=ScrollBar(
+                            Scrollable(urwid.Padding(status_details, right=1)),
+                            thumb_char="\u2588",
+                            trough_char="\u2591",
+                        ),
+                        footer=self.get_option_text(status_details.status),
+                    ),
+                    left=1
+                ), tline=" ", bline=" ", rline=" ", lline=" ", tlcorner=" ", trcorner=" ", blcorner=" ", brcorner=" ")
+
+    def wrap_status_list(self, status_list: urwid.ListBox, focus=True) -> urwid.Widget:
+        """Wrap StatusList widget with a box"""
+        if (focus):
+            return urwid.LineBox(status_list)
+        else:
+            return urwid.LineBox(status_list, tline=" ", bline=" ", rline=" ",
+            lline=" ", tlcorner=" ", trcorner=" ", blcorner=" ", brcorner=" ")
 
     def build_status_list(self, statuses, focus):
         items = [self.build_list_item(status) for status in statuses]
         walker = urwid.SimpleFocusListWalker(items)
         walker.set_focus(focus)
         urwid.connect_signal(walker, "modified", self.modified)
-        return urwid.ListBox(walker)
+        return StatusList(walker, self)
 
     def build_list_item(self, status):
         item = StatusListItem(status)
@@ -140,22 +165,36 @@ class Timeline(urwid.Columns):
     def modified(self):
         """Called when the list focus switches to a new status"""
         status, index, count = self.get_focused_status_with_counts()
-        self.draw_status_details(status)
+        self.draw_status_details(status, focus=False)
         self._emit("focus")
 
-    def refresh_status_details(self):
+    def refresh_status_details(self, focus=False):
         """Redraws the details of the focused status."""
         status = self.get_focused_status()
-        self.draw_status_details(status)
+        self.draw_status_details(status, focus)
 
-    def draw_status_details(self, status):
+    def draw_status_details(self, status, focus=None):
         self.status_details = StatusDetails(self, status)
-        widget = self.wrap_status_details(self.status_details)
+        widget = self.wrap_status_details(self.status_details, focus)
         self.contents[2] = widget, ("weight", 60, False)
+
+    def draw_status_list(self, focus=None):
+        widget = self.wrap_status_list(self.status_list, focus)
+        self.contents[0] = widget, ("weight", 40, False)
 
     def keypress(self, size, key):
         status = self.get_focused_status()
         command = self._command_map[key]
+
+        if command in [urwid.CURSOR_RIGHT, urwid.CURSOR_MAX_RIGHT]:
+            if self.focus_position == 0:
+                self.draw_status_list(focus=False)
+                self.refresh_status_details(focus=True)
+
+        if command in [urwid.CURSOR_LEFT, urwid.CURSOR_MAX_LEFT]:
+            if self.focus_position != 0:
+                self.draw_status_list(focus=True)
+                self.refresh_status_details(focus=False)
 
         if not status:
             return super().keypress(size, key)
@@ -280,7 +319,7 @@ class Timeline(urwid.Columns):
 
         # Redraw status details if status is focused
         if index == self.status_list.body.focus:
-            self.draw_status_details(status)
+            self.draw_status_details(status, focus=False)
 
     def remove_status(self, status):
         index = self.get_status_index(status.id)
@@ -295,7 +334,7 @@ class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
         self.followed_tags = timeline.followed_tags
-
+        self.timeline = timeline
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -417,6 +456,12 @@ class StatusDetails(urwid.Pile):
             status += " · Closes on {}".format(expires_at)
 
         yield urwid.Text(("gray", status))
+
+    def mouse_event(self, size, event, button, col, row, focus):
+        if is_mouse_press(event) and button == 1:
+            self.timeline.draw_status_list(focus=False)
+            self.timeline.refresh_status_details(focus=True)
+        return super().mouse_event(size, event, button, col, row, focus)
 
 
 class StatusListItem(SelectableColumns):

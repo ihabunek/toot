@@ -1,4 +1,4 @@
 [flake8]
-exclude=build,tests,tmp,venv,toot/tui/scroll.py
+exclude=build,tests,tmp,venv,toot/tui/scroll.py,toot/tui/urwidpatches.py
 ignore=E128
 max-line-length=120
