@@ -431,6 +431,71 @@ def test_follow_not_found(run):
     assert str(ex_info.value) == "Account not found"
 
 
+def test_mute(app, user, friend, run):
+    out = run("mute", friend.username)
+    assert out == f"✓ You have muted {friend.username}"
+
+    [muted_account] = api.get_muted_accounts(app, user)
+    assert muted_account["acct"] == friend.username
+
+    out = run("unmute", friend.username)
+    assert out == f"✓ {friend.username} is no longer muted"
+
+    assert api.get_muted_accounts(app, user) == []
+
+
+def test_block(app, user, friend, run):
+    out = run("block", friend.username)
+    assert out == f"✓ You are now blocking {friend.username}"
+
+    [blockd_account] = api.get_blocked_accounts(app, user)
+    assert blockd_account["acct"] == friend.username
+
+    out = run("unblock", friend.username)
+    assert out == f"✓ {friend.username} is no longer blocked"
+
+    assert api.get_blocked_accounts(app, user) == []
+
+
+def test_following_followers(user, friend, run):
+    out = run("following", user.username)
+    assert out == ""
+
+    run("follow", friend.username)
+
+    out = run("following", user.username)
+    assert out == f"* @{friend.username}"
+
+    out = run("followers", friend.username)
+    assert out == f"* @{user.username}"
+
+
+def test_tags(run):
+    out = run("tags_followed")
+    assert out == "You're not following any hashtags."
+
+    out = run("tags_follow", "foo")
+    assert out == "✓ You are now following #foo"
+
+    out = run("tags_followed")
+    assert out == "* #foo\thttp://localhost:3000/tags/foo"
+
+    out = run("tags_follow", "bar")
+    assert out == "✓ You are now following #bar"
+
+    out = run("tags_followed")
+    assert out == "\n".join([
+        "* #bar\thttp://localhost:3000/tags/bar",
+        "* #foo\thttp://localhost:3000/tags/foo",
+    ])
+
+    out = run("tags_unfollow", "foo")
+    assert out == "✓ You are no longer following #foo"
+
+    out = run("tags_followed")
+    assert out == "* #bar\thttp://localhost:3000/tags/bar"
+
+
 # ------------------------------------------------------------------------------
 # Utils
 # ------------------------------------------------------------------------------

@@ -39,8 +39,9 @@ def get_timeline_generator(app, user, args):
         return api.home_timeline_generator(app, user, limit=args.count)
 
 
-def timeline(app, user, args):
-    generator = get_timeline_generator(app, user, args)
+def timeline(app, user, args, generator=None):
+    if not generator:
+        generator = get_timeline_generator(app, user, args)
 
     while True:
         try:
@@ -195,6 +196,10 @@ def bookmark(app, user, args):
 def unbookmark(app, user, args):
     api.unbookmark(app, user, args.status_id)
     print_out("<green>✓ Status unbookmarked</green>")
+
+
+def bookmarks(app, user, args):
+    timeline(app, user, args, api.bookmark_timeline_generator(app, user, limit=args.count))
 
 
 def reblogged_by(app, user, args):
@@ -412,4 +417,4 @@ def notifications(app, user, args):
 
 def tui(app, user, args):
     from .tui.app import TUI
-    TUI.create(app, user).run()
+    TUI.create(app, user, args).run()

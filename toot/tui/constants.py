@@ -19,6 +19,7 @@ PALETTE = [
 
     # Functional
     ('hashtag', 'light cyan,bold', ''),
+    ('followed_hashtag', 'yellow,bold', ''),
     ('link', ',italics', ''),
     ('link_focused', ',italics', 'dark magenta'),
 
@@ -36,6 +37,7 @@ PALETTE = [
     ('yellow_bold', 'yellow,bold', ''),
     ('red', 'dark red', ''),
     ('warning', 'light red', ''),
+    ('white_bold', 'white,bold', '')
 ]
 
 VISIBILITY_OPTIONS = [

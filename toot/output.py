@@ -199,7 +199,7 @@ def print_acct_list(accounts):
 def print_tag_list(tags):
     if tags:
         for tag in tags:
-            print_out(f"* <green>#{tag['name']}\t</green> {tag['url']}")
+            print_out(f"* <green>#{tag['name']}\t</green>{tag['url']}")
     else:
         print_out("You're not following any hashtags.")
 

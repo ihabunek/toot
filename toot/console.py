@@ -116,6 +116,11 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--verbose"], {
+        "help": "show extra detail in debug log; used with --debug",
+        "action": 'store_true',
+        "default": False,
+    }),
 ]
 
 # Arguments added to commands which require authentication
@@ -191,7 +196,7 @@ common_timeline_args = [
     }),
 ]
 
-timeline_args = common_timeline_args + [
+timeline_and_bookmark_args = [
     (["-c", "--count"], {
         "type": timeline_count,
         "help": "number of toots to show per page (1-20, default 10).",
@@ -208,6 +213,8 @@ timeline_args = common_timeline_args + [
         "help": "Only show the first <count> toots, do not prompt to continue.",
     }),
 ]
+
+timeline_args = common_timeline_args + timeline_and_bookmark_args
 
 AUTH_COMMANDS = [
     Command(
@@ -252,7 +259,13 @@ TUI_COMMANDS = [
     Command(
         name="tui",
         description="Launches the toot terminal user interface",
-        arguments=[],
+        arguments=[
+            (["--relative-datetimes"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Show relative datetimes in status list.",
+            }),
+        ],
         require_auth=True,
     ),
 ]
@@ -338,6 +351,12 @@ READ_COMMANDS = [
         name="timeline",
         description="Show recent items in a timeline (home by default)",
         arguments=timeline_args,
+        require_auth=True,
+    ),
+    Command(
+        name="bookmarks",
+        description="Show bookmarked posts",
+        arguments=timeline_and_bookmark_args,
         require_auth=True,
     ),
 ]
@@ -665,7 +684,7 @@ def main():
     command_name = sys.argv[1] if len(sys.argv) > 1 else None
     args = sys.argv[2:]
 
-    if not command_name:
+    if not command_name or command_name == "--help":
         return print_usage()
 
     user, app = config.get_active_user_app()

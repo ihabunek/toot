@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from toot import api, config, __version__
 from toot.console import get_default_visibility
+from toot.exceptions import ApiError
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -72,10 +73,10 @@ class TUI(urwid.Frame):
     """Main TUI frame."""
 
     @classmethod
-    def create(cls, app, user):
+    def create(cls, app, user, args):
         """Factory method, sets up TUI and an event loop."""
 
-        tui = cls(app, user)
+        tui = cls(app, user, args)
         loop = urwid.MainLoop(
             tui,
             palette=PALETTE,
@@ -86,9 +87,10 @@ class TUI(urwid.Frame):
 
         return tui
 
-    def __init__(self, app, user):
+    def __init__(self, app, user, args):
         self.app = app
         self.user = user
+        self.args = args
         self.config = config.load_config()
 
         self.loop = None  # set in `create`
@@ -113,6 +115,7 @@ class TUI(urwid.Frame):
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_tags())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
         self.loop.run()
@@ -197,6 +200,9 @@ class TUI(urwid.Frame):
         def _zoom(timeline, status_details):
             self.show_status_zoom(status_details)
 
+        def _clear(*args):
+            self.clear_screen()
+
         urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "delete", _delete)
@@ -210,6 +216,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
         urwid.connect_signal(timeline, "translate", self.async_translate)
+        urwid.connect_signal(timeline, "clear-screen", _clear)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -236,7 +243,7 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses, self.can_translate)
+        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -265,8 +272,9 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, self.can_translate, focus,
-                            is_thread=True)
+        timeline = Timeline("thread", statuses, self.can_translate,
+                            self.followed_tags, focus, is_thread=True)
+
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
 
@@ -329,9 +337,26 @@ class TUI(urwid.Frame):
                 # this works for Mastodon and Pleroma version strings
                 # Mastodon versions < 4 do not have translation service
                 # Revisit this logic if Pleroma implements translation
-                self.can_translate = int(instance["version"][0]) > 3
+                ch = instance["version"][0]
+                self.can_translate = int(ch) > 3 if ch.isnumeric() else False
 
         return self.run_in_thread(_load_instance, done_callback=_done)
+
+    def async_load_followed_tags(self):
+        def _load_tag_list():
+            try:
+                return api.followed_tags(self.app, self.user)
+            except ApiError:
+                # not supported by all Mastodon servers so fail silently if necessary
+                return []
+
+        def _done_tag_list(tags):
+            if len(tags) > 0:
+                self.followed_tags = [t["name"] for t in tags]
+            else:
+                self.followed_tags = []
+
+        self.run_in_thread(_load_tag_list, done_callback=_done_tag_list)
 
     def refresh_footer(self, timeline):
         """Show status details in footer."""
@@ -347,16 +372,26 @@ class TUI(urwid.Frame):
             title="Status source",
         )
 
+    def clear_screen(self):
+        self.loop.screen.clear()
+
     def show_links(self, status):
         links = parse_content_links(status.data["content"]) if status else []
         post_attachments = status.data["media_attachments"] or []
         reblog_attachments = (status.data["reblog"]["media_attachments"] if status.data["reblog"] else None) or []
+
         for a in post_attachments + reblog_attachments:
             url = a["remote_url"] or a["url"]
             links.append((url, a["description"] if a["description"] else url))
+
+        def _clear(*args):
+            self.clear_screen()
+
         if links:
+            sl_widget = StatusLinks(links)
+            urwid.connect_signal(sl_widget, "clear-screen", _clear)
             self.open_overlay(
-                widget=StatusLinks(links),
+                widget=sl_widget,
                 title="Status links",
                 options={"height": len(links) + 2},
             )
@@ -464,9 +499,7 @@ class TUI(urwid.Frame):
             in_reply_to_id=in_reply_to_id)
         status = self.make_status(data)
 
-        # TODO: instead of this, fetch new items from the timeline?
-        self.timeline.prepend_status(status)
-        self.timeline.focus_status(status)
+        # TODO: fetch new items from the timeline?
 
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()

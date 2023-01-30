@@ -6,6 +6,18 @@ from logging import getLogger
 logger = getLogger('toot')
 
 VERBOSE = "--verbose" in sys.argv
+COLOR = "--no-color" not in sys.argv
+
+if COLOR:
+    ANSI_RED = "\033[31m"
+    ANSI_GREEN = "\033[32m"
+    ANSI_YELLOW = "\033[33m"
+    ANSI_END_COLOR = "\033[0m"
+else:
+    ANSI_RED = ""
+    ANSI_GREEN = ""
+    ANSI_YELLOW = ""
+    ANSI_END_COLOR = ""
 
 
 def censor_secrets(headers):
@@ -25,36 +37,38 @@ def truncate(line):
 
 
 def log_request(request):
-    logger.debug(">>> \033[32m{} {}\033[0m".format(request.method, request.url))
+
+    logger.debug(f">>> {ANSI_GREEN}{request.method} {request.url}{ANSI_END_COLOR}")
 
     if request.headers:
         headers = censor_secrets(request.headers)
-        logger.debug(">>> HEADERS: \033[33m{}\033[0m".format(headers))
+        logger.debug(f">>> HEADERS: {ANSI_GREEN}{headers}{ANSI_END_COLOR}")
 
     if request.data:
         data = truncate(request.data)
-        logger.debug(">>> DATA:    \033[33m{}\033[0m".format(data))
+        logger.debug(f">>> DATA:    {ANSI_GREEN}{data}{ANSI_END_COLOR}")
 
     if request.json:
         data = truncate(json.dumps(request.json))
-        logger.debug(">>> JSON:    \033[33m{}\033[0m".format(data))
+        logger.debug(f">>> JSON:    {ANSI_GREEN}{data}{ANSI_END_COLOR}")
 
     if request.files:
-        logger.debug(">>> FILES:   \033[33m{}\033[0m".format(request.files))
+        logger.debug(f">>> FILES:   {ANSI_GREEN}{request.files}{ANSI_END_COLOR}")
 
     if request.params:
-        logger.debug(">>> PARAMS:  \033[33m{}\033[0m".format(request.params))
+        logger.debug(f">>> PARAMS:  {ANSI_GREEN}{request.params}{ANSI_END_COLOR}")
 
 
 def log_response(response):
+
     content = truncate(response.content.decode())
 
     if response.ok:
-        logger.debug("<<< \033[32m{}\033[0m".format(response))
-        logger.debug("<<< \033[33m{}\033[0m".format(content))
+        logger.debug(f"<<< {ANSI_GREEN}{response}{ANSI_END_COLOR}")
+        logger.debug(f"<<< {ANSI_YELLOW}{content}{ANSI_END_COLOR}")
     else:
-        logger.debug("<<< \033[31m{}\033[0m".format(response))
-        logger.debug("<<< \033[31m{}\033[0m".format(content))
+        logger.debug(f"<<< {ANSI_RED}{response}{ANSI_END_COLOR}")
+        logger.debug(f"<<< {ANSI_RED}{content}{ANSI_END_COLOR}")
 
 
 def log_debug(*msgs):
