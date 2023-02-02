@@ -9,15 +9,42 @@ from .utils import highlight_keys
 from .widgets import Button, EditBox, SelectableText
 
 
-class StatusSource(urwid.ListBox):
+class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
     def __init__(self, status):
-        source = json.dumps(status.data, indent=4)
-        lines = source.splitlines()
+        self.source = json.dumps(status.data, indent=4)
+        lines = self.source.splitlines()
         walker = urwid.SimpleFocusListWalker([
             urwid.Text(line) for line in lines
         ])
-        super().__init__(walker)
+        list = urwid.ListBox(walker)
+
+        def save_button(title):
+            return Button(title, on_press=lambda btn: self.save_json())
+
+        self.fn_edit = EditBox(caption="Filename: ", edit_text="status.json")
+        self.save_btn = save_button("Save")
+        self.status_txt = urwid.Text("")
+        frame = urwid.Frame(
+            body=list,
+            footer=urwid.Pile(
+                [
+                    urwid.BoxAdapter(urwid.SolidFill(" "), 2),
+                    self.fn_edit,
+                    self.save_btn,
+                    self.status_txt,
+                ]
+            ),
+        )
+        super().__init__(frame)
+
+    def save_json(self):
+        fn = self.fn_edit.get_text()[0][10:]  # skip "Filename: "
+        if fn:
+            f = open(fn, "w")
+            f.write(self.source)
+            f.close()
+            self.status_txt.set_text(("footer_message", f"Saved to {fn}"))
 
 
 class StatusZoom(urwid.ListBox):
