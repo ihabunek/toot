@@ -42,9 +42,8 @@ class StatusSource(urwid.Padding):
     def save_json(self):
         filename = self.filename_edit.get_text()[0][10:]  # skip "Filename: "
         if filename:
-            f = open(filename, "w")
-            f.write(self.source)
-            f.close()
+            with open(filename, "w") as f:
+                f.write(self.source)
             self.status_text.set_text(("footer_message", f"Saved to {filename}"))
 
 
