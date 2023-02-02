@@ -13,9 +13,8 @@ class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
     def __init__(self, status):
         self.source = json.dumps(status.data, indent=4)
-        lines = self.source.splitlines()
         walker = urwid.SimpleFocusListWalker([
-            urwid.Text(line) for line in lines
+            urwid.Text(self.source)
         ])
         list = urwid.ListBox(walker)
 
