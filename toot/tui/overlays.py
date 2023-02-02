@@ -13,7 +13,7 @@ class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
     def __init__(self, status):
         self.source = json.dumps(status.data, indent=4)
-        self.filename_edit = EditBox(caption="Filename: ", edit_text="status.json")
+        self.filename_edit = EditBox(caption="Filename: ", edit_text=f"status-{status.id}.json")
         self.status_text = urwid.Text("")
 
         walker = urwid.SimpleFocusListWalker([
