@@ -19,11 +19,8 @@ class StatusSource(urwid.Padding):
         ])
         list = urwid.ListBox(walker)
 
-        def save_button(title):
-            return Button(title, on_press=lambda btn: self.save_json())
-
         self.filename_edit = EditBox(caption="Filename: ", edit_text="status.json")
-        self.save_button = save_button("Save")
+        self.save_button = Button("Save", on_press=self.save_json)
         self.status_text = urwid.Text("")
 
         frame = urwid.Frame(
@@ -39,7 +36,7 @@ class StatusSource(urwid.Padding):
         )
         super().__init__(frame)
 
-    def save_json(self):
+    def save_json(self, button):
         filename = self.filename_edit.get_text()[0][10:]  # skip "Filename: "
         if filename:
             with open(filename, "w") as f:
