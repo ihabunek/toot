@@ -22,29 +22,30 @@ class StatusSource(urwid.Padding):
         def save_button(title):
             return Button(title, on_press=lambda btn: self.save_json())
 
-        self.fn_edit = EditBox(caption="Filename: ", edit_text="status.json")
-        self.save_btn = save_button("Save")
-        self.status_txt = urwid.Text("")
+        self.filename_edit = EditBox(caption="Filename: ", edit_text="status.json")
+        self.save_button = save_button("Save")
+        self.status_text = urwid.Text("")
+
         frame = urwid.Frame(
             body=list,
             footer=urwid.Pile(
                 [
                     urwid.BoxAdapter(urwid.SolidFill(" "), 2),
-                    self.fn_edit,
-                    self.save_btn,
-                    self.status_txt,
+                    self.filename_edit,
+                    self.save_button,
+                    self.status_text,
                 ]
             ),
         )
         super().__init__(frame)
 
     def save_json(self):
-        fn = self.fn_edit.get_text()[0][10:]  # skip "Filename: "
-        if fn:
-            f = open(fn, "w")
+        filename = self.filename_edit.get_text()[0][10:]  # skip "Filename: "
+        if filename:
+            f = open(filename, "w")
             f.write(self.source)
             f.close()
-            self.status_txt.set_text(("footer_message", f"Saved to {fn}"))
+            self.status_text.set_text(("footer_message", f"Saved to {filename}"))
 
 
 class StatusZoom(urwid.ListBox):
