@@ -30,7 +30,7 @@ class StatusSource(urwid.Padding):
         super().__init__(frame)
 
     def save_json(self, button):
-        filename = self.filename_edit.get_text()[0][10:]  # skip "Filename: "
+        filename = self.filename_edit.get_edit_text()
         if filename:
             with open(filename, "w") as f:
                 f.write(self.source)
