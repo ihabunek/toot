@@ -13,25 +13,19 @@ class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
     def __init__(self, status):
         self.source = json.dumps(status.data, indent=4)
-        walker = urwid.SimpleFocusListWalker([
-            urwid.Text(self.source)
-        ])
-        list = urwid.ListBox(walker)
-
         self.filename_edit = EditBox(caption="Filename: ", edit_text="status.json")
-        self.save_button = Button("Save", on_press=self.save_json)
         self.status_text = urwid.Text("")
 
+        walker = urwid.SimpleFocusListWalker([
+            urwid.Text(self.source),
+            urwid.BoxAdapter(urwid.SolidFill(" "), 2),
+            self.filename_edit,
+            Button("Save", on_press=self.save_json)
+        ])
+
         frame = urwid.Frame(
-            body=list,
-            footer=urwid.Pile(
-                [
-                    urwid.BoxAdapter(urwid.SolidFill(" "), 2),
-                    self.filename_edit,
-                    self.save_button,
-                    self.status_text,
-                ]
-            ),
+            body=urwid.ListBox(walker),
+            footer=self.status_text
         )
         super().__init__(frame)
 
