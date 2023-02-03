@@ -226,8 +226,6 @@ class Account(urwid.ListBox):
             urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
             return urwid.AttrMap(text, "", attr_map)
 
-
-#        source = json.dumps(account, indent=4)
         yield urwid.Text([('green', f"@{account['acct']}"), (f"  {account['display_name']}")])
 
         if account["note"]:
@@ -241,13 +239,13 @@ class Account(urwid.ListBox):
         yield urwid.Divider()
 
         if account["bot"]:
-            yield urwid.Text([("Bot: "), ("green", "True \N{robot face}")])
+            yield urwid.Text([("green", "Bot \N{robot face}")])
             yield urwid.Divider()
         if account["locked"]:
-            yield urwid.Text([("Locked: "), ("warning", "True \N{lock}")])
+            yield urwid.Text([("warning", "Locked \N{lock}")])
             yield urwid.Divider()
         if "suspended" in account and account["suspended"]:
-            yield urwid.Text([("Suspended: "), ("warning", "True \N{cross mark}")])
+            yield urwid.Text([("warning", "Suspended \N{cross mark}")])
             yield urwid.Divider()
 
         yield urwid.Text([("Followers: "), ("yellow", f"{account['followers_count']}")])
