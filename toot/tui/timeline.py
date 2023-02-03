@@ -21,6 +21,7 @@ class Timeline(urwid.Columns):
     Displays a list of statuses to the left, and status details on the right.
     """
     signals = [
+        "account",       # Display account info and actions
         "close",         # Close thread
         "compose",       # Compose a new toot
         "delete",        # Delete own status
@@ -102,6 +103,7 @@ class Timeline(urwid.Columns):
             return None
 
         options = [
+            "[A]ccount" if not status.is_mine else "",
             "[B]oost",
             "[D]elete" if status.is_mine else "",
             "B[o]okmark",
@@ -168,6 +170,10 @@ class Timeline(urwid.Columns):
             count = len(self.statuses)
             if index >= count:
                 self._emit("next")
+
+        if key in ("a", "A"):
+            self._emit("account", status.data['account']['id'])
+            return
 
         if key in ("b", "B"):
             self._emit("reblog", status)
