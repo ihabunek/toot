@@ -17,10 +17,11 @@ class StatusSource(urwid.Padding):
         self.status_text = urwid.Text("")
 
         walker = urwid.SimpleFocusListWalker([
-            urwid.Text(self.source),
-            urwid.BoxAdapter(urwid.SolidFill(" "), 2),
             self.filename_edit,
-            Button("Save", on_press=self.save_json)
+            Button("Save", on_press=self.save_json),
+            urwid.Divider("─"),
+            urwid.Divider(" "),
+            urwid.Text(self.source)
         ])
 
         frame = urwid.Frame(
