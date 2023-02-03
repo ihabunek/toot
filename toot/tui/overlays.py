@@ -258,7 +258,7 @@ class Account(urwid.ListBox):
             for field in account["fields"]:
                 name = field["name"].title()
                 yield urwid.Divider()
-                yield urwid.Text([("yellow", f"{name}"), (":")])
+                yield urwid.Text([("yellow", f"{name.rstrip(':')}"), (":")])
                 for line in format_content(field["value"]):
                     yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
                 if field["verified_at"]:
