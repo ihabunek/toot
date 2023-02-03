@@ -212,14 +212,11 @@ class Help(urwid.Padding):
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
     def __init__(self, account):
-        self.account = account
-        actions = list(self.generate_contents())
+        actions = list(self.generate_contents(account))
         walker = urwid.SimpleListWalker(actions)
         super().__init__(walker)
 
-    def generate_contents(self):
-        account = self.account
-
+    def generate_contents(self, account):
         def link(text, url):
             attr_map = {"link": "link_focused"}
             text = SelectableText([text, ("link", url)])
