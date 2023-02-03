@@ -221,6 +221,17 @@ class Account(urwid.ListBox):
         yield urwid.Text([("ID: "), ("green", f"{account['id']}")])
         yield urwid.Text([("Since: "), ("green", f"{account['created_at'][:10]}")])
         yield urwid.Divider()
+
+        if account["bot"]:
+            yield urwid.Text([("Bot: "), ("green", "True \N{robot face}")])
+            yield urwid.Divider()
+        if account["locked"]:
+            yield urwid.Text([("Locked: "), ("warning", "True \N{lock}")])
+            yield urwid.Divider()
+        if "suspended" in account and account["suspended"]:
+            yield urwid.Text([("Suspended: "), ("warning", "True \N{cross mark}")])
+            yield urwid.Divider()
+
         yield urwid.Text([("Followers: "), ("yellow", f"{account['followers_count']}")])
         yield urwid.Text([("Following: "), ("yellow", f"{account['following_count']}")])
         yield urwid.Text([("Statuses: "), ("yellow", f"{account['statuses_count']}")])
