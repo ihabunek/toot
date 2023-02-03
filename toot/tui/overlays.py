@@ -163,12 +163,6 @@ class Help(urwid.Padding):
         def h(text):
             return highlight_keys(text, "cyan")
 
-        def link(text, url):
-            attr_map = {"link": "link_focused"}
-            text = SelectableText([text, ("link", url)])
-            urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
-            return urwid.AttrMap(text, "", attr_map)
-
         yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
         yield urwid.Divider()
         yield urwid.Text(("bold", "General usage"))
@@ -217,12 +211,6 @@ class Account(urwid.ListBox):
         super().__init__(walker)
 
     def generate_contents(self, account):
-        def link(text, url):
-            attr_map = {"link": "link_focused"}
-            text = SelectableText([text, ("link", url)])
-            urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
-            return urwid.AttrMap(text, "", attr_map)
-
         yield urwid.Text([('green', f"@{account['acct']}"), (f"  {account['display_name']}")])
 
         if account["note"]:
@@ -262,4 +250,9 @@ class Account(urwid.ListBox):
         yield urwid.Divider()
         yield link("", account["url"])
 
-#        yield urwid.Text(source)
+
+def link(text, url):
+    attr_map = {"link": "link_focused"}
+    text = SelectableText([text, ("link", url)])
+    urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
+    return urwid.AttrMap(text, "", attr_map)
