@@ -124,6 +124,14 @@ USE_ANSI_COLOR = use_ansi_color()
 QUIET = "--quiet" in sys.argv
 
 
+def echo(message, nl=True, err=False):
+    import click
+    ctx = click.get_current_context()
+    if not ctx.obj.quiet:
+        message = colorize(message)
+        click.echo(message, nl=nl, err=err)
+
+
 def print_out(*args, **kwargs):
     if not QUIET:
         args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]

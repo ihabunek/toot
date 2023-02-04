@@ -1,5 +1,7 @@
+faker
 flake8
 psycopg2-binary
 pytest
+pytest-asyncio
 pytest-xdist[psutil]
 vermin

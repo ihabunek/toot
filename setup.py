@@ -38,6 +38,8 @@ setup(
         "beautifulsoup4>=4.5.0,<5.0",
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
+        "aiohttp>=3.5.0,<4.0",
+        "click~=8.1.3"
     ],
     entry_points={
         'console_scripts': [
