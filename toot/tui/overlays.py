@@ -7,6 +7,7 @@ from toot import __version__
 from toot.utils import format_content
 from .utils import highlight_hashtags, highlight_keys
 from .widgets import Button, EditBox, SelectableText
+from toot import api
 
 
 class StatusSource(urwid.Padding):
@@ -205,10 +206,12 @@ class Help(urwid.Padding):
 
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
-    def __init__(self, account, relationship):
-        self.last_action = None
+    def __init__(self, app, user, account, relationship):
+        self.app = app
+        self.user = user
         self.account = account
         self.relationship = relationship
+        self.last_action = None
         self.setup_listbox()
 
     def setup_listbox(self):
@@ -284,17 +287,17 @@ def take_action(button: Button, self: Account):
     action = button.get_label()
 
     if action == "Confirm Follow":
-        pass
+        self.relationship = api.follow(self.app, self.user, self.account["id"])
     elif action == "Confirm Unfollow":
-        pass
+        self.relationship = api.unfollow(self.app, self.user, self.account["id"])
     elif action == "Confirm Mute":
-        pass
+        self.relationship = api.mute(self.app, self.user, self.account["id"])
     elif action == "Confirm Unmute":
-        pass
+        self.relationship = api.unmute(self.app, self.user, self.account["id"])
     elif action == "Confirm Block":
-        pass
+        self.relationship = api.block(self.app, self.user, self.account["id"])
     elif action == "Confirm Unblock":
-        pass
+        self.relationship = api.unblock(self.app, self.user, self.account["id"])
 
     self.last_action = None
     self.setup_listbox()

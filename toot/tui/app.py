@@ -512,7 +512,7 @@ class TUI(urwid.Frame):
         account = api.whois(self.app, self.user, account_id)
         relationship = api.get_relationship(self.app, self.user, account_id)
         self.open_overlay(
-            widget=Account(account, relationship),
+            widget=Account(self.app, self.user, account, relationship),
             title="Account",
         )
 
