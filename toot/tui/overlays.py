@@ -206,17 +206,32 @@ class Help(urwid.Padding):
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
     def __init__(self, account, relationship):
-        actions = list(self.generate_contents(account, relationship))
+        self.last_action = None
+        self.account = account
+        self.relationship = relationship
+        self.setup_listbox()
+
+    def setup_listbox(self):
+        actions = list(self.generate_contents(self.account, self.relationship, self.last_action))
         walker = urwid.SimpleListWalker(actions)
         super().__init__(walker)
 
-    def generate_contents(self, account, relationship):
-        if relationship['requested']:
-            yield urwid.Text(("light grey", "< Follow request is pending >"))
+    def generate_contents(self, account, relationship=None, last_action=None):
+        if self.last_action and not self.last_action.startswith("Confirm"):
+            yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
+            yield Button("Cancel", on_press=cancel_action, user_data=self)
         else:
-            yield Button("Unfollow" if relationship['following'] else "Follow")
-        yield Button("Unmute" if relationship['muting'] else "Mute")
-        yield Button("Unblock" if relationship['blocking'] else "Block")
+            if relationship['requested']:
+                yield urwid.Text(("light grey", "< Follow request is pending >"))
+            else:
+                yield Button("Unfollow" if relationship['following'] else "Follow",
+                on_press=confirm_action, user_data=self)
+
+            yield Button("Unmute" if relationship['muting'] else "Mute",
+                on_press=confirm_action, user_data=self)
+            yield Button("Unblock" if relationship['blocking'] else "Block",
+                on_press=confirm_action, user_data=self)
+
         yield urwid.Divider("─")
         yield urwid.Divider()
         yield urwid.Text([('green', f"@{account['acct']}"), (f"  {account['display_name']}")])
@@ -263,6 +278,36 @@ class Account(urwid.ListBox):
 
         yield urwid.Divider()
         yield link("", account["url"])
+
+
+def take_action(button: Button, self: Account):
+    action = button.get_label()
+
+    if action == "Confirm Follow":
+        pass
+    elif action == "Confirm Unfollow":
+        pass
+    elif action == "Confirm Mute":
+        pass
+    elif action == "Confirm Unmute":
+        pass
+    elif action == "Confirm Block":
+        pass
+    elif action == "Confirm Unblock":
+        pass
+
+    self.last_action = None
+    self.setup_listbox()
+
+
+def confirm_action(button: Button, self: Account):
+    self.last_action = button.get_label()
+    self.setup_listbox()
+
+
+def cancel_action(button: Button, self: Account):
+    self.last_action = None
+    self.setup_listbox()
 
 
 def link(text, url):
