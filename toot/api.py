@@ -251,8 +251,9 @@ def _timeline_generator(app, user, path, params=None):
 
 
 def home_timeline_generator(app, user, limit=20):
-    path = f"/api/v1/timelines/home?limit={limit}"
-    return _timeline_generator(app, user, path)
+    path = "/api/v1/timelines/home"
+    params = {"limit": limit}
+    return _timeline_generator(app, user, path, params)
 
 
 def public_timeline_generator(app, user, local=False, limit=20):
