@@ -361,6 +361,11 @@ def whois(app, user, account):
     return http.get(app, user, f'/api/v1/accounts/{account}').json()
 
 
+def get_relationship(app, user, account):
+    params = {"id[]": account}
+    return http.get(app, user, '/api/v1/accounts/relationships', params).json()[0]
+
+
 def mute(app, user, account):
     return _account_action(app, user, account, 'mute')
 
