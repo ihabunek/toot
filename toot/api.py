@@ -357,6 +357,10 @@ def followed_tags(app, user):
     return _get_response_list(app, user, path)
 
 
+def whois(app, user, account):
+    return http.get(app, user, f'/api/v1/accounts/{account}').json()
+
+
 def mute(app, user, account):
     return _account_action(app, user, account, 'mute')
 

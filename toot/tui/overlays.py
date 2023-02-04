@@ -4,20 +4,38 @@ import urwid
 import webbrowser
 
 from toot import __version__
-
-from .utils import highlight_keys
+from toot.utils import format_content
+from .utils import highlight_hashtags, highlight_keys
 from .widgets import Button, EditBox, SelectableText
 
 
-class StatusSource(urwid.ListBox):
+class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
     def __init__(self, status):
-        source = json.dumps(status.data, indent=4)
-        lines = source.splitlines()
+        self.source = json.dumps(status.data, indent=4)
+        self.filename_edit = EditBox(caption="Filename: ", edit_text=f"status-{status.id}.json")
+        self.status_text = urwid.Text("")
+
         walker = urwid.SimpleFocusListWalker([
-            urwid.Text(line) for line in lines
+            self.filename_edit,
+            Button("Save", on_press=self.save_json),
+            urwid.Divider("─"),
+            urwid.Divider(" "),
+            urwid.Text(self.source)
         ])
-        super().__init__(walker)
+
+        frame = urwid.Frame(
+            body=urwid.ListBox(walker),
+            footer=self.status_text
+        )
+        super().__init__(frame)
+
+    def save_json(self, button):
+        filename = self.filename_edit.get_edit_text()
+        if filename:
+            with open(filename, "w") as f:
+                f.write(self.source)
+            self.status_text.set_text(("footer_message", f"Saved to {filename}"))
 
 
 class StatusZoom(urwid.ListBox):
@@ -145,12 +163,6 @@ class Help(urwid.Padding):
         def h(text):
             return highlight_keys(text, "cyan")
 
-        def link(text, url):
-            attr_map = {"link": "link_focused"}
-            text = SelectableText([text, ("link", url)])
-            urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
-            return urwid.AttrMap(text, "", attr_map)
-
         yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
         yield urwid.Divider()
         yield urwid.Text(("bold", "General usage"))
@@ -189,3 +201,58 @@ class Help(urwid.Padding):
         yield urwid.Divider()
         yield link("Documentation: ", "https://toot.readthedocs.io/")
         yield link("Project home:  ", "https://github.com/ihabunek/toot/")
+
+
+class Account(urwid.ListBox):
+    """Shows account data and provides various actions"""
+    def __init__(self, account):
+        actions = list(self.generate_contents(account))
+        walker = urwid.SimpleListWalker(actions)
+        super().__init__(walker)
+
+    def generate_contents(self, account):
+        yield urwid.Text([('green', f"@{account['acct']}"), (f"  {account['display_name']}")])
+
+        if account["note"]:
+            yield urwid.Divider()
+            for line in format_content(account["note"]):
+                yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+
+        yield urwid.Divider()
+        yield urwid.Text([("ID: "), ("green", f"{account['id']}")])
+        yield urwid.Text([("Since: "), ("green", f"{account['created_at'][:10]}")])
+        yield urwid.Divider()
+
+        if account["bot"]:
+            yield urwid.Text([("green", "Bot \N{robot face}")])
+            yield urwid.Divider()
+        if account["locked"]:
+            yield urwid.Text([("warning", "Locked \N{lock}")])
+            yield urwid.Divider()
+        if "suspended" in account and account["suspended"]:
+            yield urwid.Text([("warning", "Suspended \N{cross mark}")])
+            yield urwid.Divider()
+
+        yield urwid.Text([("Followers: "), ("yellow", f"{account['followers_count']}")])
+        yield urwid.Text([("Following: "), ("yellow", f"{account['following_count']}")])
+        yield urwid.Text([("Statuses: "), ("yellow", f"{account['statuses_count']}")])
+
+        if account["fields"]:
+            for field in account["fields"]:
+                name = field["name"].title()
+                yield urwid.Divider()
+                yield urwid.Text([("yellow", f"{name.rstrip(':')}"), (":")])
+                for line in format_content(field["value"]):
+                    yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+                if field["verified_at"]:
+                    yield urwid.Text(("green", "✓ Verified"))
+
+        yield urwid.Divider()
+        yield link("", account["url"])
+
+
+def link(text, url):
+    attr_map = {"link": "link_focused"}
+    text = SelectableText([text, ("link", url)])
+    urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
+    return urwid.AttrMap(text, "", attr_map)

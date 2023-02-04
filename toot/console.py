@@ -116,6 +116,11 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--verbose"], {
+        "help": "show extra detail in debug log; used with --debug",
+        "action": 'store_true',
+        "default": False,
+    }),
 ]
 
 # Arguments added to commands which require authentication
@@ -250,16 +255,21 @@ AUTH_COMMANDS = [
     ),
 ]
 
-tui_arg = (["--256"], {
-    "help": "Use 256 colors for image display, rather than truecolor",
-    "action": "store_true"
-})
-
 TUI_COMMANDS = [
     Command(
         name="tui",
         description="Launches the toot terminal user interface",
-        arguments=[tui_arg],
+        arguments=[
+            (["--relative-datetimes"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Show relative datetimes in status list.",
+            }),
+            (["--256"], {
+                "help": "Use 256 colors for image display, rather than truecolor",
+                "action": "store_true"
+            })
+        ],
         require_auth=True,
     ),
 ]

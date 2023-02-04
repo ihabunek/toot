@@ -417,4 +417,4 @@ def notifications(app, user, args):
 
 def tui(app, user, args):
     from .tui.app import TUI
-    TUI.create(app, user).run()
+    TUI.create(app, user, args).run()

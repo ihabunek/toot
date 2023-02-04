@@ -1,5 +1,6 @@
 import logging
 import math
+import sys
 import urwid
 import webbrowser
 
@@ -11,6 +12,7 @@ from .utils import highlight_hashtags, parse_datetime, highlight_keys, resize_im
 from .widgets import SelectableText, SelectableColumns
 from toot.utils import format_content
 from toot.utils.language import language_name
+from toot.tui.utils import time_ago
 from toot.tui.ansiwidget import ANSIGraphicsWidget
 
 logger = logging.getLogger("toot")
@@ -23,6 +25,7 @@ class Timeline(urwid.Columns):
     """
 
     signals = [
+        "account",       # Display account info and actions
         "close",         # Close thread
         "compose",       # Compose a new toot
         "delete",        # Delete own status
@@ -105,6 +108,7 @@ class Timeline(urwid.Columns):
             return None
 
         options = [
+            "[A]ccount" if not status.is_mine else "",
             "[B]oost",
             "[D]elete" if status.is_mine else "",
             "B[o]okmark",
@@ -171,6 +175,10 @@ class Timeline(urwid.Columns):
             count = len(self.statuses)
             if index >= count:
                 self._emit("next")
+
+        if key in ("a", "A"):
+            self._emit("account", status.original.data['account']['id'])
+            return
 
         if key in ("b", "B"):
             self._emit("reblog", status)
@@ -411,12 +419,13 @@ class StatusDetails(urwid.Pile):
         visibility_color = visibility_colors.get(status.visibility, "gray")
 
         yield ("pack", urwid.Text([
-            ("red", "🠷 ") if status.bookmarked else "",
+            ("blue", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("red" if status.bookmarked else "gray", "🠷 "),
             ("gray", f"⤶ {status.data['replies_count']} "),
             ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
             ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
             (visibility_color, f" · {visibility}"),
-            ("yellow", f" · Translated from {translated_from} ") if translated_from else "",
+            ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
             ("gray", f" · {application}" if application else ""),
         ]))
 
@@ -495,7 +504,17 @@ class StatusDetails(urwid.Pile):
 
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
-        created_at = status.created_at.strftime("%Y-%m-%d %H:%M")
+        edited = status.data["edited_at"]
+
+        # TODO: hacky implementation to avoid creating conflicts for existing
+        # pull reuqests, refactor when merged.
+        created_at = (
+            time_ago(status.created_at).ljust(3, " ")
+            if "--relative-datetimes" in sys.argv
+            else status.created_at.strftime("%Y-%m-%d %H:%M")
+        )
+
+        edited_flag = "*" if edited else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
@@ -503,6 +522,7 @@ class StatusListItem(SelectableColumns):
 
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
+            ("pack", urwid.Text(("blue", edited_flag))),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),

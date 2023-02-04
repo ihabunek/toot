@@ -13,7 +13,7 @@ from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
-from .overlays import StatusDeleteConfirmation
+from .overlays import StatusDeleteConfirmation, Account
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
 from .palette import convert_to_xterm_256_palette
@@ -79,10 +79,10 @@ class TUI(urwid.Frame):
     """Main TUI frame."""
 
     @classmethod
-    def create(cls, app, user):
+    def create(cls, app, user, args):
         """Factory method, sets up TUI and an event loop."""
 
-        tui = cls(app, user)
+        tui = cls(app, user, args)
         loop = urwid.MainLoop(
             tui,
             palette=PALETTE,
@@ -93,9 +93,10 @@ class TUI(urwid.Frame):
 
         return tui
 
-    def __init__(self, app, user):
+    def __init__(self, app, user, args):
         self.app = app
         self.user = user
+        self.args = args
         self.config = config.load_config()
 
         self.loop = None  # set in `create`
@@ -180,6 +181,9 @@ class TUI(urwid.Frame):
         return future
 
     def connect_default_timeline_signals(self, timeline):
+        def _account(timeline, account_id):
+            self.show_account(account_id)
+
         def _compose(*args):
             self.show_compose()
 
@@ -208,6 +212,7 @@ class TUI(urwid.Frame):
         def _clear(*args):
             self.clear_screen()
 
+        urwid.connect_signal(timeline, "account", _account)
         urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
         urwid.connect_signal(timeline, "compose", _compose)
         urwid.connect_signal(timeline, "delete", _delete)
@@ -509,6 +514,13 @@ class TUI(urwid.Frame):
 
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()
+
+    def show_account(self, account_id):
+        account = api.whois(self.app, self.user, account_id)
+        self.open_overlay(
+            widget=Account(account),
+            title="Account",
+        )
 
     def async_toggle_favourite(self, timeline, status):
         def _favourite():

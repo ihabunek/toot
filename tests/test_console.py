@@ -457,7 +457,8 @@ def test_whoami(mock_get, capsys):
         'note': 'A developer.',
         'statuses_count': 19,
         'url': 'https://mastodon.social/@ihabunek',
-        'username': 'ihabunek'
+        'username': 'ihabunek',
+        'fields': []
     })
 
     console.run_command(app, user, 'whoami', [])
