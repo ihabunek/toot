@@ -684,6 +684,7 @@ def main():
     if "--debug" in sys.argv:
         filename = os.getenv("TOOT_LOG_FILE")
         logging.basicConfig(level=logging.DEBUG, filename=filename)
+        logging.getLogger("urllib3").setLevel(logging.INFO)
 
     command_name = sys.argv[1] if len(sys.argv) > 1 else None
     args = sys.argv[2:]
