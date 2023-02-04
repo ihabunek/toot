@@ -205,12 +205,20 @@ class Help(urwid.Padding):
 
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
-    def __init__(self, account):
-        actions = list(self.generate_contents(account))
+    def __init__(self, account, relationship):
+        actions = list(self.generate_contents(account, relationship))
         walker = urwid.SimpleListWalker(actions)
         super().__init__(walker)
 
-    def generate_contents(self, account):
+    def generate_contents(self, account, relationship):
+        if relationship['requested']:
+            yield urwid.Text(("light grey", "< Follow request is pending >"))
+        else:
+            yield Button("Unfollow" if relationship['following'] else "Follow")
+        yield Button("Unmute" if relationship['muting'] else "Mute")
+        yield Button("Unblock" if relationship['blocking'] else "Block")
+        yield urwid.Divider("─")
+        yield urwid.Divider()
         yield urwid.Text([('green', f"@{account['acct']}"), f"  {account['display_name']}"])
 
         if account["note"]:
@@ -231,6 +239,12 @@ class Account(urwid.ListBox):
             yield urwid.Divider()
         if "suspended" in account and account["suspended"]:
             yield urwid.Text([("warning", "Suspended \N{cross mark}")])
+            yield urwid.Divider()
+        if relationship["followed_by"]:
+            yield urwid.Text(("green", "Follows you \N{busts in silhouette}"))
+            yield urwid.Divider()
+        if relationship["blocked_by"]:
+            yield urwid.Text(("warning", "Blocks you \N{no entry}"))
             yield urwid.Divider()
 
         yield urwid.Text(["Followers: ", ("yellow", f"{account['followers_count']}")])

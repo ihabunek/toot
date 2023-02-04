@@ -521,8 +521,9 @@ class TUI(urwid.Frame):
 
     def show_account(self, account_id):
         account = api.whois(self.app, self.user, account_id)
+        relationship = api.get_relationship(self.app, self.user, account_id)
         self.open_overlay(
-            widget=Account(account),
+            widget=Account(account, relationship),
             title="Account",
         )
 
