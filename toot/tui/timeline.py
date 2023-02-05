@@ -319,8 +319,8 @@ class StatusDetails(urwid.Pile):
         img = None
         aimg = urwid.BoxAdapter(urwid.SolidFill(" "), rows)
         if avatar_url:
-            if hasattr(self.status, "images"):
-                img = self.status.images.get(str(hash(avatar_url)))
+            if hasattr(self.timeline, "images"):
+                img = self.timeline.images.get(str(hash(avatar_url)))
             if img:
                 img = resize_image(5, img)
                 aimg = urwid.BoxAdapter(ANSIGraphicsWidget(img), rows)
@@ -374,8 +374,8 @@ class StatusDetails(urwid.Pile):
                             rows -= rows % 2
 
                             img = None
-                            if hasattr(self.status, "images"):
-                                img = self.status.images.get(str(hash(m["url"])))
+                            if hasattr(self.timeline, "images"):
+                                img = self.timeline.images.get(str(hash(m["url"])))
                             if img:
                                 img = resize_image(cols, img)
                                 yield (
@@ -463,8 +463,8 @@ class StatusDetails(urwid.Pile):
                 rows -= rows % 2
 
                 img = None
-                if hasattr(self.status, "images"):
-                    img = self.status.images.get(str(hash(card["image"])))
+                if hasattr(self.timeline, "images"):
+                    img = self.timeline.images.get(str(hash(card["image"])))
                 if img:
                     img = resize_image(cols, img)
                     yield ("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img), rows))

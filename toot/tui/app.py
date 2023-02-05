@@ -636,8 +636,8 @@ class TUI(urwid.Frame):
 
     def async_load_image(self, self2, timeline, status, path):
         def _load():
-            if not hasattr(status, "images"):
-                status.images = dict()
+            if not hasattr(timeline, "images"):
+                timeline.images = dict()
             img = Image.open(requests.get(path, stream=True).raw)
 
             if img.format == 'PNG' and img.mode != 'RGBA':
@@ -645,7 +645,7 @@ class TUI(urwid.Frame):
             if not truecolor:
                 img = convert_to_xterm_256_palette(img)
 
-            status.images[str(hash(path))] = img
+            timeline.images[str(hash(path))] = img
 
         def _done(loop):
             timeline.update_status(status)
