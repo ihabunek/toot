@@ -157,5 +157,7 @@ def resize_image(basewidth: int, baseheight: int, img: Image) -> Image:
         img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
     else:
         img = img.resize((basewidth, baseheight), Image.Resampling.LANCZOS)
-    img = img.convert('RGB')
+    if img.mode != 'P':
+        img = img.convert('RGB')
+
     return img
