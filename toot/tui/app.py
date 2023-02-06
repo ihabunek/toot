@@ -17,7 +17,6 @@ from .overlays import StatusDeleteConfirmation, Account
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
 from .palette import convert_to_xterm_256_palette
-
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -634,7 +633,7 @@ class TUI(urwid.Frame):
 
         return self.run_in_thread(_delete, done_callback=_done)
 
-    def async_load_image(self, self2, timeline, status, path):
+    def async_load_image(self, self2, timeline, status, path, placeholder_index):
         def _load():
             if not hasattr(timeline, "images"):
                 timeline.images = dict()
@@ -648,7 +647,7 @@ class TUI(urwid.Frame):
             timeline.images[str(hash(path))] = img
 
         def _done(loop):
-            timeline.update_status(status)
+            timeline.update_status_image(status, path, placeholder_index)
 
         return self.run_in_thread(_load, done_callback=_done)
 

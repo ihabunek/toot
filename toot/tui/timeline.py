@@ -293,6 +293,22 @@ class Timeline(urwid.Columns):
         if index == self.status_list.body.focus:
             self.draw_status_details(status)
 
+    def update_status_image(self, status, path, placeholder_index):
+        """Replace image placeholder with image widget and redraw"""
+        index = self.get_status_index(status.id)
+        assert self.statuses[index].id == status.id  # Sanity check
+
+        # get the image and replace the placeholder with a graphics widget
+        if hasattr(self, "images"):
+            img = self.images.get(str(hash(path)))
+        if img:
+            try:
+                img = resize_image(None, (status.placeholders[placeholder_index].height * 2) + 1, img)
+                status.placeholders[placeholder_index]._set_original_widget(ANSIGraphicsWidget(img))
+            except IndexError:
+                # ignore IndexErrors.  FIXME: some threading issue going on here, TBD find correct fix
+                pass
+
     def remove_status(self, status):
         index = self.get_status_index(status.id)
         assert self.statuses[index].id == status.id  # Sanity check
@@ -308,6 +324,8 @@ class StatusDetails(urwid.Pile):
         self.followed_tags = timeline.followed_tags
         self.timeline = timeline
 
+        self.status.placeholders = []
+
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
@@ -318,14 +336,16 @@ class StatusDetails(urwid.Pile):
         avatar_url = self.status.data["account"]["avatar_static"]
         img = None
         aimg = urwid.BoxAdapter(urwid.SolidFill(" "), rows)
+        self.status.placeholders.append(aimg)
         if avatar_url:
             if hasattr(self.timeline, "images"):
                 img = self.timeline.images.get(str(hash(avatar_url)))
             if img:
-                img = resize_image(5, img)
+                img = resize_image(5, None, img)
                 aimg = urwid.BoxAdapter(ANSIGraphicsWidget(img), rows)
             else:
-                self.timeline._emit("load-image", self.timeline, self.status, avatar_url)
+                self.timeline._emit("load-image", self.timeline, self.status, avatar_url,
+                len(self.status.placeholders) - 1)
 
         atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
                 ("pack", urwid.Text(("yellow", self.status.author.account)))])
@@ -377,14 +397,17 @@ class StatusDetails(urwid.Pile):
                             if hasattr(self.timeline, "images"):
                                 img = self.timeline.images.get(str(hash(m["url"])))
                             if img:
-                                img = resize_image(cols, img)
+                                img = resize_image(cols, None, img)
                                 yield (
                                     "pack",
                                     urwid.BoxAdapter(ANSIGraphicsWidget(img), rows),
                                 )
                             else:
-                                self.timeline._emit("load-image", self.timeline, self.status, m["url"])
-                                yield ("pack", urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows))
+                                placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
+                                self.status.placeholders.append(placeholder)
+                                self.timeline._emit("load-image", self.timeline, self.status, m["url"],
+                                len(self.status.placeholders) - 1)
+                                yield ("pack", placeholder)
                         yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.data.get("poll")
@@ -466,16 +489,15 @@ class StatusDetails(urwid.Pile):
                 if hasattr(self.timeline, "images"):
                     img = self.timeline.images.get(str(hash(card["image"])))
                 if img:
-                    img = resize_image(cols, img)
+                    img = resize_image(cols, None, img)
                     yield ("pack", urwid.BoxAdapter(ANSIGraphicsWidget(img), rows))
                 else:
+                    placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
+                    self.status.placeholders.append(placeholder)
                     self.timeline._emit(
-                        "load-image", self.timeline, self.status, card["image"]
-                    )
-                    yield (
-                        "pack",
-                        urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows),
-                    )
+                        "load-image", self.timeline, self.status, card["image"],
+                        len(self.status.placeholders) - 1)
+                    yield ("pack", placeholder)
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):

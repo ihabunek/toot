@@ -146,9 +146,16 @@ def parse_content_links(content):
     return parser.links[:]
 
 
-def resize_image(basewidth: int, img: Image) -> Image:
-    wpercent = (basewidth / float(img.size[0]))
-    hsize = int((float(img.size[1]) * float(wpercent)))
-    img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
+def resize_image(basewidth: int, baseheight: int, img: Image) -> Image:
+    if baseheight and not basewidth:
+        hpercent = baseheight / float(img.size[1])
+        width = math.ceil(img.size[0] * hpercent)
+        img = img.resize((width, baseheight), Image.Resampling.LANCZOS)
+    elif basewidth and not baseheight:
+        wpercent = (basewidth / float(img.size[0]))
+        hsize = int((float(img.size[1]) * float(wpercent)))
+        img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
+    else:
+        img = img.resize((basewidth, baseheight), Image.Resampling.LANCZOS)
     img = img.convert('RGB')
     return img
