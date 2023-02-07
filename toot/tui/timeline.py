@@ -333,7 +333,12 @@ class StatusDetails(urwid.Pile):
 
     def author_header(self):
         rows = 2
-        avatar_url = self.status.data["account"]["avatar_static"]
+
+        if self.status.reblog:
+            avatar_url = self.status.data["account"]["avatar_static"]
+        else:
+            avatar_url = self.status.original.data["account"]["avatar_static"]
+
         img = None
         aimg = urwid.BoxAdapter(urwid.SolidFill(" "), rows)
         self.status.placeholders.append(aimg)
@@ -347,8 +352,13 @@ class StatusDetails(urwid.Pile):
                 self.timeline._emit("load-image", self.timeline, self.status, avatar_url,
                 len(self.status.placeholders) - 1)
 
-        atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
-                ("pack", urwid.Text(("yellow", self.status.author.account)))])
+            if self.status.reblog:
+                atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.original.author.display_name))),
+                                   ("pack", urwid.Text(("yellow", self.status.original.author.account)))])
+            else:
+                atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
+                                   ("pack", urwid.Text(("yellow", self.status.author.account)))])
+
         c = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
         return c
 
