@@ -635,18 +635,23 @@ class TUI(urwid.Frame):
 
     def async_load_image(self, self2, timeline, status, path, placeholder_index):
         def _load():
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+
             if not hasattr(timeline, "images"):
                 timeline.images = dict()
             img = Image.open(requests.get(path, stream=True).raw)
-
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
             if not truecolor:
                 img = convert_to_xterm_256_palette(img)
-
             timeline.images[str(hash(path))] = img
 
         def _done(loop):
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
             timeline.update_status_image(status, path, placeholder_index)
 
         return self.run_in_thread(_load, done_callback=_done)

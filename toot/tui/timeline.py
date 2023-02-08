@@ -269,7 +269,7 @@ class Timeline(urwid.Columns):
 
     def get_status_index(self, id):
         # TODO: This is suboptimal, consider a better way
-        for n, status in enumerate(self.statuses):
+        for n, status in enumerate(self.statuses.copy()):
             if status.id == id:
                 return n
         raise ValueError("Status with ID {} not found".format(id))
@@ -295,9 +295,6 @@ class Timeline(urwid.Columns):
 
     def update_status_image(self, status, path, placeholder_index):
         """Replace image placeholder with image widget and redraw"""
-        index = self.get_status_index(status.id)
-        assert self.statuses[index].id == status.id  # Sanity check
-
         # get the image and replace the placeholder with a graphics widget
         if hasattr(self, "images"):
             img = self.images.get(str(hash(path)))
@@ -306,7 +303,7 @@ class Timeline(urwid.Columns):
                 img = resize_image(None, (status.placeholders[placeholder_index].height * 2) + 1, img)
                 status.placeholders[placeholder_index]._set_original_widget(ANSIGraphicsWidget(img))
             except IndexError:
-                # ignore IndexErrors.  FIXME: some threading issue going on here, TBD find correct fix
+                # ignore IndexErrors.  FIXME: some threading issue going on here
                 pass
 
     def remove_status(self, status):
