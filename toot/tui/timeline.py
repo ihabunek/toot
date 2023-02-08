@@ -332,9 +332,9 @@ class StatusDetails(urwid.Pile):
         rows = 2
 
         if self.status.reblog:
-            avatar_url = self.status.data["account"]["avatar_static"]
-        else:
             avatar_url = self.status.original.data["account"]["avatar_static"]
+        else:
+            avatar_url = self.status.data["account"]["avatar_static"]
 
         img = None
         aimg = urwid.BoxAdapter(urwid.SolidFill(" "), rows)
