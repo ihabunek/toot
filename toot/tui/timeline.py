@@ -320,8 +320,8 @@ class StatusDetails(urwid.Pile):
         self.status = status
         self.followed_tags = timeline.followed_tags
         self.timeline = timeline
-
-        self.status.placeholders = []
+        if self.status:
+            self.status.placeholders = []
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
