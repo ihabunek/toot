@@ -31,6 +31,7 @@ class Timeline(urwid.Columns):
         "media",         # Display media attachments
         "menu",          # Show a context menu
         "next",          # Fetch more statuses
+        "poll",          # Vote in a poll
         "reblog",        # Reblog status
         "reply",         # Compose a reply to a status
         "source",        # Show status source
@@ -102,6 +103,8 @@ class Timeline(urwid.Columns):
         if not status:
             return None
 
+        poll = status.data.get("poll")
+
         options = [
             "[A]ccount" if not status.is_mine else "",
             "[B]oost",
@@ -112,6 +115,7 @@ class Timeline(urwid.Columns):
             "[T]hread" if not self.is_thread else "",
             "[L]inks",
             "[R]eply",
+            "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
             "[Z]oom",
             "Tra[n]slate" if self.can_translate else "",
@@ -240,12 +244,18 @@ class Timeline(urwid.Columns):
                 self._emit("clear-screen")
             return
 
-        if key in ("p", "P"):
+        if key in ("e", "E"):
             self._emit("save", status)
             return
 
         if key in ("z", "Z"):
             self._emit("zoom", self.status_details)
+            return
+
+        if key in ("p", "P"):
+            poll = status.data.get("poll")
+            if poll and not poll["expired"]:
+                self._emit("poll", status)
             return
 
         return super().keypress(size, key)
