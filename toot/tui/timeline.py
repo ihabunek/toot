@@ -533,7 +533,7 @@ class StatusDetails(urwid.Pile):
 
 class StatusListItem(SelectableColumns):
     def __init__(self, status):
-        edited = status.data["edited_at"]
+        edited_at = status.data.get("edited_at")
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
@@ -543,7 +543,7 @@ class StatusListItem(SelectableColumns):
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 
-        edited_flag = "*" if edited else " "
+        edited_flag = "*" if edited_at else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
