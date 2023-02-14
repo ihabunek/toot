@@ -9,7 +9,7 @@ from toot.exceptions import ApiError
 
 from .compose import StatusComposer
 from .constants import PALETTE
-from .entities import Status
+from .entities import Status, from_dict
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
 from .timeline import Timeline
@@ -258,8 +258,9 @@ class TUI(urwid.Frame):
         return timeline
 
     def make_status(self, status_data):
-        is_mine = self.user.username == status_data["account"]["acct"]
-        return Status(status_data, is_mine, self.app.instance)
+        return from_dict(Status, status_data)
+        # is_mine = self.user.username == status_data["account"]["acct"]
+        # return Status(status_data, is_mine, self.app.instance)
 
     def show_thread(self, status):
         def _close(*args):
@@ -379,14 +380,15 @@ class TUI(urwid.Frame):
     def clear_screen(self):
         self.loop.screen.clear()
 
-    def show_links(self, status):
-        links = parse_content_links(status.data["content"]) if status else []
-        post_attachments = status.data["media_attachments"] or []
-        reblog_attachments = (status.data["reblog"]["media_attachments"] if status.data["reblog"] else None) or []
+    def show_links(self, status: Status):
+        links = parse_content_links(status.content)
+        post_attachments = status.media_attachments
+        reblog_attachments = status.reblog.media_attachments if status.reblog else []
 
-        for a in post_attachments + reblog_attachments:
-            url = a["remote_url"] or a["url"]
-            links.append((url, a["description"] if a["description"] else url))
+        for attachment in post_attachments + reblog_attachments:
+            url = attachment.remote_url or attachment.url
+            description = attachment.description if attachment.description else url
+            links.append((url, description))
 
         def _clear(*args):
             self.clear_screen()
@@ -536,7 +538,7 @@ class TUI(urwid.Frame):
             done_callback=_done
         )
 
-    def async_toggle_reblog(self, timeline, status):
+    def async_toggle_reblog(self, timeline: Timeline, status: Status):
         def _reblog():
             logger.info("Reblogging {}".format(status))
             api.reblog(self.app, self.user, status.id, visibility=get_default_visibility())

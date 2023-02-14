@@ -273,7 +273,7 @@ class Timeline(urwid.Columns):
         index = self.get_status_index(status.id)
         self.status_list.body.set_focus(index)
 
-    def update_status(self, status):
+    def update_status(self, status: Status):
         """Overwrite status in list with the new instance and redraw."""
         index = self.get_status_index(status.id)
         assert self.statuses[index].id == status.id  # Sanity check
