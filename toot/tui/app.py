@@ -662,6 +662,8 @@ class TUI(urwid.Frame):
     def close_overlay(self):
         self.body = self.overlay.bottom_w
         self.overlay = None
+        if self.timeline:
+            self.timeline.refresh_status_details()
 
     # --- Keys -----------------------------------------------------------------
 

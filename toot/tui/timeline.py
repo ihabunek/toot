@@ -66,11 +66,12 @@ class Timeline(urwid.Columns):
         ])
 
     def wrap_status_details(self, status_details: "StatusDetails") -> urwid.Widget:
-        """Wrap StatusDetails widget with a scollbar and footer."""
+        """Wrap StatusDetails widget with a scrollbar and footer."""
+        self.status_detail_scrollable = Scrollable(urwid.Padding(status_details, right=1))
         return urwid.Padding(
             urwid.Frame(
                 body=ScrollBar(
-                    Scrollable(urwid.Padding(status_details, right=1)),
+                    self.status_detail_scrollable,
                     thumb_char="\u2588",
                     trough_char="\u2591",
                 ),
@@ -152,7 +153,9 @@ class Timeline(urwid.Columns):
     def refresh_status_details(self):
         """Redraws the details of the focused status."""
         status = self.get_focused_status()
+        pos = self.status_detail_scrollable.get_scrollpos()
         self.draw_status_details(status)
+        self.status_detail_scrollable.set_scrollpos(pos)
 
     def draw_status_details(self, status):
         self.status_details = StatusDetails(self, status)
