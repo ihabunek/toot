@@ -104,7 +104,7 @@ class Timeline(urwid.Columns):
         if not status:
             return None
 
-        poll = status.data.get("poll")
+        poll = status.original.data.get("poll")
 
         options = [
             "[A]ccount" if not status.is_mine else "",
@@ -256,7 +256,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("p", "P"):
-            poll = status.data.get("poll")
+            poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
                 self._emit("poll", status)
             return
@@ -353,7 +353,7 @@ class StatusDetails(urwid.Pile):
                         yield ("pack", urwid.Text(m["description"]))
                     yield ("pack", urwid.Text(("link", m["url"])))
 
-            poll = status.data.get("poll")
+            poll = status.original.data.get("poll")
             if poll:
                 yield ("pack", urwid.Divider())
                 yield ("pack", self.build_linebox(self.poll_generator(poll)))

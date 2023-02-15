@@ -14,7 +14,7 @@ class Poll(urwid.ListBox):
         self.status = status
         self.app = app
         self.user = user
-        self.poll = status.data.get("poll")
+        self.poll = status.original.data.get("poll")
         self.button_group = []
         self.api_exception = None
         self.setup_listbox()
@@ -30,7 +30,7 @@ class Poll(urwid.ListBox):
         return urwid.LineBox(contents)
 
     def vote(self, button_widget):
-        poll = self.status.data.get("poll")
+        poll = self.status.original.data.get("poll")
         choices = []
         for idx, button in enumerate(self.button_group):
             if button.get_state():
@@ -39,7 +39,7 @@ class Poll(urwid.ListBox):
         if len(choices):
             try:
                 response = api.vote(self.app, self.user, poll["id"], choices=choices)
-                self.status.data["poll"] = response
+                self.status.original.data["poll"] = response
                 self.api_exception = None
                 self.poll["voted"] = True
                 self.poll["own_votes"] = choices
