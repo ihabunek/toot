@@ -361,7 +361,7 @@ def whois(app, user, account):
     return http.get(app, user, f'/api/v1/accounts/{account}').json()
 
 
-def vote(app, user, poll_id, choices: list):
+def vote(app, user, poll_id, choices: list[int]):
     url = f"/api/v1/polls/{poll_id}/votes"
     json = {'choices': choices}
     return http.post(app, user, url, json=json).json()
