@@ -4,7 +4,7 @@ from toot import api
 from toot.exceptions import ApiError
 from toot.utils import format_content
 from .utils import highlight_hashtags, parse_datetime
-from .widgets import Button
+from .widgets import Button, CheckBox, RadioButton
 
 
 class Poll(urwid.ListBox):
@@ -33,7 +33,7 @@ class Poll(urwid.ListBox):
         poll = self.status.data.get("poll")
         choices = []
         for idx, b in enumerate(self.button_group):
-            if b.state:
+            if b.get_state():
                 choices.append(idx)
 
         if len(choices):
@@ -62,11 +62,11 @@ class Poll(urwid.ListBox):
                     yield urwid.Text(("gray", prefix + f'{option["title"]}'))
                 else:
                     if poll["multiple"]:
-                        cb = urwid.CheckBox(f'{option["title"]}')
+                        cb = CheckBox(f'{option["title"]}')
                         self.button_group.append(cb)
                         yield cb
                     else:
-                        yield urwid.RadioButton(self.button_group, f'{option["title"]}')
+                        yield RadioButton(self.button_group, f'{option["title"]}')
 
             yield urwid.Divider()
 
