@@ -4,6 +4,7 @@ import urwid
 import webbrowser
 
 from toot import __version__
+from toot.tui.entities import Status
 from toot.utils import format_content
 from .utils import highlight_hashtags, highlight_keys
 from .widgets import Button, EditBox, SelectableText
@@ -11,7 +12,7 @@ from .widgets import Button, EditBox, SelectableText
 
 class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
-    def __init__(self, status):
+    def __init__(self, status: Status):
         self.source = json.dumps(status.data, indent=4)
         self.filename_edit = EditBox(caption="Filename: ", edit_text=f"status-{status.id}.json")
         self.status_text = urwid.Text("")
@@ -79,7 +80,7 @@ class ExceptionStackTrace(urwid.ListBox):
 class StatusDeleteConfirmation(urwid.ListBox):
     signals = ["delete", "close"]
 
-    def __init__(self, status):
+    def __init__(self, status: Status):
         yes = SelectableText("Yes, send it to heck")
         no = SelectableText("No, I'll spare it for now")
 

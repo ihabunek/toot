@@ -1,3 +1,7 @@
+"""
+Dataclasses which represent entities returned by the Mastodon API.
+"""
+
 import dataclasses
 
 from dataclasses import dataclass, is_dataclass
@@ -75,6 +79,9 @@ class Application:
 
 @dataclass
 class MediaAttachment:
+    """
+    https://docs.joinmastodon.org/entities/MediaAttachment/
+    """
     id: str
     type: str
     url: str
@@ -133,6 +140,9 @@ class Poll:
 
 @dataclass
 class PreviewCard:
+    """
+    https://docs.joinmastodon.org/entities/PreviewCard/
+    """
     url: str
     title: str
     description: str
@@ -181,6 +191,17 @@ class FilterResult:
 
 
 @dataclass
+class StatusMeta:
+    """
+    Additional information kept for a status.
+    """
+    show_sensitive: bool = False
+    show_translation: bool = False
+    translated_from: Optional[str] = None
+    translation: Optional[str] = None
+
+
+@dataclass
 class Status:
     id: str
     uri: str
@@ -214,25 +235,11 @@ class Status:
     pinned: Optional[bool]
     filtered: Optional[List[FilterResult]]
 
+    _meta: StatusMeta = dataclasses.field(default_factory=StatusMeta)
+
     @property
     def original(self) -> "Status":
         return self.reblog or self
-
-
-@dataclass
-class InstanceV2:
-    domain: str
-    title: str
-    version: str
-    source_url: str
-    description: str
-    usage: dict  # TODO expand
-    thumbnail: dict  # TODO expand
-    languages: List[str]
-    configuration: dict  # TODO expand
-    registrations: dict  # TODO expand
-    contact: dict  # TODO expand
-    rules: List[dict]  # TODO expand
 
 
 # Generic data class instance

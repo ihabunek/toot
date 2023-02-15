@@ -5,7 +5,7 @@ import webbrowser
 
 from typing import Optional
 
-from .entities import Status
+from .entities import Account, Poll, PreviewCard, Status
 from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
@@ -302,36 +302,38 @@ class StatusDetails(urwid.Pile):
         self.status = status
         self.followed_tags = timeline.followed_tags
 
-        reblogged_by = status.author if status and status.reblog else None
+        reblogged_by = status.account if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
         return super().__init__(widget_list)
 
-    def content_generator(self, status, reblogged_by):
+    def content_generator(self, status: Status, reblogged_by: Account):
+        meta = status._meta
+
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
             yield ("pack", urwid.Text(("gray", text)))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
-        if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
+        if status.account.display_name:
+            yield ("pack", urwid.Text(("green", status.account.display_name)))
 
-        yield ("pack", urwid.Text(("yellow", status.author.account)))
+        yield ("pack", urwid.Text(("yellow", status.account.acct)))
         yield ("pack", urwid.Divider())
 
-        if status.data["spoiler_text"]:
-            yield ("pack", urwid.Text(status.data["spoiler_text"]))
+        if status.spoiler_text:
+            yield ("pack", urwid.Text(status.spoiler_text))
             yield ("pack", urwid.Divider())
 
         # Show content warning
-        if status.data["spoiler_text"] and not status.show_sensitive:
+        if status.spoiler_text and not meta.show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
-            content = status.translation if status.show_translation else status.data["content"]
+            content = meta.translation if meta.show_translation else status.content
             for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
 
-            media = status.data["media_attachments"]
+            media = status.media_attachments
             if media:
                 for m in media:
                     yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
@@ -340,24 +342,21 @@ class StatusDetails(urwid.Pile):
                         yield ("pack", urwid.Text(m["description"]))
                     yield ("pack", urwid.Text(("link", m["url"])))
 
-            poll = status.data.get("poll")
-            if poll:
+            if status.poll:
                 yield ("pack", urwid.Divider())
-                yield ("pack", self.build_linebox(self.poll_generator(poll)))
+                yield ("pack", self.build_linebox(self.poll_generator(status.poll)))
 
-            card = status.data.get("card")
-            if card:
+            if status.card:
                 yield ("pack", urwid.Divider())
-                yield ("pack", self.build_linebox(self.card_generator(card)))
+                yield ("pack", self.build_linebox(self.card_generator(status.card)))
 
-        application = status.data.get("application") or {}
-        application = application.get("name")
+        application_name = status.application.name if status.application else None
 
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
 
         translated_from = (
-            language_name(status.translated_from)
-            if status.show_translation and status.translated_from
+            language_name(meta.translated_from)
+            if meta.show_translation and meta.translated_from
             else None
         )
 
@@ -379,7 +378,7 @@ class StatusDetails(urwid.Pile):
             ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
             (visibility_color, f" · {visibility}"),
             ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
-            ("gray", f" · {application}" if application else ""),
+            ("gray", f" · {application_name}" if application_name else ""),
         ]))
 
         # Push things to bottom
@@ -390,45 +389,44 @@ class StatusDetails(urwid.Pile):
         contents = urwid.Padding(contents, left=1, right=1)
         return urwid.LineBox(contents)
 
-    def card_generator(self, card):
-        yield urwid.Text(("green", card["title"].strip()))
-        if card.get("author_name"):
-            yield urwid.Text(["by ", ("yellow", card["author_name"].strip())])
+    def card_generator(self, card: PreviewCard):
+        yield urwid.Text(("green", card.title.strip()))
+        if card.author_name:
+            yield urwid.Text(["by ", ("yellow", card.author_name.strip())])
         yield urwid.Text("")
-        if card["description"]:
-            yield urwid.Text(card["description"].strip())
+        if card.description:
+            yield urwid.Text(card.description.strip())
             yield urwid.Text("")
-        yield urwid.Text(("link", card["url"]))
+        yield urwid.Text(("link", card.url))
 
-    def poll_generator(self, poll):
-        for idx, option in enumerate(poll["options"]):
-            perc = (round(100 * option["votes_count"] / poll["votes_count"])
-                if poll["votes_count"] else 0)
+    def poll_generator(self, poll: Poll):
+        for idx, option in enumerate(poll.options):
+            option_votes_count = option.votes_count or 0
+            perc = (round(100 * option_votes_count / poll.votes_count)
+                if poll.votes_count else 0)
 
-            if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
+            if poll.voted and poll.own_votes and idx in poll.own_votes:
                 voted_for = " ✓"
             else:
                 voted_for = ""
 
-            yield urwid.Text(option["title"] + voted_for)
+            yield urwid.Text(option.title + voted_for)
             yield urwid.ProgressBar("", "poll_bar", perc)
 
-        status = "Poll · {} votes".format(poll["votes_count"])
+        status = "Poll · {} votes".format(poll.votes_count)
 
-        if poll["expired"]:
+        if poll.expired:
             status += " · Closed"
 
-        if poll["expires_at"]:
-            expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
+        if poll.expires_at:
+            expires_at = poll.expires_at.strftime("%Y-%m-%d %H:%M")
             status += " · Closes on {}".format(expires_at)
 
         yield urwid.Text(("gray", status))
 
 
 class StatusListItem(SelectableColumns):
-    def __init__(self, status):
-        edited_at = status.data.get("edited_at")
-
+    def __init__(self, status: Status):
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
         created_at = (
@@ -437,11 +435,14 @@ class StatusListItem(SelectableColumns):
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 
-        edited_flag = "*" if edited_at else " "
+        edited_flag = "*" if status.edited_at else " "
         favourited = ("yellow", "★") if status.original.favourited else " "
         reblogged = ("yellow", "♺") if status.original.reblogged else " "
         is_reblog = ("cyan", "♺") if status.reblog else " "
-        is_reply = ("cyan", "⤶") if status.original.in_reply_to else " "
+        is_reply = ("cyan", "⤶") if status.original.in_reply_to_id else " "
+
+        # TODO: Add server name for home accounts?
+        account = status.original.account.acct
 
         return super().__init__([
             ("pack", SelectableText(("blue", created_at), wrap="clip")),
@@ -451,7 +452,7 @@ class StatusListItem(SelectableColumns):
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
-            urwid.Text(("green", status.original.account), wrap="clip"),
+            urwid.Text(("green", account), wrap="clip"),
             ("pack", urwid.Text(is_reply)),
             ("pack", urwid.Text(is_reblog)),
             ("pack", urwid.Text(" ")),
