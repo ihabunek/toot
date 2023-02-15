@@ -51,38 +51,37 @@ class Poll(urwid.ListBox):
     def generate_poll_detail(self):
         poll = self.poll
 
-        if poll:
-            self.button_group = []  # button group
-            for idx, option in enumerate(poll["options"]):
-                voted_for = (
-                    poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]
-                )
+        self.button_group = []  # button group
+        for idx, option in enumerate(poll["options"]):
+            voted_for = (
+                poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]
+            )
 
-                if poll["voted"] or poll["expired"]:
-                    prefix = " ✓  " if voted_for else "    "
-                    yield urwid.Text(("gray", prefix + f'{option["title"]}'))
+            if poll["voted"] or poll["expired"]:
+                prefix = " ✓  " if voted_for else "    "
+                yield urwid.Text(("gray", prefix + f'{option["title"]}'))
+            else:
+                if poll["multiple"]:
+                    checkbox = CheckBox(f'{option["title"]}')
+                    self.button_group.append(checkbox)
+                    yield checkbox
                 else:
-                    if poll["multiple"]:
-                        checkbox = CheckBox(f'{option["title"]}')
-                        self.button_group.append(checkbox)
-                        yield checkbox
-                    else:
-                        yield RadioButton(self.button_group, f'{option["title"]}')
+                    yield RadioButton(self.button_group, f'{option["title"]}')
 
-            yield urwid.Divider()
+        yield urwid.Divider()
 
-            poll_detail = "Poll · {} votes".format(poll["votes_count"])
+        poll_detail = "Poll · {} votes".format(poll["votes_count"])
 
-            if poll["expired"]:
-                poll_detail += " · Closed"
+        if poll["expired"]:
+            poll_detail += " · Closed"
 
-            if poll["expires_at"]:
-                expires_at = parse_datetime(poll["expires_at"]).strftime(
-                    "%Y-%m-%d %H:%M"
-                )
-                poll_detail += " · Closes on {}".format(expires_at)
+        if poll["expires_at"]:
+            expires_at = parse_datetime(poll["expires_at"]).strftime(
+                "%Y-%m-%d %H:%M"
+            )
+            poll_detail += " · Closes on {}".format(expires_at)
 
-            yield urwid.Text(("gray", poll_detail))
+        yield urwid.Text(("gray", poll_detail))
 
     def generate_contents(self, status):
         yield urwid.Divider()
