@@ -328,10 +328,10 @@ class StatusDetails(urwid.Pile):
             if status else ())
         return super().__init__(widget_list)
 
-    def author_header(self):
+    def author_header(self, reblogged_by):
         rows = 2
 
-        if self.status.reblog:
+        if reblogged_by:
             avatar_url = self.status.original.data["account"]["avatar_static"]
         else:
             avatar_url = self.status.data["account"]["avatar_static"]
@@ -349,15 +349,15 @@ class StatusDetails(urwid.Pile):
                 self.timeline._emit("load-image", self.timeline, self.status, avatar_url,
                 len(self.status.placeholders) - 1)
 
-            if self.status.reblog:
+            if reblogged_by:
                 atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.original.author.display_name))),
                                    ("pack", urwid.Text(("yellow", self.status.original.author.account)))])
             else:
                 atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
                                    ("pack", urwid.Text(("yellow", self.status.author.account)))])
 
-        c = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
-        return c
+        columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        return columns
 
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
@@ -365,7 +365,7 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("gray", text)))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
-        yield self.author_header()
+        yield self.author_header(reblogged_by)
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
