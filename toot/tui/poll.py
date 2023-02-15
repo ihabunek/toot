@@ -16,7 +16,7 @@ class Poll(urwid.ListBox):
         self.user = user
         self.poll = status.data.get("poll")
         self.button_group = []
-
+        self.api_exception = None
         self.setup_listbox()
 
     def setup_listbox(self):
@@ -29,25 +29,26 @@ class Poll(urwid.ListBox):
         contents = urwid.Padding(contents, left=1, right=1)
         return urwid.LineBox(contents)
 
-    def vote(self, button):
+    def vote(self, button_widget):
         poll = self.status.data.get("poll")
         choices = []
-        for idx, b in enumerate(self.button_group):
-            if b.get_state():
+        for idx, button in enumerate(self.button_group):
+            if button.get_state():
                 choices.append(idx)
 
         if len(choices):
             try:
                 response = api.vote(self.app, self.user, poll["id"], choices=choices)
                 self.status.data["poll"] = response
+                self.api_exception = None
                 self.poll["voted"] = True
                 self.poll["own_votes"] = choices
-            except ApiError:
-                pass  # FIXME error reporting?
+            except ApiError as exception:
+                self.api_exception = exception
             finally:
                 self.setup_listbox()
 
-    def generate_poll_detail(self, status):
+    def generate_poll_detail(self):
         poll = self.poll
 
         if poll:
@@ -62,9 +63,9 @@ class Poll(urwid.ListBox):
                     yield urwid.Text(("gray", prefix + f'{option["title"]}'))
                 else:
                     if poll["multiple"]:
-                        cb = CheckBox(f'{option["title"]}')
-                        self.button_group.append(cb)
-                        yield cb
+                        checkbox = CheckBox(f'{option["title"]}')
+                        self.button_group.append(checkbox)
+                        yield checkbox
                     else:
                         yield RadioButton(self.button_group, f'{option["title"]}')
 
@@ -86,13 +87,17 @@ class Poll(urwid.ListBox):
     def generate_contents(self, status):
         yield urwid.Divider()
         for line in format_content(status.data["content"]):
-            yield (urwid.Text(highlight_hashtags(line, set())))
+            yield urwid.Text(highlight_hashtags(line, set()))
 
         yield urwid.Divider()
-        yield (self.build_linebox(self.generate_poll_detail(status)))
+        yield self.build_linebox(self.generate_poll_detail())
         yield urwid.Divider()
 
         if self.poll["voted"]:
             yield urwid.Text(("grey", "< Already Voted >"))
         elif not self.poll["expired"]:
             yield Button("Vote", on_press=self.vote)
+
+        if self.api_exception:
+            yield urwid.Divider()
+            yield urwid.Text("warning", str(self.api_exception))
