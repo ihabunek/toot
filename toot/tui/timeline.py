@@ -3,7 +3,7 @@ import sys
 import urwid
 import webbrowser
 
-from typing import Optional
+from typing import List, Optional
 
 from .entities import Account, Poll, PreviewCard, Status
 from .scroll import Scrollable, ScrollBar
@@ -121,7 +121,7 @@ class Timeline(urwid.Columns):
         options = highlight_keys(options, "white_bold", "cyan")
         return urwid.Text(options)
 
-    def get_focused_status(self):
+    def get_focused_status(self) -> Optional[Status]:
         try:
             return self.statuses[self.status_list.body.focus]
         except TypeError:
@@ -172,7 +172,7 @@ class Timeline(urwid.Columns):
                 self._emit("next")
 
         if key in ("a", "A"):
-            self._emit("account", status.original.data['account']['id'])
+            self._emit("account", status.original.account.id)
             return
 
         if key in ("b", "B"):
@@ -208,7 +208,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("s", "S"):
-            status.original.show_sensitive = True
+            status._meta.show_sensitive = True
             self.refresh_status_details()
             return
 
@@ -250,26 +250,26 @@ class Timeline(urwid.Columns):
 
         return super().keypress(size, key)
 
-    def append_status(self, status):
+    def append_status(self, status: Status):
         self.statuses.append(status)
         self.status_list.body.append(self.build_list_item(status))
 
-    def prepend_status(self, status):
+    def prepend_status(self, status: Status):
         self.statuses.insert(0, status)
         self.status_list.body.insert(0, self.build_list_item(status))
 
-    def append_statuses(self, statuses):
+    def append_statuses(self, statuses: List[Status]):
         for status in statuses:
             self.append_status(status)
 
-    def get_status_index(self, id):
+    def get_status_index(self, id: str) -> int:
         # TODO: This is suboptimal, consider a better way
         for n, status in enumerate(self.statuses):
             if status.id == id:
                 return n
         raise ValueError("Status with ID {} not found".format(id))
 
-    def focus_status(self, status):
+    def focus_status(self, status: Status):
         index = self.get_status_index(status.id)
         self.status_list.body.set_focus(index)
 
@@ -307,9 +307,7 @@ class StatusDetails(urwid.Pile):
             if status else ())
         return super().__init__(widget_list)
 
-    def content_generator(self, status: Status, reblogged_by: Account):
-        meta = status._meta
-
+    def content_generator(self, status: Status, reblogged_by: Optional[Account]):
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
             yield ("pack", urwid.Text(("gray", text)))
@@ -324,6 +322,8 @@ class StatusDetails(urwid.Pile):
         if status.spoiler_text:
             yield ("pack", urwid.Text(status.spoiler_text))
             yield ("pack", urwid.Divider())
+
+        meta = status._meta
 
         # Show content warning
         if status.spoiler_text and not meta.show_sensitive:
@@ -373,9 +373,9 @@ class StatusDetails(urwid.Pile):
         yield ("pack", urwid.Text([
             ("blue", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
             ("red" if status.bookmarked else "gray", "🠷 "),
-            ("gray", f"⤶ {status.data['replies_count']} "),
-            ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
-            ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            ("gray", f"⤶ {status.replies_count} "),
+            ("yellow" if status.reblogged else "gray", f"♺ {status.reblogs_count} "),
+            ("yellow" if status.favourited else "gray", f"★ {status.favourites_count}"),
             (visibility_color, f" · {visibility}"),
             ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
             ("gray", f" · {application_name}" if application_name else ""),

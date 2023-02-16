@@ -203,6 +203,9 @@ class StatusMeta:
 
 @dataclass
 class Status:
+    """
+    https://docs.joinmastodon.org/entities/Status/
+    """
     id: str
     uri: str
     created_at: datetime
@@ -250,12 +253,23 @@ def from_dict(cls: Type[T], data: Dict) -> T:
     def _fields():
         hints = get_type_hints(cls)
         for field in dataclasses.fields(cls):
-            default = field.default if field.default is not dataclasses.MISSING else None
-            field_type = prune_optional(hints[field.name])
-            value = data.get(field.name, default)
-            yield convert(field_type, value)
+            if not field.name.startswith("_"):
+                field_type = prune_optional(hints[field.name])
+                default_value = get_default_value(field)
+                value = data.get(field.name, default_value)
+                yield convert(field_type, value)
 
     return cls(*_fields())
+
+
+def get_default_value(field):
+    if field.default is not dataclasses.MISSING:
+        return field.default
+
+    if field.default_factory is not dataclasses.MISSING:
+        return field.default_factory()
+
+    return None
 
 
 def convert(field_type, value):
