@@ -102,10 +102,13 @@ class Timeline(urwid.Columns):
         if not status:
             return None
 
+        assert status._meta
+        is_mine = status._meta.is_mine
+
         options = [
-            "[A]ccount" if not status.is_mine else "",
+            "[A]ccount" if not is_mine else "",
             "[B]oost",
-            "[D]elete" if status.is_mine else "",
+            "[D]elete" if is_mine else "",
             "B[o]okmark",
             "[F]avourite",
             "[V]iew",
@@ -303,11 +306,15 @@ class StatusDetails(urwid.Pile):
         self.followed_tags = timeline.followed_tags
 
         reblogged_by = status.account if status and status.reblog else None
-        widget_list = list(self.content_generator(status.original, reblogged_by)
+        widget_list = list(self.content_generator(status, reblogged_by)
             if status else ())
         return super().__init__(widget_list)
 
     def content_generator(self, status: Status, reblogged_by: Optional[Account]):
+        assert status._meta
+        meta = status._meta
+        status = status.original
+
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
             yield ("pack", urwid.Text(("gray", text)))
@@ -323,8 +330,6 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(status.spoiler_text))
             yield ("pack", urwid.Divider())
 
-        meta = status._meta
-
         # Show content warning
         if status.spoiler_text and not meta.show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
@@ -333,14 +338,12 @@ class StatusDetails(urwid.Pile):
             for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
 
-            media = status.media_attachments
-            if media:
-                for m in media:
-                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
-                    yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
-                    if m["description"]:
-                        yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+            for m in status.media_attachments:
+                yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                yield ("pack", urwid.Text([("bold", "Media attachment"), f" ({m.type})"]))
+                if m.description:
+                    yield ("pack", urwid.Text(m.description))
+                yield ("pack", urwid.Text(("link", m.url)))
 
             if status.poll:
                 yield ("pack", urwid.Divider())

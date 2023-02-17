@@ -1,4 +1,5 @@
 import logging
+from typing import List
 import urwid
 
 from concurrent.futures import ThreadPoolExecutor
@@ -9,7 +10,7 @@ from toot.exceptions import ApiError
 
 from .compose import StatusComposer
 from .constants import PALETTE
-from .entities import Status, from_dict
+from .entities import Status, StatusMeta, from_dict
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
 from .timeline import Timeline
@@ -182,7 +183,7 @@ class TUI(urwid.Frame):
             self.show_compose()
 
         def _delete(timeline, status):
-            if status.is_mine:
+            if status._meta.is_mine:
                 self.show_delete_confirmation(status)
 
         def _reply(timeline, status):
@@ -258,9 +259,9 @@ class TUI(urwid.Frame):
         return timeline
 
     def make_status(self, status_data):
-        return from_dict(Status, status_data)
-        # is_mine = self.user.username == status_data["account"]["acct"]
-        # return Status(status_data, is_mine, self.app.instance)
+        status = from_dict(Status, status_data)
+        status._meta = StatusMeta(status, self.app, self.user)
+        return status
 
     def show_thread(self, status):
         def _close(*args):
@@ -307,10 +308,11 @@ class TUI(urwid.Frame):
             self.refresh_footer(self.timeline)
             self.body = self.timeline
 
-        def _done_next(statuses):
+        def _done_next(statuses: List[Status]):
             """Process sequential batch of statuses, adds statuses to the
             existing timeline."""
-            self.timeline.append_statuses(statuses)
+            if self.timeline:
+                self.timeline.append_statuses(statuses)
 
         return self.run_in_thread(_load_statuses,
             done_callback=_done_initial if is_initial else _done_next)
@@ -517,7 +519,7 @@ class TUI(urwid.Frame):
             title="Account",
         )
 
-    def async_toggle_favourite(self, timeline, status):
+    def async_toggle_favourite(self, timeline: Timeline, status: Status):
         def _favourite():
             logger.info("Favouriting {}".format(status))
             api.favourite(self.app, self.user, status.id)
@@ -555,7 +557,7 @@ class TUI(urwid.Frame):
             timeline.update_status(new_status)
 
         # Check if status is rebloggable
-        no_reblog_because_private = status.visibility == "private" and not status.is_mine
+        no_reblog_because_private = status.visibility == "private" and not status._meta.is_mine
         no_reblog_because_direct = status.visibility == "direct"
         if no_reblog_because_private or no_reblog_because_direct:
             self.footer.set_error_message("You may not reblog this {} status".format(status.visibility))
@@ -587,9 +589,9 @@ class TUI(urwid.Frame):
 
         def _done(response):
             if response is not None:
-                status.translation = response["content"]
-                status.translated_from = response["detected_source_language"]
-                status.show_translation = True
+                status._meta.translation = response["content"]
+                status._meta.translated_from = response["detected_source_language"]
+                status._meta.show_translation = True
                 timeline.update_status(status)
 
         # If already translated, toggle showing translation
@@ -599,7 +601,7 @@ class TUI(urwid.Frame):
         else:
             self.run_in_thread(_translate, done_callback=_done)
 
-    def async_toggle_bookmark(self, timeline, status):
+    def async_toggle_bookmark(self, timeline: Timeline, status: Status):
         def _bookmark():
             logger.info("Bookmarking {}".format(status))
             api.bookmark(self.app, self.user, status.id)

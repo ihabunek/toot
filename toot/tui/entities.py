@@ -8,6 +8,7 @@ from dataclasses import dataclass, is_dataclass
 from datetime import date, datetime
 from typing import Dict, List, Optional, Type, TypeVar, Union
 from typing import get_type_hints
+from toot import App, User
 
 from toot.typing_compat import get_args, get_origin
 from toot.utils import get_text
@@ -190,15 +191,18 @@ class FilterResult:
     status_matches: Optional[str]
 
 
-@dataclass
 class StatusMeta:
     """
     Additional information kept for a status.
     """
+    is_mine: bool
     show_sensitive: bool = False
     show_translation: bool = False
     translated_from: Optional[str] = None
     translation: Optional[str] = None
+
+    def __init__(self, status: "Status", app: App, user: User):
+        self.is_mine = user.username == status.account.acct
 
 
 @dataclass
@@ -238,7 +242,8 @@ class Status:
     pinned: Optional[bool]
     filtered: Optional[List[FilterResult]]
 
-    _meta: StatusMeta = dataclasses.field(default_factory=StatusMeta)
+    # Added by TUI for storing some context
+    _meta: Optional[StatusMeta] = None
 
     @property
     def original(self) -> "Status":
