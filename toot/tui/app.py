@@ -12,6 +12,7 @@ from .constants import PALETTE
 from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
+from .poll import Poll
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
 
@@ -155,7 +156,7 @@ class TUI(urwid.Frame):
 
         def _default_error_callback(ex):
             self.exception = ex
-            self.footer.set_error_message("An exception occurred, press E to view")
+            self.footer.set_error_message("An exception occurred, press X to view")
 
         _error_callback = error_callback or _default_error_callback
 
@@ -200,6 +201,9 @@ class TUI(urwid.Frame):
         def _menu(timeline, status):
             self.show_context_menu(status)
 
+        def _poll(timeline, status):
+            self.show_poll(status)
+
         def _zoom(timeline, status_details):
             self.show_status_zoom(status_details)
 
@@ -214,6 +218,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "focus", self.refresh_footer)
         urwid.connect_signal(timeline, "media", _media)
         urwid.connect_signal(timeline, "menu", _menu)
+        urwid.connect_signal(timeline, "poll", _poll)
         urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
         urwid.connect_signal(timeline, "reply", _reply)
         urwid.connect_signal(timeline, "source", _source)
@@ -445,6 +450,12 @@ class TUI(urwid.Frame):
     def show_help(self):
         self.open_overlay(Help(), title="Help")
 
+    def show_poll(self, status):
+        self.open_overlay(
+            widget=Poll(self.app, self.user, status),
+            title="Poll",
+        )
+
     def goto_home_timeline(self):
         self.timeline_generator = api.home_timeline_generator(
             self.app, self.user, limit=40)
@@ -651,12 +662,14 @@ class TUI(urwid.Frame):
     def close_overlay(self):
         self.body = self.overlay.bottom_w
         self.overlay = None
+        if self.timeline:
+            self.timeline.refresh_status_details()
 
     # --- Keys -----------------------------------------------------------------
 
     def unhandled_input(self, key):
         # TODO: this should not be in unhandled input
-        if key in ('e', 'E'):
+        if key in ('x', 'X'):
             if self.exception:
                 self.show_exception(self.exception)
 
