@@ -7,6 +7,7 @@ from toot import __version__
 from toot.utils import format_content
 from .utils import highlight_hashtags, highlight_keys
 from .widgets import Button, EditBox, SelectableText
+from toot import api
 
 
 class StatusSource(urwid.Padding):
@@ -205,12 +206,37 @@ class Help(urwid.Padding):
 
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
-    def __init__(self, account):
-        actions = list(self.generate_contents(account))
+    def __init__(self, app, user, account, relationship):
+        self.app = app
+        self.user = user
+        self.account = account
+        self.relationship = relationship
+        self.last_action = None
+        self.setup_listbox()
+
+    def setup_listbox(self):
+        actions = list(self.generate_contents(self.account, self.relationship, self.last_action))
         walker = urwid.SimpleListWalker(actions)
         super().__init__(walker)
 
-    def generate_contents(self, account):
+    def generate_contents(self, account, relationship=None, last_action=None):
+        if self.last_action and not self.last_action.startswith("Confirm"):
+            yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
+            yield Button("Cancel", on_press=cancel_action, user_data=self)
+        else:
+            if relationship['requested']:
+                yield urwid.Text(("light grey", "< Follow request is pending >"))
+            else:
+                yield Button("Unfollow" if relationship['following'] else "Follow",
+                on_press=confirm_action, user_data=self)
+
+            yield Button("Unmute" if relationship['muting'] else "Mute",
+                on_press=confirm_action, user_data=self)
+            yield Button("Unblock" if relationship['blocking'] else "Block",
+                on_press=confirm_action, user_data=self)
+
+        yield urwid.Divider("─")
+        yield urwid.Divider()
         yield urwid.Text([('green', f"@{account['acct']}"), f"  {account['display_name']}"])
 
         if account["note"]:
@@ -232,6 +258,12 @@ class Account(urwid.ListBox):
         if "suspended" in account and account["suspended"]:
             yield urwid.Text([("warning", "Suspended \N{cross mark}")])
             yield urwid.Divider()
+        if relationship["followed_by"]:
+            yield urwid.Text(("green", "Follows you \N{busts in silhouette}"))
+            yield urwid.Divider()
+        if relationship["blocked_by"]:
+            yield urwid.Text(("warning", "Blocks you \N{no entry}"))
+            yield urwid.Divider()
 
         yield urwid.Text(["Followers: ", ("yellow", f"{account['followers_count']}")])
         yield urwid.Text(["Following: ", ("yellow", f"{account['following_count']}")])
@@ -249,6 +281,36 @@ class Account(urwid.ListBox):
 
         yield urwid.Divider()
         yield link("", account["url"])
+
+
+def take_action(button: Button, self: Account):
+    action = button.get_label()
+
+    if action == "Confirm Follow":
+        self.relationship = api.follow(self.app, self.user, self.account["id"])
+    elif action == "Confirm Unfollow":
+        self.relationship = api.unfollow(self.app, self.user, self.account["id"])
+    elif action == "Confirm Mute":
+        self.relationship = api.mute(self.app, self.user, self.account["id"])
+    elif action == "Confirm Unmute":
+        self.relationship = api.unmute(self.app, self.user, self.account["id"])
+    elif action == "Confirm Block":
+        self.relationship = api.block(self.app, self.user, self.account["id"])
+    elif action == "Confirm Unblock":
+        self.relationship = api.unblock(self.app, self.user, self.account["id"])
+
+    self.last_action = None
+    self.setup_listbox()
+
+
+def confirm_action(button: Button, self: Account):
+    self.last_action = button.get_label()
+    self.setup_listbox()
+
+
+def cancel_action(button: Button, self: Account):
+    self.last_action = None
+    self.setup_listbox()
 
 
 def link(text, url):

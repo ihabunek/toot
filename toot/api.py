@@ -369,6 +369,11 @@ def vote(app, user, poll_id, choices: List[int]):
     return http.post(app, user, url, json=json).json()
 
 
+def get_relationship(app, user, account):
+    params = {"id[]": account}
+    return http.get(app, user, '/api/v1/accounts/relationships', params).json()[0]
+
+
 def mute(app, user, account):
     return _account_action(app, user, account, 'mute')
 
