@@ -9,7 +9,7 @@ from toot.output import (print_out, print_instance, print_account, print_acct_li
                          print_search_results, print_timeline, print_notifications,
                          print_tag_list)
 from toot.tui.utils import parse_datetime
-from toot.utils import editor_input, multiline_input, EOF_KEY
+from toot.utils import delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
 
 def get_timeline_generator(app, user, args):
@@ -110,6 +110,8 @@ def post(app, user, args):
         print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
     else:
         print_out(f"Toot posted: <green>{response['url']}")
+
+    delete_tmp_status_file()
 
 
 def _get_status_text(text, editor):
