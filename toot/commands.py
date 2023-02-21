@@ -233,6 +233,41 @@ def env(app, user, args):
     print_out(platform.platform())
 
 
+def update_account(app, user, args):
+    options = [
+        args.avatar,
+        args.bot,
+        args.discoverable,
+        args.display_name,
+        args.header,
+        args.language,
+        args.locked,
+        args.note,
+        args.privacy,
+        args.sensitive,
+    ]
+
+    if all(option is None for option in options):
+        raise ConsoleError("Please specify at least one option to update the account")
+
+    api.update_account(
+        app,
+        user,
+        avatar=args.avatar,
+        bot=args.bot,
+        discoverable=args.discoverable,
+        display_name=args.display_name,
+        header=args.header,
+        language=args.language,
+        locked=args.locked,
+        note=args.note,
+        privacy=args.privacy,
+        sensitive=args.sensitive,
+    )
+
+    print_out("<green>✓ Account updated</green>")
+
+
 def login_cli(app, user, args):
     app = create_app_interactive(instance=args.instance, scheme=args.scheme)
     login_interactive(app, args.email)

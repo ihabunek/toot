@@ -80,6 +80,18 @@ def post(app, user, path, headers=None, files=None, data=None, json=None, allow_
     return anon_post(url, headers=headers, files=files, data=data, json=json, allow_redirects=allow_redirects)
 
 
+def patch(app, user, path, headers=None, files=None, data=None, json=None):
+    url = app.base_url + path
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
+
+    request = Request('PATCH', url, headers=headers, files=files, data=data, json=json)
+    response = send_request(request)
+
+    return process_response(response)
+
+
 def delete(app, user, path, data=None, headers=None):
     url = app.base_url + path
 

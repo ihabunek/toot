@@ -16,6 +16,11 @@ def str_bool(b):
     return "true" if b else "false"
 
 
+def str_bool_nullable(b):
+    """Similar to str_bool, but leave None as None"""
+    return None if b is None else str_bool(b)
+
+
 def get_text(html):
     """Converts html to text, strips all tags."""
 

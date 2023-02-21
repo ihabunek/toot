@@ -4,15 +4,18 @@ import re
 import shutil
 import sys
 
-from argparse import ArgumentParser, FileType, ArgumentTypeError
+from argparse import ArgumentParser, FileType, ArgumentTypeError, Action
 from collections import namedtuple
 from itertools import chain
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
 
-VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
+VISIBILITY_CHOICES = ["public", "unlisted", "private", "direct"]
 VISIBILITY_CHOICES_STR = ", ".join(f"'{v}'" for v in VISIBILITY_CHOICES)
+
+PRIVACY_CHOICES = ["public", "unlisted", "private"]
+PRIVACY_CHOICES_STR = ", ".join(f"'{v}'" for v in PRIVACY_CHOICES)
 
 
 class BooleanOptionalAction(Action):
@@ -76,6 +79,14 @@ def visibility(value):
     """Validates the visibility parameter"""
     if value not in VISIBILITY_CHOICES:
         raise ValueError("Invalid visibility value")
+
+    return value
+
+
+def privacy(value):
+    """Validates the privacy parameter"""
+    if value not in PRIVACY_CHOICES:
+        raise ValueError(f"Invalid privacy value. Expected one of {PRIVACY_CHOICES_STR}.")
 
     return value
 
@@ -294,6 +305,53 @@ AUTH_COMMANDS = [
         description="Print environment information for inclusion in bug reports.",
         arguments=[],
         require_auth=False,
+    ),
+    Command(
+        name="update_account",
+        description="Update your account details",
+        arguments=[
+            (["--display-name"], {
+                "type": str,
+                "help": "The display name to use for the profile.",
+            }),
+            (["--note"], {
+                "type": str,
+                "help": "The account bio.",
+            }),
+            (["--avatar"], {
+                "type": FileType("rb"),
+                "help": "Path to the avatar image to set.",
+            }),
+            (["--header"], {
+                "type": FileType("rb"),
+                "help": "Path to the header image to set.",
+            }),
+            (["--bot"], {
+                "action": BooleanOptionalAction,
+                "help": "Whether the account has a bot flag.",
+            }),
+            (["--discoverable"], {
+                "action": BooleanOptionalAction,
+                "help": "Whether the account should be shown in the profile directory.",
+            }),
+            (["--locked"], {
+                "action": BooleanOptionalAction,
+                "help": "Whether manual approval of follow requests is required.",
+            }),
+            (["--privacy"], {
+                "type": privacy,
+                "help": f"Default post privacy for authored statuses. One of: {PRIVACY_CHOICES_STR}."
+            }),
+            (["--sensitive"], {
+                "action": BooleanOptionalAction,
+                "help": "Whether to mark authored statuses as sensitive by default."
+            }),
+            (["--language"], {
+                "type": language,
+                "help": "Default language to use for authored statuses (ISO 6391)."
+            }),
+        ],
+        require_auth=True,
     ),
 ]
 
