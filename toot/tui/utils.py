@@ -37,19 +37,19 @@ def time_ago(value: datetime) -> datetime:
     now = datetime.now().astimezone()
     delta = now.timestamp() - value.timestamp()
 
-    if (delta < 1):
+    if delta < 1:
         return "now"
 
-    if (delta < 8 * DAY):
-        if (delta < MINUTE):
+    if delta < 8 * DAY:
+        if delta < MINUTE:
             return f"{math.floor(delta / SECOND)}".rjust(2, " ") + "s"
-        if (delta < HOUR):
+        if delta < HOUR:
             return f"{math.floor(delta / MINUTE)}".rjust(2, " ") + "m"
-        if (delta < DAY):
+        if delta < DAY:
             return f"{math.floor(delta / HOUR)}".rjust(2, " ") + "h"
         return f"{math.floor(delta / DAY)}".rjust(2, " ") + "d"
 
-    if (delta < 53 * WEEK):  # not exactly correct but good enough as a boundary
+    if delta < 53 * WEEK:  # not exactly correct but good enough as a boundary
         return f"{math.floor(delta / WEEK)}".rjust(2, " ") + "w"
 
     return ">1y"

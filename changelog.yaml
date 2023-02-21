@@ -1,3 +1,8 @@
+0.34.1:
+  date: 2023-02-20
+  changes:
+    - "TUI: Fix bug where TUI would break on older Mastodon instances (#309)"
+
 0.34.0:
   date: 2023-02-03
   changes:
