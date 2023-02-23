@@ -164,10 +164,10 @@ class Timeline(urwid.Columns):
         self.status_detail_scrollable.set_scrollpos(pos)
 
     def draw_status_details(self, status):
+        UrwidImage.clear_all()
         self.status_details = StatusDetails(self, status)
         widget = self.wrap_status_details(self.status_details)
         self.contents[2] = widget, ("weight", 60, False)
-        UrwidImage.clear_all()
 
     def keypress(self, size, key):
         status = self.get_focused_status()
