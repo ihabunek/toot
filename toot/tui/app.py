@@ -19,7 +19,8 @@ from .timeline import Timeline
 from .utils import parse_content_links, show_media
 from .palette import convert_to_xterm_256_palette
 from PIL import Image
-from term_image.widget import UrwidImage, UrwidImageJanitor
+from term_image.widget import UrwidImage, UrwidImageJanitor, UrwidImageScreen
+
 
 logger = logging.getLogger(__name__)
 truecolor = '--256' not in sys.argv  # TBD make this a config option
@@ -88,6 +89,7 @@ class TUI(urwid.Frame):
         loop = urwid.MainLoop(
             image_capable_tui,
             palette=PALETTE,
+            screen= UrwidImageScreen(),
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
         )
@@ -294,8 +296,8 @@ class TUI(urwid.Frame):
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
-
         self.body = timeline
+        timeline.refresh_status_details()
         self.refresh_footer(timeline)
 
     def async_load_timeline(self, is_initial, timeline_name=None, local=None):
