@@ -265,6 +265,10 @@ TUI_COMMANDS = [
                 "default": False,
                 "help": "Show relative datetimes in status list.",
             }),
+            (["--256"], {
+                "help": "Use 256 colors for image display, rather than truecolor",
+                "action": "store_true"
+            })
         ],
         require_auth=True,
     ),
