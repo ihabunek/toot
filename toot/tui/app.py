@@ -19,7 +19,7 @@ from .timeline import Timeline
 from .utils import parse_content_links, show_media
 from .palette import convert_to_xterm_256_palette
 from PIL import Image
-from term_image.widget import UrwidImage, UrwidImageJanitor, UrwidImageScreen
+from term_image.widget import UrwidImageJanitor, UrwidImageScreen
 
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ class TUI(urwid.Frame):
         loop = urwid.MainLoop(
             image_capable_tui,
             palette=PALETTE,
-            screen= UrwidImageScreen(),
+            screen=UrwidImageScreen(),  # like urwid.raw_display.Screen, but clears Kitty + iTerm2 images on startup
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
         )
@@ -737,5 +737,4 @@ class TUI(urwid.Frame):
             if self.overlay:
                 self.close_overlay()
             else:
-                UrwidImage.clear_all()
                 raise urwid.ExitMainLoop()
