@@ -6,6 +6,8 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from PIL import Image
+from term_image.image import AutoImage
+from term_image.image import BlockImage
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 SECOND = 1
@@ -161,3 +163,13 @@ def resize_image(basewidth: int, baseheight: int, img: Image) -> Image:
     if img.mode != 'P':
         img = img.convert('RGB')
     return img
+
+
+def can_render_pixels():
+    # temp image to make AutoImage happy
+    img = Image.new("RGB", (16, 16))
+    ai = AutoImage(img)
+
+    # BlockImage renders to half-cells
+    # KittyImage and ITerm2Image render to pixels
+    return not isinstance(ai, BlockImage)
