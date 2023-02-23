@@ -1,13 +1,18 @@
 import json
+import requests
 import traceback
 import urwid
 import webbrowser
 
 from toot import __version__
 from toot.utils import format_content
-from .utils import highlight_hashtags, highlight_keys
+from .utils import highlight_hashtags, highlight_keys  # , resize_image
 from .widgets import Button, EditBox, SelectableText
 from toot import api
+# from .palette import convert_to_xterm_256_palette
+from PIL import Image
+from term_image.image import AutoImage
+from term_image.widget import UrwidImage
 
 
 class StatusSource(urwid.Padding):
@@ -224,6 +229,38 @@ class Account(urwid.ListBox):
         walker = urwid.SimpleListWalker(actions)
         super().__init__(walker)
 
+    def account_header(self, account):
+        if account['avatar_static'] and not account["avatar_static"].endswith("missing.png"):
+            img = Image.open(requests.get(account['avatar_static'], stream=True).raw)
+
+            if img.format == 'PNG' and img.mode != 'RGBA':
+                img = img.convert("RGBA")
+#                if not truecolor:
+#                    img = convert_to_xterm_256_palette(img)
+#            img = resize_image(None, 200, img)
+            aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img)), 10)
+        else:
+            aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
+
+        if account['header_static'] and not account["header_static"].endswith("missing.png"):
+            img = Image.open(requests.get(account['header_static'], stream=True).raw)
+
+            if img.format == 'PNG' and img.mode != 'RGBA':
+                img = img.convert("RGBA")
+#                if not truecolor:
+#                    img = convert_to_xterm_256_palette(img)
+#            img = resize_image(None, 200, img)
+            himg = (urwid.BoxAdapter(UrwidImage(AutoImage(img)), 10))
+        else:
+            himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
+
+        atxt = urwid.Pile([urwid.Divider(), (urwid.Text(("green", account['display_name']))),
+                (urwid.Text(("yellow", "@" + self.account['acct'])))])
+        columns = urwid.Columns([aimg, ("weight", 9999, himg)], dividechars=2, min_width=20)
+
+        header = urwid.Pile([columns, urwid.Divider(), atxt])
+        return header
+
     def generate_contents(self, account, relationship=None, last_action=None):
         if self.last_action and not self.last_action.startswith("Confirm"):
             yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
@@ -245,17 +282,14 @@ class Account(urwid.ListBox):
 
         yield urwid.Divider("─")
         yield urwid.Divider()
-        yield urwid.Text([('green', f"@{account['acct']}"), f"  {account['display_name']}"])
+
+        yield self.account_header(account)
 
         if account["note"]:
             yield urwid.Divider()
             for line in format_content(account["note"]):
                 yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
-
-        yield urwid.Divider()
-        yield urwid.Text(["ID: ", ("green", f"{account['id']}")])
-        yield urwid.Text(["Since: ", ("green", f"{account['created_at'][:10]}")])
-        yield urwid.Divider()
+            yield urwid.Divider()
 
         if account["bot"]:
             yield urwid.Text([("green", "Bot \N{robot face}")])

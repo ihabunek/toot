@@ -1,5 +1,7 @@
 import logging
 import urwid
+import requests
+import sys
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -15,8 +17,12 @@ from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
+from .palette import convert_to_xterm_256_palette
+from PIL import Image
+from term_image.widget import UrwidImage, UrwidImageJanitor
 
 logger = logging.getLogger(__name__)
+truecolor = '--256' not in sys.argv  # TBD make this a config option
 
 urwid.set_encoding('UTF-8')
 
@@ -78,8 +84,9 @@ class TUI(urwid.Frame):
         """Factory method, sets up TUI and an event loop."""
 
         tui = cls(app, user, args)
+        image_capable_tui = UrwidImageJanitor(tui)
         loop = urwid.MainLoop(
-            tui,
+            image_capable_tui,
             palette=PALETTE,
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
@@ -225,6 +232,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "links", _links)
         urwid.connect_signal(timeline, "zoom", _zoom)
         urwid.connect_signal(timeline, "translate", self.async_translate)
+        urwid.connect_signal(timeline, "load-image", self.async_load_image)
         urwid.connect_signal(timeline, "clear-screen", _clear)
 
     def build_timeline(self, name, statuses, local):
@@ -646,6 +654,32 @@ class TUI(urwid.Frame):
 
         return self.run_in_thread(_delete, done_callback=_done)
 
+    def async_load_image(self, self2, timeline, status, path, placeholder_index):
+        def _load():
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+
+            if not hasattr(timeline, "images"):
+                timeline.images = dict()
+            try:
+                img = Image.open(requests.get(path, stream=True).raw)
+                if img.format == 'PNG' and img.mode != 'RGBA':
+                    img = img.convert("RGBA")
+                if not truecolor:
+                    img = convert_to_xterm_256_palette(img)
+                timeline.images[str(hash(path))] = img
+            except:  # noqa E722
+                pass  # ignore errors; if we can't load an image, just show blank
+
+        def _done(loop):
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+            timeline.update_status_image(status, path, placeholder_index)
+
+        return self.run_in_thread(_load, done_callback=_done)
+
     # --- Overlay handling -----------------------------------------------------
 
     default_overlay_options = dict(
@@ -708,4 +742,5 @@ class TUI(urwid.Frame):
             if self.overlay:
                 self.close_overlay()
             else:
+                UrwidImage.clear_all()
                 raise urwid.ExitMainLoop()
