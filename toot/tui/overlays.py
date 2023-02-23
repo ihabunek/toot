@@ -235,10 +235,7 @@ class Account(urwid.ListBox):
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
-#                if not truecolor:
-#                    img = convert_to_xterm_256_palette(img)
-#            img = resize_image(None, 200, img)
-            aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img)), 10)
+            aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 10)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
@@ -247,10 +244,7 @@ class Account(urwid.ListBox):
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
-#                if not truecolor:
-#                    img = convert_to_xterm_256_palette(img)
-#            img = resize_image(None, 200, img)
-            himg = (urwid.BoxAdapter(UrwidImage(AutoImage(img)), 10))
+            himg = (urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 10))
         else:
             himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
