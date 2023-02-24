@@ -12,7 +12,7 @@ from .utils import highlight_hashtags, parse_datetime, highlight_keys  # , resiz
 from .widgets import SelectableText, SelectableColumns
 from toot.utils import format_content
 from toot.utils.language import language_name
-from toot.tui.utils import time_ago
+from toot.tui.utils import time_ago, can_render_pixels
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage
 
@@ -56,6 +56,7 @@ class Timeline(urwid.Columns):
         self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
+        self.can_render_pixels = can_render_pixels()
 
         try:
             focused_status = statuses[focus]
@@ -318,8 +319,7 @@ class Timeline(urwid.Columns):
             img = self.images.get(str(hash(path)))
         if img:
             try:
-#                img = resize_image(None, (status.placeholders[placeholder_index].height * 40) + 1, img)
-                status.placeholders[placeholder_index]._set_original_widget(UrwidImage(AutoImage(img)))
+                status.placeholders[placeholder_index]._set_original_widget(UrwidImage(AutoImage(img), upscale=True))
             except IndexError:
                 # ignore IndexErrors.
                 pass
@@ -361,8 +361,7 @@ class StatusDetails(urwid.Pile):
             if hasattr(self.timeline, "images"):
                 img = self.timeline.images.get(str(hash(avatar_url)))
             if img:
-#                img = resize_image(100, None, img)
-                aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img)), rows)
+                aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), rows)
             else:
                 self.timeline._emit("load-image", self.timeline, self.status, avatar_url,
                 len(self.status.placeholders) - 1)
@@ -413,23 +412,28 @@ class StatusDetails(urwid.Pile):
                             except Exception:
                                 aspect = 3 / 2  # reasonable default
 
-                            cols = math.floor(0.55 * screen.get_cols_rows()[0])
-                            cols -= cols % 2
-                            rows = math.ceil((cols / 2) / aspect)
-                            rows -= rows % 2
+                            if self.timeline.can_render_pixels:
+                                cols = math.floor(0.2 * screen.get_cols_rows()[0])
+                                cols -= cols % 2
+                                rows = math.ceil(cols / aspect)
+                                rows -= rows % 2
+                            else:
+                                cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                                rows = math.ceil((cols / 2) / aspect)
+                                rows -= rows % 2
 
                             img = None
                             if hasattr(self.timeline, "images"):
                                 img = self.timeline.images.get(str(hash(m["url"])))
                             if img:
-#                                img = resize_image(cols * 20, None, img)
-                                yield (urwid.BoxAdapter(UrwidImage(AutoImage(img)), rows))
+                                yield (urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), rows))
                             else:
                                 placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
                                 self.status.placeholders.append(placeholder)
                                 self.timeline._emit("load-image", self.timeline, self.status, m["url"],
                                 len(self.status.placeholders) - 1)
                                 yield ("pack", placeholder)
+                            yield urwid.Divider()
                         yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.original.data.get("poll")
@@ -502,17 +506,22 @@ class StatusDetails(urwid.Pile):
                 except Exception:
                     aspect = 3 / 2  # reasonable default
 
-                cols = math.floor(0.55 * screen.get_cols_rows()[0])
-                cols -= cols % 2
-                rows = math.ceil((cols / 2) / aspect)
-                rows -= rows % 2
+                if self.timeline.can_render_pixels:
+                    cols = math.floor(0.2 * screen.get_cols_rows()[0])
+                    cols -= cols % 2
+                    rows = math.ceil(cols / aspect)
+                    rows -= rows % 2
+                else:
+                    cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                    cols -= cols % 2
+                    rows = math.ceil((cols / 2) / aspect)
+                    rows -= rows % 2
 
                 img = None
                 if hasattr(self.timeline, "images"):
                     img = self.timeline.images.get(str(hash(card["image"])))
                 if img:
-#                    img = resize_image(cols * 20, None, img)
-                    yield (urwid.BoxAdapter(UrwidImage(AutoImage(img)), rows))
+                    yield (urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), rows))
                 else:
                     placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
                     self.status.placeholders.append(placeholder)
