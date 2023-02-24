@@ -265,16 +265,19 @@ class Account(urwid.ListBox):
             yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
             yield Button("Cancel", on_press=cancel_action, user_data=self)
         else:
-            if relationship['requested']:
-                yield urwid.Text(("light grey", "< Follow request is pending >"))
+            if self.user.username == account["acct"]:
+                yield urwid.Text(("light gray", "This is your account"))
             else:
-                yield Button("Unfollow" if relationship['following'] else "Follow",
-                on_press=confirm_action, user_data=self)
+                if relationship['requested']:
+                    yield urwid.Text(("light gray", "< Follow request is pending >"))
+                else:
+                    yield Button("Unfollow" if relationship['following'] else "Follow",
+                    on_press=confirm_action, user_data=self)
 
-            yield Button("Unmute" if relationship['muting'] else "Mute",
-                on_press=confirm_action, user_data=self)
-            yield Button("Unblock" if relationship['blocking'] else "Block",
-                on_press=confirm_action, user_data=self)
+                yield Button("Unmute" if relationship['muting'] else "Mute",
+                    on_press=confirm_action, user_data=self)
+                yield Button("Unblock" if relationship['blocking'] else "Block",
+                    on_press=confirm_action, user_data=self)
 
         yield urwid.Divider("─")
         yield urwid.Divider()

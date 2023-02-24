@@ -1,12 +1,12 @@
 import re
-from typing import List
 import uuid
 
+from typing import List
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import AuthenticationError
-from toot.utils import str_bool
+from toot.utils import str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
 
@@ -65,6 +65,42 @@ def register_account(app, username, email, password, locale="en", agreement=True
     }
 
     return http.anon_post(url, json=json, headers=headers).json()
+
+
+def update_account(
+    app,
+    user,
+    display_name=None,
+    note=None,
+    avatar=None,
+    header=None,
+    bot=None,
+    discoverable=None,
+    locked=None,
+    privacy=None,
+    sensitive=None,
+    language=None
+):
+    """
+    Update account credentials
+    https://docs.joinmastodon.org/methods/accounts/#update_credentials
+    """
+    files = {"avatar": avatar, "header": header}
+    files = {k: v for k, v in files.items() if v is not None}
+
+    data = {
+        "bot": str_bool_nullable(bot),
+        "discoverable": str_bool_nullable(discoverable),
+        "display_name": display_name,
+        "locked": str_bool_nullable(locked),
+        "note": note,
+        "source[language]": language,
+        "source[privacy]": privacy,
+        "source[sensitive]": str_bool_nullable(sensitive),
+    }
+    data = {k: v for k, v in data.items() if v is not None}
+
+    return http.patch(app, user, "/api/v1/accounts/update_credentials", files=files, data=data)
 
 
 def fetch_app_token(app):

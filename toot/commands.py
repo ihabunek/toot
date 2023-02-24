@@ -9,7 +9,7 @@ from toot.output import (print_out, print_instance, print_account, print_acct_li
                          print_search_results, print_timeline, print_notifications,
                          print_tag_list)
 from toot.tui.utils import parse_datetime
-from toot.utils import editor_input, multiline_input, EOF_KEY
+from toot.utils import delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
 
 def get_timeline_generator(app, user, args):
@@ -110,6 +110,8 @@ def post(app, user, args):
         print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
     else:
         print_out(f"Toot posted: <green>{response['url']}")
+
+    delete_tmp_status_file()
 
 
 def _get_status_text(text, editor):
@@ -229,6 +231,41 @@ def env(app, user, args):
     print_out(f"toot {__version__}")
     print_out(f"Python {sys.version}")
     print_out(platform.platform())
+
+
+def update_account(app, user, args):
+    options = [
+        args.avatar,
+        args.bot,
+        args.discoverable,
+        args.display_name,
+        args.header,
+        args.language,
+        args.locked,
+        args.note,
+        args.privacy,
+        args.sensitive,
+    ]
+
+    if all(option is None for option in options):
+        raise ConsoleError("Please specify at least one option to update the account")
+
+    api.update_account(
+        app,
+        user,
+        avatar=args.avatar,
+        bot=args.bot,
+        discoverable=args.discoverable,
+        display_name=args.display_name,
+        header=args.header,
+        language=args.language,
+        locked=args.locked,
+        note=args.note,
+        privacy=args.privacy,
+        sensitive=args.sensitive,
+    )
+
+    print_out("<green>✓ Account updated</green>")
 
 
 def login_cli(app, user, args):
