@@ -349,36 +349,59 @@ class StatusDetails(urwid.Pile):
             if status else ())
         return super().__init__(widget_list)
 
-    def author_header(self, reblogged_by):
-        rows = 2
+    def image_widget(self, path, rows=None, aspect=None) -> urwid.Widget:
+        """Returns a widget capable of displaying the image
 
-        if reblogged_by:
-            avatar_url = self.status.original.data["account"]["avatar_static"]
-        else:
-            avatar_url = self.status.data["account"]["avatar_static"]
+        path is required; URL to image
+        rows, if specfied, sets a fixed number of rows. Or:
+        aspect, if specified, calculates rows based on pane width
+        and the aspect ratio provided"""
+
+        if not rows:
+            if not aspect:
+                aspect = 3 / 2  # reasonable default
+
+            if self.timeline.can_render_pixels:
+                screen_rows = screen.get_cols_rows()[1]
+                # for pixel-rendered images,
+                # image rows should be 25% of the available screen
+                # but in no case fewer than 10
+                rows = max(10, math.floor(screen_rows * .25))
+            else:
+                # for cell-rendered images,
+                # use the max available columns
+                # and calculate rows based on the image
+                # aspect ratio
+                cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                rows = math.ceil((cols / 2) / aspect)
+                rows -= rows % 2
 
         img = None
-        aimg = urwid.BoxAdapter(urwid.SolidFill(" "), rows)
-        self.status.placeholders.append(aimg)
-        if avatar_url:
-            if hasattr(self.timeline, "images"):
-                img = self.timeline.images.get(str(hash(avatar_url)))
-            if img:
-                aimg = urwid.BoxAdapter(
-                    UrwidImage(
-                        AutoImage(
-                            add_corners(img, 10)), upscale=True),
-                    rows)
-            else:
-                self.timeline._emit("load-image", self.timeline, self.status, avatar_url,
-                len(self.status.placeholders) - 1)
+        if hasattr(self.timeline, "images"):
+            img = self.timeline.images.get(str(hash(path)))
+        if img:
+            return (urwid.BoxAdapter(
+                UrwidImage(
+                    AutoImage(
+                        add_corners(img, 10)), upscale=True),
+                rows))
+        else:
+            placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
+            self.status.placeholders.append(placeholder)
+            self.timeline._emit("load-image", self.timeline, self.status, path,
+            len(self.status.placeholders) - 1)
+            return placeholder
 
-            if reblogged_by:
-                atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.original.author.display_name))),
-                                   ("pack", urwid.Text(("yellow", self.status.original.author.account)))])
-            else:
-                atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.author.display_name))),
-                                   ("pack", urwid.Text(("yellow", self.status.author.account)))])
+    def author_header(self, reblogged_by):
+        avatar_url = self.status.original.data["account"]["avatar"]
+
+        if avatar_url:
+            aimg = self.image_widget(avatar_url, 2)
+        else:
+            aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
+
+        atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.original.author.display_name))),
+                           ("pack", urwid.Text(("yellow", self.status.original.author.account)))])
 
         columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
         return columns
@@ -417,33 +440,8 @@ class StatusDetails(urwid.Pile):
                             try:
                                 aspect = float(m["meta"]["original"]["aspect"])
                             except Exception:
-                                aspect = 3 / 2  # reasonable default
-
-                            if self.timeline.can_render_pixels:
-                                cols = math.floor(0.2 * screen.get_cols_rows()[0])
-                                cols -= cols % 2
-                                rows = math.ceil(cols / aspect)
-                                rows -= rows % 2
-                            else:
-                                cols = math.floor(0.55 * screen.get_cols_rows()[0])
-                                rows = math.ceil((cols / 2) / aspect)
-                                rows -= rows % 2
-
-                            img = None
-                            if hasattr(self.timeline, "images"):
-                                img = self.timeline.images.get(str(hash(m["url"])))
-                            if img:
-                                yield (urwid.BoxAdapter(
-                                    UrwidImage(
-                                        AutoImage(
-                                            add_corners(img, 10)), upscale=True),
-                                    rows))
-                            else:
-                                placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
-                                self.status.placeholders.append(placeholder)
-                                self.timeline._emit("load-image", self.timeline, self.status, m["url"],
-                                len(self.status.placeholders) - 1)
-                                yield ("pack", placeholder)
+                                aspect = None
+                            yield self.image_widget(m["url"], aspect=aspect)
                             yield urwid.Divider()
                         yield ("pack", urwid.Text(("link", m["url"])))
 
@@ -511,39 +509,11 @@ class StatusDetails(urwid.Pile):
         if card["image"]:
             if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
                 yield urwid.Text("")
-
                 try:
                     aspect = int(card["width"]) / int(card["height"])
                 except Exception:
-                    aspect = 3 / 2  # reasonable default
-
-                if self.timeline.can_render_pixels:
-                    cols = math.floor(0.2 * screen.get_cols_rows()[0])
-                    cols -= cols % 2
-                    rows = math.ceil(cols / aspect)
-                    rows -= rows % 2
-                else:
-                    cols = math.floor(0.55 * screen.get_cols_rows()[0])
-                    cols -= cols % 2
-                    rows = math.ceil((cols / 2) / aspect)
-                    rows -= rows % 2
-
-                img = None
-                if hasattr(self.timeline, "images"):
-                    img = self.timeline.images.get(str(hash(card["image"])))
-                if img:
-                    yield (urwid.BoxAdapter(
-                        UrwidImage(
-                            AutoImage(
-                                add_corners(img, 10)), upscale=True),
-                        rows))
-                else:
-                    placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
-                    self.status.placeholders.append(placeholder)
-                    self.timeline._emit(
-                        "load-image", self.timeline, self.status, card["image"],
-                        len(self.status.placeholders) - 1)
-                    yield ("pack", placeholder)
+                    aspect = None
+                yield self.image_widget(card["image"], aspect=aspect)
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):
