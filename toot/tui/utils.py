@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 from datetime import datetime, timezone
-from PIL import Image
+from PIL import Image, ImageDraw
 from term_image.image import AutoImage
 from term_image.image import BlockImage
 
@@ -162,6 +162,20 @@ def resize_image(basewidth: int, baseheight: int, img: Image) -> Image:
 
     if img.mode != 'P':
         img = img.convert('RGB')
+    return img
+
+
+def add_corners(img, rad):
+    circle = Image.new('L', (rad * 2, rad * 2), 0)
+    draw = ImageDraw.Draw(circle)
+    draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
+    alpha = Image.new('L', img.size, "white")
+    w, h = img.size
+    alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+    alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+    alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+    alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+    img.putalpha(alpha)
     return img
 
 

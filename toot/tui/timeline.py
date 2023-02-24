@@ -12,7 +12,7 @@ from .utils import highlight_hashtags, parse_datetime, highlight_keys  # , resiz
 from .widgets import SelectableText, SelectableColumns
 from toot.utils import format_content
 from toot.utils.language import language_name
-from toot.tui.utils import time_ago, can_render_pixels
+from toot.tui.utils import time_ago, can_render_pixels, add_corners
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage
 
@@ -319,7 +319,10 @@ class Timeline(urwid.Columns):
             img = self.images.get(str(hash(path)))
         if img:
             try:
-                status.placeholders[placeholder_index]._set_original_widget(UrwidImage(AutoImage(img), upscale=True))
+                status.placeholders[placeholder_index]._set_original_widget(
+                    UrwidImage(
+                        AutoImage(
+                            add_corners(img, 10)), upscale=True))
             except IndexError:
                 # ignore IndexErrors.
                 pass
@@ -361,7 +364,11 @@ class StatusDetails(urwid.Pile):
             if hasattr(self.timeline, "images"):
                 img = self.timeline.images.get(str(hash(avatar_url)))
             if img:
-                aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), rows)
+                aimg = urwid.BoxAdapter(
+                    UrwidImage(
+                        AutoImage(
+                            add_corners(img, 10)), upscale=True),
+                    rows)
             else:
                 self.timeline._emit("load-image", self.timeline, self.status, avatar_url,
                 len(self.status.placeholders) - 1)
@@ -426,7 +433,11 @@ class StatusDetails(urwid.Pile):
                             if hasattr(self.timeline, "images"):
                                 img = self.timeline.images.get(str(hash(m["url"])))
                             if img:
-                                yield (urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), rows))
+                                yield (urwid.BoxAdapter(
+                                    UrwidImage(
+                                        AutoImage(
+                                            add_corners(img, 10)), upscale=True),
+                                    rows))
                             else:
                                 placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
                                 self.status.placeholders.append(placeholder)
@@ -521,7 +532,11 @@ class StatusDetails(urwid.Pile):
                 if hasattr(self.timeline, "images"):
                     img = self.timeline.images.get(str(hash(card["image"])))
                 if img:
-                    yield (urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), rows))
+                    yield (urwid.BoxAdapter(
+                        UrwidImage(
+                            AutoImage(
+                                add_corners(img, 10)), upscale=True),
+                        rows))
                 else:
                     placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
                     self.status.placeholders.append(placeholder)

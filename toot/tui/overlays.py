@@ -6,7 +6,7 @@ import webbrowser
 
 from toot import __version__
 from toot.utils import format_content
-from .utils import highlight_hashtags, highlight_keys  # , resize_image
+from .utils import highlight_hashtags, highlight_keys, add_corners
 from .widgets import Button, EditBox, SelectableText
 from toot import api
 # from .palette import convert_to_xterm_256_palette
@@ -230,7 +230,11 @@ class Account(urwid.ListBox):
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
-            aimg = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 10)
+            aimg = urwid.BoxAdapter(
+                UrwidImage(
+                    AutoImage(
+                        add_corners(img, 10)), upscale=True),
+                10)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
@@ -239,7 +243,13 @@ class Account(urwid.ListBox):
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
-            himg = (urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 10))
+            himg = (urwid.BoxAdapter(
+                    UrwidImage(
+                        AutoImage(
+                            add_corners(img, 10)
+                        ), upscale=True),
+                    10)
+                    )
         else:
             himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
