@@ -6,8 +6,7 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from PIL import Image, ImageDraw
-from term_image.image import AutoImage
-from term_image.image import BlockImage
+from term_image.image import auto_image_class, GraphicsImage
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 SECOND = 1
@@ -180,10 +179,5 @@ def add_corners(img, rad):
 
 
 def can_render_pixels():
-    # temp image to make AutoImage happy
-    img = Image.new("RGB", (16, 16))
-    ai = AutoImage(img)
-
-    # BlockImage renders to half-cells
-    # KittyImage and ITerm2Image render to pixels
-    return not isinstance(ai, BlockImage)
+    # subclasses of GraphicsImage render to pixels
+    return issubclass(auto_image_class(), GraphicsImage)
