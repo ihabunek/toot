@@ -9,7 +9,6 @@ from toot.utils import format_content
 from .utils import highlight_hashtags, highlight_keys, add_corners
 from .widgets import Button, EditBox, SelectableText
 from toot import api
-# from .palette import convert_to_xterm_256_palette
 from PIL import Image
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage

@@ -1,7 +1,6 @@
 import logging
 import urwid
 import requests
-import sys
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -17,13 +16,11 @@ from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
 from .utils import parse_content_links, show_media
-from .palette import convert_to_xterm_256_palette
 from PIL import Image
 from term_image.widget import UrwidImageJanitor, UrwidImageScreen
 
 
 logger = logging.getLogger(__name__)
-truecolor = '--256' not in sys.argv  # TBD make this a config option
 
 urwid.set_encoding('UTF-8')
 
@@ -668,8 +665,6 @@ class TUI(urwid.Frame):
                 img = Image.open(requests.get(path, stream=True).raw)
                 if img.format == 'PNG' and img.mode != 'RGBA':
                     img = img.convert("RGBA")
-                if not truecolor:
-                    img = convert_to_xterm_256_palette(img)
                 timeline.images[str(hash(path))] = img
             except:  # noqa E722
                 pass  # ignore errors; if we can't load an image, just show blank
