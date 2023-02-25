@@ -290,8 +290,11 @@ def _timeline_generator(app, user, path, params=None):
 def _notif_timeline_generator(app, user, path, params=None):
     while path:
         response = http.get(app, user, path, params)
-        notif = response.json()
-        statuses = [n['status'] for n in notif]
+        notification = response.json()
+        statuses = []
+        for n in notification:
+            if n['status']:
+                statuses.append(n['status'])
         yield statuses
         path = _get_next_path(response.headers)
 
