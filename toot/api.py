@@ -287,6 +287,15 @@ def _timeline_generator(app, user, path, params=None):
         path = _get_next_path(response.headers)
 
 
+def _notif_timeline_generator(app, user, path, params=None):
+    while path:
+        response = http.get(app, user, path, params)
+        notif = response.json()
+        statuses = [n['status'] for n in notif]
+        yield statuses
+        path = _get_next_path(response.headers)
+
+
 def home_timeline_generator(app, user, limit=20):
     path = "/api/v1/timelines/home"
     params = {"limit": limit}
@@ -309,6 +318,13 @@ def bookmark_timeline_generator(app, user, limit=20):
     path = '/api/v1/bookmarks'
     params = {'limit': limit}
     return _timeline_generator(app, user, path, params)
+
+
+def notification_timeline_generator(app, user, limit=20):
+    # exclude all but mentions and statuses
+    exclude_types = ["follow", "favourite", "reblog", "poll", "follow_request"]
+    params = {"exclude_types[]": exclude_types, "limit": limit}
+    return _notif_timeline_generator(app, user, '/api/v1/notifications', params)
 
 
 def timeline_list_generator(app, user, list_id, limit=20):

@@ -445,13 +445,14 @@ class TUI(urwid.Frame):
             lambda x, local: self.goto_public_timeline(local))
         urwid.connect_signal(menu, "bookmark_timeline",
             lambda x, local: self.goto_bookmarks())
-
+        urwid.connect_signal(menu, "notification_timeline",
+            lambda x, local: self.goto_notifications())
         urwid.connect_signal(menu, "hashtag_timeline",
             lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=10 + len(user_timelines),
+            valign="middle", height=11 + len(user_timelines),
         ))
 
     def show_help(self):
@@ -479,6 +480,12 @@ class TUI(urwid.Frame):
         self.timeline_generator = api.bookmark_timeline_generator(
             self.app, self.user, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="bookmarks")
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_notifications(self):
+        self.timeline_generator = api.notification_timeline_generator(
+            self.app, self.user, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name="notifications")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_tag_timeline(self, tag, local):
