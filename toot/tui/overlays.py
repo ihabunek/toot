@@ -230,8 +230,8 @@ class Account(urwid.ListBox):
         super().__init__(walker)
 
     def account_header(self, account):
-        if account['avatar_static'] and not account["avatar_static"].endswith("missing.png"):
-            img = Image.open(requests.get(account['avatar_static'], stream=True).raw)
+        if account['avatar'] and not account["avatar"].endswith("missing.png"):
+            img = Image.open(requests.get(account['avatar'], stream=True).raw)
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
@@ -243,8 +243,8 @@ class Account(urwid.ListBox):
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
-        if account['header_static'] and not account["header_static"].endswith("missing.png"):
-            img = Image.open(requests.get(account['header_static'], stream=True).raw)
+        if account['header'] and not account["header"].endswith("missing.png"):
+            img = Image.open(requests.get(account['header'], stream=True).raw)
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
