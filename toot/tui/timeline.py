@@ -8,8 +8,8 @@ from typing import Optional
 
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, parse_datetime, highlight_keys  # , resize_image
-from .widgets import SelectableText, SelectableColumns
+from .utils import highlight_hashtags, parse_datetime, highlight_keys
+from .widgets import SelectableText, SelectableColumns, EmojiText
 from toot.utils import format_content
 from toot.utils.language import language_name
 from toot.tui.utils import time_ago, can_render_pixels, add_corners
@@ -364,9 +364,9 @@ class StatusDetails(urwid.Pile):
             if self.timeline.can_render_pixels:
                 screen_rows = screen.get_cols_rows()[1]
                 # for pixel-rendered images,
-                # image rows should be 25% of the available screen
+                # image rows should be 33% of the available screen
                 # but in no case fewer than 10
-                rows = max(10, math.floor(screen_rows * .25))
+                rows = max(10, math.floor(screen_rows * .33))
             else:
                 # for cell-rendered images,
                 # use the max available columns
@@ -400,7 +400,11 @@ class StatusDetails(urwid.Pile):
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
 
-        atxt = urwid.Pile([("pack", urwid.Text(("green", self.status.original.author.display_name))),
+        atxt = urwid.Pile([("pack",
+                            urwid.AttrMap(
+                                EmojiText(self.status.original.author.display_name,
+                                        self.status.original.data["account"]["emojis"]),
+                                "green")),
                            ("pack", urwid.Text(("yellow", self.status.original.author.account)))])
 
         columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
