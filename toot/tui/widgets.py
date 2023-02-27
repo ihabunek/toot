@@ -2,7 +2,7 @@ from typing import List
 import urwid
 import re
 import requests
-from PIL import Image, ImageOps
+From PIL import Image, ImageOps
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage
 from .utils import can_render_pixels
