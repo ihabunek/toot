@@ -104,6 +104,8 @@ class GotoMenu(urwid.ListBox):
 
     def __init__(self, user_timelines):
         self.hash_edit = EditBox(caption="Hashtag: ")
+        self.server_edit = EditBox(caption="Server: ")
+        self.message_widget = urwid.Text(("warning", ""))
 
         actions = list(self.generate_actions(user_timelines))
         walker = urwid.SimpleFocusListWalker(actions)
@@ -112,25 +114,46 @@ class GotoMenu(urwid.ListBox):
     def get_hashtag(self):
         return self.hash_edit.edit_text.strip()
 
+    def get_server(self):
+        return self.server_edit.edit_text.strip().lower()
+
     def generate_actions(self, user_timelines):
         def _home(button):
             self._emit("home_timeline")
 
         def _local_public(button):
-            self._emit("public_timeline", True)
+            self._emit("public_timeline", True, None)
 
         def _global_public(button):
-            self._emit("public_timeline", False)
+            self._emit("public_timeline", False, None)
 
         def _bookmarks(button):
-            self._emit("bookmark_timeline", False)
+            self._emit("bookmark_timeline", False, None)
 
         def _hashtag(local):
+            self.message_widget.set_text("Hashtag name required")
             hashtag = self.get_hashtag()
             if hashtag:
                 self._emit("hashtag_timeline", hashtag, local)
             else:
-                self.set_focus(4)
+                self.message_widget.set_text("Hashtag name required")
+
+        def _server(local):
+            server = self.get_server()
+            if server:
+                self.message_widget.set_text("")
+                test_generator = api.anon_public_timeline_generator(instance=server, local=True, limit=1)
+                try:
+                    self.message_widget.set_text("Checking server...")
+                    result = next(test_generator)
+                    if (result):
+                        self._emit("public_timeline", True, server)
+                    else:
+                        self.message_widget.set_text(f"Error getting timeline from {server}")
+                except Exception:
+                    self.message_widget.set_text(f"Error getting timeline from {server}")
+            else:
+                self.message_widget.set_text("Server domain name required")
 
         def mk_on_press_user_hashtag(tag, local):
             def on_press(btn):
@@ -151,6 +174,11 @@ class GotoMenu(urwid.ListBox):
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
         yield Button("Public hashtag timeline", on_press=lambda x: _hashtag(False))
+        yield urwid.Divider()
+        yield self.server_edit
+        yield Button("Server local timeline", on_press=lambda x: _server(True))
+        yield urwid.Divider()
+        yield self.message_widget
 
 
 class Help(urwid.Padding):

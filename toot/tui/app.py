@@ -262,9 +262,9 @@ class TUI(urwid.Frame):
 
         return timeline
 
-    def make_status(self, status_data):
+    def make_status(self, status_data, instance):
         is_mine = self.user.username == status_data["account"]["acct"]
-        return Status(status_data, is_mine, self.app.instance)
+        return Status(status_data, is_mine, self.app.instance, instance)
 
     def show_thread(self, status):
         def _close(*args):
@@ -290,7 +290,7 @@ class TUI(urwid.Frame):
         self.body = timeline
         self.refresh_footer(timeline)
 
-    def async_load_timeline(self, is_initial, timeline_name=None, local=None):
+    def async_load_timeline(self, is_initial, timeline_name=None, local=None, instance=None):
         """Asynchronously load a list of statuses."""
 
         def _load_statuses():
@@ -302,7 +302,7 @@ class TUI(urwid.Frame):
             finally:
                 self.footer.clear_message()
 
-            return [self.make_status(s) for s in data]
+            return [self.make_status(s, instance) for s in data]
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
@@ -435,16 +435,15 @@ class TUI(urwid.Frame):
         urwid.connect_signal(menu, "home_timeline",
             lambda x: self.goto_home_timeline())
         urwid.connect_signal(menu, "public_timeline",
-            lambda x, local: self.goto_public_timeline(local))
+            lambda x, local, instance: self.goto_public_timeline(local, instance=instance))
         urwid.connect_signal(menu, "bookmark_timeline",
             lambda x, local: self.goto_bookmarks())
-
         urwid.connect_signal(menu, "hashtag_timeline",
             lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=10 + len(user_timelines),
+            valign="middle", height=15 + len(user_timelines),
         ))
 
     def show_help(self):
@@ -462,10 +461,18 @@ class TUI(urwid.Frame):
         promise = self.async_load_timeline(is_initial=True, timeline_name="home")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
-    def goto_public_timeline(self, local):
-        self.timeline_generator = api.public_timeline_generator(
-            self.app, self.user, local=local, limit=40)
-        promise = self.async_load_timeline(is_initial=True, timeline_name="public")
+    def goto_public_timeline(self, local, instance=None):
+        if instance:
+            self.timeline_generator = api.anon_public_timeline_generator(
+                instance, local=True, limit=40)
+        else:
+            self.timeline_generator = api.public_timeline_generator(
+                self.app, self.user, local=local, limit=40)
+
+        promise = self.async_load_timeline(
+            is_initial=True,
+            timeline_name=instance if instance else "public",
+            instance=instance)
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_bookmarks(self):
@@ -520,12 +527,16 @@ class TUI(urwid.Frame):
         self.close_overlay()
 
     def show_account(self, account_id):
-        account = api.whois(self.app, self.user, account_id)
-        relationship = api.get_relationship(self.app, self.user, account_id)
-        self.open_overlay(
-            widget=Account(self.app, self.user, account, relationship),
-            title="Account",
-        )
+        try:
+            account = api.whois(self.app, self.user, account_id)
+            relationship = api.get_relationship(self.app, self.user, account_id)
+            self.open_overlay(
+                widget=Account(self.app, self.user, account, relationship),
+                title="Account",
+            )
+        except ApiError:
+            self.footer.set_error_message(f"Couldn't find account {account_id}")
+            self.loop.set_alarm_in(3, lambda *args: self.footer.clear_message())
 
     def async_toggle_favourite(self, timeline, status):
         def _favourite():
