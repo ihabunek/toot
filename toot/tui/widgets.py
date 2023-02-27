@@ -2,7 +2,7 @@ from typing import List
 import urwid
 import re
 import requests
-from PIL import Image
+from PIL import Image, ImageOps
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage
 from .utils import can_render_pixels
@@ -99,10 +99,11 @@ class EmojiText(urwid.Padding):
     text -- text string (with or without embedded shortcodes)
     emojis -- list of emojis with nested lists of associated
     shortcodes and URLs
+    make_gray -- if True, convert emojis to grayscale
     """
     image_cache = {}
 
-    def __init__(self, text: str, emojis: List):
+    def __init__(self, text: str, emojis: List, make_gray=False):
         columns = []
 
         if not can_render_pixels():
@@ -129,6 +130,9 @@ class EmojiText(urwid.Padding):
                                 # TODO: consider asynchronous loading in future
                                 img = Image.open(requests.get(emoji["url"], stream=True).raw)
                                 EmojiText.image_cache[str(hash(emoji["url"]))] = img
+
+                            if make_gray:
+                                img = ImageOps.grayscale(img)
                             image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img)), 1)
                             columns.append(image_widget)
                         except Exception:
