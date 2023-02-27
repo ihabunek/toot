@@ -7,7 +7,7 @@ import webbrowser
 from toot import __version__
 from toot.utils import format_content
 from .utils import highlight_hashtags, highlight_keys, add_corners
-from .widgets import Button, EditBox, SelectableText
+from .widgets import Button, EditBox, SelectableText, EmojiText
 from toot import api
 from PIL import Image
 from term_image.image import AutoImage
@@ -252,7 +252,10 @@ class Account(urwid.ListBox):
         else:
             himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
-        atxt = urwid.Pile([urwid.Divider(), (urwid.Text(("green", account['display_name']))),
+        atxt = urwid.Pile([urwid.Divider(),
+                        urwid.AttrMap(
+                            EmojiText(account["display_name"], account["emojis"]),
+                            "green"),
                 (urwid.Text(("yellow", "@" + self.account['acct'])))])
         columns = urwid.Columns([aimg, ("weight", 9999, himg)], dividechars=2, min_width=20)
 
