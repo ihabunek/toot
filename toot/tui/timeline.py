@@ -349,12 +349,13 @@ class StatusDetails(urwid.Pile):
             if status else ())
         return super().__init__(widget_list)
 
-    def image_widget(self, path, rows=None) -> urwid.Widget:
+    def image_widget(self, path, rows=None, aspect=None) -> urwid.Widget:
         """Returns a widget capable of displaying the image
 
         path is required; URL to image
-        rows, if specfied, sets a fixed number of rows.
-        """
+        rows, if specfied, sets a fixed number of rows. Or:
+        aspect, if specified, calculates rows based on pane width
+        and the aspect ratio provided"""
 
         if not rows:
             if not aspect:
@@ -365,8 +366,7 @@ class StatusDetails(urwid.Pile):
                 # for pixel-rendered images,
                 # image rows should be 33% of the available screen
                 # but in no case fewer than 10
-                rows = max(10, math.floor(screen_rows * 0.33))
-
+                rows = max(10, math.floor(screen_rows * .33))
             else:
                 # for cell-rendered images,
                 # use the max available columns
@@ -455,7 +455,11 @@ class StatusDetails(urwid.Pile):
                     if m["url"]:
                         if m["url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
                             yield urwid.Text("")
-                            yield self.image_widget(m["url"])
+                            try:
+                                aspect = float(m["meta"]["original"]["aspect"])
+                            except Exception:
+                                aspect = None
+                            yield self.image_widget(m["url"], aspect=aspect)
                             yield urwid.Divider()
                         yield ("pack", urwid.Text(("link", m["url"])))
 
@@ -523,7 +527,11 @@ class StatusDetails(urwid.Pile):
         if card["image"]:
             if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
                 yield urwid.Text("")
-                yield self.image_widget(card["image"])
+                try:
+                    aspect = int(card["width"]) / int(card["height"])
+                except Exception:
+                    aspect = None
+                yield self.image_widget(card["image"], aspect=aspect)
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):
