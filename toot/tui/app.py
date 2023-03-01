@@ -7,6 +7,7 @@ from toot import api, config, __version__
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
+from toot.commands import _find_account  # fixme this is not clean
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
@@ -176,8 +177,8 @@ class TUI(urwid.Frame):
         return future
 
     def connect_default_timeline_signals(self, timeline):
-        def _account(timeline, account_id):
-            self.show_account(account_id)
+        def _account(timeline, account_name):
+            self.show_account(account_name)
 
         def _compose(*args):
             self.show_compose()
@@ -227,15 +228,15 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "translate", self.async_translate)
         urwid.connect_signal(timeline, "clear-screen", _clear)
 
-    def build_timeline(self, name, statuses, local):
+    def build_timeline(self, name, statuses, local, instance):
         def _close(*args):
             raise urwid.ExitMainLoop()
 
         def _next(*args):
-            self.async_load_timeline(is_initial=False)
+            self.async_load_timeline(is_initial=False, local=local, instance=instance)
 
         def _thread(timeline, status):
-            self.show_thread(status)
+            self.show_thread(status, instance)
 
         def _toggle_save(timeline, status):
             if not timeline.name.startswith("#"):
@@ -266,7 +267,7 @@ class TUI(urwid.Frame):
         is_mine = self.user.username == status_data["account"]["acct"]
         return Status(status_data, is_mine, self.app.instance, instance)
 
-    def show_thread(self, status):
+    def show_thread(self, status, instance):
         def _close(*args):
             """When thread is closed, go back to the main timeline."""
             self.body = self.timeline
@@ -275,9 +276,12 @@ class TUI(urwid.Frame):
 
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
-        context = api.context(self.app, self.user, status.original.id)
-        ancestors = [self.make_status(s) for s in context["ancestors"]]
-        descendants = [self.make_status(s) for s in context["descendants"]]
+        if instance:
+            context = api.anon_context(instance, status.original.id)
+        else:
+            context = api.context(self.app, self.user, status.original.id)
+        ancestors = [self.make_status(s, instance) for s in context["ancestors"]]
+        descendants = [self.make_status(s, instance) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
@@ -306,7 +310,7 @@ class TUI(urwid.Frame):
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
-            self.timeline = self.build_timeline(timeline_name, statuses, local)
+            self.timeline = self.build_timeline(timeline_name, statuses, local, instance)
             self.timeline.refresh_status_details()  # Draw first status
             self.refresh_footer(self.timeline)
             self.body = self.timeline
@@ -532,16 +536,16 @@ class TUI(urwid.Frame):
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()
 
-    def show_account(self, account_id):
+    def show_account(self, account_name):
         try:
-            account = api.whois(self.app, self.user, account_id)
-            relationship = api.get_relationship(self.app, self.user, account_id)
+            account = _find_account(self.app, self.user, account_name)
+            relationship = api.get_relationship(self.app, self.user, account['id'])
             self.open_overlay(
                 widget=Account(self.app, self.user, account, relationship),
                 title="Account",
             )
         except ApiError:
-            self.footer.set_error_message(f"Couldn't find account {account_id}")
+            self.footer.set_error_message(f"Couldn't find account {account_name}")
             self.loop.set_alarm_in(3, lambda *args: self.footer.clear_message())
 
     def async_toggle_favourite(self, timeline, status):

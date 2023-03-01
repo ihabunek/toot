@@ -179,7 +179,13 @@ class Timeline(urwid.Columns):
                 self._emit("next")
 
         if key in ("a", "A"):
-            self._emit("account", status.original.data['account']['id'])
+            # if we're on a foreign server's public timeline, server-local account names
+            # don't have the @server.domain, so add it.
+            if '.' in self.name and '@' not in self.name:
+                account_name = status.original.data['account']['acct'] + "@" + self.name
+            else:
+                account_name = status.original.data['account']['acct']
+            self._emit("account", account_name)
             return
 
         if key in ("b", "B"):
