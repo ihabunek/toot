@@ -266,6 +266,11 @@ def context(app, user, status_id):
     return http.get(app, user, url).json()
 
 
+def anon_context(instance, status_id):
+    url = f"https://{instance}/api/v1/statuses/{status_id}/context"
+    return http.anon_get(url).json()
+
+
 def reblogged_by(app, user, status_id):
     url = f"/api/v1/statuses/{status_id}/reblogged_by"
     return http.get(app, user, url).json()
