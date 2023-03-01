@@ -193,7 +193,6 @@ class GotoMenu(urwid.ListBox):
                     yield Button(f"\N{Globe with Meridians}{tag} (local)",
                                  on_press=mk_on_press_user_server(tag, True))
 
-
         yield urwid.Divider()
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
