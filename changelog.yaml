@@ -1,3 +1,11 @@
+0.35.0:
+  date: 2023-03-01
+  changes:
+    - "Save toot contents when using --editor so it's recoverable if posting fails (#311)"
+    - "TUI: Add voting on polls (thanks Dan Schwarz)"
+    - "TUI: Add following/blocking/muting accounts (thanks Dan Schwarz)"
+    - "TUI: Add notifications timeline (thanks Dan Schwarz)"
+
 0.34.1:
   date: 2023-02-20
   changes:
