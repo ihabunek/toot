@@ -43,18 +43,15 @@ class Timeline(urwid.Columns):
         "clear-screen",  # Clear the screen (used internally)
     ]
 
-    def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
-        # detect if this timeline is from a foreign server by looking for a '.' in the name
-        # foreign server timelines are in server.domain format.
-        self.foreign = '.' in name
-        self.name = f"{name} thread" if is_thread and self.foreign else name
-
+    def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False, foreign_server=None):
+        self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
         # translation not available when browsing a foreign server
-        self.can_translate = (can_translate and not self.foreign)
+        self.can_translate = can_translate if foreign_server is None else False
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
+        self.foreign_server = foreign_server
 
         try:
             focused_status = statuses[focus]
@@ -111,22 +108,36 @@ class Timeline(urwid.Columns):
 
         poll = status.original.data.get("poll")
 
-        options = [
-            "[A]ccount" if not status.is_mine else "",
-            "[B]oost" if not self.foreign else "",
-            "[D]elete" if status.is_mine and not self.foreign else "",
-            "B[o]okmark" if not self.foreign else "",
-            "[F]avourite" if not self.foreign else "",
-            "[V]iew",
-            "[T]hread" if not self.is_thread else "",
-            "[L]inks",
-            "[R]eply" if not self.foreign else "",
-            "[P]oll" if poll and not self.foreign and not poll["expired"] else "",
-            "So[u]rce",
-            "[Z]oom",
-            "Tra[n]slate" if self.can_translate else "",
-            "[H]elp",
-        ]
+        if self.foreign_server:
+            # options are limited to read-only
+            # if we are browsing a foreign server's
+            # public local timeline
+            options = [
+                "[A]ccount" if not status.is_mine else "",
+                "[V]iew",
+                "[T]hread" if not self.is_thread else "",
+                "[L]inks",
+                "So[u]rce",
+                "[Z]oom",
+                "[H]elp",
+            ]
+        else:
+            options = [
+                "[A]ccount" if not status.is_mine else "",
+                "[B]oost",
+                "[D]elete" if status.is_mine else "",
+                "B[o]okmark",
+                "[F]avourite",
+                "[V]iew",
+                "[T]hread" if not self.is_thread else "",
+                "[L]inks",
+                "[R]eply",
+                "[P]oll" if poll and not poll["expired"] else "",
+                "So[u]rce",
+                "[Z]oom",
+                "Tra[n]slate" if self.can_translate else "",
+                "[H]elp",
+            ]
         options = "\n" + " ".join(o for o in options if o)
         options = highlight_keys(options, "white_bold", "cyan")
         return urwid.Text(options)
@@ -183,29 +194,30 @@ class Timeline(urwid.Columns):
             if index >= count:
                 self._emit("next")
 
-        if key in ("a", "A"):
-            # if we're on a foreign server's public timeline, server-local account names
-            # don't have the @server.domain, so add it.
-            if self.foreign and '@' not in self.name:
-                account_name = status.original.data['account']['acct'] + "@" + self.name
-            else:
-                account_name = status.original.data['account']['acct']
-            self._emit("account", account_name)
+        if self.foreign_server and key in ("a", "A", "b", "B", "c", "C",
+                                        "d", "D", "f", "F", "r", "R",
+                                        "o", "O", "n", "N", "p", "P"):
+            # can't do anything that requires a write, or translation,
+            # when browsing a foreign server's public local timeline
             return
 
-        if key in ("b", "B") and not self.foreign:
+        if key in ("a", "A"):
+            self._emit("account", status.account)
+            return
+
+        if key in ("b", "B"):
             self._emit("reblog", status)
             return
 
-        if key in ("c", "C") and not self.foreign:
+        if key in ("c", "C"):
             self._emit("compose")
             return
 
-        if key in ("d", "D") and not self.foreign:
+        if key in ("d", "D"):
             self._emit("delete", status)
             return
 
-        if key in ("f", "F") and not self.foreign:
+        if key in ("f", "F"):
             self._emit("favourite", status)
             return
 
@@ -221,7 +233,7 @@ class Timeline(urwid.Columns):
             self._emit("close")
             return
 
-        if key in ("r", "R") and not self.foreign:
+        if key in ("r", "R"):
             self._emit("reply", status)
             return
 
@@ -230,7 +242,7 @@ class Timeline(urwid.Columns):
             self.refresh_status_details()
             return
 
-        if key in ("o", "O") and not self.foreign:
+        if key in ("o", "O"):
             self._emit("bookmark", status)
             return
 
@@ -266,7 +278,7 @@ class Timeline(urwid.Columns):
             self._emit("zoom", self.status_details)
             return
 
-        if key in ("p", "P") and not self.foreign:
+        if key in ("p", "P"):
             poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
                 self._emit("poll", status)

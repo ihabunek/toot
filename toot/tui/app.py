@@ -228,32 +228,43 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "translate", self.async_translate)
         urwid.connect_signal(timeline, "clear-screen", _clear)
 
-    def build_timeline(self, name, statuses, local, instance):
+    def build_timeline(self, name, statuses, local, foreign_server):
         def _close(*args):
             raise urwid.ExitMainLoop()
 
         def _next(*args):
-            self.async_load_timeline(is_initial=False, local=local, instance=instance)
+            self.async_load_timeline(is_initial=False, local=local, foreign_server=foreign_server)
 
         def _thread(timeline, status):
-            self.show_thread(status, instance)
+            self.show_thread(status, foreign_server)
 
         def _toggle_save(timeline, status):
-            if not timeline.name.startswith("#"):
+            # TODO: the foreign server save code works
+            # but the code to show the bookmark in the
+            # timeline menu isn't correct; it treats
+            # all entries as hashtags.
+
+            if timeline.foreign_server:
+                tl_name = timeline.foreign_server
+                tl_hashtag = False
+            elif timeline.name.startswith("#"):
+                tl_name = timeline.name[1:]
+                tl_hashtag = True
+            else:
                 return
-            hashtag = timeline.name[1:]
+
             assert isinstance(local, bool), local
             timelines = self.config.setdefault("timelines", {})
-            if hashtag in timelines:
-                del timelines[hashtag]
-                self.footer.set_message("#{} unpinned".format(hashtag))
+            if tl_name in timelines:
+                del timelines[tl_name]
+                self.footer.set_message("#" if tl_hashtag else "" + f"{tl_name} unpinned")
             else:
-                timelines[hashtag] = {"local": local}
-                self.footer.set_message("#{} pinned".format(hashtag))
+                timelines[tl_name] = {"local": local}
+                self.footer.set_message("#" if tl_hashtag else "" + f"{tl_name} pinned")
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags)
+        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags, foreign_server=foreign_server)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -263,11 +274,11 @@ class TUI(urwid.Frame):
 
         return timeline
 
-    def make_status(self, status_data, instance):
+    def make_status(self, status_data, foreign_server):
         is_mine = self.user.username == status_data["account"]["acct"]
-        return Status(status_data, is_mine, self.app.instance, instance)
+        return Status(status_data, is_mine, self.app.instance, foreign_server)
 
-    def show_thread(self, status, instance):
+    def show_thread(self, status, foreign_server):
         def _close(*args):
             """When thread is closed, go back to the main timeline."""
             self.body = self.timeline
@@ -276,17 +287,17 @@ class TUI(urwid.Frame):
 
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
-        if instance:
-            context = api.anon_context(instance, status.original.id)
+        if foreign_server:
+            context = api.anon_context(foreign_server, status.original.id)
         else:
             context = api.context(self.app, self.user, status.original.id)
-        ancestors = [self.make_status(s, instance) for s in context["ancestors"]]
-        descendants = [self.make_status(s, instance) for s in context["descendants"]]
+        ancestors = [self.make_status(s, foreign_server) for s in context["ancestors"]]
+        descendants = [self.make_status(s, foreign_server) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
         timeline = Timeline("thread", statuses, self.can_translate,
-                            self.followed_tags, focus, is_thread=True)
+                            self.followed_tags, focus, is_thread=True, foreign_server=foreign_server)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
@@ -294,7 +305,7 @@ class TUI(urwid.Frame):
         self.body = timeline
         self.refresh_footer(timeline)
 
-    def async_load_timeline(self, is_initial, timeline_name=None, local=None, instance=None):
+    def async_load_timeline(self, is_initial, timeline_name=None, local=None, foreign_server=None):
         """Asynchronously load a list of statuses."""
 
         def _load_statuses():
@@ -306,11 +317,11 @@ class TUI(urwid.Frame):
             finally:
                 self.footer.clear_message()
 
-            return [self.make_status(s, instance) for s in data]
+            return [self.make_status(s, foreign_server) for s in data]
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
-            self.timeline = self.build_timeline(timeline_name, statuses, local, instance)
+            self.timeline = self.build_timeline(timeline_name, statuses, local, foreign_server)
             self.timeline.refresh_status_details()  # Draw first status
             self.refresh_footer(self.timeline)
             self.body = self.timeline
@@ -439,7 +450,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(menu, "home_timeline",
             lambda x: self.goto_home_timeline())
         urwid.connect_signal(menu, "public_timeline",
-            lambda x, local, instance: self.goto_public_timeline(local, instance=instance))
+            lambda x, local, foreign_server: self.goto_public_timeline(local, foreign_server=foreign_server))
         urwid.connect_signal(menu, "bookmark_timeline",
             lambda x, local: self.goto_bookmarks())
         urwid.connect_signal(menu, "hashtag_timeline",
@@ -465,24 +476,17 @@ class TUI(urwid.Frame):
         promise = self.async_load_timeline(is_initial=True, timeline_name="home")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
-<<<<<<< HEAD
-    def goto_public_timeline(self, local, instance=None):
-        if instance:
+    def goto_public_timeline(self, local, foreign_server=None):
+        if foreign_server:
             self.timeline_generator = api.anon_public_timeline_generator(
-                instance, local=True, limit=40)
+                foreign_server, local=True, limit=40)
+            tl_name = foreign_server
         else:
             self.timeline_generator = api.public_timeline_generator(
                 self.app, self.user, local=local, limit=40)
 
-        promise = self.async_load_timeline(
-            is_initial=True,
-            timeline_name=instance if instance else "public",
-            instance=instance)
-
-    def goto_public_timeline(self, local):
-        self.timeline_generator = api.public_timeline_generator(
-            self.app, self.user, local=local, limit=40)
-        promise = self.async_load_timeline(is_initial=True, timeline_name="local public" if local else "global public")
+        promise = self.async_load_timeline(is_initial=True, timeline_name=tl_name,
+        local=False, foreign_server=foreign_server)
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_bookmarks(self):
@@ -710,10 +714,9 @@ class TUI(urwid.Frame):
                 if self.timeline.name.startswith("#"):
                     self.timeline_generator = api.tag_timeline_generator(
                         self.app, self.user, self.timeline.name[1:], limit=40)
-                elif '.' in self.timeline.name:
-                    # timelines with . in the name are server.domain; foreign servers
+                elif self.timeline.foreign_server:
                     self.timeline_generator = api.anon_public_timeline_generator(
-                        instance=self.timeline.name, local=True, limit=40)
+                        instance=self.timeline.foreign_server, local=True, limit=40)
                 elif self.timeline.name.endswith('public'):
                     self.timeline_generator = api.public_timeline_generator(
                         self.app, self.user, local=self.timeline.name.startswith('local'), limit=40)
@@ -722,7 +725,8 @@ class TUI(urwid.Frame):
                     self.timeline_generator = api.home_timeline_generator(
                         self.app, self.user, limit=40)
 
-                self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
+                self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name,
+                                         foreign_server=self.timeline.foreign_server)
 
         elif key == 'esc':
             if self.overlay:
