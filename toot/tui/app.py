@@ -710,6 +710,10 @@ class TUI(urwid.Frame):
                 if self.timeline.name.startswith("#"):
                     self.timeline_generator = api.tag_timeline_generator(
                         self.app, self.user, self.timeline.name[1:], limit=40)
+                elif '.' in self.timeline.name:
+                    # timelines with . in the name are server.domain; foreign servers
+                    self.timeline_generator = api.anon_public_timeline_generator(
+                        instance=self.timeline.name, local=True, limit=40)
                 else:
                     if self.timeline.name.endswith('public'):
                         self.timeline_generator = api.public_timeline_generator(
