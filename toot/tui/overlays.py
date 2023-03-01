@@ -105,57 +105,104 @@ class GotoMenu(urwid.ListBox):
 
     def __init__(self, user_timelines):
         self.hash_edit = EditBox(caption="Hashtag: ")
+        self.server_edit = EditBox(caption="Server: ")
+        self.message_widget = urwid.Text("")
 
         actions = list(self.generate_actions(user_timelines))
         walker = urwid.SimpleFocusListWalker(actions)
         super().__init__(walker)
 
     def get_hashtag(self):
-        return self.hash_edit.edit_text.strip()
+        return self.hash_edit.edit_text.strip('#')
+
+    def get_server(self):
+        return self.server_edit.edit_text.strip().lower()
 
     def generate_actions(self, user_timelines):
         def _home(button):
             self._emit("home_timeline")
 
         def _local_public(button):
-            self._emit("public_timeline", True)
+            self._emit("public_timeline", True, None)
 
         def _global_public(button):
-            self._emit("public_timeline", False)
+            self._emit("public_timeline", False, None)
 
         def _bookmarks(button):
-            self._emit("bookmark_timeline", False)
+            self._emit("bookmark_timeline", False, None)
 
         def _notifications(button):
             self._emit("notification_timeline", False)
 
         def _hashtag(local):
+            self.message_widget.set_text("")
             hashtag = self.get_hashtag()
             if hashtag:
                 self._emit("hashtag_timeline", hashtag, local)
             else:
-                self.set_focus(4)
+                self.message_widget.set_text(("warning", "Hashtag name required"))
+
+        def _server(local):
+            server = self.get_server()
+            if server:
+                self.message_widget.set_text("")
+                test_generator = api.anon_public_timeline_generator(instance=server, local=True, limit=1)
+                try:
+                    self.message_widget.set_text(("cyan_bold", "Checking server..."))
+                    result = next(test_generator)
+                    if (result):
+                        self._emit("public_timeline", True, server)
+                    else:
+                        self.message_widget.set_text(("warning", f"Error getting timeline from {server}"))
+                except Exception:
+                    self.message_widget.set_text(("warning", f"Error getting timeline from {server}"))
+            else:
+                self.message_widget.set_text(("warning", "Server domain name required"))
 
         def mk_on_press_user_hashtag(tag, local):
             def on_press(btn):
                 self._emit("hashtag_timeline", tag, local)
             return on_press
 
+        def mk_on_press_user_server(foreign_server, local):
+            def on_press(btn):
+                self._emit("public_timeline", local, foreign_server)
+            return on_press
+
         yield Button("Home timeline", on_press=_home)
-
-        for tag, cfg in user_timelines.items():
-            is_local = cfg["local"]
-            yield Button("#{}".format(tag) + (" (local)" if is_local else ""),
-                         on_press=mk_on_press_user_hashtag(tag, is_local))
-
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
         yield Button("Bookmarks", on_press=_bookmarks)
         yield Button("Notifications", on_press=_notifications)
+
+        if len(user_timelines):
+            yield urwid.Divider()
+            yield urwid.Text(("bold", "Shortcuts:"))
+
+            # first show all hashtag shortcuts (including those from <= 0.35 config files
+            # which have not specified a timeline type)
+            for tag, cfg in sorted(user_timelines.items()):
+                if cfg.get("type") != "instance":
+                    is_local = cfg["local"]
+                    yield Button(f"#{tag}" + (" (local)" if is_local else ""),
+                         on_press=mk_on_press_user_hashtag(tag, is_local))
+
+            # next show all foreign server public local timeline shortcuts
+            for tag, cfg in sorted(user_timelines.items()):
+                if cfg.get("type") == "instance":
+                    yield Button(f"\N{Globe with Meridians}{tag} (local)",
+                                 on_press=mk_on_press_user_server(tag, True))
+
+
         yield urwid.Divider()
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
         yield Button("Public hashtag timeline", on_press=lambda x: _hashtag(False))
+        yield urwid.Divider()
+        yield self.server_edit
+        yield Button("Server local timeline", on_press=lambda x: _server(True))
+        yield urwid.Divider()
+        yield self.message_widget
 
 
 class Help(urwid.Padding):
