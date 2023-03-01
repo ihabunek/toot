@@ -529,7 +529,7 @@ class TUI(urwid.Frame):
             spoiler_text=warning,
             visibility=visibility,
             in_reply_to_id=in_reply_to_id)
-        status = self.make_status(data)
+        status = self.make_status(data, None)
 
         # TODO: fetch new items from the timeline?
 
@@ -561,7 +561,7 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped favourited flag
             new_data = status.data
             new_data["favourited"] = not status.favourited
-            new_status = self.make_status(new_data)
+            new_status = self.make_status(new_data, None)
             timeline.update_status(new_status)
 
         self.run_in_thread(
@@ -582,7 +582,7 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped reblogged flag
             new_data = status.data
             new_data["reblogged"] = not status.reblogged
-            new_status = self.make_status(new_data)
+            new_status = self.make_status(new_data, None)
             timeline.update_status(new_status)
 
         # Check if status is rebloggable
@@ -643,7 +643,7 @@ class TUI(urwid.Frame):
             # Create a new Status with flipped bookmarked flag
             new_data = status.data
             new_data["bookmarked"] = not status.bookmarked
-            new_status = self.make_status(new_data)
+            new_status = self.make_status(new_data, None)
             timeline.update_status(new_status)
 
         self.run_in_thread(
