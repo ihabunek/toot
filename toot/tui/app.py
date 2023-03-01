@@ -461,6 +461,7 @@ class TUI(urwid.Frame):
         promise = self.async_load_timeline(is_initial=True, timeline_name="home")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
+<<<<<<< HEAD
     def goto_public_timeline(self, local, instance=None):
         if instance:
             self.timeline_generator = api.anon_public_timeline_generator(
@@ -473,6 +474,11 @@ class TUI(urwid.Frame):
             is_initial=True,
             timeline_name=instance if instance else "public",
             instance=instance)
+
+    def goto_public_timeline(self, local):
+        self.timeline_generator = api.public_timeline_generator(
+            self.app, self.user, local=local, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name="local public" if local else "global public")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_bookmarks(self):
@@ -695,8 +701,20 @@ class TUI(urwid.Frame):
 
         elif key == ',':
             if not self.overlay:
-                self.timeline_generator = api.home_timeline_generator(
-                    self.app, self.user, limit=40)
+                if self.timeline.name == 'bookmarks':
+                    return  # no point in refreshing the bookmarks timeline
+                if self.timeline.name.startswith("#"):
+                    self.timeline_generator = api.tag_timeline_generator(
+                        self.app, self.user, self.timeline.name[1:], limit=40)
+                else:
+                    if self.timeline.name.endswith('public'):
+                        self.timeline_generator = api.public_timeline_generator(
+                            self.app, self.user, local=self.timeline.name.startswith('local'), limit=40)
+                    else:
+                        # default to home timeline
+                        self.timeline_generator = api.home_timeline_generator(
+                            self.app, self.user, limit=40)
+
                 self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
 
         elif key == 'esc':
