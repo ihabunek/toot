@@ -45,9 +45,13 @@ class Timeline(urwid.Columns):
 
     def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
         self.name = name
+        # detect if this timeline is from a foreign server by looking for a '.' in the name
+        # foreign server timelines are in server.domain format.
+        self.foreign = '.' in name
         self.is_thread = is_thread
         self.statuses = statuses
-        self.can_translate = can_translate
+        # translation not available when browsing a foreign server
+        self.can_translate = (can_translate and not self.foreign)
         self.status_list = self.build_status_list(statuses, focus=focus)
         self.followed_tags = followed_tags
 
@@ -108,15 +112,15 @@ class Timeline(urwid.Columns):
 
         options = [
             "[A]ccount" if not status.is_mine else "",
-            "[B]oost",
-            "[D]elete" if status.is_mine else "",
-            "B[o]okmark",
-            "[F]avourite",
+            "[B]oost" if not self.foreign else "",
+            "[D]elete" if status.is_mine and not self.foreign else "",
+            "B[o]okmark" if not self.foreign else "",
+            "[F]avourite" if not self.foreign else "",
             "[V]iew",
             "[T]hread" if not self.is_thread else "",
             "[L]inks",
-            "[R]eply",
-            "[P]oll" if poll and not poll["expired"] else "",
+            "[R]eply" if not self.foreign else "",
+            "[P]oll" if poll and not self.foreign and not poll["expired"] else "",
             "So[u]rce",
             "[Z]oom",
             "Tra[n]slate" if self.can_translate else "",
@@ -181,26 +185,26 @@ class Timeline(urwid.Columns):
         if key in ("a", "A"):
             # if we're on a foreign server's public timeline, server-local account names
             # don't have the @server.domain, so add it.
-            if '.' in self.name and '@' not in self.name:
+            if self.foreign and '@' not in self.name:
                 account_name = status.original.data['account']['acct'] + "@" + self.name
             else:
                 account_name = status.original.data['account']['acct']
             self._emit("account", account_name)
             return
 
-        if key in ("b", "B"):
+        if key in ("b", "B") and not self.foreign:
             self._emit("reblog", status)
             return
 
-        if key in ("c", "C"):
+        if key in ("c", "C") and not self.foreign:
             self._emit("compose")
             return
 
-        if key in ("d", "D"):
+        if key in ("d", "D") and not self.foreign:
             self._emit("delete", status)
             return
 
-        if key in ("f", "F"):
+        if key in ("f", "F") and not self.foreign:
             self._emit("favourite", status)
             return
 
@@ -216,7 +220,7 @@ class Timeline(urwid.Columns):
             self._emit("close")
             return
 
-        if key in ("r", "R"):
+        if key in ("r", "R") and not self.foreign:
             self._emit("reply", status)
             return
 
@@ -225,7 +229,7 @@ class Timeline(urwid.Columns):
             self.refresh_status_details()
             return
 
-        if key in ("o", "O"):
+        if key in ("o", "O") and not self.foreign:
             self._emit("bookmark", status)
             return
 
@@ -261,7 +265,7 @@ class Timeline(urwid.Columns):
             self._emit("zoom", self.status_details)
             return
 
-        if key in ("p", "P"):
+        if key in ("p", "P") and not self.foreign:
             poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
                 self._emit("poll", status)
