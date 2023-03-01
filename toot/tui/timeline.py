@@ -291,6 +291,17 @@ class Timeline(urwid.Columns):
         if index == self.status_list.body.focus:
             self.draw_status_details(status)
 
+    # TODO: dedupe code with update_status
+    def redraw_status(self, status: Status):
+        index = self.get_status_index(status.id)
+
+        # Redraw list item
+        self.status_list.body[index] = self.build_list_item(status)
+
+        # Redraw status details if status is focused
+        if index == self.status_list.body.focus:
+            self.draw_status_details(status)
+
     def remove_status(self, status):
         index = self.get_status_index(status.id)
         assert self.statuses[index].id == status.id  # Sanity check

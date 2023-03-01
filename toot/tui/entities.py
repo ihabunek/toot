@@ -74,6 +74,9 @@ class Account:
 
 @dataclass
 class Application:
+    """
+    https://docs.joinmastodon.org/entities/Status/#application
+    """
     name: str
     website: Optional[str]
 
@@ -162,6 +165,9 @@ class PreviewCard:
 
 @dataclass
 class FilterKeyword:
+    """
+    https://docs.joinmastodon.org/entities/FilterKeyword/
+    """
     id: str
     keyword: str
     whole_word: str
@@ -169,12 +175,18 @@ class FilterKeyword:
 
 @dataclass
 class FilterStatus:
+    """
+    https://docs.joinmastodon.org/entities/FilterStatus/
+    """
     id: str
     status_id: str
 
 
 @dataclass
 class Filter:
+    """
+    https://docs.joinmastodon.org/entities/Filter/
+    """
     id: str
     title: str
     context: List[str]
@@ -186,6 +198,9 @@ class Filter:
 
 @dataclass
 class FilterResult:
+    """
+    https://docs.joinmastodon.org/entities/FilterResult/
+    """
     filter: Filter
     keyword_matches: Optional[List[str]]
     status_matches: Optional[str]
@@ -195,13 +210,20 @@ class StatusMeta:
     """
     Additional information kept for a status.
     """
+    # TODO: it's not perfect keeping the status source as a dict since encoding
+    # to and from json can be lossy. Ideally we'd keep the status source as
+    # JSON-encoded string as returned by the server but this would require
+    # api.* methods not to already decode them.
+    source: dict
+
     is_mine: bool
     show_sensitive: bool = False
     show_translation: bool = False
     translated_from: Optional[str] = None
     translation: Optional[str] = None
 
-    def __init__(self, status: "Status", app: App, user: User):
+    def __init__(self, status: "Status", source: dict, app: App, user: User):
+        self.source = source
         self.is_mine = user.username == status.account.acct
 
 
@@ -258,13 +280,12 @@ def from_dict(cls: Type[T], data: Dict) -> T:
     def _fields():
         hints = get_type_hints(cls)
         for field in dataclasses.fields(cls):
-            if not field.name.startswith("_"):
-                field_type = prune_optional(hints[field.name])
-                default_value = get_default_value(field)
-                value = data.get(field.name, default_value)
-                yield convert(field_type, value)
+            field_type = prune_optional(hints[field.name])
+            default_value = get_default_value(field)
+            value = data.get(field.name, default_value)
+            yield field.name, convert(field_type, value)
 
-    return cls(*_fields())
+    return cls(**dict(_fields()))
 
 
 def get_default_value(field):

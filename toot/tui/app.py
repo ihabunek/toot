@@ -258,9 +258,9 @@ class TUI(urwid.Frame):
 
         return timeline
 
-    def make_status(self, status_data):
-        status = from_dict(Status, status_data)
-        status._meta = StatusMeta(status, self.app, self.user)
+    def make_status(self, data):
+        status = from_dict(Status, data)
+        status._meta = StatusMeta(status, data, self.app, self.user)
         return status
 
     def show_thread(self, status):
@@ -529,11 +529,8 @@ class TUI(urwid.Frame):
             api.unfavourite(self.app, self.user, status.id)
 
         def _done(loop):
-            # Create a new Status with flipped favourited flag
-            new_data = status.data
-            new_data["favourited"] = not status.favourited
-            new_status = self.make_status(new_data)
-            timeline.update_status(new_status)
+            status.favourited = not status.favourited
+            timeline.redraw_status(status)
 
         self.run_in_thread(
             _unfavourite if status.favourited else _favourite,
@@ -550,11 +547,8 @@ class TUI(urwid.Frame):
             api.unreblog(self.app, self.user, status.id)
 
         def _done(loop):
-            # Create a new Status with flipped reblogged flag
-            new_data = status.data
-            new_data["reblogged"] = not status.reblogged
-            new_status = self.make_status(new_data)
-            timeline.update_status(new_status)
+            status.reblogged = not status.reblogged
+            timeline.redraw_status(status)
 
         # Check if status is rebloggable
         no_reblog_because_private = status.visibility == "private" and not status._meta.is_mine
@@ -568,7 +562,10 @@ class TUI(urwid.Frame):
             done_callback=_done
         )
 
-    def async_translate(self, timeline, status):
+    def async_translate(self, timeline: Timeline, status: Status):
+        meta = status._meta
+        assert meta
+
         def _translate():
             logger.info("Translating {}".format(status))
             self.footer.set_message("Translating status {}".format(status.id))
@@ -589,15 +586,15 @@ class TUI(urwid.Frame):
 
         def _done(response):
             if response is not None:
-                status._meta.translation = response["content"]
-                status._meta.translated_from = response["detected_source_language"]
-                status._meta.show_translation = True
-                timeline.update_status(status)
+                meta.translation = response["content"]
+                meta.translated_from = response["detected_source_language"]
+                meta.show_translation = True
+                timeline.redraw_status(status)
 
         # If already translated, toggle showing translation
-        if status.translation:
-            status.show_translation = not status.show_translation
-            timeline.update_status(status)
+        if meta.translation:
+            meta.show_translation = not meta.show_translation
+            timeline.redraw_status(status)
         else:
             self.run_in_thread(_translate, done_callback=_done)
 
@@ -611,11 +608,8 @@ class TUI(urwid.Frame):
             api.unbookmark(self.app, self.user, status.id)
 
         def _done(loop):
-            # Create a new Status with flipped bookmarked flag
-            new_data = status.data
-            new_data["bookmarked"] = not status.bookmarked
-            new_status = self.make_status(new_data)
-            timeline.update_status(new_status)
+            status.bookmarked = not status.bookmarked
+            timeline.redraw_status(status)
 
         self.run_in_thread(
             _unbookmark if status.bookmarked else _bookmark,
