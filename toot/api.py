@@ -287,15 +287,11 @@ def _timeline_generator(app, user, path, params=None):
         path = _get_next_path(response.headers)
 
 
-def _notif_timeline_generator(app, user, path, params=None):
+def _notification_timeline_generator(app, user, path, params=None):
     while path:
         response = http.get(app, user, path, params)
         notification = response.json()
-        statuses = []
-        for n in notification:
-            if n['status']:
-                statuses.append(n['status'])
-        yield statuses
+        yield [n["status"] for n in notification if n["status"]]
         path = _get_next_path(response.headers)
 
 
@@ -327,7 +323,7 @@ def notification_timeline_generator(app, user, limit=20):
     # exclude all but mentions and statuses
     exclude_types = ["follow", "favourite", "reblog", "poll", "follow_request"]
     params = {"exclude_types[]": exclude_types, "limit": limit}
-    return _notif_timeline_generator(app, user, '/api/v1/notifications', params)
+    return _notification_timeline_generator(app, user, "/api/v1/notifications", params)
 
 
 def timeline_list_generator(app, user, list_id, limit=20):
