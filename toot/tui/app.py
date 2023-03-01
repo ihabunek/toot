@@ -7,7 +7,7 @@ from toot import api, config, __version__
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
-from toot.commands import _find_account  # fixme this is not clean
+from toot.commands import _find_account  # FIXME: this is not clean
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
@@ -714,14 +714,13 @@ class TUI(urwid.Frame):
                     # timelines with . in the name are server.domain; foreign servers
                     self.timeline_generator = api.anon_public_timeline_generator(
                         instance=self.timeline.name, local=True, limit=40)
+                elif self.timeline.name.endswith('public'):
+                    self.timeline_generator = api.public_timeline_generator(
+                        self.app, self.user, local=self.timeline.name.startswith('local'), limit=40)
                 else:
-                    if self.timeline.name.endswith('public'):
-                        self.timeline_generator = api.public_timeline_generator(
-                            self.app, self.user, local=self.timeline.name.startswith('local'), limit=40)
-                    else:
-                        # default to home timeline
-                        self.timeline_generator = api.home_timeline_generator(
-                            self.app, self.user, limit=40)
+                    # default to home timeline
+                    self.timeline_generator = api.home_timeline_generator(
+                        self.app, self.user, limit=40)
 
                 self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
 

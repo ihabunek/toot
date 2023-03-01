@@ -44,10 +44,11 @@ class Timeline(urwid.Columns):
     ]
 
     def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
-        self.name = name
         # detect if this timeline is from a foreign server by looking for a '.' in the name
         # foreign server timelines are in server.domain format.
         self.foreign = '.' in name
+        self.name = f"{name} thread" if is_thread and self.foreign else name
+
         self.is_thread = is_thread
         self.statuses = statuses
         # translation not available when browsing a foreign server
@@ -424,24 +425,24 @@ class StatusDetails(urwid.Pile):
         yield urwid.Text(("link", card["url"]))
 
     def poll_generator(self, poll):
-        for idx, option in enumerate(poll["options"]):
-            perc = (round(100 * option["votes_count"] / poll["votes_count"])
-                if poll["votes_count"] else 0)
+        for idx, option in enumerate(poll.get("options")):
+            perc = (round(100 * option.get("votes_count") / poll.get("votes_count"))
+                if poll.get("votes_count") else 0)
 
-            if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
+            if poll.get("voted") and poll.get("own_votes") and idx in poll["own_votes"]:
                 voted_for = " ✓"
             else:
                 voted_for = ""
 
-            yield urwid.Text(option["title"] + voted_for)
+            yield urwid.Text(option.get("title") + voted_for)
             yield urwid.ProgressBar("", "poll_bar", perc)
 
-        status = "Poll · {} votes".format(poll["votes_count"])
+        status = "Poll · {} votes".format(poll.get("votes_count"))
 
-        if poll["expired"]:
+        if poll.get("expired"):
             status += " · Closed"
 
-        if poll["expires_at"]:
+        if poll.get("expires_at"):
             expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
             status += " · Closes on {}".format(expires_at)
 
