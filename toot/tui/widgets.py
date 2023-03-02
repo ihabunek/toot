@@ -130,12 +130,12 @@ class EmojiText(urwid.Padding):
                                 # TODO: consider asynchronous loading in future
                                 img = Image.open(requests.get(emoji["url"], stream=True).raw)
                                 EmojiText.image_cache[str(hash(emoji["url"]))] = img
-                            image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 1)
 
                             if make_gray:
                                 img = ImageOps.grayscale(img)
 
-                            image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img)), 1)
+                            image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 1)
+
                             columns.append(image_widget)
                         except Exception:
                             columns.append(("pack", urwid.Text(word)))
