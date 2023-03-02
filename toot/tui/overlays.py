@@ -113,7 +113,7 @@ class GotoMenu(urwid.ListBox):
         super().__init__(walker)
 
     def get_hashtag(self):
-        return self.hash_edit.edit_text.strip('#')
+        return self.hash_edit.edit_text.strip().lstrip("#")
 
     def get_server(self):
         return self.server_edit.edit_text.strip().lower()
