@@ -15,6 +15,54 @@ from toot.tui.utils import time_ago
 
 logger = logging.getLogger("toot")
 
+import subprocess
+import re
+
+def shell(*args):
+	sub = subprocess.run(args, capture_output=True, encoding="utf-8")
+	if sub.returncode != 0:
+		return None
+	return sub.stdout
+def timg(url):
+	ansi = shell("timg", "-g80", url)
+	if ansi is None:
+		return None
+	# convert the ansi escape sequences into urwid attributes
+	# maybe it is possible to do a raw_display()? the docs are bad.
+	# every character is preceded by a \x1b[38;2;R;G;B;48;2;r;g;bm
+	text = []
+
+	# hold the last fg/bg for reuse
+	fg_attr = None
+	bg_attr = None
+	attr = None
+	for match in re.finditer(r'\x1b\[([^m]+)m([^\x1b]+)', ansi):
+		escape = match[1]
+		contents = match[2]
+
+		if (colors := re.search("38;2;(\d+);(\d+);(\d+)", escape)):
+			fg_r = int(colors[1])
+			fg_g = int(colors[2])
+			fg_b = int(colors[3])
+			fg_attr = "#%02x%02x%02x" % (fg_r, fg_g, fg_b)
+		if (colors := re.search("48;2;(\d+);(\d+);(\d+)", escape)):
+			bg_r = int(colors[1])
+			bg_g = int(colors[2])
+			bg_b = int(colors[3])
+			bg_attr = "#%02x%02x%02x" % (bg_r, bg_g, bg_b)
+
+		if contents == "\n":
+			# special case the newlines
+			text.append(contents)
+		elif fg_attr and bg_attr:
+			attr = urwid.display_common.AttrSpec(fg_attr, bg_attr, 2**24)
+			text.append((attr, contents))
+		else:
+			text.append(contents)
+
+	return text
+		
+
 
 class Timeline(urwid.Columns):
     """
@@ -352,6 +400,7 @@ class StatusDetails(urwid.Pile):
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
                     yield ("pack", urwid.Text(("link", m["url"])))
+                    yield ("pack", urwid.Text(timg(m["url"])))
 
             poll = status.original.data.get("poll")
             if poll:
