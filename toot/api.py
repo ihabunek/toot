@@ -6,7 +6,7 @@ from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import AuthenticationError
-from toot.utils import str_bool, str_bool_nullable
+from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
 
@@ -85,10 +85,9 @@ def update_account(
     Update account credentials
     https://docs.joinmastodon.org/methods/accounts/#update_credentials
     """
-    files = {"avatar": avatar, "header": header}
-    files = {k: v for k, v in files.items() if v is not None}
+    files = drop_empty_values({"avatar": avatar, "header": header})
 
-    data = {
+    data = drop_empty_values({
         "bot": str_bool_nullable(bot),
         "discoverable": str_bool_nullable(discoverable),
         "display_name": display_name,
@@ -97,8 +96,7 @@ def update_account(
         "source[language]": language,
         "source[privacy]": privacy,
         "source[sensitive]": str_bool_nullable(sensitive),
-    }
-    data = {k: v for k, v in data.items() if v is not None}
+    })
 
     return http.patch(app, user, "/api/v1/accounts/update_credentials", files=files, data=data)
 
@@ -182,7 +180,9 @@ def post_status(
     # if the request is retried.
     headers = {"Idempotency-Key": uuid.uuid4().hex}
 
-    json = {
+    # Strip keys for which value is None
+    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
+    json = drop_empty_values({
         'status': status,
         'media_ids': media_ids,
         'visibility': visibility,
@@ -192,11 +192,7 @@ def post_status(
         'scheduled_at': scheduled_at,
         'content_type': content_type,
         'spoiler_text': spoiler_text
-    }
-
-    # Strip keys for which value is None
-    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
-    json = {k: v for k, v in json.items() if v is not None}
+    })
 
     return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
 
