@@ -1,11 +1,13 @@
+import mimetypes
+from os import path
 import re
 import uuid
 
-from typing import List
+from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
-from toot import http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError
+from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
+from toot.exceptions import AuthenticationError, ConsoleError
 from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
@@ -347,11 +349,40 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     return _anon_timeline_generator(instance, path, params)
 
 
-def upload_media(app, user, file, description=None):
-    return http.post(app, user, '/api/v2/media',
-        data={'description': description},
-        files={'file': file}
-    ).json()
+def upload_media(
+    app: App,
+    user: User,
+    media: BinaryIO,
+    description: Optional[str] = None,
+    thumbnail: Optional[BinaryIO] = None,
+):
+    data = drop_empty_values({"description": description})
+
+    # NB: Documentation says that "file" should provide a mime-type which we
+    # don't do currently, but it works.
+    files = drop_empty_values({
+        "file": media,
+        "thumbnail": _add_mime_type(thumbnail)
+    })
+
+    return http.post(app, user, "/api/v2/media", data=data, files=files).json()
+
+
+def _add_mime_type(file):
+    if file is None:
+        return None
+
+    # TODO: mimetypes uses the file extension to guess the mime type which is
+    # not always good enough (e.g. files without extension). python-magic could
+    # be used instead but it requires adding it as a dependency.
+    mime_type = mimetypes.guess_type(file.name)
+
+    if not mime_type:
+        raise ConsoleError(f"Unable guess mime type of '{file.name}'. "
+                           "Ensure the file has the desired extension.")
+
+    filename = path.basename(file.name)
+    return (filename, file, mime_type)
 
 
 def search(app, user, query, resolve=False, type=None):
