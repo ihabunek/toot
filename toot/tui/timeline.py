@@ -461,6 +461,15 @@ class StatusDetails(urwid.Pile):
                                 aspect = None
                             yield self.image_widget(m["url"], aspect=aspect)
                             yield urwid.Divider()
+                        # video media may include a preview URL, show that as a fallback
+                        elif m["preview_url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                            yield urwid.Text("")
+                            try:
+                                aspect = float(m["meta"]["small"]["aspect"])
+                            except Exception:
+                                aspect = None
+                            yield self.image_widget(m["preview_url"], aspect=aspect)
+                            yield urwid.Divider()
                         yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.original.data.get("poll")
