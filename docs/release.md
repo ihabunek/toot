@@ -32,3 +32,12 @@ GitHub release
     * wheel distribution (.whl)
 
 TODO: this can be automated: https://developer.github.com/v3/repos/releases/
+
+Update documentation
+--------------------
+
+To regenerate HTML docs and deploy to toot.bezdomni.net:
+
+```
+make docs-deploy
+```
