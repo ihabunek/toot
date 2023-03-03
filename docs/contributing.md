@@ -5,7 +5,7 @@ Firstly, thank you for contributing to toot!
 
 Relevant links which will be referenced below:
 
-* [toot documentation](https://toot.readthedocs.io/)
+* [toot documentation](https://toot.bezdomni.net/)
 * [toot-discuss mailing list](https://lists.sr.ht/~ihabunek/toot-discuss)
   used for discussion as well as accepting patches
 * [toot project on github](https://github.com/ihabunek/toot)

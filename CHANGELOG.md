@@ -137,7 +137,7 @@ Changelog
 * **IMPORTANT:** Starting from this release, new releases will not be uploaded
   to the APT package repository at `bezdomni.net`. Please use the official
   Debian or Ubuntu repos or choose another [installation
-  option](https://toot.readthedocs.io/en/latest/install.html).
+  option](https://toot.bezdomni.net/installation.html).
 
 **0.25.2 (2020-01-23)**
 
