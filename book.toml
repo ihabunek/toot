@@ -1,0 +1,13 @@
+[book]
+authors = ["Ivan Habunek"]
+language = "en"
+multilingual = false
+src = "docs"
+title = "toot"
+
+[output.html]
+additional-css = ["book.css"]
+
+[preprocessor.toc]
+command = "mdbook-toc"
+renderer = ["html"]
