@@ -251,7 +251,7 @@ class Help(urwid.Padding):
         yield urwid.Divider()
         yield urwid.Text(("bold", "Links"))
         yield urwid.Divider()
-        yield link("Documentation: ", "https://toot.readthedocs.io/")
+        yield link("Documentation: ", "https://toot.bezdomni.net/")
         yield link("Project home:  ", "https://github.com/ihabunek/toot/")
 
 
