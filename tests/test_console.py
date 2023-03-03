@@ -292,7 +292,6 @@ def test_reblogged_by(mock_get, monkeypatch, capsys):
 def test_upload(mock_post, capsys):
     mock_post.return_value = MockResponse({
         'id': 123,
-        'url': 'https://bigfish.software/123/456',
         'preview_url': 'https://bigfish.software/789/012',
         'url': 'https://bigfish.software/345/678',
         'type': 'image',
