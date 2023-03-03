@@ -24,3 +24,13 @@ clean :
 
 changelog:
 	./scripts/generate_changelog > CHANGELOG.md
+	cp CHANGELOG.md docs/changelog.md
+
+docs: changelog
+	mdbook build
+
+docs-serve:
+	mdbook serve
+
+docs-deploy: docs
+	rsync --archive --compress --delete --stats book/ bezdomni:web/toot
