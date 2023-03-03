@@ -291,7 +291,19 @@ def _notification_timeline_generator(app, user, path, params=None):
     while path:
         response = http.get(app, user, path, params)
         notification = response.json()
-        yield [n["status"] for n in notification if n["status"]]
+
+        statuses = []
+        for n in notification:
+            status = n["status"]
+            # hack to have notification info available in our statuses
+            # so we don't have to redo all interfaces.
+            # preface with toot_ so we don't collide
+            # with real status tags now or in future
+            status.setdefault('toot_notification_id', n.get('id'))
+            status.setdefault('toot_notification_type', n.get('type'))
+            status.setdefault('toot_notification_created_at', n.get('created_at'))
+            statuses.append(status)
+        yield statuses
         path = _get_next_path(response.headers)
 
 
@@ -450,8 +462,10 @@ def single_status(app, user, status_id):
     return http.get(app, user, url).json()
 
 
-def get_notifications(app, user, exclude_types=[], limit=20):
+def get_notifications(app, user, exclude_types=[], limit=20, min_id=None):
     params = {"exclude_types[]": exclude_types, "limit": limit}
+    if min_id:
+        params["min_id"] = min_id
     return http.get(app, user, '/api/v1/notifications', params).json()
 
 

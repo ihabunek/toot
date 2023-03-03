@@ -26,22 +26,22 @@ class Header(urwid.WidgetWrap):
         self.app = app
         self.user = user
 
-        self.text = urwid.Text("")
+        self.text = urwid.Text(('header', ""))
         self.cols = urwid.Columns([
-            ("pack", urwid.Text(('header_bold', 'toot'))),
-            ("pack", urwid.Text(('header', ' | {}@{}'.format(user.username, app.instance)))),
-            ("pack", self.text),
-        ])
+            ('pack', urwid.Text(('header_bold', 'toot'))),
+            ('pack', (urwid.Text(('header', f' | {user.username}@{app.instance}')))),
+            ('weight', 1, (self.text)),
+        ], min_width=4)
 
         widget = urwid.AttrMap(self.cols, 'header')
         widget = urwid.Padding(widget)
         self._wrapped_widget = widget
 
-    def clear_text(self, text):
+    def clear_text(self):
         self.text.set_text("")
 
     def set_text(self, text):
-        self.text.set_text(" | " + text)
+        self.text.set_text(f' | {text}')
 
 
 class Footer(urwid.Pile):
@@ -57,7 +57,7 @@ class Footer(urwid.Pile):
     def set_status(self, text):
         self.status.set_text(text)
 
-    def clear_status(self, text):
+    def clear_status(self):
         self.status.set_text("")
 
     def set_message(self, text):
@@ -119,6 +119,7 @@ class TUI(urwid.Frame):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_tags())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
+        self.loop.set_alarm_in(5, lambda *args: self.async_check_notifications())
         self.loop.run()
         self.executor.shutdown(wait=False)
 
@@ -311,6 +312,20 @@ class TUI(urwid.Frame):
             self.refresh_footer(self.timeline)
             self.body = self.timeline
 
+            # special case for the notification timeline:
+            # (if the status has a toot_notification_id it's
+            # a status in the notification timeline)
+            # store the most recent notification
+            # id we are showing in the timeline right now
+            # as the "last id" (last-seen notification id)
+
+            data = self.timeline.statuses[0].data
+            newest_id = data.get("toot_notification_id")
+            if newest_id:
+                notifs = self.config.setdefault("notifications", {})
+                notifs["global"] = {"last_id": newest_id}
+                config.save_config(self.config)
+
         def _done_next(statuses):
             """Process sequential batch of statuses, adds statuses to the
             existing timeline."""
@@ -350,6 +365,27 @@ class TUI(urwid.Frame):
                 self.can_translate = int(ch) > 3 if ch.isnumeric() else False
 
         return self.run_in_thread(_load_instance, done_callback=_done)
+
+    def async_check_notifications(self):
+        """ check for new notifications since last viewed """
+
+        def _check_notifications():
+            user_notifs = self.config.setdefault("notifications", {})
+            global_notif = user_notifs.setdefault("global", {})
+            last_id = global_notif.setdefault("last_id", 0)
+
+            exclude_types = ["follow", "favourite", "reblog", "poll", "follow_request"]
+
+            return api.get_notifications(self.app, self.user,
+                                         exclude_types=exclude_types, limit=1, min_id=last_id)
+
+        def _done(new_notifs):
+            if new_notifs:
+                self.header.set_text("\N{bell} New notifications")
+            # check every 2 mins for new notifications
+            self.loop.set_alarm_in(120, lambda *args: self.async_check_notifications())
+
+        return self.run_in_thread(_check_notifications, done_callback=_done)
 
     def async_load_followed_tags(self):
         def _load_tag_list():
@@ -476,10 +512,15 @@ class TUI(urwid.Frame):
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_notifications(self):
+        def _done():
+            # clear the header text, which may show a 'new notifications' message
+            self.loop.set_alarm_in(0, lambda *args: self.header.clear_text())
+            self.close_overlay()
+
         self.timeline_generator = api.notification_timeline_generator(
             self.app, self.user, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="notifications")
-        promise.add_done_callback(lambda *args: self.close_overlay())
+        promise.add_done_callback(lambda *args: _done())
 
     def goto_tag_timeline(self, tag, local):
         self.timeline_generator = api.tag_timeline_generator(
