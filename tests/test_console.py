@@ -300,10 +300,10 @@ def test_upload(mock_post, capsys):
 
     console.run_command(app, user, 'upload', [__file__])
 
-    mock_post.call_count == 1
+    assert mock_post.call_count == 1
 
     args, kwargs = http.post.call_args
-    assert args == (app, user, '/api/v1/media')
+    assert args == (app, user, '/api/v2/media')
     assert isinstance(kwargs['files']['file'], io.BufferedReader)
 
     out, err = capsys.readouterr()

@@ -348,7 +348,7 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
 
 
 def upload_media(app, user, file, description=None):
-    return http.post(app, user, '/api/v1/media',
+    return http.post(app, user, '/api/v2/media',
         data={'description': description},
         files={'file': file}
     ).json()
