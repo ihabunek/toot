@@ -2,6 +2,7 @@ import sys
 import platform
 
 from datetime import datetime, timedelta, timezone
+from time import sleep, time
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ApiError, ConsoleError
@@ -154,7 +155,40 @@ def _upload_media(app, user, args):
         result = _do_upload(app, user, file, description, thumbnail)
         uploaded_media.append(result)
 
+    _wait_until_all_processed(app, user, uploaded_media)
+
     return [m["id"] for m in uploaded_media]
+
+
+def _wait_until_all_processed(app, user, uploaded_media):
+    """
+    Media is uploaded asynchronously, and cannot be attached until the server
+    has finished processing it. This function waits for that to happen.
+
+    Once media is processed, it will have the URL populated.
+    """
+    if all(m["url"] for m in uploaded_media):
+        return
+
+    # Timeout after waiting 1 minute
+    start_time = time()
+    timeout = 60
+
+    print_out("<dim>Waiting for media to finish processing...</dim>")
+    for media in uploaded_media:
+        _wait_until_processed(app, user, media, start_time, timeout)
+
+
+def _wait_until_processed(app, user, media, start_time, timeout):
+    if media["url"]:
+        return
+
+    media = api.get_media(app, user, media["id"])
+    while not media["url"]:
+        sleep(1)
+        if time() > start_time + timeout:
+            raise ConsoleError(f"Media not processed by server after {timeout} seconds. Aborting.")
+        media = api.get_media(app, user, media["id"])
 
 
 def delete(app, user, args):

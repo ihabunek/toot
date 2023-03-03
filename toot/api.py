@@ -349,6 +349,10 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     return _anon_timeline_generator(instance, path, params)
 
 
+def get_media(app: App, user: User, id: str):
+    return http.get(app, user, f"/api/v1/media/{id}").json()
+
+
 def upload_media(
     app: App,
     user: User,
