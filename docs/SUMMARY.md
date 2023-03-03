@@ -7,7 +7,8 @@
     - [Advanced](advanced.md)
     - [TUI](tui.md)
 - [Contributing](contributing.md)
+    - [Documentation](documentation.md)
+    - [Release procedure](release.md)
 - [Changelog](changelog.md)
-- [Release procedure](release.md)
 
 [License](license.md)

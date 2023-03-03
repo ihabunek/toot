@@ -319,6 +319,9 @@ class TUI(urwid.Frame):
             # id we are showing in the timeline right now
             # as the "last id" (last-seen notification id)
 
+            if not len(self.timeline.statuses):
+                return
+
             data = self.timeline.statuses[0].data
             newest_id = data.get("toot_notification_id")
             if newest_id:
