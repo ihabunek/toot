@@ -7,7 +7,6 @@ from toot import api, config, __version__
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
-from toot.commands import _find_account  # FIXME: this is not clean
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
@@ -554,7 +553,7 @@ class TUI(urwid.Frame):
 
     def show_account(self, account_name):
         try:
-            account = _find_account(self.app, self.user, account_name)
+            account = api.find_account(self.app, self.user, account_name)
             relationship = api.get_relationship(self.app, self.user, account['id'])
             self.open_overlay(
                 widget=Account(self.app, self.user, account, relationship),

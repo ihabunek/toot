@@ -5,7 +5,7 @@ from typing import List
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError
+from toot.exceptions import AuthenticationError, ApiError
 from toot.utils import str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
@@ -101,6 +101,31 @@ def update_account(
     data = {k: v for k, v in data.items() if v is not None}
 
     return http.patch(app, user, "/api/v1/accounts/update_credentials", files=files, data=data)
+
+
+def find_account(app, user, account_name):
+    """find account by account name """
+
+    if not account_name:
+        raise ApiError("Empty account name given")
+
+    normalized_name = account_name.lstrip("@").lower()
+
+    # Strip @<instance_name> from accounts on the local instance. The `acct`
+    # field in account object contains the qualified name for users of other
+    # instances, but only the username for users of the local instance. This is
+    # required in order to match the account name below.
+    if "@" in normalized_name:
+        [username, instance] = normalized_name.split("@", maxsplit=1)
+        if instance == app.instance:
+            normalized_name = username
+
+    response = search(app, user, account_name, type="accounts", resolve=True)
+    for account in response["accounts"]:
+        if account["acct"].lower() == normalized_name:
+            return account
+
+    raise ApiError("Account not found")
 
 
 def fetch_app_token(app):
