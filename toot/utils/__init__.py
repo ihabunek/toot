@@ -7,6 +7,7 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
+from typing import Dict
 
 from toot.exceptions import ConsoleError
 
@@ -154,3 +155,8 @@ def _use_existing_tmp_file(tmp_path) -> bool:
         return char == "o"
 
     return False
+
+
+def drop_empty_values(data: Dict) -> Dict:
+    """Remove keys whose values are null"""
+    return {k: v for k, v in data.items() if v is not None}
