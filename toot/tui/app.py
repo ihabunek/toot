@@ -463,6 +463,8 @@ class TUI(urwid.Frame):
             lambda x, local, foreign_server: self.goto_public_timeline(local, foreign_server=foreign_server))
         urwid.connect_signal(menu, "bookmark_timeline",
             lambda x, local: self.goto_bookmarks())
+        urwid.connect_signal(menu, "conversation_timeline",
+            lambda x, local: self.goto_conversations())
         urwid.connect_signal(menu, "hashtag_timeline",
             lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
         urwid.connect_signal(menu, "notification_timeline",
@@ -517,6 +519,15 @@ class TUI(urwid.Frame):
         self.timeline_generator = api.notification_timeline_generator(
             self.app, self.user, limit=40)
         promise = self.async_load_timeline(is_initial=True, timeline_name="notifications")
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_conversations(self):
+        self.timeline_generator = api.conversation_timeline_generator(
+            self.app, self.user, limit=40
+        )
+        promise = self.async_load_timeline(
+            is_initial=True, timeline_name="conversations"
+        )
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_tag_timeline(self, tag, local):
