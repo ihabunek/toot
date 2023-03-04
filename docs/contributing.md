@@ -14,7 +14,8 @@ Relevant links which will be referenced below:
 
 ## Code of conduct
 
-Please be kind and patient. Toot is governed by one human with a full time job.
+Please be kind and patient. Toot is maintained by one human with a full time
+job.
 
 ## I have a question
 
@@ -35,7 +36,8 @@ First check you're using the
 [latest version](https://github.com/ihabunek/toot/releases/) of toot and verify
 the bug is present in this version.
 
-Search Github issues to check the bug hasn't already been reported.
+Search [Github issues](https://github.com/ihabunek/toot/issues) to check the bug
+hasn't already been reported.
 
 To report a bug open an
 [issue on Github](https://github.com/ihabunek/toot/issues) or send an
@@ -55,7 +57,7 @@ it hasn't, [open a new issue](https://github.com/ihabunek/toot/issues).
 
 Your request will be reviewed to see if it's a good fit for toot. Implementing
 requested features depends on the available time and energy of the maintainer
-and other contributors. Be patient.
+and other contributors.
 
 ### Contributing code
 
@@ -67,11 +69,17 @@ you submit will be published under the [toot license](LICENSE).
 
 Check out toot (or a fork) and install it into a virtual environment.
 
-```
+```bash
 git clone git@github.com:ihabunek/toot.git
 cd toot
 python3 -m venv _env
+
+# On Linux/Mac
 source _env/bin/activate
+
+# On Windows
+_env\bin\activate.bat
+
 pip install --editable .
 pip install -r requirements-dev.txt
 pip install -r requirements-test.txt
@@ -84,7 +92,7 @@ out. This allows you to make changes and test them.
 
 Please put some effort into breaking your contribution up into a series of well
 formed commits. If you're unsure what this means, there is a good guide
-available at https://cbea.ms/git-commit/.
+available at [https://cbea.ms/git-commit/](https://cbea.ms/git-commit/).
 
 Rules for commits:
 
@@ -103,7 +111,7 @@ Rules for commit messages:
 * use the body to explain what and why vs. how
 
 For a more detailed explanation with examples see the guide at
-https://cbea.ms/git-commit/
+[https://cbea.ms/git-commit/](https://cbea.ms/git-commit/)
 
 If you use vim to write your commit messages, it will already enforce some of
 these rules for you.
@@ -132,11 +140,11 @@ patch(es) to [the mailing list](https://lists.sr.ht/~ihabunek/toot-discuss).
 
 If sending to the mailing list, patches should be sent using `git send-email`.
 If you're unsure how to do this, there is a good guide at
-https://git-send-email.io/.
+[https://git-send-email.io/](https://git-send-email.io/).
 
 ---
 
 Parts of this guide were taken from the following sources:
 
-* https://contributing.md/
-* https://cbea.ms/git-commit/
+* [https://contributing.md/](https://contributing.md/)
+* [https://cbea.ms/git-commit/](https://cbea.ms/git-commit/)
