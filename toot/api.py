@@ -293,6 +293,14 @@ def _notification_timeline_generator(app, user, path, params=None):
         path = _get_next_path(response.headers)
 
 
+def _conversation_timeline_generator(app, user, path, params=None):
+    while path:
+        response = http.get(app, user, path, params)
+        conversation = response.json()
+        yield [c["last_status"] for c in conversation if c["last_status"]]
+        path = _get_next_path(response.headers)
+
+
 def home_timeline_generator(app, user, limit=20):
     path = "/api/v1/timelines/home"
     params = {"limit": limit}
@@ -322,6 +330,12 @@ def notification_timeline_generator(app, user, limit=20):
     exclude_types = ["follow", "favourite", "reblog", "poll", "follow_request"]
     params = {"exclude_types[]": exclude_types, "limit": limit}
     return _notification_timeline_generator(app, user, "/api/v1/notifications", params)
+
+
+def conversation_timeline_generator(app, user, limit=20):
+    path = "/api/v1/conversations"
+    params = {"limit": limit}
+    return _conversation_timeline_generator(app, user, path, params)
 
 
 def timeline_list_generator(app, user, list_id, limit=20):
