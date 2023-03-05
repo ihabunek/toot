@@ -228,15 +228,15 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "translate", self.async_translate)
         urwid.connect_signal(timeline, "clear-screen", _clear)
 
-    def build_timeline(self, name, statuses, local, foreign_server):
+    def build_timeline(self, name, statuses, local, foreign_server, domain):
         def _close(*args):
             raise urwid.ExitMainLoop()
 
         def _next(*args):
-            self.async_load_timeline(is_initial=False, local=local, foreign_server=foreign_server)
+            self.async_load_timeline(is_initial=False, local=local, foreign_server=foreign_server, domain=domain)
 
         def _thread(timeline, status):
-            self.show_thread(status, foreign_server)
+            self.show_thread(status, foreign_server, domain)
 
         def _toggle_save(timeline, status):
             if timeline.foreign_server:
@@ -281,7 +281,7 @@ class TUI(urwid.Frame):
 
         return Status(status_data, is_mine, self.domain if self.domain else self.app.instance)
 
-    def show_thread(self, status, foreign_server):
+    def show_thread(self, status, foreign_server, domain):
         def _close(*args):
             """When thread is closed, go back to the main timeline."""
             self.body = self.timeline
@@ -294,8 +294,8 @@ class TUI(urwid.Frame):
             context = api.anon_context(foreign_server, status.original.id)
         else:
             context = api.context(self.app, self.user, status.original.id)
-        ancestors = [self.make_status(s, foreign_server) for s in context["ancestors"]]
-        descendants = [self.make_status(s, foreign_server) for s in context["descendants"]]
+        ancestors = [self.make_status(s, domain) for s in context["ancestors"]]
+        descendants = [self.make_status(s, domain) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
@@ -325,7 +325,7 @@ class TUI(urwid.Frame):
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
-            self.timeline = self.build_timeline(timeline_name, statuses, local, foreign_server)
+            self.timeline = self.build_timeline(timeline_name, statuses, local, foreign_server, domain)
             self.timeline.refresh_status_details()  # Draw first status
             self.refresh_footer(self.timeline)
             self.body = self.timeline
@@ -504,9 +504,10 @@ class TUI(urwid.Frame):
             self.timeline_generator = api.public_timeline_generator(
                 self.app, self.user, local=local, limit=40)
 
+        timeline_name = ("\N{Globe with Meridians}" if foreign_server else "") + f"{tl_name}"
         promise = self.async_load_timeline(is_initial=True,
-        timeline_name=f"\N{Globe with Meridians}{tl_name}",
-        local=False, foreign_server=domain if domain else foreign_server)
+        timeline_name=timeline_name,
+        local=False, foreign_server=foreign_server, domain=domain)
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_bookmarks(self):
