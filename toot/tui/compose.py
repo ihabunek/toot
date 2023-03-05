@@ -33,7 +33,9 @@ class StatusComposer(urwid.Frame):
         self.cw_remove_button = Button("Remove content warning",
             on_press=self.remove_content_warning)
 
-        self.visibility = get_default_visibility()
+        self.visibility = (
+            in_reply_to.visibility if in_reply_to else get_default_visibility()
+        )
         self.visibility_button = Button("Visibility: {}".format(self.visibility),
             on_press=self.choose_visibility)
 
