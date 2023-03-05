@@ -463,6 +463,8 @@ class TUI(urwid.Frame):
             lambda x, local, foreign_server: self.goto_public_timeline(local, foreign_server=foreign_server))
         urwid.connect_signal(menu, "bookmark_timeline",
             lambda x, local: self.goto_bookmarks())
+        urwid.connect_signal(menu, "notification_timeline",
+            lambda x, local: self.goto_notifications())
         urwid.connect_signal(menu, "conversation_timeline",
             lambda x, local: self.goto_conversations())
         urwid.connect_signal(menu, "hashtag_timeline",
