@@ -482,6 +482,12 @@ POST_COMMANDS = [
                 "help": "plain-text description of the media for accessibility "
                         "purposes, one per attached media"
             }),
+            (["--thumbnail"], {
+                "action": "append",
+                "type": FileType("rb"),
+                "help": "path to an image file to serve as media thumbnail, "
+                        "one per attached media"
+            }),
             visibility_arg,
             (["-s", "--sensitive"], {
                 "action": 'store_true',
