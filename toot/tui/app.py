@@ -275,6 +275,10 @@ class TUI(urwid.Frame):
 
     def make_status(self, status_data, foreign_server):
         is_mine = self.user.username == status_data["account"]["acct"]
+        return Status(status_data, is_mine,
+                    self.domain if self.domain else self.app.instance,
+                    foreign_server)
+
         return Status(status_data, is_mine, self.domain if self.domain else self.app.instance)
 
     def show_thread(self, status, foreign_server):
@@ -304,7 +308,8 @@ class TUI(urwid.Frame):
         self.body = timeline
         self.refresh_footer(timeline)
 
-    def async_load_timeline(self, is_initial, timeline_name=None, local=None, foreign_server=None):
+    def async_load_timeline(self, is_initial, timeline_name=None,
+                            local=None, foreign_server=None, domain=None):
         """Asynchronously load a list of statuses."""
 
         def _load_statuses():
@@ -316,7 +321,7 @@ class TUI(urwid.Frame):
             finally:
                 self.footer.clear_message()
 
-            return [self.make_status(s, foreign_server) for s in data]
+            return [self.make_status(s, domain if domain else foreign_server) for s in data]
 
         def _done_initial(statuses):
             """Process initial batch of statuses, construct a Timeline."""
@@ -364,6 +369,7 @@ class TUI(urwid.Frame):
                 self.can_translate = int(ch) > 3 if ch.isnumeric() else False
 
             # get the domain; it may be a custom LOCAL_DOMAIN
+            # different from the app instance
             self.domain = instance["domain"] if "domain" in instance else None
 
         return self.run_in_thread(_load_instance, done_callback=_done)
@@ -485,17 +491,20 @@ class TUI(urwid.Frame):
 
     def goto_public_timeline(self, local, foreign_server=None):
         if foreign_server:
+            foreign_instance = api.get_instance(foreign_server)
+            domain = foreign_instance["domain"] if "domain" in foreign_instance else foreign_server
             self.timeline_generator = api.anon_public_timeline_generator(
                 foreign_server, local=True, limit=40)
             tl_name = foreign_server
         else:
+            domain = None
             tl_name = "local" if local else "global"
             self.timeline_generator = api.public_timeline_generator(
                 self.app, self.user, local=local, limit=40)
 
         promise = self.async_load_timeline(is_initial=True,
         timeline_name=f"\N{Globe with Meridians}{tl_name}",
-        local=False, foreign_server=foreign_server)
+        local=False, foreign_server=domain if domain else foreign_server)
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_bookmarks(self):

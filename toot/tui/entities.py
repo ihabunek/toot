@@ -20,7 +20,7 @@ class Status:
         If a reblog, the reblogged status, otherwise self.
     """
 
-    def __init__(self, data, is_mine, default_instance, timeline_instance):
+    def __init__(self, data, is_mine, default_instance, timeline_domain):
         """
         Parameters
         ----------
@@ -36,14 +36,14 @@ class Status:
             create fully qualified account names for users on the same instance.
             Mastodon only populates the name, not the domain.
 
-        timeline_instance : str
-            Optional. The domain of the instance associated with the timeline
+        timeline_domain : str
+            Optional. The server domain associated with the timeline
         """
 
         self.data = data
         self.is_mine = is_mine
         self.default_instance = default_instance
-        self.timeline_instance = timeline_instance
+        self.timeline_domain = timeline_domain
 
         # This can be toggled by the user
         self.show_sensitive = False
@@ -79,18 +79,18 @@ class Status:
         reblog_is_mine = self.is_mine and (
             self.data["account"]["acct"] == reblog["account"]["acct"]
         )
-        return Status(reblog, reblog_is_mine, self.default_instance, self.timeline_instance)
+        return Status(reblog, reblog_is_mine, self.default_instance, self.timeline_domain)
 
     def _get_author(self):
         acct = self.data['account']['acct']
         acct = acct if "@" in acct else "{}@{}".format(acct,
-            self.timeline_instance if self.timeline_instance else self.default_instance)
+            self.timeline_domain if self.timeline_domain else self.default_instance)
         return Author(acct, self.data['account']['display_name'], self.data['account']['username'])
 
     def _get_account(self):
         acct = self.data['account']['acct']
         return acct if "@" in acct else "{}@{}".format(acct,
-            self.timeline_instance if self.timeline_instance else self.default_instance)
+            self.timeline_domain if self.timeline_domain else self.default_instance)
 
     def __repr__(self):
         return "<Status id={} account={}>".format(self.id, self.account)

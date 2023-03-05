@@ -5,7 +5,7 @@ from typing import List
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError, ApiError
+from toot.exceptions import AuthenticationError, ApiError, NotFoundError
 from toot.utils import str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
@@ -490,5 +490,12 @@ def clear_notifications(app, user):
 
 
 def get_instance(domain, scheme="https"):
-    url = f"{scheme}://{domain}/api/v1/instance"
-    return http.anon_get(url).json()
+    # try the v2 api first, fallback to the v1 api
+
+    url = f"{scheme}://{domain}/api/v2/instance"
+    try:
+        response = http.anon_get(url).json()
+    except NotFoundError:
+        url = f"{scheme}://{domain}/api/v1/instance"
+        response = http.anon_get(url).json()
+    return response
