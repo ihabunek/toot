@@ -29,6 +29,7 @@ class Header(urwid.WidgetWrap):
         self.text = urwid.Text("")
         self.cols = urwid.Columns([
             ("pack", urwid.Text(('header_bold', 'toot'))),
+            # TODO: conditionally show instance's domain rather than app.instance?
             ("pack", urwid.Text(('header', ' | {}@{}'.format(user.username, app.instance)))),
             ("pack", self.text),
         ])
@@ -264,7 +265,7 @@ class TUI(urwid.Frame):
 
     def make_status(self, status_data):
         is_mine = self.user.username == status_data["account"]["acct"]
-        return Status(status_data, is_mine, self.app.instance)
+        return Status(status_data, is_mine, self.domain if self.domain else self.app.instance)
 
     def show_thread(self, status):
         def _close(*args):
@@ -348,6 +349,9 @@ class TUI(urwid.Frame):
                 # Revisit this logic if Pleroma implements translation
                 ch = instance["version"][0]
                 self.can_translate = int(ch) > 3 if ch.isnumeric() else False
+
+            # get the domain; it may be a custom LOCAL_DOMAIN
+            self.domain = instance["domain"] if "domain" in instance else None
 
         return self.run_in_thread(_load_instance, done_callback=_done)
 
