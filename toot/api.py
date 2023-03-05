@@ -1,12 +1,14 @@
+import mimetypes
+from os import path
 import re
 import uuid
 
-from typing import List
+from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
-from toot import http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError, ApiError, NotFoundError
-from toot.utils import str_bool, str_bool_nullable
+from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
+from toot.exceptions import AuthenticationError, ConsoleError,  ApiError, NotFoundError
+from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
 
@@ -85,10 +87,9 @@ def update_account(
     Update account credentials
     https://docs.joinmastodon.org/methods/accounts/#update_credentials
     """
-    files = {"avatar": avatar, "header": header}
-    files = {k: v for k, v in files.items() if v is not None}
+    files = drop_empty_values({"avatar": avatar, "header": header})
 
-    data = {
+    data = drop_empty_values({
         "bot": str_bool_nullable(bot),
         "discoverable": str_bool_nullable(discoverable),
         "display_name": display_name,
@@ -97,8 +98,7 @@ def update_account(
         "source[language]": language,
         "source[privacy]": privacy,
         "source[sensitive]": str_bool_nullable(sensitive),
-    }
-    data = {k: v for k, v in data.items() if v is not None}
+    })
 
     return http.patch(app, user, "/api/v1/accounts/update_credentials", files=files, data=data)
 
@@ -207,7 +207,9 @@ def post_status(
     # if the request is retried.
     headers = {"Idempotency-Key": uuid.uuid4().hex}
 
-    json = {
+    # Strip keys for which value is None
+    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
+    json = drop_empty_values({
         'status': status,
         'media_ids': media_ids,
         'visibility': visibility,
@@ -217,11 +219,7 @@ def post_status(
         'scheduled_at': scheduled_at,
         'content_type': content_type,
         'spoiler_text': spoiler_text
-    }
-
-    # Strip keys for which value is None
-    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
-    json = {k: v for k, v in json.items() if v is not None}
+    })
 
     return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
 
@@ -381,11 +379,44 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     return _anon_timeline_generator(instance, path, params)
 
 
-def upload_media(app, user, file, description=None):
-    return http.post(app, user, '/api/v1/media',
-        data={'description': description},
-        files={'file': file}
-    ).json()
+def get_media(app: App, user: User, id: str):
+    return http.get(app, user, f"/api/v1/media/{id}").json()
+
+
+def upload_media(
+    app: App,
+    user: User,
+    media: BinaryIO,
+    description: Optional[str] = None,
+    thumbnail: Optional[BinaryIO] = None,
+):
+    data = drop_empty_values({"description": description})
+
+    # NB: Documentation says that "file" should provide a mime-type which we
+    # don't do currently, but it works.
+    files = drop_empty_values({
+        "file": media,
+        "thumbnail": _add_mime_type(thumbnail)
+    })
+
+    return http.post(app, user, "/api/v2/media", data=data, files=files).json()
+
+
+def _add_mime_type(file):
+    if file is None:
+        return None
+
+    # TODO: mimetypes uses the file extension to guess the mime type which is
+    # not always good enough (e.g. files without extension). python-magic could
+    # be used instead but it requires adding it as a dependency.
+    mime_type = mimetypes.guess_type(file.name)
+
+    if not mime_type:
+        raise ConsoleError(f"Unable guess mime type of '{file.name}'. "
+                           "Ensure the file has the desired extension.")
+
+    filename = path.basename(file.name)
+    return (filename, file, mime_type)
 
 
 def search(app, user, query, resolve=False, type=None):

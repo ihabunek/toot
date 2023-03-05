@@ -207,6 +207,39 @@ def test_post_language(app, user, run):
     assert status["language"] == "zh"
 
 
+def test_media_thumbnail(app, user, run):
+    assets_dir = path.realpath(path.join(path.dirname(__file__), "assets"))
+
+    video_path = path.join(assets_dir, "small.webm")
+    thumbnail_path = path.join(assets_dir, "test1.png")
+
+    out = run(
+        "post",
+        "--media", video_path,
+        "--thumbnail", thumbnail_path,
+        "--description", "foo",
+        "some text"
+    )
+
+    status_id = _posted_status_id(out)
+    status = api.fetch_status(app, user, status_id)
+    [media] = status["media_attachments"]
+
+    assert media["description"] == "foo"
+    assert media["type"] == "video"
+    assert media["url"].endswith(".mp4")
+    assert media["preview_url"].endswith(".png")
+
+    # Video properties
+    assert media["meta"]["original"]["duration"] == 5.58
+    assert media["meta"]["original"]["height"] == 320
+    assert media["meta"]["original"]["width"] == 560
+
+    # Thumbnail properties
+    assert media["meta"]["small"]["height"] == 50
+    assert media["meta"]["small"]["width"] == 50
+
+
 def test_media_attachments(app, user, run):
     assets_dir = path.realpath(path.join(path.dirname(__file__), "assets"))
 
