@@ -19,7 +19,7 @@ setup(
     author_email='ivan@habunek.com',
     url='https://github.com/ihabunek/toot/',
     project_urls={
-        'Documentation': 'https://toot.readthedocs.io/en/latest/',
+        'Documentation': 'https://toot.bezdomni.net/',
         'Issue tracker': 'https://github.com/ihabunek/toot/issues/',
     },
     keywords='mastodon toot',

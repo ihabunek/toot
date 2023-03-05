@@ -133,7 +133,9 @@ class EmojiText(urwid.Padding):
 
                             if make_gray:
                                 img = ImageOps.grayscale(img)
-                            image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img)), 1)
+
+                            image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 1)
+
                             columns.append(image_widget)
                         except Exception:
                             columns.append(("pack", urwid.Text(word)))
