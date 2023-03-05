@@ -101,6 +101,7 @@ class GotoMenu(urwid.ListBox):
         "hashtag_timeline",
         "bookmark_timeline",
         "notification_timeline",
+        "conversation_timeline",
     ]
 
     def __init__(self, user_timelines):
@@ -129,6 +130,9 @@ class GotoMenu(urwid.ListBox):
         def _notifications(button):
             self._emit("notification_timeline", False)
 
+        def _conversations(button):
+            self._emit("conversation_timeline", False)
+
         def _hashtag(local):
             hashtag = self.get_hashtag()
             if hashtag:
@@ -152,6 +156,7 @@ class GotoMenu(urwid.ListBox):
         yield Button("Global public timeline", on_press=_global_public)
         yield Button("Bookmarks", on_press=_bookmarks)
         yield Button("Notifications", on_press=_notifications)
+        yield Button("Conversations", on_press=_conversations)
         yield urwid.Divider()
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
