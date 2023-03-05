@@ -472,7 +472,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(menu, "notification_timeline",
             lambda x, local: self.goto_notifications())
 
-        overlay_height = 18 + len(user_timelines) if len(user_timelines) else 16
+        overlay_height = 19 + len(user_timelines) if len(user_timelines) else 17
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
             valign="middle", height=overlay_height,
