@@ -597,10 +597,10 @@ class TUI(urwid.Frame):
     def async_translate(self, timeline, status):
         def _translate():
             logger.info("Translating {}".format(status))
-            self.footer.set_message("Translating status {}".format(status.id))
+            self.footer.set_message("Translating status {}".format(status.original.id))
 
             try:
-                response = api.translate(self.app, self.user, status.id)
+                response = api.translate(self.app, self.user, status.original.id)
                 if response["content"]:
                     self.footer.set_message("Status translated")
                 else:
@@ -615,14 +615,14 @@ class TUI(urwid.Frame):
 
         def _done(response):
             if response is not None:
-                status.translation = response["content"]
-                status.translated_from = response["detected_source_language"]
-                status.show_translation = True
+                status.original.translation = response["content"]
+                status.original.translated_from = response["detected_source_language"]
+                status.original.show_translation = True
                 timeline.update_status(status)
 
         # If already translated, toggle showing translation
-        if status.translation:
-            status.show_translation = not status.show_translation
+        if status.original.translation:
+            status.original.show_translation = not status.original.show_translation
             timeline.update_status(status)
         else:
             self.run_in_thread(_translate, done_callback=_done)
