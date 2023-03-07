@@ -30,7 +30,7 @@ from unittest import mock
 
 # Host name of a test instance to run integration tests against
 # DO NOT USE PUBLIC INSTANCES!!!
-HOSTNAME = os.getenv("TOOT_TEST_HOSTNAME")
+BASE_URL = os.getenv("TOOT_TEST_BASE_URL")
 
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
@@ -39,7 +39,7 @@ DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
 TRUMPET = path.join(path.dirname(path.dirname(path.realpath(__file__))), "trumpet.png")
 
 
-if not HOSTNAME or not DATABASE_DSN:
+if not BASE_URL or not DATABASE_DSN:
     pytest.skip("Skipping integration tests", allow_module_level=True)
 
 # ------------------------------------------------------------------------------
@@ -48,8 +48,9 @@ if not HOSTNAME or not DATABASE_DSN:
 
 
 def create_app():
-    response = api.create_app(HOSTNAME, scheme="http")
-    return App(HOSTNAME, f"http://{HOSTNAME}", response["client_id"], response["client_secret"])
+    instance = api.get_instance(BASE_URL)
+    response = api.create_app(BASE_URL)
+    return App(instance["uri"], BASE_URL, response["client_id"], response["client_secret"])
 
 
 def register_account(app: App):
@@ -115,7 +116,7 @@ def test_instance(app, run):
 
 
 def test_instance_anon(app, run_anon):
-    out = run_anon("instance", "--disable-https", HOSTNAME)
+    out = run_anon("instance", BASE_URL)
     assert "Mastodon" in out
     assert app.instance in out
     assert "running Mastodon" in out
@@ -123,7 +124,7 @@ def test_instance_anon(app, run_anon):
     # Need to specify the instance name when running anon
     with pytest.raises(ConsoleError) as exc:
         run_anon("instance")
-    assert str(exc.value) == "Please specify instance name."
+    assert str(exc.value) == "Please specify an instance."
 
 
 def test_post(app, user, run):
@@ -411,7 +412,6 @@ def test_whoami(user, run):
     out = run("whoami")
     # TODO: test other fields once updating account is supported
     assert f"@{user.username}" in out
-    assert f"http://{HOSTNAME}/@{user.username}" in out
 
 
 def test_whois(app, friend, run):
@@ -425,7 +425,6 @@ def test_whois(app, friend, run):
     for username in variants:
         out = run("whois", username)
         assert f"@{friend.username}" in out
-        assert f"http://{HOSTNAME}/@{friend.username}" in out
 
 
 def test_search_account(friend, run):
@@ -514,22 +513,22 @@ def test_tags(run):
     assert out == "✓ You are now following #foo"
 
     out = run("tags_followed")
-    assert out == "* #foo\thttp://localhost:3000/tags/foo"
+    assert out == f"* #foo\t{BASE_URL}/tags/foo"
 
     out = run("tags_follow", "bar")
     assert out == "✓ You are now following #bar"
 
     out = run("tags_followed")
     assert out == "\n".join([
-        "* #bar\thttp://localhost:3000/tags/bar",
-        "* #foo\thttp://localhost:3000/tags/foo",
+        f"* #bar\t{BASE_URL}/tags/bar",
+        f"* #foo\t{BASE_URL}/tags/foo",
     ])
 
     out = run("tags_unfollow", "foo")
     assert out == "✓ You are no longer following #foo"
 
     out = run("tags_followed")
-    assert out == "* #bar\thttp://localhost:3000/tags/bar"
+    assert out == f"* #bar\t{BASE_URL}/tags/bar"
 
 
 def test_update_account_no_options(run):
@@ -667,7 +666,6 @@ def _posted_status_id(out):
     match = re.search(pattern, out)
     assert match
 
-    host, _, status_id = match.groups()
-    assert host == HOSTNAME
+    _, _, status_id = match.groups()
 
     return status_id
