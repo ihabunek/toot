@@ -130,7 +130,7 @@ class GotoMenu(urwid.ListBox):
             self._emit("public_timeline", False, None)
 
         def _bookmarks(button):
-            self._emit("bookmark_timeline", False, None)
+            self._emit("bookmark_timeline", False)
 
         def _notifications(button):
             self._emit("notification_timeline", False)
