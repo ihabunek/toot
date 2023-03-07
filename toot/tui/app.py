@@ -14,7 +14,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import parse_content_links, show_media
+from .utils import parse_content_links, show_media, copy_to_clipboard
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +111,7 @@ class TUI(urwid.Frame):
         self.overlay = None
         self.exception = None
         self.can_translate = False
+        self.screen = urwid.raw_display.Screen()
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -210,6 +211,9 @@ class TUI(urwid.Frame):
         def _clear(*args):
             self.clear_screen()
 
+        def _copy(timeline, status):
+            self.copy_status(status)
+
         urwid.connect_signal(timeline, "account", _account)
         urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
         urwid.connect_signal(timeline, "compose", _compose)
@@ -226,6 +230,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "zoom", _zoom)
         urwid.connect_signal(timeline, "translate", self.async_translate)
         urwid.connect_signal(timeline, "clear-screen", _clear)
+        urwid.connect_signal(timeline, "copy-status", _copy)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -656,6 +661,12 @@ class TUI(urwid.Frame):
             timeline.remove_status(status)
 
         return self.run_in_thread(_delete, done_callback=_done)
+
+    def copy_status(self, status):
+        # TODO: copy a better version of status content
+        # including URLs
+        copy_to_clipboard(self.screen, status.original.data["content"])
+        self.footer.set_message(f"Status {status.original.id} copied")
 
     # --- Overlay handling -----------------------------------------------------
 

@@ -1,3 +1,5 @@
+import base64
+import urwid
 from html.parser import HTMLParser
 import math
 import os
@@ -144,3 +146,20 @@ def parse_content_links(content):
     parser = LinkParser()
     parser.feed(content)
     return parser.links[:]
+
+
+def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):
+    """ copy text to clipboard using OSC 52
+    This escape sequence is documented
+    here https://iterm2.com/documentation-escape-codes.html
+    It has wide support - XTerm, Windows Terminal,
+    Kitty, iTerm2, others. Some terminals may require a setting to be
+    enabled in order to use OSC 52 clipboard functions.
+    """
+
+    text_bytes = text.encode("utf-8")
+    b64_bytes = base64.b64encode(text_bytes)
+    b64_text = b64_bytes.decode("utf-8")
+
+    screen.write(f"\033]52;c;{b64_text}\a")
+    screen.flush()
