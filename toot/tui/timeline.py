@@ -41,6 +41,7 @@ class Timeline(urwid.Columns):
         "save",          # Save current timeline
         "zoom",          # Open status in scrollable popup window
         "clear-screen",  # Clear the screen (used internally)
+        "copy-status",   # Copy status to clipboard
     ]
 
     def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
@@ -120,6 +121,7 @@ class Timeline(urwid.Columns):
             "So[u]rce",
             "[Z]oom",
             "Tra[n]slate" if self.can_translate else "",
+            "Cop[y]",
             "[H]elp",
         ]
         options = "\n" + " ".join(o for o in options if o)
@@ -259,6 +261,10 @@ class Timeline(urwid.Columns):
             poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
                 self._emit("poll", status)
+            return
+
+        if key in ("y", "Y"):
+            self._emit("copy-status", status)
             return
 
         return super().keypress(size, key)
