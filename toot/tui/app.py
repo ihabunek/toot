@@ -397,6 +397,8 @@ class TUI(urwid.Frame):
             self.clear_screen()
 
         if links:
+            links = list(set(links))  # deduplicate links
+            links = sorted(links, key = lambda link: link[0])  # sort alphabetically by URL
             sl_widget = StatusLinks(links)
             urwid.connect_signal(sl_widget, "clear-screen", _clear)
             self.open_overlay(
