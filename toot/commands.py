@@ -10,7 +10,7 @@ from toot.output import (print_out, print_instance, print_account, print_acct_li
                          print_search_results, print_timeline, print_notifications,
                          print_tag_list)
 from toot.tui.utils import parse_datetime
-from toot.utils import delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
+from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
 
 def get_timeline_generator(app, user, args):
@@ -305,7 +305,8 @@ def update_account(app, user, args):
 
 
 def login_cli(app, user, args):
-    app = create_app_interactive(instance=args.instance, scheme=args.scheme)
+    base_url = args_get_instance(args.instance, args.scheme)
+    app = create_app_interactive(base_url)
     login_interactive(app, args.email)
 
     print_out()
@@ -313,7 +314,8 @@ def login_cli(app, user, args):
 
 
 def login(app, user, args):
-    app = create_app_interactive(instance=args.instance, scheme=args.scheme)
+    base_url = args_get_instance(args.instance, args.scheme)
+    app = create_app_interactive(base_url)
     login_browser_interactive(app)
 
     print_out()
@@ -452,17 +454,19 @@ def whois(app, user, args):
 
 
 def instance(app, user, args):
-    name = args.instance or (app and app.instance)
-    if not name:
-        raise ConsoleError("Please specify instance name.")
+    default = app.base_url if app else None
+    base_url = args_get_instance(args.instance, args.scheme, default)
+
+    if not base_url:
+        raise ConsoleError("Please specify an instance.")
 
     try:
-        instance = api.get_instance(name, args.scheme)
+        instance = api.get_instance(base_url)
         print_instance(instance)
     except ApiError:
         raise ConsoleError(
-            "Instance not found at {}.\n"
-            "The given domain probably does not host a Mastodon instance.".format(name)
+            f"Instance not found at {base_url}.\n"
+            "The given domain probably does not host a Mastodon instance."
         )
 
 

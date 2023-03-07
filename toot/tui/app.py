@@ -342,7 +342,7 @@ class TUI(urwid.Frame):
         See: https://github.com/mastodon/mastodon/issues/19328
         """
         def _load_instance():
-            return api.get_instance(self.app.instance)
+            return api.get_instance(self.app.base_url)
 
         def _done(instance):
             if "max_toot_chars" in instance:

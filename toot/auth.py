@@ -9,20 +9,12 @@ from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
 
 
-def register_app(domain, scheme='https'):
-    print_out("Looking up instance info...")
-    instance = api.get_instance(domain, scheme)
-
-    print_out("Found instance <blue>{}</blue> running Mastodon version <yellow>{}</yellow>".format(
-        instance['title'], instance['version']))
-
+def register_app(domain, base_url):
     try:
         print_out("Registering application...")
-        response = api.create_app(domain, scheme)
+        response = api.create_app(base_url)
     except ApiError:
         raise ConsoleError("Registration failed.")
-
-    base_url = scheme + '://' + domain
 
     app = App(domain, base_url, response['client_id'], response['client_secret'])
     config.save_app(app)
@@ -32,14 +24,30 @@ def register_app(domain, scheme='https'):
     return app
 
 
-def create_app_interactive(instance=None, scheme='https'):
-    if not instance:
-        print_out("Choose an instance [<green>{}</green>]: ".format(DEFAULT_INSTANCE), end="")
-        instance = input()
-        if not instance:
-            instance = DEFAULT_INSTANCE
+def create_app_interactive(base_url):
+    if not base_url:
+        print_out(f"Enter instance URL [<green>{DEFAULT_INSTANCE}</green>]: ", end="")
+        base_url = input()
+        if not base_url:
+            base_url = DEFAULT_INSTANCE
 
-    return config.load_app(instance) or register_app(instance, scheme)
+    domain = get_instance_domain(base_url)
+
+    return config.load_app(domain) or register_app(domain, base_url)
+
+
+def get_instance_domain(base_url):
+    print_out("Looking up instance info...")
+
+    instance = api.get_instance(base_url)
+
+    print_out(
+        f"Found instance <blue>{instance['title']}</blue> "
+        f"running Mastodon version <yellow>{instance['version']}</yellow>"
+    )
+
+    # NB: when updating to v2 instance endpoint, this field has been renamed to `domain`
+    return instance["uri"]
 
 
 def create_user(app, access_token):
