@@ -390,8 +390,8 @@ class TUI(urwid.Frame):
         self.loop.screen.clear()
 
     def show_links(self, status):
-        links = parse_content_links(status.data["content"]) if status else []
-        post_attachments = status.data["media_attachments"] or []
+        links = parse_content_links(status.original.data["content"]) if status else []
+        post_attachments = status.original.data["media_attachments"] or []
         reblog_attachments = (status.data["reblog"]["media_attachments"] if status.data["reblog"] else None) or []
 
         for a in post_attachments + reblog_attachments:
