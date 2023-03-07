@@ -202,7 +202,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("a", "A"):
-            self._emit("account", status.account)
+            self._emit("account", status.original.account)
             return
 
         if key in ("b", "B"):
