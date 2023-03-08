@@ -32,10 +32,10 @@ jobs:
           unzip v4.1.0.zip
           cd mastodon-4.1.0
           ls -al
-      - name: Run integration tests
-        env:
-          TOOT_TEST_HOSTNAME: localhost:3000
-          TOOT_TEST_DATABASE_DSN: dbname=mastodon_development
+      # - name: Run integration tests
+      #   env:
+      #     TOOT_TEST_HOSTNAME: localhost:3000
+      #     TOOT_TEST_DATABASE_DSN: dbname=mastodon_development
 
       # - name: Install dependencies
       #   run: |
