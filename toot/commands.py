@@ -102,7 +102,11 @@ def post(app, user, args):
         in_reply_to_id=args.reply_to,
         language=args.language,
         scheduled_at=scheduled_at,
-        content_type=args.content_type
+        content_type=args.content_type,
+        poll_options=args.poll_option,
+        poll_expires_in=args.poll_expires_in,
+        poll_multiple=args.poll_multiple,
+        poll_hide_totals=args.poll_hide_totals,
     )
 
     if "scheduled_at" in response:
