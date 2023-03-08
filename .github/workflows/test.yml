@@ -35,9 +35,10 @@ jobs:
           bundler-cache: true
           working-directory: 'mastodon-4.1.0'
       - name: Setup database
+        with:
+          working-directory: 'mastodon-4.1.0'
         run: |
-          cd mastodon-4.1.0
-          rails db:setup
+          bundle exec rails db:setup
           env:
             RAILS_ENV: development
 
