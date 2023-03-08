@@ -87,7 +87,7 @@ def post(app, user, args):
         raise ConsoleError("Cannot attach more than 4 files.")
 
     media_ids = _upload_media(app, user, args)
-    status_text = _get_status_text(args.text, args.editor)
+    status_text = _get_status_text(args.text, args.editor, args.media)
     scheduled_at = _get_scheduled_at(args.scheduled_at, args.scheduled_in)
 
     if not status_text and not media_ids:
@@ -115,7 +115,7 @@ def post(app, user, args):
     delete_tmp_status_file()
 
 
-def _get_status_text(text, editor):
+def _get_status_text(text, editor, media):
     isatty = sys.stdin.isatty()
 
     if not text and not isatty:
@@ -124,7 +124,7 @@ def _get_status_text(text, editor):
     if isatty:
         if editor:
             text = editor_input(editor, text)
-        elif not text:
+        elif not text and not media:
             print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
             text = multiline_input()
 
