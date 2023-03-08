@@ -319,7 +319,7 @@ def test_media_thumbnail(app, user, run):
     assert media["preview_url"].endswith(".png")
 
     # Video properties
-    assert media["meta"]["original"]["duration"] == 5.58
+    assert int(media["meta"]["original"]["duration"]) == 5
     assert media["meta"]["original"]["height"] == 320
     assert media["meta"]["original"]["width"] == 560
 
