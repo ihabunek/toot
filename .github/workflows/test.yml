@@ -36,9 +36,12 @@ jobs:
           working-directory: 'mastodon-4.1.0'
       - name: Setup database
         run: |
-          cd mastodon-4.1.0 && bundle exec rails db:setup
-          env:
-            RAILS_ENV: development
+          cd mastodon-4.1.0
+          bundle exec rails db:setup
+        env:
+          RAILS_ENV: development
+        # with:
+        #   working-directory: 'mastodon-4.1.0'
 
       # - name: Run integration tests
       #   env:
