@@ -4,10 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: ["3.11"]
+    runs-on: ubuntu-latest
 
     # https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
     services:
@@ -23,16 +20,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.10'
       - name: Install Mastodon
         run: |
-          wget https://github.com/mastodon/mastodon/archive/refs/tags/v4.1.0.zip
+          wget --no-verbose https://github.com/mastodon/mastodon/archive/refs/tags/v4.1.0.zip
           unzip v4.1.0.zip
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0.3'
+          bundler-cache: true
+          working-directory: 'mastodon-4.1.0'
+      - name: Setup database
+        run: |
           cd mastodon-4.1.0
-          ls -al
+          rails db:setup
+          env:
+            RAILS_ENV: development
+
       # - name: Run integration tests
       #   env:
       #     TOOT_TEST_HOSTNAME: localhost:3000
