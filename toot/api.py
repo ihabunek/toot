@@ -28,8 +28,8 @@ def _tag_action(app, user, tag_name, action):
     return http.post(app, user, url).json()
 
 
-def create_app(domain, scheme='https'):
-    url = f"{scheme}://{domain}/api/v1/apps"
+def create_app(base_url):
+    url = f"{base_url}/api/v1/apps"
 
     json = {
         'client_name': CLIENT_NAME,
@@ -504,6 +504,6 @@ def clear_notifications(app, user):
     http.post(app, user, '/api/v1/notifications/clear')
 
 
-def get_instance(domain, scheme="https"):
-    url = f"{scheme}://{domain}/api/v1/instance"
+def get_instance(base_url):
+    url = f"{base_url}/api/v1/instance"
     return http.anon_get(url).json()
