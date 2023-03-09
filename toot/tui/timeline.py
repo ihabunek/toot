@@ -47,6 +47,7 @@ class Timeline(urwid.Columns):
         "zoom",          # Open status in scrollable popup window
         "clear-screen",  # Clear the screen (used internally)
         "load-image",  # used internally. asynchronously load image
+        "copy-status",   # Copy status to clipboard
     ]
 
     def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
@@ -127,6 +128,7 @@ class Timeline(urwid.Columns):
             "So[u]rce",
             "[Z]oom",
             "Tra[n]slate" if self.can_translate else "",
+            "Cop[y]",
             "[H]elp",
         ]
         options = "\n" + " ".join(o for o in options if o)
@@ -267,6 +269,10 @@ class Timeline(urwid.Columns):
             poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
                 self._emit("poll", status)
+            return
+
+        if key in ("y", "Y"):
+            self._emit("copy-status", status)
             return
 
         return super().keypress(size, key)
@@ -441,7 +447,7 @@ class StatusDetails(urwid.Pile):
         if status.data["spoiler_text"] and not status.show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
-            content = status.translation if status.show_translation else status.data["content"]
+            content = status.original.translation if status.original.show_translation else status.data["content"]
             for line in format_content(content):
                 yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
 
@@ -488,8 +494,8 @@ class StatusDetails(urwid.Pile):
         yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
 
         translated_from = (
-            language_name(status.translated_from)
-            if status.show_translation and status.translated_from
+            language_name(status.original.translated_from)
+            if status.original.show_translation and status.original.translated_from
             else None
         )
 

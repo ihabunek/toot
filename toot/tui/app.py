@@ -15,7 +15,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import parse_content_links, show_media
+from .utils import parse_content_links, show_media, copy_to_clipboard
 from PIL import Image
 from term_image.widget import UrwidImageScreen
 
@@ -116,6 +116,7 @@ class TUI(urwid.Frame):
         self.overlay = None
         self.exception = None
         self.can_translate = False
+        self.screen = urwid.raw_display.Screen()
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -215,6 +216,9 @@ class TUI(urwid.Frame):
         def _clear(*args):
             self.clear_screen()
 
+        def _copy(timeline, status):
+            self.copy_status(status)
+
         urwid.connect_signal(timeline, "account", _account)
         urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
         urwid.connect_signal(timeline, "compose", _compose)
@@ -232,6 +236,7 @@ class TUI(urwid.Frame):
         urwid.connect_signal(timeline, "translate", self.async_translate)
         urwid.connect_signal(timeline, "load-image", self.async_load_image)
         urwid.connect_signal(timeline, "clear-screen", _clear)
+        urwid.connect_signal(timeline, "copy-status", _copy)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -391,8 +396,8 @@ class TUI(urwid.Frame):
         self.loop.screen.clear()
 
     def show_links(self, status):
-        links = parse_content_links(status.data["content"]) if status else []
-        post_attachments = status.data["media_attachments"] or []
+        links = parse_content_links(status.original.data["content"]) if status else []
+        post_attachments = status.original.data["media_attachments"] or []
         reblog_attachments = (status.data["reblog"]["media_attachments"] if status.data["reblog"] else None) or []
 
         for a in post_attachments + reblog_attachments:
@@ -403,6 +408,8 @@ class TUI(urwid.Frame):
             self.clear_screen()
 
         if links:
+            links = list(set(links))  # deduplicate links
+            links = sorted(links, key=lambda link: link[0])  # sort alphabetically by URL
             sl_widget = StatusLinks(links)
             urwid.connect_signal(sl_widget, "clear-screen", _clear)
             self.open_overlay(
@@ -603,10 +610,10 @@ class TUI(urwid.Frame):
     def async_translate(self, timeline, status):
         def _translate():
             logger.info("Translating {}".format(status))
-            self.footer.set_message("Translating status {}".format(status.id))
+            self.footer.set_message("Translating status {}".format(status.original.id))
 
             try:
-                response = api.translate(self.app, self.user, status.id)
+                response = api.translate(self.app, self.user, status.original.id)
                 if response["content"]:
                     self.footer.set_message("Status translated")
                 else:
@@ -621,14 +628,14 @@ class TUI(urwid.Frame):
 
         def _done(response):
             if response is not None:
-                status.translation = response["content"]
-                status.translated_from = response["detected_source_language"]
-                status.show_translation = True
+                status.original.translation = response["content"]
+                status.original.translated_from = response["detected_source_language"]
+                status.original.show_translation = True
                 timeline.update_status(status)
 
         # If already translated, toggle showing translation
-        if status.translation:
-            status.show_translation = not status.show_translation
+        if status.original.translation:
+            status.original.show_translation = not status.original.show_translation
             timeline.update_status(status)
         else:
             self.run_in_thread(_translate, done_callback=_done)
@@ -686,6 +693,12 @@ class TUI(urwid.Frame):
             timeline.update_status_image(status, path, placeholder_index)
 
         return self.run_in_thread(_load, done_callback=_done)
+
+    def copy_status(self, status):
+        # TODO: copy a better version of status content
+        # including URLs
+        copy_to_clipboard(self.screen, status.original.data["content"])
+        self.footer.set_message(f"Status {status.original.id} copied")
 
     # --- Overlay handling -----------------------------------------------------
 
