@@ -1,3 +1,5 @@
+import base64
+import urwid
 from html.parser import HTMLParser
 import math
 import os
@@ -37,19 +39,19 @@ def time_ago(value: datetime) -> datetime:
     now = datetime.now().astimezone()
     delta = now.timestamp() - value.timestamp()
 
-    if (delta < 1):
+    if delta < 1:
         return "now"
 
-    if (delta < 8 * DAY):
-        if (delta < MINUTE):
+    if delta < 8 * DAY:
+        if delta < MINUTE:
             return f"{math.floor(delta / SECOND)}".rjust(2, " ") + "s"
-        if (delta < HOUR):
+        if delta < HOUR:
             return f"{math.floor(delta / MINUTE)}".rjust(2, " ") + "m"
-        if (delta < DAY):
+        if delta < DAY:
             return f"{math.floor(delta / HOUR)}".rjust(2, " ") + "h"
         return f"{math.floor(delta / DAY)}".rjust(2, " ") + "d"
 
-    if (delta < 53 * WEEK):  # not exactly correct but good enough as a boundary
+    if delta < 53 * WEEK:  # not exactly correct but good enough as a boundary
         return f"{math.floor(delta / WEEK)}".rjust(2, " ") + "w"
 
     return ">1y"
@@ -144,3 +146,20 @@ def parse_content_links(content):
     parser = LinkParser()
     parser.feed(content)
     return parser.links[:]
+
+
+def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):
+    """ copy text to clipboard using OSC 52
+    This escape sequence is documented
+    here https://iterm2.com/documentation-escape-codes.html
+    It has wide support - XTerm, Windows Terminal,
+    Kitty, iTerm2, others. Some terminals may require a setting to be
+    enabled in order to use OSC 52 clipboard functions.
+    """
+
+    text_bytes = text.encode("utf-8")
+    b64_bytes = base64.b64encode(text_bytes)
+    b64_text = b64_bytes.decode("utf-8")
+
+    screen.write(f"\033]52;c;{b64_text}\a")
+    screen.flush()

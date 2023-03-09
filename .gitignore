@@ -8,9 +8,9 @@
 /.pytest_cache/
 /build/
 /dist/
-/docs/_build/
 /htmlcov/
 /tmp/
 /toot-*.tar.gz
 debug.log
 /pyrightconfig.json
+/book

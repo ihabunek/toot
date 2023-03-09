@@ -133,7 +133,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
     console.run_command(app, user, 'timeline', ['--once'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
     out, err = capsys.readouterr()
     lines = out.split("\n")
@@ -174,7 +174,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
 
     console.run_command(app, user, 'timeline', ['--once'])
 
-    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home?limit=10', None)
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
     out, err = capsys.readouterr()
     lines = out.split("\n")
@@ -292,7 +292,6 @@ def test_reblogged_by(mock_get, monkeypatch, capsys):
 def test_upload(mock_post, capsys):
     mock_post.return_value = MockResponse({
         'id': 123,
-        'url': 'https://bigfish.software/123/456',
         'preview_url': 'https://bigfish.software/789/012',
         'url': 'https://bigfish.software/345/678',
         'type': 'image',
@@ -300,10 +299,10 @@ def test_upload(mock_post, capsys):
 
     console.run_command(app, user, 'upload', [__file__])
 
-    mock_post.call_count == 1
+    assert mock_post.call_count == 1
 
     args, kwargs = http.post.call_args
-    assert args == (app, user, '/api/v1/media')
+    assert args == (app, user, '/api/v2/media')
     assert isinstance(kwargs['files']['file'], io.BufferedReader)
 
     out, err = capsys.readouterr()
@@ -457,7 +456,8 @@ def test_whoami(mock_get, capsys):
         'note': 'A developer.',
         'statuses_count': 19,
         'url': 'https://mastodon.social/@ihabunek',
-        'username': 'ihabunek'
+        'username': 'ihabunek',
+        'fields': []
     })
 
     console.run_command(app, user, 'whoami', [])

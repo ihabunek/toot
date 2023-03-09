@@ -12,14 +12,14 @@ and blocking accounts and other actions.
 
 setup(
     name='toot',
-    version='0.33.1',
+    version='0.35.0',
     description='Mastodon CLI client',
     long_description=long_description.strip(),
     author='Ivan Habunek',
     author_email='ivan@habunek.com',
     url='https://github.com/ihabunek/toot/',
     project_urls={
-        'Documentation': 'https://toot.readthedocs.io/en/latest/',
+        'Documentation': 'https://toot.bezdomni.net/',
         'Issue tracker': 'https://github.com/ihabunek/toot/issues/',
     },
     keywords='mastodon toot',

@@ -1,11 +1,14 @@
+import mimetypes
+from os import path
 import re
 import uuid
 
+from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
-from toot import http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError
-from toot.utils import str_bool
+from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
+from toot.exceptions import AuthenticationError, ConsoleError
+from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 SCOPES = 'read write follow'
 
@@ -64,6 +67,40 @@ def register_account(app, username, email, password, locale="en", agreement=True
     }
 
     return http.anon_post(url, json=json, headers=headers).json()
+
+
+def update_account(
+    app,
+    user,
+    display_name=None,
+    note=None,
+    avatar=None,
+    header=None,
+    bot=None,
+    discoverable=None,
+    locked=None,
+    privacy=None,
+    sensitive=None,
+    language=None
+):
+    """
+    Update account credentials
+    https://docs.joinmastodon.org/methods/accounts/#update_credentials
+    """
+    files = drop_empty_values({"avatar": avatar, "header": header})
+
+    data = drop_empty_values({
+        "bot": str_bool_nullable(bot),
+        "discoverable": str_bool_nullable(discoverable),
+        "display_name": display_name,
+        "locked": str_bool_nullable(locked),
+        "note": note,
+        "source[language]": language,
+        "source[privacy]": privacy,
+        "source[sensitive]": str_bool_nullable(sensitive),
+    })
+
+    return http.patch(app, user, "/api/v1/accounts/update_credentials", files=files, data=data)
 
 
 def fetch_app_token(app):
@@ -145,7 +182,9 @@ def post_status(
     # if the request is retried.
     headers = {"Idempotency-Key": uuid.uuid4().hex}
 
-    json = {
+    # Strip keys for which value is None
+    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
+    json = drop_empty_values({
         'status': status,
         'media_ids': media_ids,
         'visibility': visibility,
@@ -155,11 +194,7 @@ def post_status(
         'scheduled_at': scheduled_at,
         'content_type': content_type,
         'spoiler_text': spoiler_text
-    }
-
-    # Strip keys for which value is None
-    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
-    json = {k: v for k, v in json.items() if v is not None}
+    })
 
     return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
 
@@ -250,9 +285,26 @@ def _timeline_generator(app, user, path, params=None):
         path = _get_next_path(response.headers)
 
 
+def _notification_timeline_generator(app, user, path, params=None):
+    while path:
+        response = http.get(app, user, path, params)
+        notification = response.json()
+        yield [n["status"] for n in notification if n["status"]]
+        path = _get_next_path(response.headers)
+
+
+def _conversation_timeline_generator(app, user, path, params=None):
+    while path:
+        response = http.get(app, user, path, params)
+        conversation = response.json()
+        yield [c["last_status"] for c in conversation if c["last_status"]]
+        path = _get_next_path(response.headers)
+
+
 def home_timeline_generator(app, user, limit=20):
-    path = f"/api/v1/timelines/home?limit={limit}"
-    return _timeline_generator(app, user, path)
+    path = "/api/v1/timelines/home"
+    params = {"limit": limit}
+    return _timeline_generator(app, user, path, params)
 
 
 def public_timeline_generator(app, user, local=False, limit=20):
@@ -271,6 +323,19 @@ def bookmark_timeline_generator(app, user, limit=20):
     path = '/api/v1/bookmarks'
     params = {'limit': limit}
     return _timeline_generator(app, user, path, params)
+
+
+def notification_timeline_generator(app, user, limit=20):
+    # exclude all but mentions and statuses
+    exclude_types = ["follow", "favourite", "reblog", "poll", "follow_request"]
+    params = {"exclude_types[]": exclude_types, "limit": limit}
+    return _notification_timeline_generator(app, user, "/api/v1/notifications", params)
+
+
+def conversation_timeline_generator(app, user, limit=20):
+    path = "/api/v1/conversations"
+    params = {"limit": limit}
+    return _conversation_timeline_generator(app, user, path, params)
 
 
 def timeline_list_generator(app, user, list_id, limit=20):
@@ -298,11 +363,44 @@ def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
     return _anon_timeline_generator(instance, path, params)
 
 
-def upload_media(app, user, file, description=None):
-    return http.post(app, user, '/api/v1/media',
-        data={'description': description},
-        files={'file': file}
-    ).json()
+def get_media(app: App, user: User, id: str):
+    return http.get(app, user, f"/api/v1/media/{id}").json()
+
+
+def upload_media(
+    app: App,
+    user: User,
+    media: BinaryIO,
+    description: Optional[str] = None,
+    thumbnail: Optional[BinaryIO] = None,
+):
+    data = drop_empty_values({"description": description})
+
+    # NB: Documentation says that "file" should provide a mime-type which we
+    # don't do currently, but it works.
+    files = drop_empty_values({
+        "file": media,
+        "thumbnail": _add_mime_type(thumbnail)
+    })
+
+    return http.post(app, user, "/api/v2/media", data=data, files=files).json()
+
+
+def _add_mime_type(file):
+    if file is None:
+        return None
+
+    # TODO: mimetypes uses the file extension to guess the mime type which is
+    # not always good enough (e.g. files without extension). python-magic could
+    # be used instead but it requires adding it as a dependency.
+    mime_type = mimetypes.guess_type(file.name)
+
+    if not mime_type:
+        raise ConsoleError(f"Unable guess mime type of '{file.name}'. "
+                           "Ensure the file has the desired extension.")
+
+    filename = path.basename(file.name)
+    return (filename, file, mime_type)
 
 
 def search(app, user, query, resolve=False, type=None):
@@ -355,6 +453,21 @@ def followers(app, user, account):
 def followed_tags(app, user):
     path = '/api/v1/followed_tags'
     return _get_response_list(app, user, path)
+
+
+def whois(app, user, account):
+    return http.get(app, user, f'/api/v1/accounts/{account}').json()
+
+
+def vote(app, user, poll_id, choices: List[int]):
+    url = f"/api/v1/polls/{poll_id}/votes"
+    json = {'choices': choices}
+    return http.post(app, user, url, json=json).json()
+
+
+def get_relationship(app, user, account):
+    params = {"id[]": account}
+    return http.get(app, user, '/api/v1/accounts/relationships', params).json()[0]
 
 
 def mute(app, user, account):

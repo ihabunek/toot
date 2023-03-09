@@ -59,3 +59,23 @@ class StatusList(urwid.ListBox):
             self.timeline.draw_status_list(focus=True)
             self.timeline.refresh_same_status_details(focus=False)
         return super().mouse_event(size, event, button, col, row, focus)
+
+
+class CheckBox(urwid.AttrWrap):
+    """Styled checkbox."""
+    def __init__(self, *args, **kwargs):
+        self.button = urwid.CheckBox(*args, **kwargs)
+        padding = urwid.Padding(self.button, width=len(args[0]) + 4)
+        return super().__init__(padding, "button", "button_focused")
+
+    def get_state(self):
+        """Return the state of the checkbox."""
+        return self.button._state
+
+
+class RadioButton(urwid.AttrWrap):
+    """Styled radiobutton."""
+    def __init__(self, *args, **kwargs):
+        button = urwid.RadioButton(*args, **kwargs)
+        padding = urwid.Padding(button, width=len(args[1]) + 4)
+        return super().__init__(padding, "button", "button_focused")

@@ -4,20 +4,39 @@ import urwid
 import webbrowser
 
 from toot import __version__
-
-from .utils import highlight_keys
+from toot.utils import format_content
+from .utils import highlight_hashtags, highlight_keys
 from .widgets import Button, EditBox, SelectableText
+from toot import api
 
 
-class StatusSource(urwid.ListBox):
+class StatusSource(urwid.Padding):
     """Shows status data, as returned by the server, as formatted JSON."""
     def __init__(self, status):
-        source = json.dumps(status.data, indent=4)
-        lines = source.splitlines()
+        self.source = json.dumps(status.data, indent=4)
+        self.filename_edit = EditBox(caption="Filename: ", edit_text=f"status-{status.id}.json")
+        self.status_text = urwid.Text("")
+
         walker = urwid.SimpleFocusListWalker([
-            urwid.Text(line) for line in lines
+            self.filename_edit,
+            Button("Save", on_press=self.save_json),
+            urwid.Divider("─"),
+            urwid.Divider(" "),
+            urwid.Text(self.source)
         ])
-        super().__init__(walker)
+
+        frame = urwid.Frame(
+            body=urwid.ListBox(walker),
+            footer=self.status_text
+        )
+        super().__init__(frame)
+
+    def save_json(self, button):
+        filename = self.filename_edit.get_edit_text()
+        if filename:
+            with open(filename, "w") as f:
+                f.write(self.source)
+            self.status_text.set_text(("footer_message", f"Saved to {filename}"))
 
 
 class StatusZoom(urwid.ListBox):
@@ -81,6 +100,8 @@ class GotoMenu(urwid.ListBox):
         "public_timeline",
         "hashtag_timeline",
         "bookmark_timeline",
+        "notification_timeline",
+        "conversation_timeline",
     ]
 
     def __init__(self, user_timelines):
@@ -106,6 +127,12 @@ class GotoMenu(urwid.ListBox):
         def _bookmarks(button):
             self._emit("bookmark_timeline", False)
 
+        def _notifications(button):
+            self._emit("notification_timeline", False)
+
+        def _conversations(button):
+            self._emit("conversation_timeline", False)
+
         def _hashtag(local):
             hashtag = self.get_hashtag()
             if hashtag:
@@ -128,6 +155,8 @@ class GotoMenu(urwid.ListBox):
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
         yield Button("Bookmarks", on_press=_bookmarks)
+        yield Button("Notifications", on_press=_notifications)
+        yield Button("Conversations", on_press=_conversations)
         yield urwid.Divider()
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
@@ -144,12 +173,6 @@ class Help(urwid.Padding):
     def generate_contents(self):
         def h(text):
             return highlight_keys(text, "cyan")
-
-        def link(text, url):
-            attr_map = {"link": "link_focused"}
-            text = SelectableText([text, ("link", url)])
-            urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
-            return urwid.AttrMap(text, "", attr_map)
 
         yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
         yield urwid.Divider()
@@ -183,9 +206,129 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [L] - Show the status links"))
         yield urwid.Text(h("  [U] - Show the status data in JSON as received from the server"))
         yield urwid.Text(h("  [V] - Open status in default browser"))
+        yield urwid.Text(h("  [Y] - Copy status to clipboard"))
         yield urwid.Text(h("  [Z] - Open status in scrollable popup window"))
         yield urwid.Divider()
         yield urwid.Text(("bold", "Links"))
         yield urwid.Divider()
-        yield link("Documentation: ", "https://toot.readthedocs.io/")
+        yield link("Documentation: ", "https://toot.bezdomni.net/")
         yield link("Project home:  ", "https://github.com/ihabunek/toot/")
+
+
+class Account(urwid.ListBox):
+    """Shows account data and provides various actions"""
+    def __init__(self, app, user, account, relationship):
+        self.app = app
+        self.user = user
+        self.account = account
+        self.relationship = relationship
+        self.last_action = None
+        self.setup_listbox()
+
+    def setup_listbox(self):
+        actions = list(self.generate_contents(self.account, self.relationship, self.last_action))
+        walker = urwid.SimpleListWalker(actions)
+        super().__init__(walker)
+
+    def generate_contents(self, account, relationship=None, last_action=None):
+        if self.last_action and not self.last_action.startswith("Confirm"):
+            yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
+            yield Button("Cancel", on_press=cancel_action, user_data=self)
+        else:
+            if self.user.username == account["acct"]:
+                yield urwid.Text(("light gray", "This is your account"))
+            else:
+                if relationship['requested']:
+                    yield urwid.Text(("light gray", "< Follow request is pending >"))
+                else:
+                    yield Button("Unfollow" if relationship['following'] else "Follow",
+                    on_press=confirm_action, user_data=self)
+
+                yield Button("Unmute" if relationship['muting'] else "Mute",
+                    on_press=confirm_action, user_data=self)
+                yield Button("Unblock" if relationship['blocking'] else "Block",
+                    on_press=confirm_action, user_data=self)
+
+        yield urwid.Divider("─")
+        yield urwid.Divider()
+        yield urwid.Text([('green', f"@{account['acct']}"), f"  {account['display_name']}"])
+
+        if account["note"]:
+            yield urwid.Divider()
+            for line in format_content(account["note"]):
+                yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+
+        yield urwid.Divider()
+        yield urwid.Text(["ID: ", ("green", f"{account['id']}")])
+        yield urwid.Text(["Since: ", ("green", f"{account['created_at'][:10]}")])
+        yield urwid.Divider()
+
+        if account["bot"]:
+            yield urwid.Text([("green", "Bot \N{robot face}")])
+            yield urwid.Divider()
+        if account["locked"]:
+            yield urwid.Text([("warning", "Locked \N{lock}")])
+            yield urwid.Divider()
+        if "suspended" in account and account["suspended"]:
+            yield urwid.Text([("warning", "Suspended \N{cross mark}")])
+            yield urwid.Divider()
+        if relationship["followed_by"]:
+            yield urwid.Text(("green", "Follows you \N{busts in silhouette}"))
+            yield urwid.Divider()
+        if relationship["blocked_by"]:
+            yield urwid.Text(("warning", "Blocks you \N{no entry}"))
+            yield urwid.Divider()
+
+        yield urwid.Text(["Followers: ", ("yellow", f"{account['followers_count']}")])
+        yield urwid.Text(["Following: ", ("yellow", f"{account['following_count']}")])
+        yield urwid.Text(["Statuses: ", ("yellow", f"{account['statuses_count']}")])
+
+        if account["fields"]:
+            for field in account["fields"]:
+                name = field["name"].title()
+                yield urwid.Divider()
+                yield urwid.Text([("yellow", f"{name.rstrip(':')}"), ":"])
+                for line in format_content(field["value"]):
+                    yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+                if field["verified_at"]:
+                    yield urwid.Text(("green", "✓ Verified"))
+
+        yield urwid.Divider()
+        yield link("", account["url"])
+
+
+def take_action(button: Button, self: Account):
+    action = button.get_label()
+
+    if action == "Confirm Follow":
+        self.relationship = api.follow(self.app, self.user, self.account["id"])
+    elif action == "Confirm Unfollow":
+        self.relationship = api.unfollow(self.app, self.user, self.account["id"])
+    elif action == "Confirm Mute":
+        self.relationship = api.mute(self.app, self.user, self.account["id"])
+    elif action == "Confirm Unmute":
+        self.relationship = api.unmute(self.app, self.user, self.account["id"])
+    elif action == "Confirm Block":
+        self.relationship = api.block(self.app, self.user, self.account["id"])
+    elif action == "Confirm Unblock":
+        self.relationship = api.unblock(self.app, self.user, self.account["id"])
+
+    self.last_action = None
+    self.setup_listbox()
+
+
+def confirm_action(button: Button, self: Account):
+    self.last_action = button.get_label()
+    self.setup_listbox()
+
+
+def cancel_action(button: Button, self: Account):
+    self.last_action = None
+    self.setup_listbox()
+
+
+def link(text, url):
+    attr_map = {"link": "link_focused"}
+    text = SelectableText([text, ("link", url)])
+    urwid.connect_signal(text, "click", lambda t: webbrowser.open(url))
+    return urwid.AttrMap(text, "", attr_map)

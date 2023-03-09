@@ -1,3 +1,27 @@
+0.35.0:
+  date: 2023-03-01
+  changes:
+    - "Save toot contents when using --editor so it's recoverable if posting fails (#311)"
+    - "TUI: Add voting on polls (thanks Dan Schwarz)"
+    - "TUI: Add following/blocking/muting accounts (thanks Dan Schwarz)"
+    - "TUI: Add notifications timeline (thanks Dan Schwarz)"
+
+0.34.1:
+  date: 2023-02-20
+  changes:
+    - "TUI: Fix bug where TUI would break on older Mastodon instances (#309)"
+
+0.34.0:
+  date: 2023-02-03
+  changes:
+    - "Fix Python version detection which would fail in some cases (thanks K)"
+    - "Fix toot --help not working (thanks Norman Walsh)"
+    - "TUI: Add option to save status JSON data from source window (thanks Dan Schwarz)"
+    - "TUI: Add `--relative-datetimes` option to show relative datetimes (thanks Dan Schwarz)"
+    - "TUI: Don't focus newly created post (#188, thanks Dan Schwarz)"
+    - "TUI: Add ability to scroll long status messages (#166, thanks Dan Schwarz)"
+    - "TUI: Add action to view account details (thanks Dan Schwarz)"
+
 0.33.1:
   date: 2023-01-03
   changes:
@@ -98,7 +122,7 @@
     - "Fix datetime parsing on Python 3.5 (#162)"
     - "TUI: Display status links and open them (#154, thanks @dlax)"
     - "TUI: Fix visibility descriptions (#153, thanks @finnoleary)"
-    - "**IMPORTANT:** Starting from this release, new releases will not be uploaded to the APT package repository at `bezdomni.net`. Please use the official Debian or Ubuntu repos or choose another [installation option](https://toot.readthedocs.io/en/latest/install.html)."
+    - "**IMPORTANT:** Starting from this release, new releases will not be uploaded to the APT package repository at `bezdomni.net`. Please use the official Debian or Ubuntu repos or choose another [installation option](https://toot.bezdomni.net/installation.html)."
 
 0.25.2:
   date: 2020-01-23
