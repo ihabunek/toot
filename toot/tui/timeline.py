@@ -328,7 +328,9 @@ class Timeline(urwid.Columns):
                 status.placeholders[placeholder_index]._set_original_widget(
                     UrwidImage(
                         AutoImage(
-                            add_corners(img, 10)), upscale=True))
+                            add_corners(img, 10)),
+                        "<", upscale=True),
+                )  # "<" means left-justify the image
             except IndexError:
                 # ignore IndexErrors.
                 pass
@@ -380,7 +382,6 @@ class StatusDetails(urwid.Pile):
                 # aspect ratio
                 cols = math.floor(0.55 * screen.get_cols_rows()[0])
                 rows = math.ceil((cols / 2) / aspect)
-
                 # if the calculated rows are more than will
                 # fit on one screen, reduce to one screen of rows
                 rows = min(screen_rows - 6, rows)
@@ -395,7 +396,8 @@ class StatusDetails(urwid.Pile):
             return (urwid.BoxAdapter(
                 UrwidImage(
                     AutoImage(
-                        add_corners(img, 10)), upscale=True),
+                        add_corners(img, 10)),
+                    "<", upscale=True),
                 rows))
         else:
             placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
