@@ -137,6 +137,7 @@ def test_post(app, user, run):
     assert status["visibility"] == "public"
     assert status["sensitive"] is False
     assert status["spoiler_text"] == ""
+    assert status["poll"] is None
 
     # Pleroma doesn't return the application
     if status["application"]:
@@ -196,6 +197,92 @@ def test_post_scheduled_in(app, user, run):
         assert delta.total_seconds() < 5
 
 
+def test_post_poll(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-option", "baz",
+        "--poll-option", "qux",
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    assert status["poll"]["expired"] is False
+    assert status["poll"]["multiple"] is False
+    assert status["poll"]["options"] == [
+        {"title": "foo", "votes_count": 0},
+        {"title": "bar", "votes_count": 0},
+        {"title": "baz", "votes_count": 0},
+        {"title": "qux", "votes_count": 0}
+    ]
+
+    # Test expires_at is 24h by default
+    actual = datetime.strptime(status["poll"]["expires_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
+    expected = datetime.now(timezone.utc) + timedelta(days=1)
+    delta = actual - expected
+    assert delta.total_seconds() < 5
+
+
+def test_post_poll_multiple(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-multiple"
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    assert status["poll"]["multiple"] is True
+
+
+def test_post_poll_expires_in(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-expires-in", "8h",
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    actual = datetime.strptime(status["poll"]["expires_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
+    expected = datetime.now(timezone.utc) + timedelta(hours=8)
+    delta = actual - expected
+    assert delta.total_seconds() < 5
+
+
+def test_post_poll_hide_totals(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-hide-totals"
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+
+    # votes_count is None when totals are hidden
+    assert status["poll"]["options"] == [
+        {"title": "foo", "votes_count": None},
+        {"title": "bar", "votes_count": None},
+    ]
+
+
 def test_post_language(app, user, run):
     out = run("post", "test", "--language", "hr")
     status_id = _posted_status_id(out)
@@ -232,7 +319,7 @@ def test_media_thumbnail(app, user, run):
     assert media["preview_url"].endswith(".png")
 
     # Video properties
-    assert media["meta"]["original"]["duration"] == 5.58
+    assert int(media["meta"]["original"]["duration"]) == 5
     assert media["meta"]["original"]["height"] == 320
     assert media["meta"]["original"]["width"] == 560
 

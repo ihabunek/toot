@@ -172,6 +172,10 @@ def post_status(
     language=None,
     scheduled_at=None,
     content_type=None,
+    poll_options=None,
+    poll_expires_in=None,
+    poll_multiple=None,
+    poll_hide_totals=None,
 ):
     """
     Publish a new status.
@@ -184,7 +188,7 @@ def post_status(
 
     # Strip keys for which value is None
     # Sending null values doesn't bother Mastodon, but it breaks Pleroma
-    json = drop_empty_values({
+    data = drop_empty_values({
         'status': status,
         'media_ids': media_ids,
         'visibility': visibility,
@@ -193,10 +197,18 @@ def post_status(
         'language': language,
         'scheduled_at': scheduled_at,
         'content_type': content_type,
-        'spoiler_text': spoiler_text
+        'spoiler_text': spoiler_text,
     })
 
-    return http.post(app, user, '/api/v1/statuses', json=json, headers=headers).json()
+    if poll_options:
+        data["poll"] = {
+            "options": poll_options,
+            "expires_in": poll_expires_in,
+            "multiple": poll_multiple,
+            "hide_totals": poll_hide_totals,
+        }
+
+    return http.post(app, user, '/api/v1/statuses', json=data, headers=headers).json()
 
 
 def fetch_status(app, user, id):
