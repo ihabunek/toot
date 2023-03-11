@@ -424,8 +424,8 @@ class StatusDetails(urwid.Pile):
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
 
-        account_color = "yellow" if self.status.original.author.account in self.followed_accounts else "blue"
-            
+        account_color = "yellow" if self.status.original.author.account in self.followed_accounts else "cyan"
+
         atxt = urwid.Pile([("pack",
                             urwid.AttrMap(
                                 EmojiText(self.status.original.author.display_name,
