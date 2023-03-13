@@ -10,7 +10,7 @@ from toot.output import (print_out, print_instance, print_account, print_acct_li
                          print_search_results, print_timeline, print_notifications,
                          print_tag_list)
 from toot.tui.utils import parse_datetime
-from toot.utils import delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
+from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
 
 def get_timeline_generator(app, user, args):
@@ -87,7 +87,7 @@ def post(app, user, args):
         raise ConsoleError("Cannot attach more than 4 files.")
 
     media_ids = _upload_media(app, user, args)
-    status_text = _get_status_text(args.text, args.editor)
+    status_text = _get_status_text(args.text, args.editor, args.media)
     scheduled_at = _get_scheduled_at(args.scheduled_at, args.scheduled_in)
 
     if not status_text and not media_ids:
@@ -102,7 +102,11 @@ def post(app, user, args):
         in_reply_to_id=args.reply_to,
         language=args.language,
         scheduled_at=scheduled_at,
-        content_type=args.content_type
+        content_type=args.content_type,
+        poll_options=args.poll_option,
+        poll_expires_in=args.poll_expires_in,
+        poll_multiple=args.poll_multiple,
+        poll_hide_totals=args.poll_hide_totals,
     )
 
     if "scheduled_at" in response:
@@ -115,7 +119,7 @@ def post(app, user, args):
     delete_tmp_status_file()
 
 
-def _get_status_text(text, editor):
+def _get_status_text(text, editor, media):
     isatty = sys.stdin.isatty()
 
     if not text and not isatty:
@@ -124,7 +128,7 @@ def _get_status_text(text, editor):
     if isatty:
         if editor:
             text = editor_input(editor, text)
-        elif not text:
+        elif not text and not media:
             print_out("Write or paste your toot. Press <yellow>{}</yellow> to post it.".format(EOF_KEY))
             text = multiline_input()
 
@@ -305,7 +309,8 @@ def update_account(app, user, args):
 
 
 def login_cli(app, user, args):
-    app = create_app_interactive(instance=args.instance, scheme=args.scheme)
+    base_url = args_get_instance(args.instance, args.scheme)
+    app = create_app_interactive(base_url)
     login_interactive(app, args.email)
 
     print_out()
@@ -313,7 +318,8 @@ def login_cli(app, user, args):
 
 
 def login(app, user, args):
-    app = create_app_interactive(instance=args.instance, scheme=args.scheme)
+    base_url = args_get_instance(args.instance, args.scheme)
+    app = create_app_interactive(base_url)
     login_browser_interactive(app)
 
     print_out()
@@ -353,7 +359,7 @@ def _do_upload(app, user, file, description, thumbnail):
     return api.upload_media(app, user, file, description=description, thumbnail=thumbnail)
 
 
-def _find_account(app, user, account_name):
+def find_account(app, user, account_name):
     if not account_name:
         raise ConsoleError("Empty account name given")
 
@@ -377,25 +383,25 @@ def _find_account(app, user, account_name):
 
 
 def follow(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.follow(app, user, account['id'])
     print_out("<green>✓ You are now following {}</green>".format(args.account))
 
 
 def unfollow(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.unfollow(app, user, account['id'])
     print_out("<green>✓ You are no longer following {}</green>".format(args.account))
 
 
 def following(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     response = api.following(app, user, account['id'])
     print_acct_list(response)
 
 
 def followers(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     response = api.followers(app, user, account['id'])
     print_acct_list(response)
 
@@ -418,25 +424,25 @@ def tags_followed(app, user, args):
 
 
 def mute(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.mute(app, user, account['id'])
     print_out("<green>✓ You have muted {}</green>".format(args.account))
 
 
 def unmute(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.unmute(app, user, account['id'])
     print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
 def block(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.block(app, user, account['id'])
     print_out("<green>✓ You are now blocking {}</green>".format(args.account))
 
 
 def unblock(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     api.unblock(app, user, account['id'])
     print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
@@ -447,22 +453,24 @@ def whoami(app, user, args):
 
 
 def whois(app, user, args):
-    account = _find_account(app, user, args.account)
+    account = find_account(app, user, args.account)
     print_account(account)
 
 
 def instance(app, user, args):
-    name = args.instance or (app and app.instance)
-    if not name:
-        raise ConsoleError("Please specify instance name.")
+    default = app.base_url if app else None
+    base_url = args_get_instance(args.instance, args.scheme, default)
+
+    if not base_url:
+        raise ConsoleError("Please specify an instance.")
 
     try:
-        instance = api.get_instance(name, args.scheme)
+        instance = api.get_instance(base_url)
         print_instance(instance)
     except ApiError:
         raise ConsoleError(
-            "Instance not found at {}.\n"
-            "The given domain probably does not host a Mastodon instance.".format(name)
+            f"Instance not found at {base_url}.\n"
+            "The given domain probably does not host a Mastodon instance."
         )
 
 

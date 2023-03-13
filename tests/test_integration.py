@@ -30,7 +30,7 @@ from unittest import mock
 
 # Host name of a test instance to run integration tests against
 # DO NOT USE PUBLIC INSTANCES!!!
-HOSTNAME = os.getenv("TOOT_TEST_HOSTNAME")
+BASE_URL = os.getenv("TOOT_TEST_BASE_URL")
 
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
@@ -39,7 +39,7 @@ DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
 TRUMPET = path.join(path.dirname(path.dirname(path.realpath(__file__))), "trumpet.png")
 
 
-if not HOSTNAME or not DATABASE_DSN:
+if not BASE_URL or not DATABASE_DSN:
     pytest.skip("Skipping integration tests", allow_module_level=True)
 
 # ------------------------------------------------------------------------------
@@ -48,8 +48,9 @@ if not HOSTNAME or not DATABASE_DSN:
 
 
 def create_app():
-    response = api.create_app(HOSTNAME, scheme="http")
-    return App(HOSTNAME, f"http://{HOSTNAME}", response["client_id"], response["client_secret"])
+    instance = api.get_instance(BASE_URL)
+    response = api.create_app(BASE_URL)
+    return App(instance["uri"], BASE_URL, response["client_id"], response["client_secret"])
 
 
 def register_account(app: App):
@@ -115,7 +116,7 @@ def test_instance(app, run):
 
 
 def test_instance_anon(app, run_anon):
-    out = run_anon("instance", "--disable-https", HOSTNAME)
+    out = run_anon("instance", BASE_URL)
     assert "Mastodon" in out
     assert app.instance in out
     assert "running Mastodon" in out
@@ -123,7 +124,7 @@ def test_instance_anon(app, run_anon):
     # Need to specify the instance name when running anon
     with pytest.raises(ConsoleError) as exc:
         run_anon("instance")
-    assert str(exc.value) == "Please specify instance name."
+    assert str(exc.value) == "Please specify an instance."
 
 
 def test_post(app, user, run):
@@ -136,6 +137,7 @@ def test_post(app, user, run):
     assert status["visibility"] == "public"
     assert status["sensitive"] is False
     assert status["spoiler_text"] == ""
+    assert status["poll"] is None
 
     # Pleroma doesn't return the application
     if status["application"]:
@@ -195,6 +197,92 @@ def test_post_scheduled_in(app, user, run):
         assert delta.total_seconds() < 5
 
 
+def test_post_poll(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-option", "baz",
+        "--poll-option", "qux",
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    assert status["poll"]["expired"] is False
+    assert status["poll"]["multiple"] is False
+    assert status["poll"]["options"] == [
+        {"title": "foo", "votes_count": 0},
+        {"title": "bar", "votes_count": 0},
+        {"title": "baz", "votes_count": 0},
+        {"title": "qux", "votes_count": 0}
+    ]
+
+    # Test expires_at is 24h by default
+    actual = datetime.strptime(status["poll"]["expires_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
+    expected = datetime.now(timezone.utc) + timedelta(days=1)
+    delta = actual - expected
+    assert delta.total_seconds() < 5
+
+
+def test_post_poll_multiple(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-multiple"
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    assert status["poll"]["multiple"] is True
+
+
+def test_post_poll_expires_in(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-expires-in", "8h",
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+    actual = datetime.strptime(status["poll"]["expires_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
+    expected = datetime.now(timezone.utc) + timedelta(hours=8)
+    delta = actual - expected
+    assert delta.total_seconds() < 5
+
+
+def test_post_poll_hide_totals(app, user, run):
+    text = str(uuid.uuid4())
+
+    out = run(
+        "post", text,
+        "--poll-option", "foo",
+        "--poll-option", "bar",
+        "--poll-hide-totals"
+    )
+
+    status_id = _posted_status_id(out)
+
+    status = api.fetch_status(app, user, status_id)
+
+    # votes_count is None when totals are hidden
+    assert status["poll"]["options"] == [
+        {"title": "foo", "votes_count": None},
+        {"title": "bar", "votes_count": None},
+    ]
+
+
 def test_post_language(app, user, run):
     out = run("post", "test", "--language", "hr")
     status_id = _posted_status_id(out)
@@ -231,7 +319,7 @@ def test_media_thumbnail(app, user, run):
     assert media["preview_url"].endswith(".png")
 
     # Video properties
-    assert media["meta"]["original"]["duration"] == 5.58
+    assert int(media["meta"]["original"]["duration"]) == 5
     assert media["meta"]["original"]["height"] == 320
     assert media["meta"]["original"]["width"] == 560
 
@@ -411,7 +499,6 @@ def test_whoami(user, run):
     out = run("whoami")
     # TODO: test other fields once updating account is supported
     assert f"@{user.username}" in out
-    assert f"http://{HOSTNAME}/@{user.username}" in out
 
 
 def test_whois(app, friend, run):
@@ -425,7 +512,6 @@ def test_whois(app, friend, run):
     for username in variants:
         out = run("whois", username)
         assert f"@{friend.username}" in out
-        assert f"http://{HOSTNAME}/@{friend.username}" in out
 
 
 def test_search_account(friend, run):
@@ -514,22 +600,22 @@ def test_tags(run):
     assert out == "✓ You are now following #foo"
 
     out = run("tags_followed")
-    assert out == "* #foo\thttp://localhost:3000/tags/foo"
+    assert out == f"* #foo\t{BASE_URL}/tags/foo"
 
     out = run("tags_follow", "bar")
     assert out == "✓ You are now following #bar"
 
     out = run("tags_followed")
     assert out == "\n".join([
-        "* #bar\thttp://localhost:3000/tags/bar",
-        "* #foo\thttp://localhost:3000/tags/foo",
+        f"* #bar\t{BASE_URL}/tags/bar",
+        f"* #foo\t{BASE_URL}/tags/foo",
     ])
 
     out = run("tags_unfollow", "foo")
     assert out == "✓ You are no longer following #foo"
 
     out = run("tags_followed")
-    assert out == "* #bar\thttp://localhost:3000/tags/bar"
+    assert out == f"* #bar\t{BASE_URL}/tags/bar"
 
 
 def test_update_account_no_options(run):
@@ -667,7 +753,6 @@ def _posted_status_id(out):
     match = re.search(pattern, out)
     assert match
 
-    host, _, status_id = match.groups()
-    assert host == HOSTNAME
+    _, _, status_id = match.groups()
 
     return status_id

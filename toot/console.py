@@ -105,6 +105,10 @@ DURATION_UNITS = {
 }
 
 
+DURATION_EXAMPLES = """e.g. "1 day", "2 hours 30 minutes", "5 minutes 30
+seconds" or any combination of above. Shorthand: "1d", "2h30m", "5m30s\""""
+
+
 def duration(value: str):
     match = re.match(r"""^
         (([0-9]+)\s*(days|day|d))?\s*
@@ -520,15 +524,34 @@ POST_COMMANDS = [
             }),
             (["--scheduled-in"], {
                 "type": duration,
-                "help": """Schedule the toot to be posted after a given amount
-                        of time. Examples: "1 day", "2 hours 30 minutes",
-                        "5 minutes 30 seconds" or any combination of above.
-                        Shorthand: "1d", "2h30m", "5m30s". Must be at least 5
+                "help": f"""Schedule the toot to be posted after a given amount
+                        of time, {DURATION_EXAMPLES}. Must be at least 5
                         minutes.""",
             }),
             (["-t", "--content-type"], {
                 "type": str,
                 "help": "MIME type for the status text (not supported on all instances)",
+            }),
+            (["--poll-option"], {
+                "action": "append",
+                "type": str,
+                "help": "Possible answer to the poll"
+            }),
+            (["--poll-expires-in"], {
+                "type": duration,
+                "help": f"""Duration that the poll should be open,
+                        {DURATION_EXAMPLES}. Defaults to 24h.""",
+                "default": 24 * 60 * 60,
+            }),
+            (["--poll-multiple"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Allow multiple answers to be selected."
+            }),
+            (["--poll-hide-totals"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Hide vote counts until the poll ends. Defaults to false."
             }),
         ],
         require_auth=True,
