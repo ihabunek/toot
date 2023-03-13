@@ -1,4 +1,5 @@
 import urwid
+from urwid.util import is_mouse_press
 
 
 class Clickable:
@@ -46,6 +47,18 @@ class Button(urwid.AttrWrap):
     def set_label(self, *args, **kwargs):
         self.original_widget.original_widget.set_label(*args, **kwargs)
         self.original_widget.width = len(args[0]) + 4
+
+
+class StatusList(urwid.ListBox):
+    def __init__(self, *args, **kwargs):
+        self.timeline = args[1]
+        return super().__init__(args[0])
+
+    def mouse_event(self, size, event, button, col, row, focus):
+        if is_mouse_press(event) and button == 1:
+            self.timeline.draw_status_list(focus=True)
+            self.timeline.refresh_same_status_details(focus=False)
+        return super().mouse_event(size, event, button, col, row, focus)
 
 
 class CheckBox(urwid.AttrWrap):
