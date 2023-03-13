@@ -110,13 +110,14 @@ class GotoMenu(urwid.ListBox):
 
     def __init__(self, user_timelines):
         self.hash_edit = EditBox(caption="Hashtag: ")
+        self.message_widget = urwid.Text("")
 
         actions = list(self.generate_actions(user_timelines))
         walker = urwid.SimpleFocusListWalker(actions)
         super().__init__(walker)
 
     def get_hashtag(self):
-        return self.hash_edit.edit_text.strip()
+        return self.hash_edit.edit_text.strip().lstrip("#")
 
     def generate_actions(self, user_timelines):
         def _home(button):
@@ -138,11 +139,12 @@ class GotoMenu(urwid.ListBox):
             self._emit("conversation_timeline", False)
 
         def _hashtag(local):
+            self.message_widget.set_text("")
             hashtag = self.get_hashtag()
             if hashtag:
                 self._emit("hashtag_timeline", hashtag, local)
             else:
-                self.set_focus(4)
+                self.message_widget.set_text(("warning", "Hashtag name required"))
 
         def mk_on_press_user_hashtag(tag, local):
             def on_press(btn):
@@ -150,21 +152,28 @@ class GotoMenu(urwid.ListBox):
             return on_press
 
         yield Button("Home timeline", on_press=_home)
-
-        for tag, cfg in user_timelines.items():
-            is_local = cfg["local"]
-            yield Button("#{}".format(tag) + (" (local)" if is_local else ""),
-                         on_press=mk_on_press_user_hashtag(tag, is_local))
-
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
         yield Button("Bookmarks", on_press=_bookmarks)
         yield Button("Notifications", on_press=_notifications)
         yield Button("Conversations", on_press=_conversations)
+
+        if len(user_timelines):
+            yield urwid.Divider()
+            yield urwid.Text(("bold", "Shortcuts:"))
+
+            # show all hashtag shortcuts
+            for tag, cfg in sorted(user_timelines.items()):
+                is_local = cfg["local"]
+                yield Button(f"#{tag}" + (" (local)" if is_local else ""),
+                     on_press=mk_on_press_user_hashtag(tag, is_local))
+
         yield urwid.Divider()
         yield self.hash_edit
         yield Button("Local hashtag timeline", on_press=lambda x: _hashtag(True))
         yield Button("Public hashtag timeline", on_press=lambda x: _hashtag(False))
+        yield urwid.Divider()
+        yield self.message_widget
 
 
 class Help(urwid.Padding):

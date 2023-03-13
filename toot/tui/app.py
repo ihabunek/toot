@@ -478,7 +478,7 @@ class TUI(urwid.Frame):
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=11 + len(user_timelines),
+            valign="middle", height=16 + len(user_timelines),
         ))
 
     def show_help(self):
@@ -499,7 +499,8 @@ class TUI(urwid.Frame):
     def goto_public_timeline(self, local):
         self.timeline_generator = api.public_timeline_generator(
             self.app, self.user, local=local, limit=40)
-        promise = self.async_load_timeline(is_initial=True, timeline_name="public")
+        timeline_name = "local public" if local else "global public"
+        promise = self.async_load_timeline(is_initial=True, timeline_name=timeline_name)
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_bookmarks(self):
@@ -745,6 +746,31 @@ class TUI(urwid.Frame):
         if self.timeline:
             self.timeline.refresh_status_details()
 
+    def refresh_timeline(self):
+        # No point in refreshing the bookmarks timeline
+        if not self.timeline or self.timeline.name == 'bookmarks':
+            return
+
+        if self.timeline.name.startswith("#"):
+            self.timeline_generator = api.tag_timeline_generator(
+                self.app, self.user, self.timeline.name[1:], limit=40)
+        else:
+            if self.timeline.name.endswith("public"):
+                self.timeline_generator = api.public_timeline_generator(
+                    self.app, self.user, local=self.timeline.name.startswith("local"), limit=40)
+            elif self.timeline.name == "notifications":
+                self.timeline_generator = api.notification_timeline_generator(
+                    self.app, self.user, limit=40)
+            elif self.timeline.name == "conversations":
+                self.timeline_generator = api.conversation_timeline_generator(
+                    self.app, self.user, limit=40)
+            else:
+                # default to home timeline
+                self.timeline_generator = api.home_timeline_generator(
+                    self.app, self.user, limit=40)
+
+        self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
+
     # --- Keys -----------------------------------------------------------------
 
     def unhandled_input(self, key):
@@ -763,9 +789,7 @@ class TUI(urwid.Frame):
 
         elif key == ',':
             if not self.overlay:
-                self.timeline_generator = api.home_timeline_generator(
-                    self.app, self.user, limit=40)
-                self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
+                self.refresh_timeline()
 
         elif key == 'esc':
             if self.overlay:
