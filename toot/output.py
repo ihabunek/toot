@@ -221,6 +221,14 @@ def print_list_list(lists):
         print_out("You have no lists defined.")
 
 
+def print_list_accounts(list_title, accounts):
+    print_out(f"Accounts in list <green>\"{list_title}\"</green>:\n")
+    if accounts:
+        print_acct_list(accounts)
+    else:
+        print_out("This list has no accounts.")
+
+
 def print_search_results(results):
     accounts = results['accounts']
     hashtags = results['hashtags']
