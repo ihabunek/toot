@@ -534,9 +534,18 @@ def find_list_id(app, user, title):
     return None
 
 
-def get_list_accounts(app, user, title):
-    id = find_list_id(app, user, title)
-    if id:
-        path = "/api/v1/{id}/accounts"
-        return _get_response_list(app, user, path)
-    return []
+def get_list_accounts(app, user, list_id):
+    path = f"/api/v1/lists/{list_id}/accounts"
+    return _get_response_list(app, user, path)
+
+
+def create_list(app, user, title, replies_policy):
+    url = "/api/v1/lists"
+    json = {'title': title}
+    if replies_policy:
+        json['replies_policy'] = replies_policy
+    return http.post(app, user, url, json=json).json()
+
+
+def delete_list(app, user, id):
+    return http.delete(app, user, f"/api/v1/lists/{id}")
