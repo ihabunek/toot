@@ -214,15 +214,15 @@ def print_list_list(lists):
     if lists:
         for list_item in lists:
             replies_policy = list_item['replies_policy'] if list_item['replies_policy'] else ''
-            print_out(f"Name: <green>\"{list_item['title']}\"</green>\t"
+            print_out(f"Title: <green>\"{list_item['title']}\"</green>\t"
                       + f"ID: <green>{list_item['id']}\t</green>"
                       + f"Replies policy: <green>{replies_policy}</green>")
     else:
         print_out("You have no lists defined.")
 
 
-def print_list_accounts(list_title, accounts):
-    print_out(f"Accounts in list <green>\"{list_title}\"</green>:\n")
+def print_list_accounts(accounts):
+    print_out("Accounts in list</green>:\n")
     if accounts:
         print_acct_list(accounts)
     else:
