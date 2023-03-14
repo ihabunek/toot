@@ -102,20 +102,21 @@ class GotoMenu(urwid.ListBox):
         "bookmark_timeline",
         "notification_timeline",
         "conversation_timeline",
+        "list_timeline",
     ]
 
-    def __init__(self, user_timelines):
+    def __init__(self, user_timelines, user_lists):
         self.hash_edit = EditBox(caption="Hashtag: ")
         self.message_widget = urwid.Text("")
 
-        actions = list(self.generate_actions(user_timelines))
+        actions = list(self.generate_actions(user_timelines, user_lists))
         walker = urwid.SimpleFocusListWalker(actions)
         super().__init__(walker)
 
     def get_hashtag(self):
         return self.hash_edit.edit_text.strip().lstrip("#")
 
-    def generate_actions(self, user_timelines):
+    def generate_actions(self, user_timelines, user_lists):
         def _home(button):
             self._emit("home_timeline")
 
@@ -147,6 +148,11 @@ class GotoMenu(urwid.ListBox):
                 self._emit("hashtag_timeline", tag, local)
             return on_press
 
+        def mk_on_press_user_list(list_item):
+            def on_press(btn):
+                self._emit("list_timeline", list_item)
+            return on_press
+
         yield Button("Home timeline", on_press=_home)
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
@@ -163,6 +169,10 @@ class GotoMenu(urwid.ListBox):
                 is_local = cfg["local"]
                 yield Button(f"#{tag}" + (" (local)" if is_local else ""),
                      on_press=mk_on_press_user_hashtag(tag, is_local))
+
+        for list_item in user_lists:
+            yield Button(f"\N{clipboard}{list_item['title']}",
+                         on_press=mk_on_press_user_list(list_item))
 
         yield urwid.Divider()
         yield self.hash_edit
