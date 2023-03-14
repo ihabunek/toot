@@ -731,6 +731,18 @@ LIST_COMMANDS = [
         arguments=[],
         require_auth=True,
     ),
+    Command(
+        name="list_accounts",
+        description="List the accounts in a list",
+        arguments=[
+            (["--title"], {
+                "action": "append",
+                "type": str,
+                "help": "title of the list"
+            }),
+        ],
+        require_auth=True,
+    ),
 ]
 COMMAND_GROUPS = [
     ("Authentication", AUTH_COMMANDS),
