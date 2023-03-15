@@ -27,28 +27,10 @@ class Timeline(urwid.Columns):
     """
 
     signals = [
-        "account",       # Display account info and actions
-        "close",         # Close thread
-        "compose",       # Compose a new toot
-        "delete",        # Delete own status
-        "favourite",     # Favourite status
-        "focus",         # Focus changed
-        "bookmark",      # Bookmark status
-        "media",         # Display media attachments
-        "menu",          # Show a context menu
-        "next",          # Fetch more statuses
-        "poll",          # Vote in a poll
-        "reblog",        # Reblog status
-        "reply",         # Compose a reply to a status
-        "source",        # Show status source
-        "links",         # Show status links
-        "thread",        # Show thread for status
-        "translate",     # Translate status
-        "save",          # Save current timeline
-        "zoom",          # Open status in scrollable popup window
-        "clear-screen",  # Clear the screen (used internally)
-        "load-image",  # used internally. asynchronously load image
-        "copy-status",   # Copy status to clipboard
+        "close",  # Close thread
+        "focus",  # Focus changed
+        "next",   # Fetch more statuses
+        "save",   # Save current timeline
     ]
 
     def __init__(
@@ -70,7 +52,7 @@ class Timeline(urwid.Columns):
         except IndexError:
             focused_status = None
 
-        self.status_details = StatusDetails(self, focused_status)
+n        self.status_details = StatusDetails(self, focused_status)
         status_widget = self.wrap_status_details(self.status_details)
 
         super().__init__([
@@ -104,7 +86,7 @@ class Timeline(urwid.Columns):
     def build_list_item(self, status):
         item = StatusListItem(status)
         urwid.connect_signal(item, "click", lambda *args:
-            self._emit("menu", status))
+            self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
             "blue": "green_selected",
             "green": "green_selected",
@@ -195,27 +177,29 @@ class Timeline(urwid.Columns):
                 self._emit("next")
 
         if key in ("a", "A"):
-            self._emit("account", status.original.data['account']['id'])
+            account_id = status.original.data["account"]["id"]
+            self.tui.show_account(account_id)
             return
 
         if key in ("b", "B"):
-            self._emit("reblog", status)
+            self.tui.async_toggle_reblog(self, status)
             return
 
         if key in ("c", "C"):
-            self._emit("compose")
+            self.tui.show_compose()
             return
 
         if key in ("d", "D"):
-            self._emit("delete", status)
+            if status.is_mine:
+                self.tui.show_delete_confirmation(status)
             return
 
         if key in ("f", "F"):
-            self._emit("favourite", status)
+            self.tui.async_toggle_favourite(self, status)
             return
 
         if key in ("m", "M"):
-            self._emit("media", status)
+            self.tui.show_media(status)
             return
 
         if key in ("q", "Q"):
@@ -227,7 +211,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("r", "R"):
-            self._emit("reply", status)
+            self.tui.show_compose(status)
             return
 
         if key in ("s", "S"):
@@ -236,31 +220,31 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("o", "O"):
-            self._emit("bookmark", status)
+            self.tui.async_toggle_bookmark(self, status)
             return
 
         if key in ("l", "L"):
-            self._emit("links", status)
+            self.tui.show_links(status)
             return
 
         if key in ("n", "N"):
             if self.tui.can_translate:
-                self._emit("translate", status)
+                self.tui.async_translate(self, status)
             return
 
         if key in ("t", "T"):
-            self._emit("thread", status)
+            self.tui.show_thread(status)
             return
 
         if key in ("u", "U"):
-            self._emit("source", status)
+            self.tui.show_status_source(status)
             return
 
         if key in ("v", "V"):
             if status.original.url:
                 webbrowser.open(status.original.url)
                 # force a screen refresh; necessary with console browsers
-                self._emit("clear-screen")
+                self.tui.clear_screen()
             return
 
         if key in ("e", "E"):
@@ -268,17 +252,17 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("z", "Z"):
-            self._emit("zoom", self.status_details)
+            self.tui.show_status_zoom(self.status_details)
             return
 
         if key in ("p", "P"):
             poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
-                self._emit("poll", status)
+                self.tui.show_poll(status)
             return
 
         if key in ("y", "Y"):
-            self._emit("copy-status", status)
+            self.tui.copy_status(status)
             return
 
         return super().keypress(size, key)
