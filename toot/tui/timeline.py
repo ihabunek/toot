@@ -4,7 +4,7 @@ import sys
 import urwid
 import webbrowser
 
-from typing import Optional
+from typing import List, Optional
 
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
@@ -51,13 +51,14 @@ class Timeline(urwid.Columns):
         "copy-status",   # Copy status to clipboard
     ]
 
-    def __init__(self,
-                 tui: "app.TUI",
-                 name,
-                 statuses,
-                 focus=0,
-                 is_thread=False):
-
+    def __init__(
+        self,
+        tui: "app.TUI",
+        name: str,
+        statuses: List[Status],
+        focus: int = 0,
+        is_thread: bool = False
+    ):
         self.tui = tui
         self.name = name
         self.is_thread = is_thread
