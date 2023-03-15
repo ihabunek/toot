@@ -10,6 +10,7 @@ from .entities import Status
 from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns, EmojiText
+from toot.tui import app
 from toot.utils import format_content
 from toot.utils.language import language_name
 from toot.tui.utils import time_ago, can_render_pixels, add_corners
@@ -51,6 +52,7 @@ class Timeline(urwid.Columns):
     ]
 
     def __init__(self,
+                 tui: "app.TUI",
                  name,
                  statuses,
                  can_translate,
@@ -59,6 +61,7 @@ class Timeline(urwid.Columns):
                  focus=0,
                  is_thread=False):
 
+        self.tui = tui
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
