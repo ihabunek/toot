@@ -55,9 +55,6 @@ class Timeline(urwid.Columns):
                  tui: "app.TUI",
                  name,
                  statuses,
-                 can_translate,
-                 followed_tags=[],
-                 followed_accounts=[],
                  focus=0,
                  is_thread=False):
 
@@ -65,11 +62,7 @@ class Timeline(urwid.Columns):
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
-        self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
-        self.followed_tags = followed_tags
-        self.followed_accounts = followed_accounts
-        self.can_render_pixels = can_render_pixels()
 
         try:
             focused_status = statuses[focus]
@@ -139,7 +132,7 @@ class Timeline(urwid.Columns):
             "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
             "[Z]oom",
-            "Tra[n]slate" if self.can_translate else "",
+            "Tra[n]slate" if self.tui.can_translate else "",
             "Cop[y]",
             "[H]elp",
         ]
@@ -250,7 +243,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("n", "N"):
-            if self.can_translate:
+            if self.tui.can_translate:
                 self._emit("translate", status)
             return
 
@@ -359,8 +352,6 @@ class Timeline(urwid.Columns):
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
-        self.followed_tags = timeline.followed_tags
-        self.followed_accounts = timeline.followed_accounts
         self.timeline = timeline
         if self.status:
             self.status.placeholders = []
