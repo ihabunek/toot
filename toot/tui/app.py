@@ -260,7 +260,7 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags, self.followed_accounts)
+        timeline = Timeline(self, name, statuses, self.can_translate, self.followed_tags, self.followed_accounts)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
@@ -289,7 +289,7 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, self.can_translate,
+        timeline = Timeline(self, "thread", statuses, self.can_translate,
                             self.followed_tags, self.followed_accounts, focus, is_thread=True)
 
         self.connect_default_timeline_signals(timeline)
