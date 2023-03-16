@@ -478,7 +478,7 @@ class TUI(urwid.Frame):
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=11 + len(user_timelines),
+            valign="middle", height=16 + len(user_timelines),
         ))
 
     def show_help(self):
