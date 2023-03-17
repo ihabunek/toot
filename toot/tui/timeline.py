@@ -46,6 +46,7 @@ class Timeline(urwid.Columns):
         self.is_thread = is_thread
         self.statuses = statuses
         self.status_list = self.build_status_list(statuses, focus=focus)
+        self.can_render_pixels = can_render_pixels()
 
         try:
             focused_status = statuses[focus]
@@ -391,8 +392,7 @@ class StatusDetails(urwid.Pile):
         else:
             placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
             self.status.placeholders.append(placeholder)
-            self.timeline._emit("load-image", self.timeline, self.status, path,
-            len(self.status.placeholders) - 1)
+            self.timeline.tui.async_load_image(self.timeline, self.status, path, len(self.status.placeholders) - 1)
             return placeholder
 
     def author_header(self, reblogged_by):
