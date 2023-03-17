@@ -595,17 +595,17 @@ class TUI(urwid.Frame):
     def async_toggle_reblog(self, timeline, status):
         def _reblog():
             logger.info("Reblogging {}".format(status))
-            api.reblog(self.app, self.user, status.id, visibility=get_default_visibility())
+            api.reblog(self.app, self.user, status.original.id, visibility=get_default_visibility())
 
         def _unreblog():
             logger.info("Unreblogging {}".format(status))
-            api.unreblog(self.app, self.user, status.id)
+            api.unreblog(self.app, self.user, status.original.id)
 
         def _done(loop):
             # Create a new Status with flipped reblogged flag
             new_data = status.data
-            new_data["reblogged"] = not status.reblogged
             new_status = self.make_status(new_data)
+            new_status.original.reblogged = not status.original.reblogged
             timeline.update_status(new_status)
 
         # Check if status is rebloggable
@@ -616,7 +616,7 @@ class TUI(urwid.Frame):
             return
 
         self.run_in_thread(
-            _unreblog if status.reblogged else _reblog,
+            _unreblog if status.original.reblogged else _reblog,
             done_callback=_done
         )
 
