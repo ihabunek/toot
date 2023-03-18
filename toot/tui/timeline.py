@@ -334,10 +334,10 @@ class Timeline(urwid.Columns):
             img = self.images.get(str(hash(path)))
         if img:
             try:
+                render_img = add_corners(img, 10) if self.can_render_pixels else img
                 status.placeholders[placeholder_index]._set_original_widget(
                     UrwidImage(
-                        AutoImage(
-                            add_corners(img, 10)),
+                        AutoImage(render_img),
                         "<", upscale=True),
                 )  # "<" means left-justify the image
             except IndexError:
@@ -403,10 +403,10 @@ class StatusDetails(urwid.Pile):
         if hasattr(self.timeline, "images"):
             img = self.timeline.images.get(str(hash(path)))
         if img:
+            render_img = add_corners(img, 10) if self.timeline.can_render_pixels else img
             return (urwid.BoxAdapter(
                 UrwidImage(
-                    AutoImage(
-                        add_corners(img, 10)),
+                    AutoImage(render_img),
                     "<", upscale=True),
                 rows))
         else:
