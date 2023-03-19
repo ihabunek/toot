@@ -53,7 +53,7 @@ class Timeline(urwid.Columns):
         except IndexError:
             focused_status = None
 
-n        self.status_details = StatusDetails(self, focused_status)
+        self.status_details = StatusDetails(self, focused_status)
         status_widget = self.wrap_status_details(self.status_details)
 
         super().__init__([
@@ -403,7 +403,8 @@ class StatusDetails(urwid.Pile):
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
 
-        account_color = "yellow" if self.status.original.author.account in self.followed_accounts else "cyan"
+        account_color = "yellow" \
+            if self.status.original.author.account in self.timeline.tui.followed_accounts else "cyan"
 
         atxt = urwid.Pile([("pack",
                             urwid.AttrMap(
@@ -442,7 +443,7 @@ class StatusDetails(urwid.Pile):
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
             for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
+                yield ("pack", urwid.Text(highlight_hashtags(line, self.timeline.tui.followed_tags)))
 
             media = status.data["media_attachments"]
             if media:
