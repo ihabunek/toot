@@ -559,5 +559,5 @@ def add_accounts_to_list(app, user, list_id, account_ids):
 
 def remove_accounts_from_list(app, user, list_id, account_ids):
     url = f"/api/v1/lists/{list_id}/accounts"
-    json = {'account_ids[]': account_ids}
+    json = {'account_ids': account_ids}
     return http.delete(app, user, url, json=json)
