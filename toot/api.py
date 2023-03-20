@@ -549,3 +549,15 @@ def create_list(app, user, title, replies_policy):
 
 def delete_list(app, user, id):
     return http.delete(app, user, f"/api/v1/lists/{id}")
+
+
+def add_accounts_to_list(app, user, list_id, account_ids):
+    url = f"/api/v1/lists/{list_id}/accounts"
+    json = {'account_ids': account_ids}
+    return http.post(app, user, url, json=json).json()
+
+
+def remove_accounts_from_list(app, user, list_id, account_ids):
+    url = f"/api/v1/lists/{list_id}/accounts"
+    json = {'account_ids[]': account_ids}
+    return http.delete(app, user, url, json=json)
