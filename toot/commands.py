@@ -443,7 +443,7 @@ def list_create(app, user, args):
 def list_delete(app, user, args):
     id = args.id if args.id else api.find_list_id(app, user, args.title)
     api.delete_list(app, user, id)
-    print_out(f"<green>✓ List \"{args.title}\"</green> <red>deleted.</red>")
+    print_out(f"<green>✓ List \"{args.title if args.title else args.id}\"</green> <red>deleted.</red>")
 
 
 def list_add_account(app, user, args):
@@ -457,7 +457,7 @@ def list_add_account(app, user, args):
         return
     try:
         api.add_accounts_to_list(app, user, list_id, [account['id']])
-        print_out(f"<green>✓ Added account \"{account['acct']}\"</green>")
+        print_out(f"<green>✓ Added account \"{args.account}\"</green>")
     except Exception as ex:
         print_out(f"<red>{ex}</red>")
 
