@@ -7,11 +7,11 @@ from typing import List, Optional
 
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
+from .utils import parse_datetime, highlight_keys
 from .widgets import SelectableText, SelectableColumns
+from .richtext import ContentParser
 from toot.tui import app
 from toot.tui.utils import time_ago
-from toot.utils import format_content
 from toot.utils.language import language_name
 
 logger = logging.getLogger("toot")
@@ -341,8 +341,12 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
-            for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
+
+            parser = ContentParser()
+            widgetlist = parser.html_to_widgets(content)
+
+            for line in widgetlist:
+                yield (line)
 
             media = status.data["media_attachments"]
             if media:
