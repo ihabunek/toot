@@ -37,7 +37,38 @@ PALETTE = [
     ('yellow_bold', 'yellow,bold', ''),
     ('red', 'dark red', ''),
     ('warning', 'light red', ''),
-    ('white_bold', 'white,bold', '')
+    ('white_bold', 'white,bold', ''),
+
+    # HTML tag styling
+
+    # note, anchor styling is often overridden
+    # by class names in Mastodon statuses
+    # so you won't see the italics.
+    ('a', ',italics', ''),
+    ('em', 'white,italics', ''),
+    ('i', 'white,italics', ''),
+
+    ('strong', 'white,bold', ''),
+    ('b', 'white,bold', ''),
+
+    ('u', 'white,underline', ''),
+
+    ('del', 'white, strikethrough', ''),
+
+    ('code', 'white, standout', ''),
+    ('pre', 'white, standout', ''),
+
+    ('blockquote', 'light gray', ''),
+
+    ('h1', 'yellow, bold', ''),
+    ('h2', 'dark red, bold', ''),
+    ('h3', 'yellow, bold', ''),
+    ('h4', 'yellow, bold', ''),
+    ('h5', 'yellow, bold', ''),
+    ('h6', 'yellow, bold', ''),
+
+    ('class_mention_hashtag', 'light cyan,bold', ''),
+
 ]
 
 VISIBILITY_OPTIONS = [
