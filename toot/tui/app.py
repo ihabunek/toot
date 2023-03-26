@@ -180,60 +180,7 @@ class TUI(urwid.Frame):
         return future
 
     def connect_default_timeline_signals(self, timeline):
-        def _account(timeline, account_id):
-            self.show_account(account_id)
-
-        def _compose(*args):
-            self.show_compose()
-
-        def _delete(timeline, status):
-            if status.is_mine:
-                self.show_delete_confirmation(status)
-
-        def _reply(timeline, status):
-            self.show_compose(status)
-
-        def _source(timeline, status):
-            self.show_status_source(status)
-
-        def _links(timeline, status):
-            self.show_links(status)
-
-        def _media(timeline, status):
-            self.show_media(status)
-
-        def _menu(timeline, status):
-            self.show_context_menu(status)
-
-        def _poll(timeline, status):
-            self.show_poll(status)
-
-        def _zoom(timeline, status_details):
-            self.show_status_zoom(status_details)
-
-        def _clear(*args):
-            self.clear_screen()
-
-        def _copy(timeline, status):
-            self.copy_status(status)
-
-        urwid.connect_signal(timeline, "account", _account)
-        urwid.connect_signal(timeline, "bookmark", self.async_toggle_bookmark)
-        urwid.connect_signal(timeline, "compose", _compose)
-        urwid.connect_signal(timeline, "delete", _delete)
-        urwid.connect_signal(timeline, "favourite", self.async_toggle_favourite)
         urwid.connect_signal(timeline, "focus", self.refresh_footer)
-        urwid.connect_signal(timeline, "media", _media)
-        urwid.connect_signal(timeline, "menu", _menu)
-        urwid.connect_signal(timeline, "poll", _poll)
-        urwid.connect_signal(timeline, "reblog", self.async_toggle_reblog)
-        urwid.connect_signal(timeline, "reply", _reply)
-        urwid.connect_signal(timeline, "source", _source)
-        urwid.connect_signal(timeline, "links", _links)
-        urwid.connect_signal(timeline, "zoom", _zoom)
-        urwid.connect_signal(timeline, "translate", self.async_translate)
-        urwid.connect_signal(timeline, "clear-screen", _clear)
-        urwid.connect_signal(timeline, "copy-status", _copy)
 
     def build_timeline(self, name, statuses, local):
         def _close(*args):
@@ -241,9 +188,6 @@ class TUI(urwid.Frame):
 
         def _next(*args):
             self.async_load_timeline(is_initial=False)
-
-        def _thread(timeline, status):
-            self.show_thread(status)
 
         def _toggle_save(timeline, status):
             if not timeline.name.startswith("#"):
@@ -260,12 +204,11 @@ class TUI(urwid.Frame):
             self.loop.set_alarm_in(5, lambda *args: self.footer.clear_message())
             config.save_config(self.config)
 
-        timeline = Timeline(name, statuses, self.can_translate, self.followed_tags, self.followed_accounts)
+        timeline = Timeline(self, name, statuses)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "next", _next)
         urwid.connect_signal(timeline, "close", _close)
-        urwid.connect_signal(timeline, "thread", _thread)
         urwid.connect_signal(timeline, "save", _toggle_save)
 
         return timeline
@@ -289,8 +232,7 @@ class TUI(urwid.Frame):
         statuses = ancestors + [status] + descendants
         focus = len(ancestors)
 
-        timeline = Timeline("thread", statuses, self.can_translate,
-                            self.followed_tags, self.followed_accounts, focus, is_thread=True)
+        timeline = Timeline(self, "thread", statuses, focus=focus, is_thread=True)
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
@@ -606,17 +548,17 @@ class TUI(urwid.Frame):
     def async_toggle_reblog(self, timeline, status):
         def _reblog():
             logger.info("Reblogging {}".format(status))
-            api.reblog(self.app, self.user, status.id, visibility=get_default_visibility())
+            api.reblog(self.app, self.user, status.original.id, visibility=get_default_visibility())
 
         def _unreblog():
             logger.info("Unreblogging {}".format(status))
-            api.unreblog(self.app, self.user, status.id)
+            api.unreblog(self.app, self.user, status.original.id)
 
         def _done(loop):
             # Create a new Status with flipped reblogged flag
             new_data = status.data
-            new_data["reblogged"] = not status.reblogged
             new_status = self.make_status(new_data)
+            new_status.original.reblogged = not status.original.reblogged
             timeline.update_status(new_status)
 
         # Check if status is rebloggable
@@ -627,7 +569,7 @@ class TUI(urwid.Frame):
             return
 
         self.run_in_thread(
-            _unreblog if status.reblogged else _reblog,
+            _unreblog if status.original.reblogged else _reblog,
             done_callback=_done
         )
 
