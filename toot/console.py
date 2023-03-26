@@ -734,12 +734,14 @@ LIST_COMMANDS = [
     Command(
         name="list_accounts",
         description="List the accounts in a list",
-        arguments=[(["--id"], {
-            "type": str,
-            "help": "ID of the list"
-        }),
-            (["--title"], {
+        arguments=[
+            (["--id"], {
                 "type": str,
+                "help": "ID of the list"
+            }),
+            (["title"], {
+                "type": str,
+                "nargs": "?",
                 "help": "title of the list"
             }),
         ],
@@ -749,11 +751,7 @@ LIST_COMMANDS = [
         name="list_create",
         description="Create a list",
         arguments=[
-            (["--id"], {
-                "type": str,
-                "help": "ID of the list"
-            }),
-            (["--title"], {
+            (["title"], {
                 "type": str,
                 "help": "title of the list"
             }),
@@ -772,26 +770,28 @@ LIST_COMMANDS = [
                 "type": str,
                 "help": "ID of the list"
             }),
-            (["--title"], {
+            (["title"], {
                 "type": str,
+                "nargs": "?",
                 "help": "title of the list"
             }),
         ],
         require_auth=True,
     ),
     Command(
-        name="list_add_account",
+        name="list_add",
         description="Add account to list",
         arguments=[
             (["--id"], {
                 "type": str,
                 "help": "ID of the list"
             }),
-            (["--title"], {
+            (["title"], {
                 "type": str,
+                "nargs": "?",
                 "help": "title of the list"
             }),
-            (["--account"], {
+            (["account"], {
                 "type": str,
                 "help": "Account to add"
             }),
@@ -799,18 +799,19 @@ LIST_COMMANDS = [
         require_auth=True,
     ),
     Command(
-        name="list_remove_account",
+        name="list_remove",
         description="Remove account from list",
         arguments=[
             (["--id"], {
                 "type": str,
                 "help": "ID of the list"
             }),
-            (["--title"], {
+            (["title"], {
                 "type": str,
+                "nargs": "?",
                 "help": "title of the list"
             }),
-            (["--account"], {
+            (["account"], {
                 "type": str,
                 "help": "Account to remove"
             }),
