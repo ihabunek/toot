@@ -463,7 +463,23 @@ def list_add(app, user, args):
     if not account:
         print_out("<red>Account not found</red>")
         return
-    api.add_accounts_to_list(app, user, list_id, [account['id']])
+    try:
+        api.add_accounts_to_list(app, user, list_id, [account['id']])
+    except Exception as ex:
+        # if we failed to add the account, try to give a
+        # more specific error message than "record not found"
+        my_accounts = api.followers(app, user, account['id'])
+        found = False
+        if my_accounts:
+            for my_account in my_accounts:
+                if my_account['id'] == account['id']:
+                    found = True
+                    break
+        if found is False:
+            print_out(f"<red>You must follow @{account['acct']} before adding this account to a list.</red>")
+        else:
+            print_out(f"<red>{ex}</red>")
+        return
     print_out(f"<green>✓ Added account \"{args.account}\"</green>")
 
 
