@@ -22,6 +22,8 @@ import uuid
 from pathlib import Path
 from toot import api, App, User
 from toot.console import run_command
+from toot.exceptions import ApiError, ConsoleError
+from toot.output import print_out
 
 # Host name of a test instance to run integration tests against
 # DO NOT USE PUBLIC INSTANCES!!!
@@ -84,7 +86,13 @@ def friend(app):
 @pytest.fixture
 def run(app, user, capsys):
     def _run(command, *params, as_user=None):
-        run_command(app, as_user or user, command, params or [])
+        # The try/catch duplicates logic from console.main to convert exceptions
+        # to printed error messages. TODO: could be deduped
+        try:
+            run_command(app, as_user or user, command, params or [])
+        except (ConsoleError, ApiError) as e:
+            print_out(str(e))
+
         out, err = capsys.readouterr()
         assert err == ""
         return strip_ansi(out)
