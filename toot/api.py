@@ -519,3 +519,45 @@ def clear_notifications(app, user):
 def get_instance(base_url):
     url = f"{base_url}/api/v1/instance"
     return http.anon_get(url).json()
+
+
+def get_lists(app, user):
+    path = "/api/v1/lists"
+    return _get_response_list(app, user, path)
+
+
+def find_list_id(app, user, title):
+    lists = get_lists(app, user)
+    for list_item in lists:
+        if list_item["title"] == title:
+            return list_item["id"]
+    return None
+
+
+def get_list_accounts(app, user, list_id):
+    path = f"/api/v1/lists/{list_id}/accounts"
+    return _get_response_list(app, user, path)
+
+
+def create_list(app, user, title, replies_policy):
+    url = "/api/v1/lists"
+    json = {'title': title}
+    if replies_policy:
+        json['replies_policy'] = replies_policy
+    return http.post(app, user, url, json=json).json()
+
+
+def delete_list(app, user, id):
+    return http.delete(app, user, f"/api/v1/lists/{id}")
+
+
+def add_accounts_to_list(app, user, list_id, account_ids):
+    url = f"/api/v1/lists/{list_id}/accounts"
+    json = {'account_ids': account_ids}
+    return http.post(app, user, url, json=json).json()
+
+
+def remove_accounts_from_list(app, user, list_id, account_ids):
+    url = f"/api/v1/lists/{list_id}/accounts"
+    json = {'account_ids': account_ids}
+    return http.delete(app, user, url, json=json)
