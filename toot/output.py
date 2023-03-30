@@ -3,9 +3,10 @@ import re
 import sys
 import textwrap
 
-from toot.tui.utils import parse_datetime
+from typing import List
 from wcwidth import wcswidth
 
+from toot.tui.utils import parse_datetime
 from toot.utils import get_text, parse_html
 from toot.wcstring import wc_wrap
 
@@ -210,15 +211,33 @@ def print_tag_list(tags):
         print_out("You're not following any hashtags.")
 
 
-def print_list_list(lists):
-    if lists:
-        for list_item in lists:
-            replies_policy = list_item['replies_policy'] if list_item['replies_policy'] else ''
-            print_out(f"Title: <green>\"{list_item['title']}\"</green>\t"
-                      + f"ID: <green>{list_item['id']}\t</green>"
-                      + f"Replies policy: <green>{replies_policy}</green>")
-    else:
-        print_out("You have no lists defined.")
+def print_lists(lists):
+    headers = ["ID", "Title", "Replies"]
+    data = [[lst["id"], lst["title"], lst["replies_policy"]] for lst in lists]
+    print_table(headers, data)
+
+
+def print_table(headers: List[str], data: List[List[str]]):
+    widths = [[len(cell) for cell in row] for row in data + [headers]]
+    widths = [max(width) for width in zip(*widths)]
+
+    def style(string, tag):
+        return f"<{tag}>{string}</{tag}>" if tag else string
+
+    def print_row(row, tag=None):
+        for idx, cell in enumerate(row):
+            width = widths[idx]
+            print_out(style(cell.ljust(width), tag), end="")
+            print_out("  ", end="")
+        print_out()
+
+    underlines = ["-" * width for width in widths]
+
+    print_row(headers, "bold")
+    print_row(underlines, "dim")
+
+    for row in data:
+        print_row(row)
 
 
 def print_list_accounts(accounts):
