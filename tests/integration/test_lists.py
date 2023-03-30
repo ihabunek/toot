@@ -1,6 +1,7 @@
 
-from toot import api
+import pytest
 from tests.integration.conftest import register_account
+from toot.exceptions import ConsoleError
 
 
 def test_lists_empty(run):
@@ -35,6 +36,10 @@ def test_list_create_delete(run):
     out = run("lists")
     assert out == "You have no lists defined."
 
+    with pytest.raises(ConsoleError) as exc:
+        run("list_delete", "mango")
+    assert str(exc.value) == "List not found"
+
 
 def test_list_add_remove(run, app):
     acc = register_account(app)
@@ -50,6 +55,16 @@ def test_list_add_remove(run, app):
 
     out = run("list_accounts", "foo")
     assert acc.username in out
+
+    # Account doesn't exist
+    with pytest.raises(ConsoleError) as exc:
+        run("list_add", "foo", "does_not_exist")
+    assert str(exc.value) == "Account not found"
+
+    # List doesn't exist
+    with pytest.raises(ConsoleError) as exc:
+        run("list_add", "does_not_exist", acc.username)
+    assert str(exc.value) == "List not found"
 
     out = run("list_remove", "foo", acc.username)
     assert out == f'✓ Removed account "{acc.username}"'

@@ -434,11 +434,7 @@ def lists(app, user, args):
 
 
 def list_accounts(app, user, args):
-    list_id = args.id if args.id else api.find_list_id(app, user, args.title)
-    if not list_id:
-        print_out("<red>List not found</red>")
-        return
-
+    list_id = _get_list_id(app, user, args)
     response = api.get_list_accounts(app, user, list_id)
     print_list_accounts(response)
 
@@ -449,24 +445,15 @@ def list_create(app, user, args):
 
 
 def list_delete(app, user, args):
-    list_id = args.id if args.id else api.find_list_id(app, user, args.title)
-    if not list_id:
-        print_out("<red>List not found</red>")
-        return
-
+    list_id = _get_list_id(app, user, args)
     api.delete_list(app, user, list_id)
     print_out(f"<green>✓ List \"{args.title if args.title else args.id}\"</green> <red>deleted.</red>")
 
 
 def list_add(app, user, args):
-    list_id = args.id if args.id else api.find_list_id(app, user, args.title)
-    if not list_id:
-        print_out("<red>List not found</red>")
-        return
+    list_id = _get_list_id(app, user, args)
     account = find_account(app, user, args.account)
-    if not account:
-        print_out("<red>Account not found</red>")
-        return
+
     try:
         api.add_accounts_to_list(app, user, list_id, [account['id']])
     except Exception as ex:
@@ -484,20 +471,22 @@ def list_add(app, user, args):
         else:
             print_out(f"<red>{ex}</red>")
         return
+
     print_out(f"<green>✓ Added account \"{args.account}\"</green>")
 
 
 def list_remove(app, user, args):
-    list_id = args.id if args.id else api.find_list_id(app, user, args.title)
-    if not list_id:
-        print_out("<red>List not found</red>")
-        return
+    list_id = _get_list_id(app, user, args)
     account = find_account(app, user, args.account)
-    if not account:
-        print_out("<red>Account not found</red>")
-        return
     api.remove_accounts_from_list(app, user, list_id, [account['id']])
     print_out(f"<green>✓ Removed account \"{args.account}\"</green>")
+
+
+def _get_list_id(app, user, args):
+    list_id = args.id or api.find_list_id(app, user, args.title)
+    if not list_id:
+        raise ConsoleError("List not found")
+    return list_id
 
 
 def mute(app, user, args):
