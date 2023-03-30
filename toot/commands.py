@@ -1,3 +1,4 @@
+
 import sys
 import platform
 
@@ -6,9 +7,9 @@ from time import sleep, time
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.exceptions import ApiError, ConsoleError
-from toot.output import (print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_timeline, print_notifications,
-                         print_tag_list)
+from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
+                         print_search_results, print_table, print_timeline, print_notifications,
+                         print_tag_list, print_list_accounts)
 from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
@@ -421,6 +422,71 @@ def tags_unfollow(app, user, args):
 def tags_followed(app, user, args):
     response = api.followed_tags(app, user)
     print_tag_list(response)
+
+
+def lists(app, user, args):
+    lists = api.get_lists(app, user)
+
+    if lists:
+        print_lists(lists)
+    else:
+        print_out("You have no lists defined.")
+
+
+def list_accounts(app, user, args):
+    list_id = _get_list_id(app, user, args)
+    response = api.get_list_accounts(app, user, list_id)
+    print_list_accounts(response)
+
+
+def list_create(app, user, args):
+    api.create_list(app, user, title=args.title, replies_policy=args.replies_policy)
+    print_out(f"<green>✓ List \"{args.title}\" created.</green>")
+
+
+def list_delete(app, user, args):
+    list_id = _get_list_id(app, user, args)
+    api.delete_list(app, user, list_id)
+    print_out(f"<green>✓ List \"{args.title if args.title else args.id}\"</green> <red>deleted.</red>")
+
+
+def list_add(app, user, args):
+    list_id = _get_list_id(app, user, args)
+    account = find_account(app, user, args.account)
+
+    try:
+        api.add_accounts_to_list(app, user, list_id, [account['id']])
+    except Exception as ex:
+        # if we failed to add the account, try to give a
+        # more specific error message than "record not found"
+        my_accounts = api.followers(app, user, account['id'])
+        found = False
+        if my_accounts:
+            for my_account in my_accounts:
+                if my_account['id'] == account['id']:
+                    found = True
+                    break
+        if found is False:
+            print_out(f"<red>You must follow @{account['acct']} before adding this account to a list.</red>")
+        else:
+            print_out(f"<red>{ex}</red>")
+        return
+
+    print_out(f"<green>✓ Added account \"{args.account}\"</green>")
+
+
+def list_remove(app, user, args):
+    list_id = _get_list_id(app, user, args)
+    account = find_account(app, user, args.account)
+    api.remove_accounts_from_list(app, user, list_id, [account['id']])
+    print_out(f"<green>✓ Removed account \"{args.account}\"</green>")
+
+
+def _get_list_id(app, user, args):
+    list_id = args.id or api.find_list_id(app, user, args.title)
+    if not list_id:
+        raise ConsoleError("List not found")
+    return list_id
 
 
 def mute(app, user, args):

@@ -403,7 +403,9 @@ class TUI(urwid.Frame):
 
     def show_goto_menu(self):
         user_timelines = self.config.get("timelines", {})
-        menu = GotoMenu(user_timelines)
+        user_lists = api.get_lists(self.app, self.user) or []
+
+        menu = GotoMenu(user_timelines, user_lists)
         urwid.connect_signal(menu, "home_timeline",
             lambda x: self.goto_home_timeline())
         urwid.connect_signal(menu, "public_timeline",
@@ -416,10 +418,12 @@ class TUI(urwid.Frame):
             lambda x, local: self.goto_conversations())
         urwid.connect_signal(menu, "hashtag_timeline",
             lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
+        urwid.connect_signal(menu, "list_timeline",
+            lambda x, list_item: self.goto_list_timeline(list_item))
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=16 + len(user_timelines),
+            valign="middle", height=17 + len(user_timelines) + len(user_lists),
         ))
 
     def show_help(self):
@@ -471,6 +475,13 @@ class TUI(urwid.Frame):
         promise = self.async_load_timeline(
             is_initial=True, timeline_name="#{}".format(tag), local=local,
         )
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_list_timeline(self, list_item):
+        self.timeline_generator = api.timeline_list_generator(
+            self.app, self.user, list_item['id'], limit=40)
+        promise = self.async_load_timeline(
+            is_initial=True, timeline_name=f"\N{clipboard}{list_item['title']}")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):
@@ -689,10 +700,17 @@ class TUI(urwid.Frame):
 
     def refresh_timeline(self):
         # No point in refreshing the bookmarks timeline
-        if not self.timeline or self.timeline.name == 'bookmarks':
+        # and we don't have a good way to refresh a
+        # list timeline yet (no reference to list ID kept)
+        if (not self.timeline
+                or self.timeline.name == 'bookmarks'
+                or self.timeline.name.startswith("\N{clipboard}")):
             return
 
         if self.timeline.name.startswith("#"):
+            self.timeline_generator = api.tag_timeline_generator(
+                self.app, self.user, self.timeline.name[1:], limit=40)
+        elif self.timeline.name.startswith("\N{clipboard}"):
             self.timeline_generator = api.tag_timeline_generator(
                 self.app, self.user, self.timeline.name[1:], limit=40)
         else:

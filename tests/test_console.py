@@ -177,7 +177,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
     out, err = capsys.readouterr()
-    lines = out.split("\n")
+    lines = uncolorize(out).split("\n")
 
     assert "Frank Zappa" in lines[1]
     assert "@fz" in lines[1]
@@ -349,6 +349,7 @@ def test_search(mock_get, capsys):
     })
 
     out, err = capsys.readouterr()
+    out = uncolorize(out)
     assert "Hashtags:\n#foo, #bar, #baz" in out
     assert "Accounts:" in out
     assert "@thequeen Freddy Mercury" in out

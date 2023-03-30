@@ -724,6 +724,101 @@ TAG_COMMANDS = [
     ),
 ]
 
+LIST_COMMANDS = [
+    Command(
+        name="lists",
+        description="List all lists",
+        arguments=[],
+        require_auth=True,
+    ),
+    Command(
+        name="list_accounts",
+        description="List the accounts in a list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["title"], {
+                "type": str,
+                "nargs": "?",
+                "help": "title of the list"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="list_create",
+        description="Create a list",
+        arguments=[
+            (["title"], {
+                "type": str,
+                "help": "title of the list"
+            }),
+            (["--replies-policy"], {
+                "type": str,
+                "help": "replies policy: 'followed', 'list', or 'none' (defaults to 'none')"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="list_delete",
+        description="Delete a list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["title"], {
+                "type": str,
+                "nargs": "?",
+                "help": "title of the list"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="list_add",
+        description="Add account to list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["title"], {
+                "type": str,
+                "nargs": "?",
+                "help": "title of the list"
+            }),
+            (["account"], {
+                "type": str,
+                "help": "Account to add"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="list_remove",
+        description="Remove account from list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["title"], {
+                "type": str,
+                "nargs": "?",
+                "help": "title of the list"
+            }),
+            (["account"], {
+                "type": str,
+                "help": "Account to remove"
+            }),
+        ],
+        require_auth=True,
+    ),
+]
 COMMAND_GROUPS = [
     ("Authentication", AUTH_COMMANDS),
     ("TUI", TUI_COMMANDS),
@@ -732,6 +827,7 @@ COMMAND_GROUPS = [
     ("Status", STATUS_COMMANDS),
     ("Accounts", ACCOUNTS_COMMANDS),
     ("Hashtags", TAG_COMMANDS),
+    ("Lists", LIST_COMMANDS),
 ]
 
 COMMANDS = list(chain(*[commands for _, commands in COMMAND_GROUPS]))

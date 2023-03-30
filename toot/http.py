@@ -92,13 +92,13 @@ def patch(app, user, path, headers=None, files=None, data=None, json=None):
     return process_response(response)
 
 
-def delete(app, user, path, data=None, headers=None):
+def delete(app, user, path, data=None, json=None, headers=None):
     url = app.base_url + path
 
     headers = headers or {}
     headers["Authorization"] = f"Bearer {user.access_token}"
 
-    request = Request('DELETE', url, headers=headers, json=data)
+    request = Request('DELETE', url, headers=headers, data=data, json=json)
     response = send_request(request)
 
     return process_response(response)
