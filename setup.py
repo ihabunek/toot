@@ -39,7 +39,7 @@ setup(
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
         "pillow>=8.4.0",
-        "term-image>=0.6.0,<0.7.0",
+        "term-image==0.6.0",
     ],
     entry_points={
         'console_scripts': [
