@@ -22,7 +22,7 @@ class ContentParser:
     def html_to_widgets(self, html) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
-        soup = BeautifulSoup(html.replace('&apos;', "'"), "html.parser")
+        soup = BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
                 continue
@@ -53,6 +53,8 @@ class ContentParser:
         return (tag.name, markups)
 
     def process_inline_tag_children(self, tag) -> list:
+        """Recursively retrieve all children
+        and convert to a list of markup text"""
         markups = []
         for child in tag.children:
             if isinstance(child, Tag):
@@ -66,6 +68,11 @@ class ContentParser:
         return markups
 
     def process_block_tag_children(self, tag) -> List[urwid.Widget]:
+        """Recursively retrieve all children
+        and convert to a list of widgets
+        any inline tags containing text will be
+        converted to Text widgets"""
+
         pre_widget_markups = []
         post_widget_markups = []
         child_widgets = []
@@ -107,6 +114,9 @@ class ContentParser:
         return widget_list
 
     def get_style_name(self, tag) -> str:
+        """Get the class name and translate to a
+        name suitable for use as an urwid
+        text attribute name"""
         # TODO: think about whitelisting allowed classes,
         # or blacklisting classes we do not want.
         # Classes to whitelist: "mention" "hashtag"
@@ -125,7 +135,6 @@ class ContentParser:
     # rendering as text.
     # Inline tags return a list of marked up text for urwid.Text
     # Block tags return urwid.Widget
-
 
     def basic_block_tag_handler(self, tag) -> urwid.Widget:
         """default for block tags that need no special treatment"""
@@ -165,7 +174,6 @@ class ContentParser:
         )
         return urwid.Pile([urwid.AttrMap(blockquote_widget, "blockquote")])
 
-
     def _br(self, tag) -> list:
         return (tag.name, ("br", "\n"))
 
@@ -176,17 +184,7 @@ class ContentParser:
     # Glitch-soc and Pleroma allow <H1>...<H6> in content
     # Mastodon (PR #23913) does not; header tags are converted to <STRONG>
 
-    _h1 = basic_block_tag_handler
-
-    _h2 = basic_block_tag_handler
-
-    _h3 = basic_block_tag_handler
-
-    _h4 = basic_block_tag_handler
-
-    _h5 = basic_block_tag_handler
-
-    _h6 = basic_block_tag_handler
+    _h1 = _h2 = _h3 = _h4 = _h5 = _h6 = basic_block_tag_handler
 
     def _ol(self, tag) -> urwid.Widget:
         return self.list_widget(tag, ordered=True)
@@ -236,6 +234,8 @@ class ContentParser:
         return self.list_widget(tag, ordered=False)
 
     def list_widget(self, tag, ordered=False) -> urwid.Widget:
+        """common logic for ordered and unordered list rendering
+        as urwid widgets"""
         widgets = []
         i = 1
         for li in tag.find_all("li", recursive=False):
