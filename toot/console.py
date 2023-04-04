@@ -724,6 +724,14 @@ TAG_COMMANDS = [
     ),
 ]
 
+LIST_COMMANDS = [
+    Command(
+        name="lists",
+        description="List all user lists",
+        arguments=[],
+        require_auth=True,
+    ),
+]
 COMMAND_GROUPS = [
     ("Authentication", AUTH_COMMANDS),
     ("TUI", TUI_COMMANDS),
@@ -732,6 +740,7 @@ COMMAND_GROUPS = [
     ("Status", STATUS_COMMANDS),
     ("Accounts", ACCOUNTS_COMMANDS),
     ("Hashtags", TAG_COMMANDS),
+    ("Lists", LIST_COMMANDS),
 ]
 
 COMMANDS = list(chain(*[commands for _, commands in COMMAND_GROUPS]))

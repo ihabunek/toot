@@ -210,6 +210,17 @@ def print_tag_list(tags):
         print_out("You're not following any hashtags.")
 
 
+def print_list_list(lists):
+    if lists:
+        for list_item in lists:
+            replies_policy = list_item['replies_policy'] if list_item['replies_policy'] else ''
+            print_out(f"Name: <green>\"{list_item['title']}\"</green>\t"
+                      + f"ID: <green>{list_item['id']}\t</green>"
+                      + f"Replies policy: <green>{replies_policy}</green>")
+    else:
+        print_out("You have no lists defined.")
+
+
 def print_search_results(results):
     accounts = results['accounts']
     hashtags = results['hashtags']
