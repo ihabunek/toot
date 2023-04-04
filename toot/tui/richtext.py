@@ -173,19 +173,22 @@ class ContentParser:
     def _br(self, tag) -> Tuple:
         return (tag.name, ("br", "\n"))
 
-    _div = basic_block_tag_handler
+    def _em(self, tag) -> Tuple:
+        # to simplify the number of palette entries
+        # translate EM to I (italic)
+        markups = self.process_inline_tag_children(tag)
+        if not markups:
+            return ("i", "")
 
-    _li = basic_block_tag_handler
+        # special case processing for bold and italic
+        for parent in tag.parents:
+            if parent.name == "b" or parent.name == "strong":
+                return ("bi", markups)
 
-    # Glitch-soc and Pleroma allow <H1>...<H6> in content
-    # Mastodon (PR #23913) does not; header tags are converted to <P><STRONG></STRONG></P>
-
-    _h1 = _h2 = _h3 = _h4 = _h5 = _h6 = basic_block_tag_handler
+        return ("i", markups)
 
     def _ol(self, tag) -> urwid.Widget:
         return self.list_widget(tag, ordered=True)
-
-    _p = basic_block_tag_handler
 
     def _pre(self, tag) -> urwid.Widget:
 
@@ -229,6 +232,20 @@ class ContentParser:
             # fallback
             return ("span", markups)
 
+    def _strong(self, tag) -> Tuple:
+        # to simplify the number of palette entries
+        # translate STRONG to B (bold)
+        markups = self.process_inline_tag_children(tag)
+        if not markups:
+            return ("b", "")
+
+        # special case processing for bold and italic
+        for parent in tag.parents:
+            if parent.name == "i" or parent.name == "em":
+                return ("bi", markups)
+
+        return ("b", markups)
+
     def _ul(self, tag) -> urwid.Widget:
         return self.list_widget(tag, ordered=False)
 
@@ -264,3 +281,20 @@ class ContentParser:
             i += 1
 
         return urwid.Pile(widgets)
+
+    # These tags are handled identically to others
+
+    _b = _strong
+
+    _div = basic_block_tag_handler
+
+    _i = _em
+
+    _li = basic_block_tag_handler
+
+    # Glitch-soc and Pleroma allow <H1>...<H6> in content
+    # Mastodon (PR #23913) does not; header tags are converted to <P><STRONG></STRONG></P>
+
+    _h1 = _h2 = _h3 = _h4 = _h5 = _h6 = basic_block_tag_handler
+
+    _p = basic_block_tag_handler

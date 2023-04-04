@@ -41,10 +41,12 @@ PALETTE = [
 
     # HTML tag styling
     ('a', '', ''),
-    ('em', ',italics', ''),
+    # em tag is mapped to i
     ('i', ',italics', ''),
-    ('strong', ',bold', ''),
+    # strong tag is mapped to b
     ('b', ',bold', ''),
+    # special case for bold + italic nested tags
+    ('bi', ',bold,italics', ''),
     ('u', ',underline', ''),
     ('del', ',strikethrough', ''),
     ('code', 'light gray, standout', ''),
