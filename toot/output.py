@@ -241,8 +241,8 @@ def print_table(headers: List[str], data: List[List[str]]):
 
 
 def print_list_accounts(accounts):
-    print_out("Accounts in list</green>:\n")
     if accounts:
+        print_out("Accounts in list</green>:\n")
         print_acct_list(accounts)
     else:
         print_out("This list has no accounts.")
