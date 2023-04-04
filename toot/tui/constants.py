@@ -40,33 +40,25 @@ PALETTE = [
     ('white_bold', 'white,bold', ''),
 
     # HTML tag styling
-
     # note, anchor styling is often overridden
     # by class names in Mastodon statuses
     # so you won't see the italics.
     ('a', ',italics', ''),
     ('em', 'white,italics', ''),
     ('i', 'white,italics', ''),
-
     ('strong', 'white,bold', ''),
     ('b', 'white,bold', ''),
-
     ('u', 'white,underline', ''),
-
     ('del', 'white, strikethrough', ''),
-
     ('code', 'white, standout', ''),
     ('pre', 'white, standout', ''),
-
     ('blockquote', 'light gray', ''),
-
     ('h1', 'white, bold', ''),
     ('h2', 'white, bold', ''),
     ('h3', 'white, bold', ''),
     ('h4', 'white, bold', ''),
     ('h5', 'white, bold', ''),
     ('h6', 'white, bold', ''),
-
     ('class_mention_hashtag', 'light cyan,bold', ''),
 
 ]
