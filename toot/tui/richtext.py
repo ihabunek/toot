@@ -239,13 +239,13 @@ class ContentParser:
                         ("li", [str(i), ". ", markup])
                     )  # 1. foo, 2. bar, etc.
                 else:
-                    txt = urwid.Text(("li", ["* ", markup]))  # * foo, * bar, etc.
+                    txt = urwid.Text(("li", ["\N{bullet} ", markup]))  # * foo, * bar, etc.
                 widgets.append(txt)
             else:
                 if ordered:
                     txt = urwid.Text(("li", [str(i) + "."]))
                 else:
-                    txt = urwid.Text(("li", "*"))
+                    txt = urwid.Text(("li", "\N{bullet}"))
 
                 columns = urwid.Columns(
                     [txt, ("weight", 9999, markup)], dividechars=1, min_width=3
