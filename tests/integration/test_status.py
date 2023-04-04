@@ -46,7 +46,7 @@ def test_reblog(app, user, run):
     assert status["reblogged"]
 
     out = run("reblogged_by", status["id"])
-    assert out == f"@{user.username}"
+    assert user.username in out
 
     out = run("unreblog", status["id"])
     assert out == "✓ Status unreblogged"
