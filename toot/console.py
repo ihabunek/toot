@@ -779,6 +779,25 @@ LIST_COMMANDS = [
         ],
         require_auth=True,
     ),
+    Command(
+        name="list_add_account",
+        description="Add account to list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["--title"], {
+                "type": str,
+                "help": "title of the list"
+            }),
+            (["--account"], {
+                "type": str,
+                "help": "Account to add"
+            }),
+        ],
+        require_auth=True,
+    ),
 ]
 COMMAND_GROUPS = [
     ("Authentication", AUTH_COMMANDS),
