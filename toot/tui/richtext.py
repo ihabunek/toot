@@ -34,7 +34,9 @@ class ContentParser:
                     min_width=None,
                 )
             widgets.append(markup)
-        return widgets
+            # separate top level widgets with a blank line
+            widgets.append(urwid.Divider(" "))
+        return widgets[:-1]  # but suppress the last blank line
 
     def inline_tag_to_text(self, tag) -> list:
         """Convert html tag to plain text with tag as attributes recursively"""
