@@ -100,7 +100,7 @@ class ContentParser:
 
         return widget_list
 
-    def get_style_name(self, tag) -> str:
+    def get_urwid_attr_name(self, tag) -> str:
         """Get the class name and translate to a
         name suitable for use as an urwid
         text attribute name"""
@@ -139,7 +139,7 @@ class ContentParser:
         # in that case; set this up in constants.py
         # to control highlighting of hashtags
 
-        return (self.get_style_name(tag), markups)
+        return (self.get_urwid_attr_name(tag), markups)
 
     def _blockquote(self, tag) -> urwid.Widget:
         widget_list = self.process_block_tag_children(tag)
@@ -211,9 +211,9 @@ class ContentParser:
         # of its own
 
         if "class" in tag.attrs:
-            style_name = self.get_style_name(tag)
+            style_name = self.get_urwid_attr_name(tag)
         elif tag.parent:
-            style_name = self.get_style_name(tag.parent)
+            style_name = self.get_urwid_attr_name(tag.parent)
         else:
             style_name = tag.name
 
