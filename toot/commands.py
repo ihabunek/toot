@@ -430,8 +430,20 @@ def lists(app, user, args):
 
 
 def list_accounts(app, user, args):
-    response = api.get_list_accounts(app, user, args.title)
-    print_list_accounts(args.title[0], response)
+    id = args.id if args.id else api.find_list_id(app, user, args.title)
+    response = api.get_list_accounts(app, user, id)
+    print_list_accounts(response)
+
+
+def list_create(app, user, args):
+    api.create_list(app, user, title=args.title, replies_policy=args.replies_policy)
+    print_out(f"<green>✓ List \"{args.title}\" created.</green>")
+
+
+def list_delete(app, user, args):
+    id = args.id if args.id else api.find_list_id(app, user, args.title)
+    api.delete_list(app, user, id)
+    print_out(f"<green>✓ List \"{args.title}\"</green> <red>deleted.</red>")
 
 
 def mute(app, user, args):

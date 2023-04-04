@@ -727,16 +727,52 @@ TAG_COMMANDS = [
 LIST_COMMANDS = [
     Command(
         name="lists",
-        description="List all user lists",
+        description="List all lists",
         arguments=[],
         require_auth=True,
     ),
     Command(
         name="list_accounts",
         description="List the accounts in a list",
-        arguments=[
+        arguments=[(["--id"], {
+            "type": str,
+            "help": "ID of the list"
+        }),
             (["--title"], {
-                "action": "append",
+                "type": str,
+                "help": "title of the list"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="list_create",
+        description="Create a list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["--title"], {
+                "type": str,
+                "help": "title of the list"
+            }),
+            (["--replies-policy"], {
+                "type": str,
+                "help": "replies policy: 'followed', 'list', or 'none' (defaults to 'none')"
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
+        name="list_delete",
+        description="Delete a list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["--title"], {
                 "type": str,
                 "help": "title of the list"
             }),
