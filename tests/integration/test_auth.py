@@ -1,15 +1,11 @@
-import pytest
-
 from tests.integration.conftest import TRUMPET
 from toot import api
-from toot.exceptions import ConsoleError
 from toot.utils import get_text
 
 
 def test_update_account_no_options(run):
-    with pytest.raises(ConsoleError) as exc:
-        run("update_account")
-    assert str(exc.value) == "Please specify at least one option to update the account"
+    out = run("update_account")
+    assert out == "Please specify at least one option to update the account"
 
 
 def test_update_account_display_name(run, app, user):
