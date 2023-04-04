@@ -524,3 +524,19 @@ def get_instance(base_url):
 def get_lists(app, user):
     path = "/api/v1/lists"
     return _get_response_list(app, user, path)
+
+
+def find_list_id(app, user, title):
+    lists = get_lists(app, user)
+    for list_item in lists:
+        if list_item["title"] == title:
+            return list_item["id"]
+    return None
+
+
+def get_list_accounts(app, user, title):
+    id = find_list_id(app, user, title)
+    if id:
+        path = "/api/v1/{id}/accounts"
+        return _get_response_list(app, user, path)
+    return []

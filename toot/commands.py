@@ -9,7 +9,7 @@ from toot.auth import login_interactive, login_browser_interactive, create_app_i
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications,
-                         print_tag_list, print_list_list)
+                         print_tag_list, print_list_list, print_list_accounts)
 from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
@@ -427,6 +427,11 @@ def tags_followed(app, user, args):
 def lists(app, user, args):
     response = api.get_lists(app, user)
     print_list_list(response)
+
+
+def list_accounts(app, user, args):
+    response = api.get_list_accounts(app, user, args.title)
+    print_list_accounts(args.title[0], response)
 
 
 def mute(app, user, args):
