@@ -462,6 +462,22 @@ def list_add_account(app, user, args):
         print_out(f"<red>{ex}</red>")
 
 
+def list_remove_account(app, user, args):
+    list_id = args.id if args.id else api.find_list_id(app, user, args.title)
+    if not list_id:
+        print_out("<red>List not found</red>")
+        return
+    account = find_account(app, user, args.account)
+    if not account:
+        print_out("<red>Account not found</red>")
+        return
+    try:
+        api.remove_accounts_from_list(app, user, list_id, [account['id']])
+        print_out(f"<green>✓ Removed account \"{args.account}\"</green>")
+    except Exception as ex:
+        print_out(f"<red>{ex}</red>")
+
+
 def mute(app, user, args):
     account = find_account(app, user, args.account)
     api.mute(app, user, account['id'])

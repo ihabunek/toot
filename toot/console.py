@@ -798,6 +798,25 @@ LIST_COMMANDS = [
         ],
         require_auth=True,
     ),
+    Command(
+        name="list_remove_account",
+        description="Remove account from list",
+        arguments=[
+            (["--id"], {
+                "type": str,
+                "help": "ID of the list"
+            }),
+            (["--title"], {
+                "type": str,
+                "help": "title of the list"
+            }),
+            (["--account"], {
+                "type": str,
+                "help": "Account to remove"
+            }),
+        ],
+        require_auth=True,
+    ),
 ]
 COMMAND_GROUPS = [
     ("Authentication", AUTH_COMMANDS),
