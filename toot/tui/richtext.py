@@ -10,14 +10,6 @@ from bs4.element import NavigableString, Tag
 class ContentParser:
     def __init__(self, config={}):
         """Parse a limited subset of HTML and create urwid widgets."""
-        self.tag_to_method = {
-            "b": self.inline_tag_to_text,
-            "i": self.inline_tag_to_text,
-            "code": self.inline_tag_to_text,
-            "em": self.inline_tag_to_text,
-            "strong": self.inline_tag_to_text,
-            "del": self.inline_tag_to_text,
-        }
 
     def html_to_widgets(self, html) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
@@ -27,12 +19,11 @@ class ContentParser:
             if isinstance(e, NavigableString):
                 continue
             name = e.name
-            # get the custom method for the tag, defaulting to tag_to_text if none defined for this tag
-            method = self.tag_to_method.get(
-                name, getattr(self, "_" + name, self.inline_tag_to_text)
-            )
-
+            # First, look for a custom tag handler method in this class
+            # If that fails, fall back to inline_tag_to_text handler
+            method = getattr(self, "_" + name, self.inline_tag_to_text)
             markup = method(e)  # either returns a Widget, or plain text
+
             if not isinstance(markup, urwid.Widget):
                 # plaintext, so create a padded text widget
                 txt = urwid.Text(markup)
@@ -58,9 +49,7 @@ class ContentParser:
         markups = []
         for child in tag.children:
             if isinstance(child, Tag):
-                method = self.tag_to_method.get(
-                    child.name, getattr(self, "_" + child.name, self.inline_tag_to_text)
-                )
+                method = getattr(self, "_" + child.name, self.inline_tag_to_text)
                 markup = method(child)
                 markups.append(markup)
             else:
@@ -82,9 +71,7 @@ class ContentParser:
             if isinstance(child, Tag):
                 # child is a nested tag; process using custom method
                 # or default to inline_tag_to_text
-                method = self.tag_to_method.get(
-                    child.name, getattr(self, "_" + child.name, self.inline_tag_to_text)
-                )
+                method = getattr(self, "_" + child.name, self.inline_tag_to_text)
                 result = method(child)
                 if isinstance(result, urwid.Widget):
                     found_nested_widget = True
@@ -182,7 +169,7 @@ class ContentParser:
     _li = basic_block_tag_handler
 
     # Glitch-soc and Pleroma allow <H1>...<H6> in content
-    # Mastodon (PR #23913) does not; header tags are converted to <STRONG>
+    # Mastodon (PR #23913) does not; header tags are converted to <P><STRONG></STRONG></P>
 
     _h1 = _h2 = _h3 = _h4 = _h5 = _h6 = basic_block_tag_handler
 
@@ -239,9 +226,7 @@ class ContentParser:
         widgets = []
         i = 1
         for li in tag.find_all("li", recursive=False):
-            method = self.tag_to_method.get(
-                "li", getattr(self, "_li", self.inline_tag_to_text)
-            )
+            method = getattr(self, "_li", self.inline_tag_to_text)
             markup = method(li)
 
             if not isinstance(markup, urwid.Widget):
