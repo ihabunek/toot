@@ -1,7 +1,7 @@
 """
 richtext
 """
-from typing import List
+from typing import List, Tuple
 import urwid
 import unicodedata
 from bs4 import BeautifulSoup
@@ -9,7 +9,7 @@ from bs4.element import NavigableString, Tag
 
 
 class ContentParser:
-    def __init__(self, config={}):
+    def __init__(self):
         """Parse a limited subset of HTML and create urwid widgets."""
 
     def html_to_widgets(self, html) -> List[urwid.Widget]:
@@ -40,14 +40,14 @@ class ContentParser:
             widgets.append(urwid.Divider(" "))
         return widgets[:-1]  # but suppress the last blank line
 
-    def inline_tag_to_text(self, tag) -> list:
+    def inline_tag_to_text(self, tag) -> Tuple:
         """Convert html tag to plain text with tag as attributes recursively"""
         markups = self.process_inline_tag_children(tag)
         if not markups:
-            return ""
+            return (tag.name, "")
         return (tag.name, markups)
 
-    def process_inline_tag_children(self, tag) -> list:
+    def process_inline_tag_children(self, tag) -> List:
         """Recursively retrieve all children
         and convert to a list of markup text"""
         markups = []
@@ -133,10 +133,10 @@ class ContentParser:
         """default for block tags that need no special treatment"""
         return urwid.Pile(self.process_block_tag_children(tag))
 
-    def _a(self, tag) -> list:
+    def _a(self, tag) -> Tuple:
         markups = self.process_inline_tag_children(tag)
         if not markups:
-            return ""
+            return(tag.name, "")
 
         # hashtag anchors have a class of "mention hashtag"
         # we'll return style "class_mention_hashtag"
@@ -167,7 +167,7 @@ class ContentParser:
         )
         return urwid.Pile([urwid.AttrMap(blockquote_widget, "blockquote")])
 
-    def _br(self, tag) -> list:
+    def _br(self, tag) -> Tuple:
         return (tag.name, ("br", "\n"))
 
     _div = basic_block_tag_handler
@@ -204,11 +204,11 @@ class ContentParser:
         )
         return urwid.Pile([urwid.AttrMap(pre_widget, "pre")])
 
-    def _span(self, tag) -> list:
+    def _span(self, tag) -> Tuple:
         markups = self.process_inline_tag_children(tag)
 
         if not markups:
-            return ""
+            return (tag.name, "")
 
         # span inherits its parent's class definition
         # unless it has a specific class definition
