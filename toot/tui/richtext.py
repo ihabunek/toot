@@ -3,6 +3,7 @@ richtext
 """
 from typing import List
 import urwid
+import unicodedata
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
@@ -14,6 +15,7 @@ class ContentParser:
     def html_to_widgets(self, html) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
+        html = unicodedata.normalize('NFKC', html)
         soup = BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
