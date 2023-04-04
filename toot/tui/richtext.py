@@ -110,12 +110,14 @@ class ContentParser:
         # used in anchor tags
         # Classes to blacklist: "invisible" used in Akkoma
         # anchor titles
-        style_name = tag.name
+
         if "class" in tag.attrs:
             clss = tag.attrs["class"]
             if len(clss) > 0:
                 style_name = "class_" + "_".join(clss)
-        return style_name
+                return style_name
+
+        style_name = tag.name
 
     # Tag handlers start here.
     # Tags not explicitly listed are "supported" by
@@ -244,7 +246,7 @@ class ContentParser:
                     txt = urwid.Text(("li", "*"))
 
                 columns = urwid.Columns(
-                    [txt, ("weight", 9999, markup)], dividechars=1, min_width=4
+                    [txt, ("weight", 9999, markup)], dividechars=1, min_width=3
                 )
                 widgets.append(columns)
             i += 1
