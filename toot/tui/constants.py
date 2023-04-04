@@ -60,12 +60,12 @@ PALETTE = [
 
     ('blockquote', 'light gray', ''),
 
-    ('h1', 'yellow, bold', ''),
-    ('h2', 'dark red, bold', ''),
-    ('h3', 'yellow, bold', ''),
-    ('h4', 'yellow, bold', ''),
-    ('h5', 'yellow, bold', ''),
-    ('h6', 'yellow, bold', ''),
+    ('h1', 'white, bold', ''),
+    ('h2', 'white, bold', ''),
+    ('h3', 'white, bold', ''),
+    ('h4', 'white, bold', ''),
+    ('h5', 'white, bold', ''),
+    ('h6', 'white, bold', ''),
 
     ('class_mention_hashtag', 'light cyan,bold', ''),
 
