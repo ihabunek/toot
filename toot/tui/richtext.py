@@ -4,18 +4,23 @@ richtext
 from typing import List, Tuple
 import urwid
 import unicodedata
+from .constants import PALETTE
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
 
 class ContentParser:
     def __init__(self):
+        self.palette_names = []
+        for p in PALETTE:
+            self.palette_names.append(p[0])
+
         """Parse a limited subset of HTML and create urwid widgets."""
 
     def html_to_widgets(self, html) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
-        html = unicodedata.normalize('NFKC', html)
+        html = unicodedata.normalize("NFKC", html)
         soup = BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
@@ -108,20 +113,18 @@ class ContentParser:
         """Get the class name and translate to a
         name suitable for use as an urwid
         text attribute name"""
-        # TODO: think about whitelisting allowed classes,
-        # or blacklisting classes we do not want.
-        # Classes to whitelist: "mention" "hashtag"
-        # used in anchor tags
-        # Classes to blacklist: "invisible" used in Akkoma
-        # anchor titles
 
         if "class" in tag.attrs:
             clss = tag.attrs["class"]
             if len(clss) > 0:
                 style_name = "class_" + "_".join(clss)
-                return style_name
+                # return the class name, only if we
+                # find it as a defined palette name
+                if style_name in self.palette_names:
+                    return style_name
 
-        style_name = tag.name
+        # fallback to returning the tag name
+        return tag.name
 
     # Tag handlers start here.
     # Tags not explicitly listed are "supported" by
@@ -136,12 +139,12 @@ class ContentParser:
     def _a(self, tag) -> Tuple:
         markups = self.process_inline_tag_children(tag)
         if not markups:
-            return(tag.name, "")
+            return (tag.name, "")
 
         # hashtag anchors have a class of "mention hashtag"
         # we'll return style "class_mention_hashtag"
-        # in that case; set this up in constants.py
-        # to control highlighting of hashtags
+        # in that case; see corresponding palette entry
+        # in constants.py controlling hashtag highlighting
 
         return (self.get_urwid_attr_name(tag), markups)
 
@@ -216,12 +219,15 @@ class ContentParser:
 
         if "class" in tag.attrs:
             style_name = self.get_urwid_attr_name(tag)
-        elif tag.parent:
-            style_name = self.get_urwid_attr_name(tag.parent)
-        else:
-            style_name = tag.name
+            if style_name != "span":
+                # unique class name matches an entry in our palette
+                return (style_name, markups)
 
-        return (style_name, markups)
+        if tag.parent:
+            return (self.get_urwid_attr_name(tag.parent), markups)
+        else:
+            # fallback
+            return ("span", markups)
 
     def _ul(self, tag) -> urwid.Widget:
         return self.list_widget(tag, ordered=False)
@@ -241,7 +247,9 @@ class ContentParser:
                         ("li", [str(i), ". ", markup])
                     )  # 1. foo, 2. bar, etc.
                 else:
-                    txt = urwid.Text(("li", ["\N{bullet} ", markup]))  # * foo, * bar, etc.
+                    txt = urwid.Text(
+                        ("li", ["\N{bullet} ", markup])
+                    )  # * foo, * bar, etc.
                 widgets.append(txt)
             else:
                 if ordered:

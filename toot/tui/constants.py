@@ -40,10 +40,7 @@ PALETTE = [
     ('white_bold', 'white,bold', ''),
 
     # HTML tag styling
-    # note, anchor styling is often overridden
-    # by class names in Mastodon statuses
-    # so you won't see the italics.
-    ('a', ',italics', ''),
+    ('a', '', ''),
     ('em', ',italics', ''),
     ('i', ',italics', ''),
     ('strong', ',bold', ''),
