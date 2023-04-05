@@ -1,7 +1,6 @@
 *.egg-info/
 *.pyc
 .pypirc
-.vscode
 /.cache/
 /.coverage
 /.env
@@ -15,4 +14,3 @@
 debug.log
 /pyrightconfig.json
 /book
-/venv
