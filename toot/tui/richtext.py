@@ -171,7 +171,7 @@ class ContentParser:
         return urwid.Pile([urwid.AttrMap(blockquote_widget, "blockquote")])
 
     def _br(self, tag) -> Tuple:
-        return (tag.name, ("br", "\n"))
+        return ("br", "\n")
 
     def _em(self, tag) -> Tuple:
         # to simplify the number of palette entries
