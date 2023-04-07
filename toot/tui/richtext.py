@@ -283,6 +283,8 @@ class ContentParser:
         return urwid.Pile(widgets)
 
     # These tags are handled identically to others
+    # the only difference being the tag name used for
+    # urwid attribute mapping
 
     _b = _strong
 
