@@ -1,6 +1,5 @@
 import pytest
 
-from tests.integration.conftest import BASE_URL
 from toot import api
 from toot.exceptions import ConsoleError
 
@@ -12,8 +11,8 @@ def test_instance(app, run):
     assert "running Mastodon" in out
 
 
-def test_instance_anon(app, run_anon):
-    out = run_anon("instance", BASE_URL)
+def test_instance_anon(app, run_anon, base_url):
+    out = run_anon("instance", base_url)
     assert "Mastodon" in out
     assert app.instance in out
     assert "running Mastodon" in out
@@ -57,7 +56,7 @@ def test_search_hashtag(app, user, run):
     assert out == "Hashtags:\n#hashtag_x, #hashtag_y, #hashtag_z"
 
 
-def test_tags(run):
+def test_tags(run, base_url):
     out = run("tags_followed")
     assert out == "You're not following any hashtags."
 
@@ -65,19 +64,19 @@ def test_tags(run):
     assert out == "✓ You are now following #foo"
 
     out = run("tags_followed")
-    assert out == f"* #foo\t{BASE_URL}/tags/foo"
+    assert out == f"* #foo\t{base_url}/tags/foo"
 
     out = run("tags_follow", "bar")
     assert out == "✓ You are now following #bar"
 
     out = run("tags_followed")
     assert out == "\n".join([
-        f"* #bar\t{BASE_URL}/tags/bar",
-        f"* #foo\t{BASE_URL}/tags/foo",
+        f"* #bar\t{base_url}/tags/bar",
+        f"* #foo\t{base_url}/tags/foo",
     ])
 
     out = run("tags_unfollow", "foo")
     assert out == "✓ You are no longer following #foo"
 
     out = run("tags_followed")
-    assert out == f"* #bar\t{BASE_URL}/tags/bar"
+    assert out == f"* #bar\t{base_url}/tags/bar"
