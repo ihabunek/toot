@@ -38,15 +38,14 @@ TRUMPET = str(Path(__file__).parent.parent.parent / "trumpet.png")
 ASSETS_DIR = str(Path(__file__).parent.parent / "assets")
 
 
-if not BASE_URL or not DATABASE_DSN:
-    pytest.skip("Skipping integration tests", allow_module_level=True)
-
 # ------------------------------------------------------------------------------
 # Fixtures
 # ------------------------------------------------------------------------------
 
 
 def create_app():
+    if not BASE_URL:
+        pytest.skip("Skipping integration tests, BASE_URL not set")
     instance = api.get_instance(BASE_URL)
     response = api.create_app(BASE_URL)
     return App(instance["uri"], BASE_URL, response["client_id"], response["client_secret"])
