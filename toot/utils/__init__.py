@@ -24,15 +24,22 @@ def str_bool_nullable(b):
 
 def get_text(html):
     """Converts html to text, strips all tags."""
+    text = bs4_parse(html).get_text()
+    return unicodedata.normalize("NFKC", text)
+
+
+def bs4_parse(html: str) -> BeautifulSoup:
+    # Versions of BeautifulSoup before 4.8.0 do not convert &apos; to '
+    # correctly so replace it before decoding. Required in case someone still
+    # uses an older version.
+    html = html.replace("&apos;", "'")
 
     # Ignore warnings made by BeautifulSoup, if passed something that looks like
     # a file (e.g. a dot which matches current dict), it will warn that the file
     # should be opened instead of passing a filename.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        text = BeautifulSoup(html.replace('&apos;', "'"), "html.parser").get_text()
-
-    return unicodedata.normalize('NFKC', text)
+        return BeautifulSoup(html, "html.parser")
 
 
 def parse_html(html):

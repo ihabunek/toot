@@ -4,8 +4,9 @@ richtext
 from typing import List, Tuple
 import urwid
 import unicodedata
+
+from toot.utils import bs4_parse
 from .constants import PALETTE
-from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
 
@@ -21,7 +22,7 @@ class ContentParser:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
         html = unicodedata.normalize("NFKC", html)
-        soup = BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
+        soup = bs4_parse(html)
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
                 continue
