@@ -10,19 +10,18 @@ from .constants import PALETTE
 from bs4.element import NavigableString, Tag
 
 
-class ContentParser:
-    def __init__(self):
-        self.palette_names = []
-        for p in PALETTE:
-            self.palette_names.append(p[0])
+PALETTE_NAMES = [name for name, _, _ in PALETTE]
 
-        """Parse a limited subset of HTML and create urwid widgets."""
+
+class ContentParser:
+    """Parse a limited subset of HTML and create urwid widgets."""
 
     def html_to_widgets(self, html) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
         html = unicodedata.normalize("NFKC", html)
         soup = bs4_parse(html)
+
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
                 continue
@@ -121,7 +120,7 @@ class ContentParser:
                 style_name = "class_" + "_".join(clss)
                 # return the class name, only if we
                 # find it as a defined palette name
-                if style_name in self.palette_names:
+                if style_name in PALETTE_NAMES:
                     return style_name
 
         # fallback to returning the tag name
