@@ -39,9 +39,9 @@ Terminal User Interface
 
 toot includes a terminal user interface (TUI). Run it with ``toot tui``.
 
-.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_list.png
+.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_list.png
 
-.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_compose.png
+.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_compose.png
 
 
 License
