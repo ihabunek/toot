@@ -32,13 +32,13 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     packages=['toot', 'toot.tui', 'toot.utils'],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         "requests>=2.13,<3.0",
         "beautifulsoup4>=4.5.0,<5.0",
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
-        "pillow>=8.4.0",
+        "pillow>=9.5.0",
         "term-image==0.6.0",
     ],
     entry_points={
