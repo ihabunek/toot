@@ -1,4 +1,5 @@
 import logging
+import re
 import sys
 import urwid
 import webbrowser
@@ -13,6 +14,7 @@ from .richtext import ContentParser
 from toot.tui import app
 from toot.tui.utils import time_ago
 from toot.utils.language import language_name
+from urwidgets import Hyperlink, TextEmbed, parse_text
 
 logger = logging.getLogger("toot")
 
@@ -319,6 +321,18 @@ class StatusDetails(urwid.Pile):
             if status else ())
         return super().__init__(widget_list)
 
+    def linkify_content(self, text) -> urwid.Widget:
+        TRANSFORM = {
+            # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
+            re.compile(r'(https?://[^\s]+)'):
+                lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[1], "link"))),
+        }
+        markup_list = []
+
+        markup_list.append(parse_text(text, TRANSFORM,
+            lambda pattern, groups, span: TRANSFORM[pattern](groups)))
+        return TextEmbed(markup_list, align='left')
+
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
@@ -355,7 +369,7 @@ class StatusDetails(urwid.Pile):
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    yield ("pack", self.linkify_content(m["url"]))
 
             poll = status.original.data.get("poll")
             if poll:
@@ -415,7 +429,7 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
-        yield urwid.Text(("link", card["url"]))
+        yield self.linkify_content(card["url"])
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):

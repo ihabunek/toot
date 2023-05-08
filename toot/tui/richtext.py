@@ -71,7 +71,7 @@ class ContentParser:
     def text_to_widget(self, attr, markup) -> TextEmbed:
         TRANSFORM = {
             # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
-            re.compile(r'(^.+)~~~(.+$)'):
+            re.compile(r'(^.+)\x03(.+$)'):
                 lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[2], attr[0], g[1]))),
         }
         markup_list = []
@@ -79,7 +79,7 @@ class ContentParser:
         for run in markup:
             if isinstance(run, tuple):
                 txt, attr = decompose_tagmarkup(run)
-                m = re.match(r'(^.+)~~~(.+$)', txt)
+                m = re.match(r'(^.+)\x03(.+$)', txt)
                 if m:
                     markup_list.append(parse_text(txt, TRANSFORM,
                     lambda pattern, groups, span: TRANSFORM[pattern](groups)))
@@ -169,7 +169,9 @@ class ContentParser:
         href = tag.attrs["href"]
         title, title_attrib = decompose_tagmarkup(markups)
         if href:
-            title += f"~~~{href}"
+            # use \x03 (ETX) as a sentinel character
+            # to signal a href following
+            title += f"\x03{href}"
 
         # hashtag anchors have a class of "mention hashtag"
         # we'll return style "class_mention_hashtag"
