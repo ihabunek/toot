@@ -2,11 +2,14 @@
 richtext
 """
 from typing import List, Tuple
+import re
 import urwid
 import unicodedata
 from .constants import PALETTE
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
+from urwidgets import TextEmbed, Hyperlink, parse_text
+from urwid.util import decompose_tagmarkup
 
 
 class ContentParser:
@@ -33,7 +36,7 @@ class ContentParser:
 
             if not isinstance(markup, urwid.Widget):
                 # plaintext, so create a padded text widget
-                txt = urwid.Text(markup)
+                txt = self.text_to_widget("", markup)
                 markup = urwid.Padding(
                     txt,
                     align="left",
@@ -64,6 +67,28 @@ class ContentParser:
             else:
                 markups.append(child)
         return markups
+
+    def text_to_widget(self, attr, markup) -> TextEmbed:
+        TRANSFORM = {
+            # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
+            re.compile(r'(^.+)~~~(.+$)'):
+                lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[2], attr[0], g[1]))),
+        }
+        markup_list = []
+
+        for run in markup:
+            if isinstance(run, tuple):
+                txt, attr = decompose_tagmarkup(run)
+                m = re.match(r'(^.+)~~~(.+$)', txt)
+                if m:
+                    markup_list.append(parse_text(txt, TRANSFORM,
+                    lambda pattern, groups, span: TRANSFORM[pattern](groups)))
+                else:
+                    markup_list.append(run)
+            else:
+                markup_list.append(run)
+
+        return TextEmbed(markup_list)
 
     def process_block_tag_children(self, tag) -> List[urwid.Widget]:
         """Recursively retrieve all children
@@ -99,13 +124,13 @@ class ContentParser:
 
         widget_list = []
         if len(pre_widget_markups):
-            widget_list.append(urwid.Text((tag.name, pre_widget_markups)))
+            widget_list.append(self.text_to_widget(tag.name, pre_widget_markups))
 
         if len(child_widgets):
             widget_list += child_widgets
 
         if len(post_widget_markups):
-            widget_list.append(urwid.Text((tag.name, post_widget_markups)))
+            widget_list.append(self.text_to_widget(tag.name, post_widget_markups))
 
         return widget_list
 
@@ -141,12 +166,17 @@ class ContentParser:
         if not markups:
             return (tag.name, "")
 
+        href = tag.attrs["href"]
+        title, title_attrib = decompose_tagmarkup(markups)
+        if href:
+            title += f"~~~{href}"
+
         # hashtag anchors have a class of "mention hashtag"
         # we'll return style "class_mention_hashtag"
         # in that case; see corresponding palette entry
         # in constants.py controlling hashtag highlighting
 
-        return (self.get_urwid_attr_name(tag), markups)
+        return (self.get_urwid_attr_name(tag), title)
 
     def _blockquote(self, tag) -> urwid.Widget:
         widget_list = self.process_block_tag_children(tag)
@@ -260,19 +290,17 @@ class ContentParser:
 
             if not isinstance(markup, urwid.Widget):
                 if ordered:
-                    txt = urwid.Text(
-                        ("li", [str(i), ". ", markup])
-                    )  # 1. foo, 2. bar, etc.
+                    txt = self.text_to_widget("li", [str(i), ". ", markup])
+                    # 1. foo, 2. bar, etc.
                 else:
-                    txt = urwid.Text(
-                        ("li", ["\N{bullet} ", markup])
-                    )  # * foo, * bar, etc.
+                    txt = self.text_to_widget("li", ["\N{bullet} ", markup])
+                    # * foo, * bar, etc.
                 widgets.append(txt)
             else:
                 if ordered:
-                    txt = urwid.Text(("li", [str(i) + "."]))
+                    txt = self.text_to_widget("li", [str(i), ". "])
                 else:
-                    txt = urwid.Text(("li", "\N{bullet}"))
+                    txt = self.text_to_widget("li", ["\N{bullet} "])
 
                 columns = urwid.Columns(
                     [txt, ("weight", 9999, markup)], dividechars=1, min_width=3
