@@ -40,7 +40,7 @@ PALETTE = [
     ('white_bold', 'white,bold', ''),
 
     # HTML tag styling
-    ('a', '', ''),
+    ('a', ',italics', ''),
     # em tag is mapped to i
     ('i', ',italics', ''),
     # strong tag is mapped to b
@@ -59,7 +59,7 @@ PALETTE = [
     ('h5', ',bold', ''),
     ('h6', ',bold', ''),
     ('class_mention_hashtag', 'light cyan,bold', ''),
-
+    ('class_hashtag', 'light cyan,bold', ''),
 ]
 
 VISIBILITY_OPTIONS = [

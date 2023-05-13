@@ -20,7 +20,7 @@ class ContentParser:
 
         """Parse a limited subset of HTML and create urwid widgets."""
 
-    def html_to_widgets(self, html, recovery_attempt = False) -> List[urwid.Widget]:
+    def html_to_widgets(self, html, recovery_attempt=False) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
         html = unicodedata.normalize("NFKC", html)
@@ -33,7 +33,7 @@ class ContentParser:
                     # the HTML is out of spec, doesn't start with a tag,
                     # we see this in content from Pixelfed servers.
                     # attempt a fix by wrapping the HTML with <p></p>
-                    return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt = True)
+                    return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt=True)
                 else:
                     continue
             else:
@@ -81,18 +81,26 @@ class ContentParser:
     def text_to_widget(self, attr, markup) -> TextEmbed:
         TRANSFORM = {
             # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
-            re.compile(r'(^.+)\x03(.+$)'):
-                lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[2], attr, g[1]))),
+            re.compile(r"(^.+)\x03(.+$)"): lambda g: (
+                len(g[1]),
+                urwid.Filler(Hyperlink(g[2], anchor_attr, g[1])),
+            ),
         }
         markup_list = []
 
         for run in markup:
             if isinstance(run, tuple):
                 txt, attr_list = decompose_tagmarkup(run)
-                m = re.match(r'(^.+)\x03(.+$)', txt)
+                m = re.match(r"(^.+)\x03(.+$)", txt)
                 if m:
-                    markup_list.append(parse_text(txt, TRANSFORM,
-                    lambda pattern, groups, span: TRANSFORM[pattern](groups)))
+                    anchor_attr = self.get_best_anchor_attr(attr_list)
+                    markup_list.append(
+                        parse_text(
+                            txt,
+                            TRANSFORM,
+                            lambda pattern, groups, span: TRANSFORM[pattern](groups),
+                        )
+                    )
                 else:
                     markup_list.append(run)
             else:
@@ -171,24 +179,46 @@ class ContentParser:
         """default for block tags that need no special treatment"""
         return urwid.Pile(self.process_block_tag_children(tag))
 
+    def get_best_anchor_attr(self, attrib_list) -> str:
+        if not attrib_list:
+            return ""
+        flat_al = list(flatten(attrib_list))
+
+        for a in flat_al[0]:
+            # ref: https://docs.joinmastodon.org/spec/activitypub/
+            # these are the class names (translated to attrib names)
+            # that we can support for display
+
+            try:
+                if a[0] in ["class_hashtag", "class_mention_hashtag", "class_mention"]:
+                    return a[0]
+            except KeyError:
+                continue
+
+        return "a"
+
     def _a(self, tag) -> Tuple:
         markups = self.process_inline_tag_children(tag)
         if not markups:
             return (tag.name, "")
 
         href = tag.attrs["href"]
-        title, title_attrib = decompose_tagmarkup(markups)
+        title, attrib_list = decompose_tagmarkup(markups)
+        if not attrib_list:
+            attrib_list = [tag]
         if href:
-            # use \x03 (ETX) as a sentinel character
-            # to signal a href following
             title += f"\x03{href}"
 
+        attr = self.get_best_anchor_attr(attrib_list)
+
         # hashtag anchors have a class of "mention hashtag"
+        # or "hashtag"
         # we'll return style "class_mention_hashtag"
+        # or "class_hashtag"
         # in that case; see corresponding palette entry
         # in constants.py controlling hashtag highlighting
 
-        return (self.get_urwid_attr_name(tag), title)
+        return (attr, title)
 
     def _blockquote(self, tag) -> urwid.Widget:
         widget_list = self.process_block_tag_children(tag)
@@ -233,7 +263,6 @@ class ContentParser:
         return self.list_widget(tag, ordered=True)
 
     def _pre(self, tag) -> urwid.Widget:
-
         # <PRE> tag spec says that text should not wrap,
         # but horizontal screen space is at a premium
         # and we have no horizontal scroll bar, so allow
@@ -340,3 +369,11 @@ class ContentParser:
     _h1 = _h2 = _h3 = _h4 = _h5 = _h6 = basic_block_tag_handler
 
     _p = basic_block_tag_handler
+
+
+def flatten(data):
+    if isinstance(data, tuple):
+        for x in data:
+            yield from flatten(x)
+    else:
+        yield data
