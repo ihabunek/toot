@@ -20,19 +20,29 @@ class ContentParser:
 
         """Parse a limited subset of HTML and create urwid widgets."""
 
-    def html_to_widgets(self, html) -> List[urwid.Widget]:
+    def html_to_widgets(self, html, recovery_attempt = False) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
         html = unicodedata.normalize("NFKC", html)
         soup = BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
+        first_tag = True
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
-                continue
-            name = e.name
-            # First, look for a custom tag handler method in this class
-            # If that fails, fall back to inline_tag_to_text handler
-            method = getattr(self, "_" + name, self.inline_tag_to_text)
-            markup = method(e)  # either returns a Widget, or plain text
+                if first_tag and not recovery_attempt:
+                    # if our first "tag" is a navigable string
+                    # the HTML is out of spec, doesn't start with a tag,
+                    # we see this in content from Pixelfed servers.
+                    # attempt a fix by wrapping the HTML with <p></p>
+                    return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt = True)
+                else:
+                    continue
+            else:
+                first_tag = False
+                name = e.name
+                # First, look for a custom tag handler method in this class
+                # If that fails, fall back to inline_tag_to_text handler
+                method = getattr(self, "_" + name, self.inline_tag_to_text)
+                markup = method(e)  # either returns a Widget, or plain text
 
             if not isinstance(markup, urwid.Widget):
                 # plaintext, so create a padded text widget
@@ -72,13 +82,13 @@ class ContentParser:
         TRANSFORM = {
             # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
             re.compile(r'(^.+)\x03(.+$)'):
-                lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[2], attr[0], g[1]))),
+                lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[2], attr, g[1]))),
         }
         markup_list = []
 
         for run in markup:
             if isinstance(run, tuple):
-                txt, attr = decompose_tagmarkup(run)
+                txt, attr_list = decompose_tagmarkup(run)
                 m = re.match(r'(^.+)\x03(.+$)', txt)
                 if m:
                     markup_list.append(parse_text(txt, TRANSFORM,
