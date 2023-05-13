@@ -37,12 +37,34 @@ class ContentParser:
                 else:
                     continue
             else:
-                first_tag = False
                 name = e.name
+                # if our HTML starts with a tag, but not a block tag
+                # the HTML is out of spec. Attempt a fix by wrapping the
+                # HTML with <p></p>
+                if (
+                    first_tag
+                    and not recovery_attempt
+                    and name
+                    not in (
+                        "p",
+                        "pre",
+                        "li",
+                        "blockquote",
+                        "h1",
+                        "h2",
+                        "h3",
+                        "h4",
+                        "h5",
+                        "h6",
+                    )
+                ):
+                    return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt=True)
+
                 # First, look for a custom tag handler method in this class
                 # If that fails, fall back to inline_tag_to_text handler
                 method = getattr(self, "_" + name, self.inline_tag_to_text)
                 markup = method(e)  # either returns a Widget, or plain text
+                first_tag = False
 
             if not isinstance(markup, urwid.Widget):
                 # plaintext, so create a padded text widget
