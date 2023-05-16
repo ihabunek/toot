@@ -364,8 +364,8 @@ class ContentParser:
             # the terminal supports OCS 8 hyperlinks (and that's not
             # automatically detectable)
 
-            #            if "invisible" in tag.attrs["class"]:
-            #                return (tag.name, "")
+            # if "invisible" in tag.attrs["class"]:
+            #     return (tag.name, "")
 
             style_name = self.get_urwid_attr_name(tag)
 
