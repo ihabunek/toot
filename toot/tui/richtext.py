@@ -56,7 +56,7 @@ class ContentParser:
                         "h4",
                         "h5",
                         "h6",
-                    )
+                    )  # NOTE: update this list if Mastodon starts supporting more block tags
                 ):
                     return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt=True)
 
@@ -113,6 +113,7 @@ class ContentParser:
         for run in markup:
             if isinstance(run, tuple):
                 txt, attr_list = decompose_tagmarkup(run)
+                # find anchor titles with an ETX separator followed by href
                 m = re.match(r"(^.+)\x03(.+$)", txt)
                 if m:
                     anchor_attr = self.get_best_anchor_attr(attr_list)
@@ -220,6 +221,8 @@ class ContentParser:
         return "a"
 
     def _a(self, tag) -> Tuple:
+        """anchor tag handler"""
+
         markups = self.process_inline_tag_children(tag)
         if not markups:
             return (tag.name, "")
@@ -229,6 +232,8 @@ class ContentParser:
         if not attrib_list:
             attrib_list = [tag]
         if href:
+            # use ASCII ETX (end of record) as a
+            # delimiter between the title and the HREF
             title += f"\x03{href}"
 
         attr = self.get_best_anchor_attr(attrib_list)
@@ -282,7 +287,46 @@ class ContentParser:
         return ("i", markups)
 
     def _ol(self, tag) -> urwid.Widget:
-        return self.list_widget(tag, ordered=True)
+        """ordered list tag handler"""
+
+        widgets = []
+        list_item_num = 1
+        increment = -1 if tag.has_attr("reversed") else 1
+
+        # get ol start= attribute if present
+        if tag.has_attr("start") and len(tag.attrs["start"]) > 0:
+            try:
+                list_item_num = int(tag.attrs["start"])
+            except ValueError:
+                pass
+
+        for li in tag.find_all("li", recursive=False):
+            method = getattr(self, "_li", self.inline_tag_to_text)
+            markup = method(li)
+
+            # li value= attribute will change the item number
+            # it also overrides any ol start= attribute
+
+            if li.has_attr("value") and len(li.attrs["value"]) > 0:
+                try:
+                    list_item_num = int(li.attrs["value"])
+                except ValueError:
+                    pass
+
+            if not isinstance(markup, urwid.Widget):
+                txt = self.text_to_widget("li", [str(list_item_num), ". ", markup])
+                # 1. foo, 2. bar, etc.
+                widgets.append(txt)
+            else:
+                txt = self.text_to_widget("li", [str(list_item_num), ". "])
+                columns = urwid.Columns(
+                    [txt, ("weight", 9999, markup)], dividechars=1, min_width=3
+                )
+                widgets.append(columns)
+
+            list_item_num += increment
+
+        return urwid.Pile(widgets)
 
     def _pre(self, tag) -> urwid.Widget:
         # <PRE> tag spec says that text should not wrap,
@@ -314,7 +358,17 @@ class ContentParser:
         # of its own
 
         if "class" in tag.attrs:
+            # uncomment the following code to hide all HTML marked
+            # invisible (generally, the http:// prefix of URLs)
+            # could be a user preference, it's only advisable if
+            # the terminal supports OCS 8 hyperlinks (and that's not
+            # automatically detectable)
+
+            #            if "invisible" in tag.attrs["class"]:
+            #                return (tag.name, "")
+
             style_name = self.get_urwid_attr_name(tag)
+
             if style_name != "span":
                 # unique class name matches an entry in our palette
                 return (style_name, markups)
@@ -340,36 +394,24 @@ class ContentParser:
         return ("b", markups)
 
     def _ul(self, tag) -> urwid.Widget:
-        return self.list_widget(tag, ordered=False)
+        """unordered list tag handler"""
 
-    def list_widget(self, tag, ordered=False) -> urwid.Widget:
-        """common logic for ordered and unordered list rendering
-        as urwid widgets"""
         widgets = []
-        i = 1
+
         for li in tag.find_all("li", recursive=False):
             method = getattr(self, "_li", self.inline_tag_to_text)
             markup = method(li)
 
             if not isinstance(markup, urwid.Widget):
-                if ordered:
-                    txt = self.text_to_widget("li", [str(i), ". ", markup])
-                    # 1. foo, 2. bar, etc.
-                else:
-                    txt = self.text_to_widget("li", ["\N{bullet} ", markup])
-                    # * foo, * bar, etc.
+                txt = self.text_to_widget("li", ["\N{bullet} ", markup])
+                # * foo, * bar, etc.
                 widgets.append(txt)
             else:
-                if ordered:
-                    txt = self.text_to_widget("li", [str(i), ". "])
-                else:
-                    txt = self.text_to_widget("li", ["\N{bullet} "])
-
+                txt = self.text_to_widget("li", ["\N{bullet} "])
                 columns = urwid.Columns(
                     [txt, ("weight", 9999, markup)], dividechars=1, min_width=3
                 )
                 widgets.append(columns)
-            i += 1
 
         return urwid.Pile(widgets)
 
