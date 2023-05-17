@@ -313,7 +313,6 @@ class Timeline(urwid.Columns):
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
-        self.followed_tags = timeline.tui.followed_tags
         self.followed_accounts = timeline.tui.followed_accounts
 
         reblogged_by = status.author if status and status.reblog else None
