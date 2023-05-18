@@ -102,6 +102,7 @@ class GotoMenu(urwid.ListBox):
         "bookmark_timeline",
         "notification_timeline",
         "conversation_timeline",
+        "personal_timeline",
         "list_timeline",
     ]
 
@@ -125,6 +126,9 @@ class GotoMenu(urwid.ListBox):
 
         def _global_public(button):
             self._emit("public_timeline", False)
+
+        def _personal(button):
+            self._emit("personal_timeline", False)
 
         def _bookmarks(button):
             self._emit("bookmark_timeline", False)
@@ -156,6 +160,7 @@ class GotoMenu(urwid.ListBox):
         yield Button("Home timeline", on_press=_home)
         yield Button("Local public timeline", on_press=_local_public)
         yield Button("Global public timeline", on_press=_global_public)
+        yield Button("Personal timeline", on_press=_personal)
         yield Button("Bookmarks", on_press=_bookmarks)
         yield Button("Notifications", on_press=_notifications)
         yield Button("Conversations", on_press=_conversations)
