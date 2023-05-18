@@ -16,8 +16,8 @@ from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, 
 
 def get_timeline_generator(app, user, args):
     # Make sure tag, list and public are not used simultaneously
-    if len([arg for arg in [args.tag, args.list, args.public] if arg]) > 1:
-        raise ConsoleError("Only one of --public, --tag, or --list can be used at one time.")
+    if len([arg for arg in [args.tag, args.list, args.public, args.account_tl] if arg]) > 1:
+        raise ConsoleError("Only one of --public, --tag, --account_tl, or --list can be used at one time.")
 
     if args.local and not (args.public or args.tag):
         raise ConsoleError("The --local option is only valid alongside --public or --tag.")
@@ -35,6 +35,8 @@ def get_timeline_generator(app, user, args):
             return api.anon_tag_timeline_generator(args.instance, args.tag, limit=args.count)
         else:
             return api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
+    elif args.account_tl:
+        return api.account_timeline_generator(app, user, args.account, limit=args.count)
     elif args.list:
         return api.timeline_list_generator(app, user, args.list, limit=args.count)
     else:
@@ -360,49 +362,26 @@ def _do_upload(app, user, file, description, thumbnail):
     return api.upload_media(app, user, file, description=description, thumbnail=thumbnail)
 
 
-def find_account(app, user, account_name):
-    if not account_name:
-        raise ConsoleError("Empty account name given")
-
-    normalized_name = account_name.lstrip("@").lower()
-
-    # Strip @<instance_name> from accounts on the local instance. The `acct`
-    # field in account object contains the qualified name for users of other
-    # instances, but only the username for users of the local instance. This is
-    # required in order to match the account name below.
-    if "@" in normalized_name:
-        [username, instance] = normalized_name.split("@", maxsplit=1)
-        if instance == app.instance:
-            normalized_name = username
-
-    response = api.search(app, user, account_name, type="accounts", resolve=True)
-    for account in response["accounts"]:
-        if account["acct"].lower() == normalized_name:
-            return account
-
-    raise ConsoleError("Account not found")
-
-
 def follow(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.follow(app, user, account['id'])
     print_out("<green>✓ You are now following {}</green>".format(args.account))
 
 
 def unfollow(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.unfollow(app, user, account['id'])
     print_out("<green>✓ You are no longer following {}</green>".format(args.account))
 
 
 def following(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     response = api.following(app, user, account['id'])
     print_acct_list(response)
 
 
 def followers(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     response = api.followers(app, user, account['id'])
     print_acct_list(response)
 
@@ -452,7 +431,7 @@ def list_delete(app, user, args):
 
 def list_add(app, user, args):
     list_id = _get_list_id(app, user, args)
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
 
     try:
         api.add_accounts_to_list(app, user, list_id, [account['id']])
@@ -477,7 +456,7 @@ def list_add(app, user, args):
 
 def list_remove(app, user, args):
     list_id = _get_list_id(app, user, args)
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.remove_accounts_from_list(app, user, list_id, [account['id']])
     print_out(f"<green>✓ Removed account \"{args.account}\"</green>")
 
@@ -490,25 +469,25 @@ def _get_list_id(app, user, args):
 
 
 def mute(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.mute(app, user, account['id'])
     print_out("<green>✓ You have muted {}</green>".format(args.account))
 
 
 def unmute(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.unmute(app, user, account['id'])
     print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
 def block(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.block(app, user, account['id'])
     print_out("<green>✓ You are now blocking {}</green>".format(args.account))
 
 
 def unblock(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     api.unblock(app, user, account['id'])
     print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
@@ -519,7 +498,7 @@ def whoami(app, user, args):
 
 
 def whois(app, user, args):
-    account = find_account(app, user, args.account)
+    account = api.find_account(app, user, args.account)
     print_account(account)
 
 

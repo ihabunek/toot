@@ -238,6 +238,11 @@ common_timeline_args = [
         "type": str,
         "help": "show hashtag timeline (does not require auth)",
     }),
+    (["-at", "--account_tl"], {
+        "action": "store_true",
+        "default": False,
+        "help": "show account timeline (requires account name)",
+    }),
     (["-l", "--local"], {
         "action": "store_true",
         "default": False,
@@ -250,6 +255,10 @@ common_timeline_args = [
     (["--list"], {
         "type": str,
         "help": "show timeline for given list.",
+    }),
+    (["account"], {
+        "nargs": "?",
+        "help": "account name, e.g. 'Gargron@mastodon.social'",
     }),
 ]
 
