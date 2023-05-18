@@ -10,7 +10,31 @@ from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
 from toot.exceptions import AuthenticationError, ConsoleError
 from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
+
 SCOPES = 'read write follow'
+
+
+def find_account(app, user, account_name):
+    if not account_name:
+        raise ConsoleError("Empty account name given")
+
+    normalized_name = account_name.lstrip("@").lower()
+
+    # Strip @<instance_name> from accounts on the local instance. The `acct`
+    # field in account object contains the qualified name for users of other
+    # instances, but only the username for users of the local instance. This is
+    # required in order to match the account name below.
+    if "@" in normalized_name:
+        [username, instance] = normalized_name.split("@", maxsplit=1)
+        if instance == app.instance:
+            normalized_name = username
+
+    response = search(app, user, account_name, type="accounts", resolve=True)
+    for account in response["accounts"]:
+        if account["acct"].lower() == normalized_name:
+            return account
+
+    raise ConsoleError("Account not found")
 
 
 def _account_action(app, user, account, action):
@@ -348,6 +372,13 @@ def conversation_timeline_generator(app, user, limit=20):
     path = "/api/v1/conversations"
     params = {"limit": limit}
     return _conversation_timeline_generator(app, user, path, params)
+
+
+def account_timeline_generator(app: App, user: User, account_name: str, replies=False, reblogs=False, limit=20):
+    account = find_account(app, user, account_name)
+    path = f"/api/v1/accounts/{account['id']}/statuses"
+    params = {"limit": limit, "exclude_replies": not replies, "exclude_reblogs": not reblogs}
+    return _timeline_generator(app, user, path, params)
 
 
 def timeline_list_generator(app, user, list_id, limit=20):
