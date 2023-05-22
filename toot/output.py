@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import textwrap
+import html2text
 
 from typing import List
 from wcwidth import wcswidth
@@ -267,6 +268,18 @@ def print_search_results(results):
 def print_status(status, width):
     reblog = status['reblog']
     content = reblog['content'] if reblog else status['content']
+
+    h2t = html2text.HTML2Text()
+
+    h2t.body_width = width
+    h2t.single_line_break = True
+    h2t.ignore_links = True
+    h2t.wrap_links = True
+    h2t.wrap_list_items = True
+    h2t.wrap_tables = True
+    
+    text_status = h2t.handle(content)
+
     media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
     in_reply_to = status['in_reply_to_id']
     poll = reblog.get('poll') if reblog else status.get('poll')
@@ -289,7 +302,7 @@ def print_status(status, width):
     )
 
     print_out("")
-    print_html(content, width)
+    print_out(highlight_hashtags(text_status))
 
     if media_attachments:
         print_out("\nMedia:")

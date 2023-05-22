@@ -39,6 +39,7 @@ setup(
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
         "urwidgets>=0.1,<0.2",
+        "html2text>=2020.1.16"
     ],
     entry_points={
         'console_scripts': [

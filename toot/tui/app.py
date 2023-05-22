@@ -1,5 +1,6 @@
 import logging
 import urwid
+import html2text
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -7,7 +8,6 @@ from toot import api, config, __version__
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 from toot.commands import find_account
-
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
@@ -15,7 +15,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import parse_content_links, show_media, copy_to_clipboard
+from .utils import parse_content_links, show_media, copy_to_clipboard, parse_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -620,9 +620,24 @@ class TUI(urwid.Frame):
         return self.run_in_thread(_delete, done_callback=_done)
 
     def copy_status(self, status):
-        # TODO: copy a better version of status content
-        # including URLs
-        copy_to_clipboard(self.screen, status.original.data["content"])
+        h2t = html2text.HTML2Text()
+        h2t.mark_code = True
+        h2t.single_line_break = True
+        h2t.body_width = 0  # nowrap
+
+        time = parse_datetime(status.original.data['created_at'])
+        time = time.strftime('%Y-%m-%d %H:%M %Z')
+
+        text_status = (f"[Status URL]({status.original.data['url']})\n\n"
+            + (status.original.author.display_name or "")
+            + "\n"
+            + (status.original.author.account or "")
+            + "\n\n"
+            + h2t.handle(status.original.data["content"])
+            + "\n\n"
+            + f"Created at: {time}")
+
+        copy_to_clipboard(self.screen, text_status)
         self.footer.set_message(f"Status {status.original.id} copied")
 
     # --- Overlay handling -----------------------------------------------------
