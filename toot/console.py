@@ -10,6 +10,7 @@ from itertools import chain
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
+from .debugger import initialize_debugger
 
 VISIBILITY_CHOICES = ["public", "unlisted", "private", "direct"]
 VISIBILITY_CHOICES_STR = ", ".join(f"'{v}'" for v in VISIBILITY_CHOICES)
@@ -178,6 +179,12 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--debugger"], {
+        "help": "launch with vscode debugpy",
+        "action": 'store_true',
+        "default": False,
+    }),
+
 ]
 
 # Arguments added to commands which require authentication
@@ -901,6 +908,9 @@ def run_command(app, user, name, args):
 
 
 def main():
+    if "--debugger" in sys.argv:
+        initialize_debugger()
+
     # Enable debug logging if --debug is in args
     if "--debug" in sys.argv:
         filename = os.getenv("TOOT_LOG_FILE")
