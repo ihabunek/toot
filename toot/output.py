@@ -278,8 +278,8 @@ def print_status(status, width):
     h2t.wrap_list_items = True
     h2t.wrap_tables = True
     h2t.ul_item_mark = "\N{bullet}"
-    
-    text_status = h2t.handle(content)
+
+    text_status = h2t.handle(content).strip()
 
     media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
     in_reply_to = status['in_reply_to_id']
