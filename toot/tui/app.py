@@ -634,7 +634,7 @@ class TUI(urwid.Frame):
             + "\n"
             + (status.original.author.account or "")
             + "\n\n"
-            + h2t.handle(status.original.data["content"])
+            + h2t.handle(status.original.data["content"]).strip()
             + "\n\n"
             + f"Created at: {time}")
 
