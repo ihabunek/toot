@@ -621,14 +621,15 @@ class TUI(urwid.Frame):
 
     def copy_status(self, status):
         h2t = html2text.HTML2Text()
-        h2t.mark_code = True
-        h2t.single_line_break = True
         h2t.body_width = 0  # nowrap
+        h2t.single_line_break = True
+        h2t.ignore_links = True
+        h2t.ul_item_mark = "\N{bullet}"
 
         time = parse_datetime(status.original.data['created_at'])
         time = time.strftime('%Y-%m-%d %H:%M %Z')
 
-        text_status = (f"[Status URL]({status.original.data['url']})\n\n"
+        text_status = (f"{status.original.data['url']}\n\n"
             + (status.original.author.display_name or "")
             + "\n"
             + (status.original.author.account or "")
