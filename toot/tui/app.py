@@ -624,6 +624,7 @@ class TUI(urwid.Frame):
         h2t.body_width = 0  # nowrap
         h2t.single_line_break = True
         h2t.ignore_links = True
+        h2t.unicode_snob = True
         h2t.ul_item_mark = "\N{bullet}"
 
         time = parse_datetime(status.original.data['created_at'])

@@ -277,6 +277,7 @@ def print_status(status, width):
     h2t.wrap_links = True
     h2t.wrap_list_items = True
     h2t.wrap_tables = True
+    h2t.unicode_snob = True
     h2t.ul_item_mark = "\N{bullet}"
 
     text_status = h2t.handle(content).strip()
