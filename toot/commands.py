@@ -9,7 +9,7 @@ from toot.auth import login_interactive, login_browser_interactive, create_app_i
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications, print_tag_list,
-                         print_list_accounts)
+                         print_list_accounts, print_user_list)
 from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
@@ -334,6 +334,12 @@ def logout(app, user, args):
 
 
 def activate(app, user, args):
+    if not args.account:
+        print_out("<green>Specify one of the following user accounts to activate:</green>\n")
+        print_user_list(config.get_user_list())
+        print_out("\n")
+        return
+
     user = config.load_user(args.account, throw=True)
     config.activate_user(user)
     print_out("<green>✓ User {} active</green>".format(config.user_id(user)))
