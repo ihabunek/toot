@@ -7,6 +7,7 @@ from getpass import getpass
 from toot import api, config, DEFAULT_INSTANCE, User, App
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
+from urllib.parse import urlparse
 
 
 def register_app(domain, base_url):
@@ -46,8 +47,20 @@ def get_instance_domain(base_url):
         f"running Mastodon version <yellow>{instance['version']}</yellow>"
     )
 
+    # Pleroma and its forks return an actual URI here, rather than a
+    # domain name like Mastodon. This is contrary to the spec.¯
+    # in that case, parse out the domain and return it.
+
+    parsed_uri = urlparse(instance["uri"])
+
+    if parsed_uri.netloc:
+        # Pleroma, Akkoma, GotoSocial, etc.
+        return parsed_uri.netloc
+    else:
+        # Others including Mastodon servers
+        return parsed_uri.path
+
     # NB: when updating to v2 instance endpoint, this field has been renamed to `domain`
-    return instance["uri"]
 
 
 def create_user(app, access_token):
