@@ -238,6 +238,13 @@ class ContentParser:
 
         attr = self.get_best_anchor_attr(attrib_list)
 
+        if attr == "a":
+            # didn't find an attribute to use
+            # in the child markup, so let's
+            # try the anchor tag's own attributes
+
+            attr = self.get_urwid_attr_name(tag)
+
         # hashtag anchors have a class of "mention hashtag"
         # or "hashtag"
         # we'll return style "class_mention_hashtag"
