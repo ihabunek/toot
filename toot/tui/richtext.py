@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 from urwidgets import TextEmbed, Hyperlink, parse_text
 from urwid.util import decompose_tagmarkup
+from toot.utils import urlencode_url
 
 
 class ContentParser:
@@ -232,6 +233,8 @@ class ContentParser:
         if not attrib_list:
             attrib_list = [tag]
         if href:
+            # urlencode the path and query portions of the URL
+            href = urlencode_url(href)
             # use ASCII ETX (end of record) as a
             # delimiter between the title and the HREF
             title += f"\x03{href}"

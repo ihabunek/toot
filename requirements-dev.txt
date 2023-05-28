@@ -6,4 +6,3 @@ sphinx
 sphinx-autobuild
 twine
 wheel
-debugpy

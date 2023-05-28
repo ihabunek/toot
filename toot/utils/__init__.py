@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unicodedata
 import warnings
+from urllib.parse import urlparse, quote, unquote, urlencode
 
 from bs4 import BeautifulSoup
 from typing import Dict
@@ -79,6 +80,17 @@ def domain_exists(name):
 def assert_domain_exists(domain):
     if not domain_exists(domain):
         raise ConsoleError("Domain {} not found".format(domain))
+
+
+def urlencode_url(url):
+    parsed_url = urlparse(url)
+
+    # unencode before encoding, to prevent double-urlencoding
+    encoded_path = quote(unquote(parsed_url.path), safe="-._~()'!*:@,;+&=/")
+    encoded_query = urlencode({k: quote(unquote(v), safe="-._~()'!*:@,;?/") for k, v in parsed_url.params})
+    encoded_url = parsed_url._replace(path=encoded_path, params=encoded_query).geturl()
+
+    return encoded_url
 
 
 EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"

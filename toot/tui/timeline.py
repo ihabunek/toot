@@ -14,6 +14,7 @@ from .richtext import ContentParser
 from toot.tui import app
 from toot.tui.utils import time_ago
 from toot.utils.language import language_name
+from toot.utils import urlencode_url
 from urwidgets import Hyperlink, TextEmbed, parse_text
 
 logger = logging.getLogger("toot")
@@ -324,7 +325,7 @@ class StatusDetails(urwid.Pile):
         TRANSFORM = {
             # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
             re.compile(r'(https?://[^\s]+)'):
-                lambda g: (len(g[1]), urwid.Filler(Hyperlink(g[1], "link"))),
+                lambda g: (len(g[1]), urwid.Filler(Hyperlink(urlencode_url(g[1]), "link", g[1]))),
         }
         markup_list = []
 
