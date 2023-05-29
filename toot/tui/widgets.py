@@ -1,4 +1,5 @@
 import urwid
+import urwid_readline
 from wcwidth import wcswidth
 
 
@@ -33,7 +34,7 @@ class SelectableColumns(Clickable, urwid.Columns):
 class EditBox(urwid.AttrWrap):
     """Styled edit box."""
     def __init__(self, *args, **kwargs):
-        self.edit = urwid.Edit(*args, **kwargs)
+        self.edit = urwid_readline.ReadlineEdit(*args, **kwargs)
         return super().__init__(self.edit, "editbox", "editbox_focused")
 
 
