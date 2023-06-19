@@ -66,9 +66,7 @@ def colorize(message):
             styles = match.group(2).strip().split()
 
             start, end = match.span()
-            # Replace backslash for escaped <
-            yield message[position:start].replace("\\<", "<")
-
+            yield message[position:start]
             if is_closing:
                 yield STYLES["reset"]
 
@@ -86,7 +84,8 @@ def colorize(message):
 
         if position == 0:
             # Nothing matched, yield the original string
-            yield message
+            # Replace backslash for escaped <
+            yield message.replace("\\<", "<")
         else:
             # Yield the remaining fragment
             yield message[position:]
@@ -97,7 +96,7 @@ def colorize(message):
 
 
 def strip_tags(message):
-    return re.sub(STYLE_TAG_PATTERN, "", message)
+    return re.sub(STYLE_TAG_PATTERN, "", message).replace("\\<", "<")
 
 
 def use_ansi_color():
@@ -316,6 +315,8 @@ def print_html(text, width=80):
             print_out("")
         for line in paragraph:
             for subline in wc_wrap(line, width):
+                # escape any < > in the text
+                subline = subline.replace("<", "\\<")
                 print_out(highlight_hashtags(subline))
         first = False
 
