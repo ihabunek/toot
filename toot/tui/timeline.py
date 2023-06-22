@@ -1,4 +1,5 @@
 import logging
+import math
 import sys
 import urwid
 import webbrowser
@@ -8,19 +9,23 @@ from typing import List, Optional
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, parse_datetime, highlight_keys
-from .widgets import SelectableText, SelectableColumns
+from .widgets import SelectableText, SelectableColumns, EmojiText
 from toot.tui import app
-from toot.tui.utils import time_ago
 from toot.utils import format_content
 from toot.utils.language import language_name
+from toot.tui.utils import time_ago, can_render_pixels, add_corners
+from term_image.image import AutoImage
+from term_image.widget import UrwidImage
 
 logger = logging.getLogger("toot")
+screen = urwid.raw_display.Screen()
 
 
 class Timeline(urwid.Columns):
     """
     Displays a list of statuses to the left, and status details on the right.
     """
+
     signals = [
         "close",  # Close thread
         "focus",  # Focus changed
@@ -41,6 +46,7 @@ class Timeline(urwid.Columns):
         self.is_thread = is_thread
         self.statuses = statuses
         self.status_list = self.build_status_list(statuses, focus=focus)
+        self.can_render_pixels = can_render_pixels()
 
         try:
             focused_status = statuses[focus]
@@ -150,6 +156,7 @@ class Timeline(urwid.Columns):
         self.status_detail_scrollable.set_scrollpos(pos)
 
     def draw_status_details(self, status):
+        UrwidImage.clear_all()
         self.status_details = StatusDetails(self, status)
         widget = self.wrap_status_details(self.status_details)
         self.contents[2] = widget, ("weight", 60, False)
@@ -275,7 +282,7 @@ class Timeline(urwid.Columns):
 
     def get_status_index(self, id):
         # TODO: This is suboptimal, consider a better way
-        for n, status in enumerate(self.statuses):
+        for n, status in enumerate(self.statuses.copy()):
             if status.id == id:
                 return n
         raise ValueError("Status with ID {} not found".format(id))
@@ -299,6 +306,26 @@ class Timeline(urwid.Columns):
         if index == self.status_list.body.focus:
             self.draw_status_details(status)
 
+    def update_status_image(self, status, path, placeholder_index):
+        """Replace image placeholder with image widget and redraw"""
+        index = self.get_status_index(status.id)
+        assert self.statuses[index].id == status.id  # Sanity check
+
+        # get the image and replace the placeholder with a graphics widget
+        if hasattr(self, "images"):
+            img = self.images.get(str(hash(path)))
+        if img:
+            try:
+                render_img = add_corners(img, 10) if self.can_render_pixels else img
+                status.placeholders[placeholder_index]._set_original_widget(
+                    UrwidImage(
+                        AutoImage(render_img),
+                        "<", upscale=True),
+                )  # "<" means left-justify the image
+            except IndexError:
+                # ignore IndexErrors.
+                pass
+
     def remove_status(self, status):
         index = self.get_status_index(status.id)
         assert self.statuses[index].id == status.id  # Sanity check
@@ -311,25 +338,99 @@ class Timeline(urwid.Columns):
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
-        self.followed_tags = timeline.tui.followed_tags
-        self.followed_accounts = timeline.tui.followed_accounts
+        self.timeline = timeline
+        if self.status:
+            self.status.placeholders = []
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
         return super().__init__(widget_list)
 
+    def image_widget(self, path, rows=None, aspect=None) -> urwid.Widget:
+        """Returns a widget capable of displaying the image
+
+        path is required; URL to image
+        rows, if specfied, sets a fixed number of rows. Or:
+        aspect, if specified, calculates rows based on pane width
+        and the aspect ratio provided"""
+
+        if not rows:
+            if not aspect:
+                aspect = 3 / 2  # reasonable default
+
+            screen_rows = screen.get_cols_rows()[1]
+            if self.timeline.can_render_pixels:
+                # for pixel-rendered images,
+                # image rows should be 33% of the available screen
+                # but in no case fewer than 10
+                rows = max(10, math.floor(screen_rows * .33))
+            else:
+                # for cell-rendered images,
+                # use the max available columns
+                # and calculate rows based on the image
+                # aspect ratio
+                cols = math.floor(0.55 * screen.get_cols_rows()[0])
+                rows = math.ceil((cols / 2) / aspect)
+                # if the calculated rows are more than will
+                # fit on one screen, reduce to one screen of rows
+                rows = min(screen_rows - 6, rows)
+
+                # but in no case fewer than 10 rows
+                rows = max(rows, 10)
+
+        img = None
+        if hasattr(self.timeline, "images"):
+            img = self.timeline.images.get(str(hash(path)))
+        if img:
+            render_img = add_corners(img, 10) if self.timeline.can_render_pixels else img
+            return (urwid.BoxAdapter(
+                UrwidImage(
+                    AutoImage(render_img),
+                    "<", upscale=True),
+                rows))
+        else:
+            placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
+            self.status.placeholders.append(placeholder)
+            self.timeline.tui.async_load_image(self.timeline, self.status, path, len(self.status.placeholders) - 1)
+            return placeholder
+
+    def author_header(self, reblogged_by):
+        avatar_url = self.status.original.data["account"]["avatar"]
+
+        if avatar_url:
+            aimg = self.image_widget(avatar_url, 2)
+        else:
+            aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
+
+        account_color = "yellow" \
+            if self.status.original.author.account in self.timeline.tui.followed_accounts else "cyan"
+
+        atxt = urwid.Pile([("pack",
+                            urwid.AttrMap(
+                                EmojiText(self.status.original.author.display_name,
+                                        self.status.original.data["account"]["emojis"]),
+                                "green")),
+                           ("pack", urwid.Text((account_color, self.status.original.author.account)))])
+
+        columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        return columns
+
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
-            text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
-            yield ("pack", urwid.Text(("gray", text)))
+            reblogger_name = (reblogged_by.display_name
+                              if reblogged_by.display_name
+                              else reblogged_by.username)
+            text = f"♺ {reblogger_name} boosted"
+            yield urwid.AttrMap(
+                EmojiText(text,
+                        status.data["account"]["emojis"],
+                        make_gray=True),
+                "gray")
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
 
-        if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
+        yield self.author_header(reblogged_by)
 
-        account_color = "yellow" if status.author.account in self.followed_accounts else "gray"
-        yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
@@ -342,7 +443,7 @@ class StatusDetails(urwid.Pile):
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
             for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
+                yield ("pack", urwid.Text(highlight_hashtags(line, self.timeline.tui.followed_tags)))
 
             media = status.data["media_attachments"]
             if media:
@@ -351,7 +452,25 @@ class StatusDetails(urwid.Pile):
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    if m["url"]:
+                        if m["url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                            yield urwid.Text("")
+                            try:
+                                aspect = float(m["meta"]["original"]["aspect"])
+                            except Exception:
+                                aspect = None
+                            yield self.image_widget(m["url"], aspect=aspect)
+                            yield urwid.Divider()
+                        # video media may include a preview URL, show that as a fallback
+                        elif m["preview_url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                            yield urwid.Text("")
+                            try:
+                                aspect = float(m["meta"]["small"]["aspect"])
+                            except Exception:
+                                aspect = None
+                            yield self.image_widget(m["preview_url"], aspect=aspect)
+                            yield urwid.Divider()
+                        yield ("pack", urwid.Text(("link", m["url"])))
 
             poll = status.original.data.get("poll")
             if poll:
@@ -411,7 +530,17 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
+
         yield urwid.Text(("link", card["url"]))
+
+        if card["image"]:
+            if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
+                yield urwid.Text("")
+                try:
+                    aspect = int(card["width"]) / int(card["height"])
+                except Exception:
+                    aspect = None
+                yield self.image_widget(card["image"], aspect=aspect)
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):
