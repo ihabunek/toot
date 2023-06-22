@@ -15,9 +15,8 @@ from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, 
 
 
 def get_timeline_generator(app, user, args):
-    # Make sure tag, list and public are not used simultaneously
-    if len([arg for arg in [args.tag, args.list, args.public, args.account_tl] if arg]) > 1:
-        raise ConsoleError("Only one of --public, --tag, --account_tl, or --list can be used at one time.")
+    if len([arg for arg in [args.tag, args.list, args.public, args.account] if arg]) > 1:
+        raise ConsoleError("Only one of --public, --tag, --account, or --list can be used at one time.")
 
     if args.local and not (args.public or args.tag):
         raise ConsoleError("The --local option is only valid alongside --public or --tag.")
@@ -35,7 +34,7 @@ def get_timeline_generator(app, user, args):
             return api.anon_tag_timeline_generator(args.instance, args.tag, limit=args.count)
         else:
             return api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
-    elif args.account_tl:
+    elif args.account:
         return api.account_timeline_generator(app, user, args.account, limit=args.count)
     elif args.list:
         return api.timeline_list_generator(app, user, args.list, limit=args.count)
