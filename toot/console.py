@@ -238,6 +238,10 @@ common_timeline_args = [
         "type": str,
         "help": "show hashtag timeline (does not require auth)",
     }),
+    (["-a", "--account"], {
+        "type": str,
+        "help": "show timeline for the given account",
+    }),
     (["-l", "--local"], {
         "action": "store_true",
         "default": False,

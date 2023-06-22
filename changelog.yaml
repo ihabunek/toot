@@ -1,3 +1,9 @@
+0.37.0:
+  date: "TBA"
+  changes:
+    - "Add `timeline --account` option to show the account timeline (thanks Dan Schwarz)"
+    - "TUI: Add personal timeline (thanks Dan Schwarz)"
+
 0.36.0:
   date: 2023-03-09
   changes:
