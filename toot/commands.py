@@ -336,9 +336,8 @@ def logout(app, user, args):
 
 def activate(app, user, args):
     if not args.account:
-        print_out("<green>Specify one of the following user accounts to activate:</green>\n")
+        print_out("Specify one of the following user accounts to activate:\n")
         print_user_list(config.get_user_list())
-        print_out("\n")
         return
 
     user = config.load_user(args.account, throw=True)

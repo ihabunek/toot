@@ -205,7 +205,7 @@ def print_acct_list(accounts):
 
 def print_user_list(users):
     for user in users:
-        print_out(f"<green>{user}</green>")
+        print_out(f"* {user}")
 
 
 def print_tag_list(tags):
