@@ -3,10 +3,14 @@ import re
 import shutil
 import subprocess
 import urwid
+import math
 
 from functools import reduce
 from html.parser import HTMLParser
 from typing import List
+
+from PIL import Image, ImageDraw
+from term_image.image import auto_image_class, GraphicsImage
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
@@ -100,6 +104,42 @@ def parse_content_links(content):
     parser = LinkParser()
     parser.feed(content)
     return parser.links[:]
+
+
+def resize_image(basewidth: int, baseheight: int, img: Image) -> Image:
+    if baseheight and not basewidth:
+        hpercent = baseheight / float(img.size[1])
+        width = math.ceil(img.size[0] * hpercent)
+        img = img.resize((width, baseheight), Image.Resampling.LANCZOS)
+    elif basewidth and not baseheight:
+        wpercent = (basewidth / float(img.size[0]))
+        hsize = int((float(img.size[1]) * float(wpercent)))
+        img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
+    else:
+        img = img.resize((basewidth, baseheight), Image.Resampling.LANCZOS)
+
+    if img.mode != 'P':
+        img = img.convert('RGB')
+    return img
+
+
+def add_corners(img, rad):
+    circle = Image.new('L', (rad * 2, rad * 2), 0)
+    draw = ImageDraw.Draw(circle)
+    draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
+    alpha = Image.new('L', img.size, "white")
+    w, h = img.size
+    alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+    alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+    alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+    alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+    img.putalpha(alpha)
+    return img
+
+
+def can_render_pixels():
+    # subclasses of GraphicsImage render to pixels
+    return issubclass(auto_image_class(), GraphicsImage)
 
 
 def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):

@@ -1,5 +1,6 @@
 import logging
 import urwid
+import requests
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -15,6 +16,10 @@ from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
 from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard
+
+from PIL import Image
+from term_image.widget import UrwidImageScreen
+
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +96,7 @@ class TUI(urwid.Frame):
         loop = urwid.MainLoop(
             tui,
             palette=MONO_PALETTE if args.no_color else PALETTE,
+            screen=UrwidImageScreen(),  # like urwid.raw_display.Screen, but clears Kitty + iTerm2 images on startup
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
             screen=screen,
@@ -648,6 +654,30 @@ class TUI(urwid.Frame):
             timeline.remove_status(status)
 
         return self.run_in_thread(_delete, done_callback=_done)
+
+    def async_load_image(self, timeline, status, path, placeholder_index):
+        def _load():
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+
+            if not hasattr(timeline, "images"):
+                timeline.images = dict()
+            try:
+                img = Image.open(requests.get(path, stream=True).raw)
+                if img.format == 'PNG' and img.mode != 'RGBA':
+                    img = img.convert("RGBA")
+                timeline.images[str(hash(path))] = img
+            except:  # noqa E722
+                pass  # ignore errors; if we can't load an image, just show blank
+
+        def _done(loop):
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+            timeline.update_status_image(status, path, placeholder_index)
+
+        return self.run_in_thread(_load, done_callback=_done)
 
     def copy_status(self, status):
         # TODO: copy a better version of status content
