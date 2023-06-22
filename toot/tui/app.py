@@ -235,8 +235,8 @@ class TUI(urwid.Frame):
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
-
         self.body = timeline
+        timeline.refresh_status_details()
         self.refresh_footer(timeline)
 
     def async_load_timeline(self, is_initial, timeline_name=None, local=None):
