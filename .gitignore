@@ -13,4 +13,5 @@
 /toot-*.tar.gz
 debug.log
 /pyrightconfig.json
+/venv/
 /book
