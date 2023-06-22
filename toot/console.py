@@ -190,6 +190,10 @@ common_auth_args = [
 account_arg = (["account"], {
     "help": "account name, e.g. 'Gargron@mastodon.social'",
 })
+optional_account_arg = (["account"], {
+    "nargs": "?",
+    "help": "account name, e.g. 'Gargron@mastodon.social'",
+})
 
 instance_arg = (["-i", "--instance"], {
     "type": str,
@@ -293,7 +297,7 @@ AUTH_COMMANDS = [
     Command(
         name="activate",
         description="Switch between logged in accounts.",
-        arguments=[account_arg],
+        arguments=[optional_account_arg],
         require_auth=False,
     ),
     Command(
