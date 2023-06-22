@@ -25,9 +25,6 @@ from toot.console import run_command
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
 
-# Host name of a test instance to run integration tests against
-# DO NOT USE PUBLIC INSTANCES!!!
-BASE_URL = os.getenv("TOOT_TEST_BASE_URL")
 
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
@@ -38,17 +35,10 @@ TRUMPET = str(Path(__file__).parent.parent.parent / "trumpet.png")
 ASSETS_DIR = str(Path(__file__).parent.parent / "assets")
 
 
-# ------------------------------------------------------------------------------
-# Fixtures
-# ------------------------------------------------------------------------------
-
-
-def create_app():
-    if not BASE_URL:
-        pytest.skip("Skipping integration tests, BASE_URL not set")
-    instance = api.get_instance(BASE_URL)
-    response = api.create_app(BASE_URL)
-    return App(instance["uri"], BASE_URL, response["client_id"], response["client_secret"])
+def create_app(base_url):
+    instance = api.get_instance(base_url)
+    response = api.create_app(base_url)
+    return App(instance["uri"], base_url, response["client_id"], response["client_secret"])
 
 
 def register_account(app: App):
@@ -67,9 +57,26 @@ def confirm_user(email):
     conn.commit()
 
 
+# ------------------------------------------------------------------------------
+# Fixtures
+# ------------------------------------------------------------------------------
+
+
+# Host name of a test instance to run integration tests against
+# DO NOT USE PUBLIC INSTANCES!!!
 @pytest.fixture(scope="session")
-def app():
-    return create_app()
+def base_url():
+    base_url = os.getenv("TOOT_TEST_BASE_URL")
+
+    if not base_url:
+        pytest.skip("Skipping integration tests, TOOT_TEST_BASE_URL not set")
+
+    return base_url
+
+
+@pytest.fixture(scope="session")
+def app(base_url):
+    return create_app(base_url)
 
 
 @pytest.fixture(scope="session")

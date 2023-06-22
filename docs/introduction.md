@@ -5,7 +5,6 @@ toot - Mastodon CLI client
 
 Toot is a CLI and TUI tool for interacting with Mastodon (and other compatible) instances from the command line.
 
-[![](https://img.shields.io/travis/ihabunek/toot.svg?maxAge=3600&style=flat-square)](https://travis-ci.org/ihabunek/toot)
 [![](https://img.shields.io/badge/author-%40ihabunek-blue.svg?maxAge=3600&style=flat-square)](https://mastodon.social/@ihabunek)
 [![](https://img.shields.io/github/license/ihabunek/toot.svg?maxAge=3600&style=flat-square)](https://opensource.org/licenses/GPL-3.0)
 [![](https://img.shields.io/pypi/v/toot.svg?maxAge=3600&style=flat-square)](https://pypi.python.org/pypi/toot)

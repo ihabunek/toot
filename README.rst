@@ -6,8 +6,6 @@ Toot - a Mastodon CLI client
 
 Toot is a CLI and TUI tool for interacting with Mastodon instances from the command line.
 
-.. image:: https://img.shields.io/travis/ihabunek/toot.svg?maxAge=3600&style=flat-square
-   :target: https://travis-ci.org/ihabunek/toot
 .. image:: https://img.shields.io/badge/author-%40ihabunek-blue.svg?maxAge=3600&style=flat-square
    :target: https://mastodon.social/@ihabunek
 .. image:: https://img.shields.io/github/license/ihabunek/toot.svg?maxAge=3600&style=flat-square

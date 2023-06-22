@@ -120,6 +120,11 @@ def load_user(user_id, throw=False):
         raise ConsoleError("User '{}' not found".format(user_id))
 
 
+def get_user_list():
+    config = load_config()
+    return config['users']
+
+
 def modify_config(f):
     @wraps(f)
     def wrapper(*args, **kwargs):

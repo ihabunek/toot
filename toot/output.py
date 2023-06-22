@@ -203,6 +203,11 @@ def print_acct_list(accounts):
         print_out(f"* <green>@{account['acct']}</green> {account['display_name']}")
 
 
+def print_user_list(users):
+    for user in users:
+        print_out(f"* {user}")
+
+
 def print_tag_list(tags):
     if tags:
         for tag in tags:
