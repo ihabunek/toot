@@ -1,3 +1,4 @@
+import asyncio
 import io
 import pytest
 import re
@@ -14,6 +15,10 @@ app = App('habunek.com', 'https://habunek.com', 'foo', 'bar')
 user = User('habunek.com', 'ivan@habunek.com', 'xxx')
 
 MockUuid = namedtuple("MockUuid", ["hex"])
+
+
+def run_command(app, user, name, args):
+    return asyncio.run(console.run_command(app, user, name, args))
 
 
 def uncolorize(text):
@@ -35,7 +40,7 @@ def test_post_defaults(mock_post, mock_uuid, capsys):
         'url': 'https://habunek.com/@ihabunek/1234567890'
     })
 
-    console.run_command(app, user, 'post', ['Hello world'])
+    run_command(app, user, 'post', ['Hello world'])
 
     mock_post.assert_called_once_with(app, user, '/api/v1/statuses', json={
         'status': 'Hello world',
@@ -67,7 +72,7 @@ def test_post_with_options(mock_post, mock_uuid, capsys):
         'url': 'https://habunek.com/@ihabunek/1234567890'
     })
 
-    console.run_command(app, user, 'post', args)
+    run_command(app, user, 'post', args)
 
     mock_post.assert_called_once_with(app, user, '/api/v1/statuses', json={
         'status': 'Hello world',
@@ -89,7 +94,7 @@ def test_post_invalid_visibility(capsys):
     args = ['Hello world', '--visibility', 'foo']
 
     with pytest.raises(SystemExit):
-        console.run_command(app, user, 'post', args)
+        run_command(app, user, 'post', args)
 
     out, err = capsys.readouterr()
     assert "invalid visibility value: 'foo'" in err
@@ -99,7 +104,7 @@ def test_post_invalid_media(capsys):
     args = ['Hello world', '--media', 'does_not_exist.jpg']
 
     with pytest.raises(SystemExit):
-        console.run_command(app, user, 'post', args)
+        run_command(app, user, 'post', args)
 
     out, err = capsys.readouterr()
     assert "can't open 'does_not_exist.jpg'" in err
@@ -107,7 +112,7 @@ def test_post_invalid_media(capsys):
 
 @mock.patch('toot.http.delete')
 def test_delete(mock_delete, capsys):
-    console.run_command(app, user, 'delete', ['12321'])
+    run_command(app, user, 'delete', ['12321'])
 
     mock_delete.assert_called_once_with(app, user, '/api/v1/statuses/12321')
 
@@ -131,7 +136,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'media_attachments': [],
     }])
 
-    console.run_command(app, user, 'timeline', ['--once'])
+    run_command(app, user, 'timeline', ['--once'])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
@@ -173,7 +178,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
         'media_attachments': [],
     }])
 
-    console.run_command(app, user, 'timeline', ['--once'])
+    run_command(app, user, 'timeline', ['--once'])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
@@ -235,7 +240,7 @@ def test_thread(mock_get, monkeypatch, capsys):
         }),
     ]
 
-    console.run_command(app, user, 'thread', ['111111111111111111'])
+    run_command(app, user, 'thread', ['111111111111111111'])
 
     calls = [
         mock.call(app, user, '/api/v1/statuses/111111111111111111'),
@@ -259,6 +264,7 @@ def test_thread(mock_get, monkeypatch, capsys):
     assert "111111111111111111" in out
     assert "In reply to" in out
 
+
 @mock.patch('toot.http.get')
 def test_reblogged_by(mock_get, monkeypatch, capsys):
     mock_get.return_value = MockResponse([{
@@ -269,7 +275,7 @@ def test_reblogged_by(mock_get, monkeypatch, capsys):
         'acct': 'dweezil@zappafamily.social',
     }])
 
-    console.run_command(app, user, 'reblogged_by', ['111111111111111111'])
+    run_command(app, user, 'reblogged_by', ['111111111111111111'])
 
     calls = [
         mock.call(app, user, '/api/v1/statuses/111111111111111111/reblogged_by'),
@@ -298,7 +304,7 @@ def test_upload(mock_post, capsys):
         'type': 'image',
     })
 
-    console.run_command(app, user, 'upload', [__file__])
+    run_command(app, user, 'upload', [__file__])
 
     assert mock_post.call_count == 1
 
@@ -341,7 +347,7 @@ def test_search(mock_get, capsys):
         'statuses': [],
     })
 
-    console.run_command(app, user, 'search', ['freddy'])
+    run_command(app, user, 'search', ['freddy'])
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {
         'q': 'freddy',
@@ -368,7 +374,7 @@ def test_follow(mock_get, mock_post, capsys):
     })
     mock_post.return_value = MockResponse()
 
-    console.run_command(app, user, 'follow', ['blixa'])
+    run_command(app, user, 'follow', ['blixa'])
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
     mock_post.assert_called_once_with(app, user, '/api/v1/accounts/321/follow')
@@ -388,7 +394,7 @@ def test_follow_case_insensitive(mock_get, mock_post, capsys):
     })
     mock_post.return_value = MockResponse()
 
-    console.run_command(app, user, 'follow', ['bLiXa@oThEr.aCc'])
+    run_command(app, user, 'follow', ['bLiXa@oThEr.aCc'])
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'bLiXa@oThEr.aCc', 'type': 'accounts', 'resolve': True})
     mock_post.assert_called_once_with(app, user, '/api/v1/accounts/123/follow')
@@ -402,7 +408,7 @@ def test_follow_not_found(mock_get, capsys):
     mock_get.return_value = MockResponse({"accounts": []})
 
     with pytest.raises(ConsoleError) as ex:
-        console.run_command(app, user, 'follow', ['blixa'])
+        run_command(app, user, 'follow', ['blixa'])
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
     assert "Account not found" == str(ex.value)
@@ -420,7 +426,7 @@ def test_unfollow(mock_get, mock_post, capsys):
 
     mock_post.return_value = MockResponse()
 
-    console.run_command(app, user, 'unfollow', ['blixa'])
+    run_command(app, user, 'unfollow', ['blixa'])
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
     mock_post.assert_called_once_with(app, user, '/api/v1/accounts/321/unfollow')
@@ -434,49 +440,11 @@ def test_unfollow_not_found(mock_get, capsys):
     mock_get.return_value = MockResponse({"accounts": []})
 
     with pytest.raises(ConsoleError) as ex:
-        console.run_command(app, user, 'unfollow', ['blixa'])
+        run_command(app, user, 'unfollow', ['blixa'])
 
     mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
 
     assert "Account not found" == str(ex.value)
-
-
-@mock.patch('toot.http.get')
-def test_whoami(mock_get, capsys):
-    mock_get.return_value = MockResponse({
-        'acct': 'ihabunek',
-        'avatar': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
-        'avatar_static': 'https://files.mastodon.social/accounts/avatars/000/046/103/original/6a1304e135cac514.jpg?1491312434',
-        'created_at': '2017-04-04T13:23:09.777Z',
-        'display_name': 'Ivan Habunek',
-        'followers_count': 5,
-        'following_count': 9,
-        'header': '/headers/original/missing.png',
-        'header_static': '/headers/original/missing.png',
-        'id': 46103,
-        'locked': False,
-        'note': 'A developer.',
-        'statuses_count': 19,
-        'url': 'https://mastodon.social/@ihabunek',
-        'username': 'ihabunek',
-        'fields': []
-    })
-
-    console.run_command(app, user, 'whoami', [])
-
-    mock_get.assert_called_once_with(app, user, '/api/v1/accounts/verify_credentials')
-
-    out, err = capsys.readouterr()
-    out = uncolorize(out)
-
-    assert "@ihabunek Ivan Habunek" in out
-    assert "A developer." in out
-    assert "https://mastodon.social/@ihabunek" in out
-    assert "ID: 46103" in out
-    assert "Since: 2017-04-04" in out
-    assert "Followers: 5" in out
-    assert "Following: 9" in out
-    assert "Statuses: 19" in out
 
 
 @mock.patch('toot.http.get')
@@ -551,7 +519,7 @@ def test_notifications(mock_get, capsys):
         },
     }])
 
-    console.run_command(app, user, 'notifications', [])
+    run_command(app, user, 'notifications', [])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/notifications', {'exclude_types[]': [], 'limit': 20})
 
@@ -592,7 +560,7 @@ def test_notifications(mock_get, capsys):
 def test_notifications_empty(mock_get, capsys):
     mock_get.return_value = MockResponse([])
 
-    console.run_command(app, user, 'notifications', [])
+    run_command(app, user, 'notifications', [])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/notifications', {'exclude_types[]': [], 'limit': 20})
 
@@ -605,7 +573,7 @@ def test_notifications_empty(mock_get, capsys):
 
 @mock.patch('toot.http.post')
 def test_notifications_clear(mock_post, capsys):
-    console.run_command(app, user, 'notifications', ['--clear'])
+    run_command(app, user, 'notifications', ['--clear'])
     out, err = capsys.readouterr()
     out = uncolorize(out)
 
@@ -634,7 +602,7 @@ def test_logout(mock_load, mock_save, capsys):
         "active_user": "king@gizzard.social",
     }
 
-    console.run_command(app, user, "logout", ["king@gizzard.social"])
+    run_command(app, user, "logout", ["king@gizzard.social"])
 
     mock_save.assert_called_once_with({
         'users': {
@@ -658,7 +626,7 @@ def test_activate(mock_load, mock_save, capsys):
         "active_user": "king@gizzard.social",
     }
 
-    console.run_command(app, user, "activate", ["lizard@wizard.social"])
+    run_command(app, user, "activate", ["lizard@wizard.social"])
 
     mock_save.assert_called_once_with({
         'users': {

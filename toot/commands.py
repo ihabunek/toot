@@ -4,7 +4,7 @@ import platform
 
 from datetime import datetime, timedelta, timezone
 from time import sleep, time
-from toot import api, config, __version__
+from toot import api, aapi, config, __version__, Context
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.entities import Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
@@ -84,22 +84,26 @@ def thread(app, user, args):
     print_timeline(statuses)
 
 
-def post(app, user, args):
+async def post(ctx, args):
     if args.editor and not sys.stdin.isatty():
         raise ConsoleError("Cannot run editor if not in tty.")
 
     if args.media and len(args.media) > 4:
         raise ConsoleError("Cannot attach more than 4 files.")
 
-    media_ids = _upload_media(app, user, args)
+    # TODO!
+    # media_ids = _upload_media(app, user, args)
+    media_ids = []
+
     status_text = _get_status_text(args.text, args.editor, args.media)
     scheduled_at = _get_scheduled_at(args.scheduled_at, args.scheduled_in)
 
     if not status_text and not media_ids:
         raise ConsoleError("You must specify either text or media to post.")
 
-    response = api.post_status(
-        app, user, status_text,
+    response = await aapi.post_status(
+        ctx,
+        status_text,
         visibility=args.visibility,
         media_ids=media_ids,
         sensitive=args.sensitive,
@@ -114,12 +118,14 @@ def post(app, user, args):
         poll_hide_totals=args.poll_hide_totals,
     )
 
-    if "scheduled_at" in response:
-        scheduled_at = parse_datetime(response["scheduled_at"])
+    data = response.json
+
+    if "scheduled_at" in data:
+        scheduled_at = parse_datetime(data["scheduled_at"])
         scheduled_at = datetime.strftime(scheduled_at, "%Y-%m-%d %H:%M:%S%z")
         print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
     else:
-        print_out(f"Toot posted: <green>{response['url']}")
+        print_out(f"Toot posted: <green>{data['url']}")
 
     delete_tmp_status_file()
 
@@ -499,13 +505,17 @@ def unblock(app, user, args):
     print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
 
-def whoami(app, user, args):
-    account = api.verify_credentials(app, user)
-    print_account(account)
+async def whoami(ctx: Context, args):
+    response = await aapi.verify_credentials(ctx)
+    if args.json:
+        print_out(response.body)
+    else:
+        print(response.json)
+        print_account(response.json)
 
 
-def whois(app, user, args):
-    account = api.find_account(app, user, args.account)
+async def whois(ctx: Context, args):
+    account = await aapi.find_account(ctx, args.account)
     print_account(account)
 
 

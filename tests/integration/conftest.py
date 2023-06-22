@@ -13,6 +13,7 @@ export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 ```
 """
 
+import asyncio
 import re
 import os
 import psycopg2
@@ -95,7 +96,7 @@ def run(app, user, capsys):
         # The try/catch duplicates logic from console.main to convert exceptions
         # to printed error messages. TODO: could be deduped
         try:
-            run_command(app, as_user or user, command, params or [])
+            asyncio.run(run_command(app, as_user or user, command, params or []))
         except (ConsoleError, ApiError) as e:
             print_out(str(e))
 
@@ -108,7 +109,7 @@ def run(app, user, capsys):
 @pytest.fixture
 def run_anon(capsys):
     def _run(command, *params):
-        run_command(None, None, command, params or [])
+        asyncio.run(run_command(None, None, command, params or []))
         out, err = capsys.readouterr()
         assert err == ""
         return strip_ansi(out)

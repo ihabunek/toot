@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import re
@@ -7,7 +8,10 @@ import sys
 from argparse import ArgumentParser, FileType, ArgumentTypeError, Action
 from collections import namedtuple
 from itertools import chain
-from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
+
+from aiohttp import ClientSession
+from toot import App, Context, User, config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
+from toot.ahttp import ResponseError, logger_trace_config
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
 
@@ -175,6 +179,11 @@ common_args = [
     }),
     (["--verbose"], {
         "help": "show extra detail in debug log; used with --debug",
+        "action": 'store_true',
+        "default": False,
+    }),
+    (["--json"], {
+        "help": "display output as JSON (experimental, may not work everywhere)",
         "action": 'store_true',
         "default": False,
     }),
@@ -878,7 +887,7 @@ def get_argument_parser(name, command):
     return parser
 
 
-def run_command(app, user, name, args):
+async def run_command(app, user, name, args):
     command = next((c for c in COMMANDS if c.name == name), None)
 
     if not command:
@@ -905,7 +914,25 @@ def run_command(app, user, name, args):
     if not fn:
         raise NotImplementedError("Command '{}' does not have an implementation.".format(name))
 
-    return fn(app, user, parsed_args)
+    if asyncio.iscoroutinefunction(fn):
+        async with make_session(app, user, parsed_args.debug) as session:
+            ctx = Context(app, user, session)
+            return await fn(ctx, parsed_args)
+    else:
+        return fn(app, user, parsed_args)
+
+
+def make_session(app: App, user: User, debug: bool) -> ClientSession:
+    headers = {"User-Agent": f"toot/{__version__}"}
+    if user:
+        headers["Authorization"] = f"Bearer {user.access_token}"
+    trace_configs = [logger_trace_config()] if debug else []
+
+    return ClientSession(
+        headers=headers,
+        base_url=app.base_url,
+        trace_configs=trace_configs,
+    )
 
 
 def main():
@@ -924,9 +951,15 @@ def main():
     user, app = config.get_active_user_app()
 
     try:
-        run_command(app, user, command_name, args)
+        asyncio.run(run_command(app, user, command_name, args))
     except (ConsoleError, ApiError) as e:
         print_err(str(e))
+        sys.exit(1)
+    except ResponseError as e:
+        if e.error:
+            print_err(e.error)
+        if e.description:
+            print_err(e.description)
         sys.exit(1)
     except KeyboardInterrupt:
         pass
