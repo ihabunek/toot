@@ -40,6 +40,47 @@ PALETTE = [
     ('white_bold', 'white,bold', '')
 ]
 
+MONO_PALETTE = [
+    # Components
+    ('button', 'white', 'black'),
+    ('button_focused', 'black', 'white'),
+    ('columns_divider', 'white', 'black'),
+    ('content_warning', 'white', 'black'),
+    ('editbox', 'white', 'black'),
+    ('editbox_focused', 'black', 'white'),
+    ('footer_message', 'white', 'black'),
+    ('footer_message_error', 'white,bold', 'black'),
+    ('footer_status', 'black', 'white'),
+    ('footer_status_bold', 'black,bold', 'white'),
+    ('header', 'black', 'white'),
+    ('header_bold', 'black,bold', 'white'),
+    ('intro_bigtext', 'white', 'black'),
+    ('intro_smalltext', 'white', 'black'),
+    ('poll_bar', 'black', 'white'),
+
+    # Functional
+    ('hashtag', 'white,bold', 'black'),
+    ('followed_hashtag', 'white,bold', 'black'),
+    ('link', ',italics', 'black'),
+    ('link_focused', ',bold,italics', 'black'),
+
+    # Colors
+    ('bold', ',bold', 'black'),
+    ('blue', 'white', 'black'),
+    ('blue_bold', 'white, bold', 'black'),
+    ('blue_selected', 'white, bold', 'black'),
+    ('cyan', 'white', 'black'),
+    ('cyan_bold', 'white,bold', 'black'),
+    ('gray', 'white', 'black'),
+    ('green', 'white', 'black'),
+    ('green_selected', 'black', 'white'),
+    ('yellow', 'white', 'black'),
+    ('yellow_bold', 'white,bold', 'black'),
+    ('red', 'white', 'black'),
+    ('warning', 'white,bold', 'black'),
+    ('white_bold', 'white,bold', 'black')
+]
+
 VISIBILITY_OPTIONS = [
     ("public", "Public", "Post to public timelines"),
     ("unlisted", "Unlisted", "Do not post to public timelines"),
