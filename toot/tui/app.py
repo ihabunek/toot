@@ -7,7 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 from toot import api, config, __version__
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
-from toot.commands import find_account
+
+
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
@@ -235,8 +236,8 @@ class TUI(urwid.Frame):
 
         self.connect_default_timeline_signals(timeline)
         urwid.connect_signal(timeline, "close", _close)
-
         self.body = timeline
+        timeline.refresh_status_details()
         self.refresh_footer(timeline)
 
     def async_load_timeline(self, is_initial, timeline_name=None, local=None):
@@ -304,7 +305,7 @@ class TUI(urwid.Frame):
         def _load_accounts():
             try:
                 acct = f'@{self.user.username}@{self.user.instance}'
-                self.account = find_account(self.app, self.user, acct)
+                self.account = api.find_account(self.app, self.user, acct)
                 return api.following(self.app, self.user, self.account["id"])
             except ApiError:
                 # not supported by all Mastodon servers so fail silently if necessary
@@ -394,6 +395,8 @@ class TUI(urwid.Frame):
             lambda x, local: self.goto_notifications())
         urwid.connect_signal(menu, "conversation_timeline",
             lambda x, local: self.goto_conversations())
+        urwid.connect_signal(menu, "personal_timeline",
+            lambda x, local: self.goto_personal_timeline())
         urwid.connect_signal(menu, "hashtag_timeline",
             lambda x, tag, local: self.goto_tag_timeline(tag, local=local))
         urwid.connect_signal(menu, "list_timeline",
@@ -401,7 +404,7 @@ class TUI(urwid.Frame):
 
         self.open_overlay(menu, title="Go to", options=dict(
             align="center", width=("relative", 60),
-            valign="middle", height=17 + len(user_timelines) + len(user_lists),
+            valign="middle", height=18 + len(user_timelines) + len(user_lists),
         ))
 
     def show_help(self):
@@ -453,6 +456,14 @@ class TUI(urwid.Frame):
         promise = self.async_load_timeline(
             is_initial=True, timeline_name="#{}".format(tag), local=local,
         )
+        promise.add_done_callback(lambda *args: self.close_overlay())
+
+    def goto_personal_timeline(self):
+        account_name = f"{self.user.username}@{self.user.instance}"
+
+        self.timeline_generator = api.account_timeline_generator(
+            self.app, self.user, account_name, reblogs=True, limit=40)
+        promise = self.async_load_timeline(is_initial=True, timeline_name=f"personal {account_name}")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_list_timeline(self, list_item):
