@@ -40,7 +40,7 @@ setup(
         "urwid>=2.0.0,<3.0",
         "tomlkit>=0.10.0,<1.0"
         "pillow>=9.5.0",
-        "term-image==0.6.1",
+        "term-image==0.7.0",
     ],
     entry_points={
         'console_scripts': [
