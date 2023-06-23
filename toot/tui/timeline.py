@@ -145,6 +145,7 @@ class Timeline(urwid.Columns):
     def modified(self):
         """Called when the list focus switches to a new status"""
         status, index, count = self.get_focused_status_with_counts()
+        self.tui.screen.clear_images()
         self.draw_status_details(status)
         self._emit("focus")
 
@@ -156,7 +157,6 @@ class Timeline(urwid.Columns):
         self.status_detail_scrollable.set_scrollpos(pos)
 
     def draw_status_details(self, status):
-        UrwidImage.clear_all()
         self.status_details = StatusDetails(self, status)
         widget = self.wrap_status_details(self.status_details)
         self.contents[2] = widget, ("weight", 60, False)

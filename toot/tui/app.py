@@ -116,7 +116,7 @@ class TUI(urwid.Frame):
         self.overlay = None
         self.exception = None
         self.can_translate = False
-        self.screen = urwid.raw_display.Screen()
+        self.screen = UrwidImageScreen()
         self.account = None
 
         super().__init__(self.body, header=self.header, footer=self.footer)
