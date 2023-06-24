@@ -8,7 +8,7 @@ from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer
-from .constants import PALETTE
+from .constants import PALETTE, MONO_PALETTE
 from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
@@ -78,9 +78,10 @@ class TUI(urwid.Frame):
         """Factory method, sets up TUI and an event loop."""
 
         tui = cls(app, user, args)
+
         loop = urwid.MainLoop(
             tui,
-            palette=PALETTE,
+            palette=MONO_PALETTE if args.no_color else PALETTE,
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
         )
@@ -98,6 +99,12 @@ class TUI(urwid.Frame):
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
 
+        self.screen = urwid.raw_display.Screen()
+
+        if args.no_color:
+            self.screen.set_terminal_properties(1)
+            self.screen.reset_default_terminal_palette()
+
         # Show intro screen while toots are being loaded
         self.body = self.build_intro()
         self.header = Header(app, user)
@@ -111,7 +118,6 @@ class TUI(urwid.Frame):
         self.overlay = None
         self.exception = None
         self.can_translate = False
-        self.screen = urwid.raw_display.Screen()
         self.account = None
 
         super().__init__(self.body, header=self.header, footer=self.footer)
