@@ -1,13 +1,14 @@
 import base64
-import urwid
-from html.parser import HTMLParser
 import math
 import os
 import re
 import shutil
 import subprocess
+import urwid
 
 from datetime import datetime, timezone
+from functools import reduce
+from html.parser import HTMLParser
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 SECOND = 1
@@ -163,3 +164,26 @@ def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):
 
     screen.write(f"\033]52;c;{b64_text}\a")
     screen.flush()
+
+
+def get_max_toot_chars(instance, default=500):
+    # Mastodon
+    # https://docs.joinmastodon.org/entities/Instance/#max_characters
+    max_toot_chars = deep_get(instance, ["configuration", "statuses", "max_characters"])
+    if isinstance(max_toot_chars, int):
+        return max_toot_chars
+
+    # Pleroma
+    max_toot_chars = instance.get("max_toot_chars")
+    if isinstance(max_toot_chars, int):
+        return max_toot_chars
+
+    return default
+
+
+def deep_get(adict: dict, path: list[str], default=None):
+    return reduce(
+        lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
+        path,
+        adict
+    )

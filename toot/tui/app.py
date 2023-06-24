@@ -14,11 +14,14 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import parse_content_links, show_media, copy_to_clipboard
+from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard
 
 logger = logging.getLogger(__name__)
 
 urwid.set_encoding('UTF-8')
+
+
+DEFAULT_MAX_TOOT_CHARS = 500
 
 
 class Header(urwid.WidgetWrap):
@@ -112,7 +115,7 @@ class TUI(urwid.Frame):
         self.footer.set_status("Loading...")
 
         # Default max status length, updated on startup
-        self.max_toot_chars = 500
+        self.max_toot_chars = DEFAULT_MAX_TOOT_CHARS
 
         self.timeline = None
         self.overlay = None
@@ -289,8 +292,8 @@ class TUI(urwid.Frame):
             return api.get_instance(self.app.base_url)
 
         def _done(instance):
-            if "max_toot_chars" in instance:
-                self.max_toot_chars = instance["max_toot_chars"]
+            self.max_toot_chars = get_max_toot_chars(instance, DEFAULT_MAX_TOOT_CHARS)
+            logger.info(f"Max toot chars set to: {self.max_toot_chars}")
 
             if "translation" in instance:
                 # instance is advertising translation service
