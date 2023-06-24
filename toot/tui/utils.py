@@ -35,7 +35,7 @@ def parse_datetime(value):
     return dttm.astimezone()
 
 
-def time_ago(value: datetime) -> datetime:
+def time_ago(value: datetime) -> str:
     now = datetime.now().astimezone()
     delta = now.timestamp() - value.timestamp()
 
