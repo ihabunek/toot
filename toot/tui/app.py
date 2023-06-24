@@ -541,11 +541,9 @@ class TUI(urwid.Frame):
 
     def async_toggle_favourite(self, timeline, status):
         def _favourite():
-            logger.info("Favouriting {}".format(status))
             api.favourite(self.app, self.user, status.id)
 
         def _unfavourite():
-            logger.info("Unfavouriting {}".format(status))
             api.unfavourite(self.app, self.user, status.id)
 
         def _done(loop):
@@ -562,11 +560,9 @@ class TUI(urwid.Frame):
 
     def async_toggle_reblog(self, timeline, status):
         def _reblog():
-            logger.info("Reblogging {}".format(status))
             api.reblog(self.app, self.user, status.original.id, visibility=get_default_visibility())
 
         def _unreblog():
-            logger.info("Unreblogging {}".format(status))
             api.unreblog(self.app, self.user, status.original.id)
 
         def _done(loop):
@@ -590,7 +586,6 @@ class TUI(urwid.Frame):
 
     def async_translate(self, timeline, status):
         def _translate():
-            logger.info("Translating {}".format(status))
             self.footer.set_message("Translating status {}".format(status.original.id))
 
             try:
@@ -623,11 +618,9 @@ class TUI(urwid.Frame):
 
     def async_toggle_bookmark(self, timeline, status):
         def _bookmark():
-            logger.info("Bookmarking {}".format(status))
             api.bookmark(self.app, self.user, status.id)
 
         def _unbookmark():
-            logger.info("Unbookmarking {}".format(status))
             api.unbookmark(self.app, self.user, status.id)
 
         def _done(loop):
