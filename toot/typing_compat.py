@@ -38,8 +38,8 @@ __description__ = 'Python typing compatibility library'
 
 try:
     # Python >=3.8 should have these functions already
-    from typing import get_args as _get_args
-    from typing import get_origin as _get_origin
+    from typing import get_args as _get_args      # novermin
+    from typing import get_origin as _get_origin  # novermin
 except ImportError:
     if hasattr(typing, '_GenericAlias'):  # Python 3.7
 
@@ -85,8 +85,8 @@ except ImportError:
                     while tp.__origin__ is not None:
                         tp = tp.__origin__
                     return _resolve_via_mro(tp)
-            elif hasattr(typing, '_Literal') and isinstance(tp, typing._Literal):
-                return typing.Literal
+            elif hasattr(typing, '_Literal') and isinstance(tp, typing._Literal):  # novermin
+                return typing.Literal  # novermin
 
         def _normalize_arg(args):
             if isinstance(args, tuple) and len(args) > 1:
