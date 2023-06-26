@@ -352,7 +352,7 @@ def print_poll(poll: Poll):
     print_out(poll_footer)
 
 
-def print_timeline(items: list[Status], width=100):
+def print_timeline(items: List[Status], width=100):
     print_out("─" * width)
     for item in items:
         print_status(item, width)
@@ -379,7 +379,7 @@ def print_notification(notification: Notification, width=100):
         print_status(notification.status, width)
 
 
-def print_notifications(notifications: list[Notification], width=100):
+def print_notifications(notifications: List[Notification], width=100):
     for notification in notifications:
         print_notification(notification)
     print_out("─" * width)
