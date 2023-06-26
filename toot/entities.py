@@ -277,6 +277,85 @@ class Notification:
     report: Optional[Report]
 
 
+@dataclass
+class InstanceUrls:
+    streaming_api: str
+
+
+@dataclass
+class InstanceStats:
+    user_count: int
+    status_count: int
+    domain_count: int
+
+
+@dataclass
+class InstanceConfigurationStatuses:
+    max_characters: int
+    max_media_attachments: int
+    characters_reserved_per_url: int
+
+
+@dataclass
+class InstanceConfigurationMediaAttachments:
+    supported_mime_types: List[str]
+    image_size_limit: int
+    image_matrix_limit: int
+    video_size_limit: int
+    video_frame_rate_limit: int
+    video_matrix_limit: int
+
+
+@dataclass
+class InstanceConfigurationPolls:
+    max_options: int
+    max_characters_per_option: int
+    min_expiration: int
+    max_expiration: int
+
+
+@dataclass
+class InstanceConfiguration:
+    """
+    https://docs.joinmastodon.org/entities/V1_Instance/#configuration
+    """
+    statuses: InstanceConfigurationStatuses
+    media_attachments: InstanceConfigurationMediaAttachments
+    polls: InstanceConfigurationPolls
+
+
+@dataclass
+class Rule:
+    """
+    https://docs.joinmastodon.org/entities/Rule/
+    """
+    id: str
+    text: str
+
+
+@dataclass
+class Instance:
+    """
+    https://docs.joinmastodon.org/entities/V1_Instance/
+    """
+    uri: str
+    title: str
+    short_description: str
+    description: str
+    email: str
+    version: str
+    urls: InstanceUrls
+    stats: InstanceStats
+    thumbnail: Optional[str]
+    languages: List[str]
+    registrations: bool
+    approval_required: bool
+    invites_enabled: bool
+    configuration: InstanceConfiguration
+    contact_account: Account
+    rules: List[Rule]
+
+
 # Generic data class instance
 T = TypeVar("T")
 
