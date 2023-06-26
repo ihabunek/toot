@@ -410,7 +410,7 @@ def _prune_optional(field_type):
     """For `Optional[<type>]` returns the encapsulated `<type>`."""
     if get_origin(field_type) == Union:
         args = get_args(field_type)
-        if len(args) == 2 and args[1] == type(None):
+        if len(args) == 2 and args[1] == type(None):  # noqa
             return args[0]
 
     return field_type
