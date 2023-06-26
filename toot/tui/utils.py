@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+from typing import List
 import urwid
 
 from datetime import datetime, timezone
@@ -181,7 +182,7 @@ def get_max_toot_chars(instance, default=500):
     return default
 
 
-def deep_get(adict: dict, path: list[str], default=None):
+def deep_get(adict: dict, path: List[str], default=None):
     return reduce(
         lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
         path,
