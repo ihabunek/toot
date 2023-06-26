@@ -3,12 +3,11 @@ import re
 import sys
 import textwrap
 
-from typing import List
-from wcwidth import wcswidth
-
-from toot.tui.utils import parse_datetime
+from toot.entities import Instance, Notification, Poll, Status
 from toot.utils import get_text, parse_html
 from toot.wcstring import wc_wrap
+from typing import List
+from wcwidth import wcswidth
 
 
 STYLES = {
@@ -136,25 +135,23 @@ def print_err(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def print_instance(instance):
-    print_out(f"<green>{instance['title']}</green>")
-    print_out(f"<blue>{instance['uri']}</blue>")
-    print_out(f"running Mastodon {instance['version']}")
+def print_instance(instance: Instance):
+    print_out(f"<green>{instance.title}</green>")
+    print_out(f"<blue>{instance.uri}</blue>")
+    print_out(f"running Mastodon {instance.version}")
     print_out()
 
-    description = instance.get("description")
-    if description:
-        for paragraph in re.split(r"[\r\n]+", description.strip()):
+    if instance.description:
+        for paragraph in re.split(r"[\r\n]+", instance.description.strip()):
             paragraph = get_text(paragraph)
             print_out(textwrap.fill(paragraph, width=80))
             print_out()
 
-    rules = instance.get("rules")
-    if rules:
+    if instance.rules:
         print_out("Rules:")
-        for ordinal, rule in enumerate(rules):
+        for ordinal, rule in enumerate(instance.rules):
             ordinal = f"{ordinal + 1}."
-            lines = textwrap.wrap(rule["text"], 80 - len(ordinal))
+            lines = textwrap.wrap(rule.text, 80 - len(ordinal))
             first = True
             for line in lines:
                 if first:
@@ -162,6 +159,11 @@ def print_instance(instance):
                     first = False
                 else:
                     print_out(f"{' ' * len(ordinal)} {line}")
+        print_out()
+
+    contact = instance.contact_account
+    if contact:
+        print_out(f"Contact: {contact.display_name} @{contact.acct}")
 
 
 def print_account(account):
@@ -269,20 +271,18 @@ def print_search_results(results):
         print_out("<yellow>Nothing found</yellow>")
 
 
-def print_status(status, width):
-    reblog = status['reblog']
-    content = reblog['content'] if reblog else status['content']
-    media_attachments = reblog['media_attachments'] if reblog else status['media_attachments']
-    in_reply_to = status['in_reply_to_id']
-    poll = reblog.get('poll') if reblog else status.get('poll')
+def print_status(status: Status, width: int):
+    status_id = status.id
+    in_reply_to_id = status.in_reply_to_id
+    reblogged_by = status.account if status.reblog else None
 
-    time = parse_datetime(status['created_at'])
-    time = time.strftime('%Y-%m-%d %H:%M %Z')
+    status = status.original
 
-    username = "@" + status['account']['acct']
+    time = status.created_at.strftime('%Y-%m-%d %H:%M %Z')
+    username = "@" + status.account.acct
     spacing = width - wcswidth(username) - wcswidth(time) - 2
 
-    display_name = status['account']['display_name']
+    display_name = status.account.display_name
     if display_name:
         spacing -= wcswidth(display_name) + 1
 
@@ -294,23 +294,24 @@ def print_status(status, width):
     )
 
     print_out("")
-    print_html(content, width)
+    print_html(status.content, width)
 
-    if media_attachments:
+    if status.media_attachments:
         print_out("\nMedia:")
-        for attachment in media_attachments:
-            url = attachment["url"]
+        for attachment in status.media_attachments:
+            url = attachment.url
             for line in wc_wrap(url, width):
                 print_out(line)
 
-    if poll:
-        print_poll(poll)
+    if status.poll:
+        print_poll(status.poll)
 
     print_out()
+
     print_out(
-        f"ID <yellow>{status['id']}</yellow> ",
-        f"↲ In reply to <yellow>{in_reply_to}</yellow> " if in_reply_to else "",
-        f"↻ Reblogged <blue>@{reblog['account']['acct']}</blue> " if reblog else "",
+        f"ID <yellow>{status_id}</yellow> ",
+        f"↲ In reply to <yellow>{in_reply_to_id}</yellow> " if in_reply_to_id else "",
+        f"↻ <blue>@{reblogged_by.acct}</blue> boosted " if reblogged_by else "",
     )
 
 
@@ -325,33 +326,33 @@ def print_html(text, width=80):
         first = False
 
 
-def print_poll(poll):
+def print_poll(poll: Poll):
     print_out()
-    for idx, option in enumerate(poll["options"]):
-        perc = (round(100 * option["votes_count"] / poll["votes_count"])
-            if poll["votes_count"] else 0)
+    for idx, option in enumerate(poll.options):
+        perc = (round(100 * option.votes_count / poll.votes_count)
+            if poll.votes_count and option.votes_count is not None else 0)
 
-        if poll["voted"] and poll["own_votes"] and idx in poll["own_votes"]:
+        if poll.voted and poll.own_votes and idx in poll.own_votes:
             voted_for = " <yellow>✓</yellow>"
         else:
             voted_for = ""
 
-        print_out(f'{option["title"]} - {perc}% {voted_for}')
+        print_out(f'{option.title} - {perc}% {voted_for}')
 
-    poll_footer = f'Poll · {poll["votes_count"]} votes'
+    poll_footer = f'Poll · {poll.votes_count} votes'
 
-    if poll["expired"]:
+    if poll.expired:
         poll_footer += " · Closed"
 
-    if poll["expires_at"]:
-        expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
+    if poll.expires_at:
+        expires_at = poll.expires_at.strftime("%Y-%m-%d %H:%M")
         poll_footer += f" · Closes on {expires_at}"
 
     print_out()
     print_out(poll_footer)
 
 
-def print_timeline(items, width=100):
+def print_timeline(items: list[Status], width=100):
     print_out("─" * width)
     for item in items:
         print_status(item, width)
@@ -366,20 +367,19 @@ notification_msgs = {
 }
 
 
-def print_notification(notification, width=100):
-    account = "{display_name} @{acct}".format(**notification["account"])
-    msg = notification_msgs.get(notification["type"])
+def print_notification(notification: Notification, width=100):
+    account = f"{notification.account.display_name} @{notification.account.acct}"
+    msg = notification_msgs.get(notification.type)
     if msg is None:
         return
 
     print_out("─" * width)
     print_out(msg.format(account=account))
-    status = notification.get("status")
-    if status is not None:
-        print_status(status, width)
+    if notification.status:
+        print_status(notification.status, width)
 
 
-def print_notifications(notifications, width=100):
+def print_notifications(notifications: list[Notification], width=100):
     for notification in notifications:
         print_notification(notification)
     print_out("─" * width)

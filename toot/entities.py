@@ -352,7 +352,7 @@ class Instance:
     approval_required: bool
     invites_enabled: bool
     configuration: InstanceConfiguration
-    contact_account: Account
+    contact_account: Optional[Account]
     rules: List[Rule]
 
 
