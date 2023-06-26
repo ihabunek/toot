@@ -247,6 +247,36 @@ class Status:
         return self.reblog or self
 
 
+@dataclass
+class Report:
+    """
+    https://docs.joinmastodon.org/entities/Report/
+    """
+    id: str
+    action_taken: bool
+    action_taken_at: Optional[datetime]
+    category: str
+    comment: str
+    forwarded: bool
+    created_at: datetime
+    status_ids: Optional[List[str]]
+    rule_ids: Optional[List[str]]
+    target_account: Account
+
+
+@dataclass
+class Notification:
+    """
+    https://docs.joinmastodon.org/entities/Notification/
+    """
+    id: str
+    type: str
+    created_at: datetime
+    account: Account
+    status: Optional[Status]
+    report: Optional[Report]
+
+
 # Generic data class instance
 T = TypeVar("T")
 
