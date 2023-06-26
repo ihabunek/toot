@@ -5,14 +5,13 @@ import os
 import random
 import sys
 
-
 from functools import wraps
-from typing import List, NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple
 
 from toot import App, User, __version__, config
 from toot.asynch import api
 from toot.asynch.entities import Account, InstanceV2, Status, from_dict, from_response
-from toot.output import echo, print_out
+from toot.output import print_out
 from toot.utils import EOF_KEY, editor_input, multiline_input
 
 # Allow overriding options using environment variables
@@ -148,12 +147,18 @@ async def timeline(ctx):
     help="ISO 639-2 language code of the toot, to skip automatic detection",
     callback=validate_language
 )
+@click.option(
+    "-v", "--visibility",
+    type=click.Choice(["public", "unlisted", "private", "direct"]),
+    default="public",
+)
 def post(
     text: str,
     editor: str,
     media: Tuple[str, ...],
     description: Tuple[str, ...],
     language: Optional[str],
+    visibility: str,
 ):
     if editor and not sys.stdin.isatty():
         raise click.UsageError("Cannot run editor if not in tty.")
@@ -161,14 +166,12 @@ def post(
     if media and len(media) > 4:
         raise click.UsageError("Cannot attach more than 4 files.")
 
-    echo("unstyled <red>posting</red> <dim>dim</dim> <underline><red>unde</red><blue>rline</blue></underline> <b>bold</b> unstlyed")
-    echo("<bold>Bold<italic> bold and italic </bold>italic</italic>")
-    echo("<bold red underline>foo</>bar")
-    echo("\\<bold red underline>foo</>bar")
-    echo("plain <blue>blue <underline> blue <green>and</green> underline </underline> blue </blue> plain")
-    # echo("Done")
     # media_ids = _upload_media(app, user, args)
-    # status_text = _get_status_text(text, editor)
+
+    status_text = _get_status_text(text, editor)
+
+    print(status_text)
+    print(visibility)
 
     # if not status_text and not media_ids:
     #     raise click.UsageError("You must specify either text or media to post.")
