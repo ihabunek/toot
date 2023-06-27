@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from time import sleep, time
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
+from toot.entities import Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_timeline, print_notifications, print_tag_list,
@@ -56,7 +57,8 @@ def timeline(app, user, args, generator=None):
         if args.reverse:
             items = reversed(items)
 
-        print_timeline(items)
+        statuses = [from_dict(Status, item) for item in items]
+        print_timeline(statuses)
 
         if args.once or not sys.stdout.isatty():
             break
@@ -78,7 +80,8 @@ def thread(app, user, args):
     for item in context['descendants']:
         thread.append(item)
 
-    print_timeline(thread)
+    statuses = [from_dict(Status, s) for s in thread]
+    print_timeline(statuses)
 
 
 def post(app, user, args):
@@ -515,6 +518,7 @@ def instance(app, user, args):
 
     try:
         instance = api.get_instance(base_url)
+        instance = from_dict(Instance, instance)
         print_instance(instance)
     except ApiError:
         raise ConsoleError(
@@ -542,6 +546,7 @@ def notifications(app, user, args):
     if args.reverse:
         notifications = reversed(notifications)
 
+    notifications = [from_dict(Notification, n) for n in notifications]
     print_notifications(notifications)
 
 
