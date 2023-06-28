@@ -1,8 +1,11 @@
+import os
+import sys
+
 from functools import lru_cache
 from os.path import exists, join
 from tomlkit import parse
 from toot.config import get_config_dir
-from typing import Type
+from typing import Optional, Type
 
 
 TOOT_SETTINGS_FILE_NAME = "settings.toml"
@@ -51,3 +54,18 @@ def _get_setting(dct, keys, type: Type, default=None):
         return _get_setting(dct[key], keys[1:], type, default)
 
     return default
+
+
+def get_debug() -> bool:
+    if "--debug" in sys.argv:
+        return True
+
+    return get_setting("common.debug", bool, False)
+
+
+def get_debug_file() -> Optional[str]:
+    from_env = os.getenv("TOOT_LOG_FILE")
+    if from_env:
+        return from_env
+
+    return get_setting("common.debug_file", str)
