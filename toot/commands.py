@@ -9,7 +9,7 @@ from toot.auth import login_interactive, login_browser_interactive, create_app_i
 from toot.entities import Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_timeline, print_notifications, print_tag_list,
+                         print_search_results, print_status, print_timeline, print_notifications, print_tag_list,
                          print_list_accounts, print_user_list)
 from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
@@ -66,6 +66,12 @@ def timeline(app, user, args, generator=None):
         char = input("\nContinue? [Y/n] ")
         if char.lower() == "n":
             break
+
+
+def status(app, user, args):
+    status = api.single_status(app, user, args.status_id)
+    status = from_dict(Status, status)
+    print_status(status)
 
 
 def thread(app, user, args):

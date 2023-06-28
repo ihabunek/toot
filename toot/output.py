@@ -271,7 +271,7 @@ def print_search_results(results):
         print_out("<yellow>Nothing found</yellow>")
 
 
-def print_status(status: Status, width: int):
+def print_status(status: Status, width: int = 80):
     status_id = status.id
     in_reply_to_id = status.in_reply_to_id
     reblogged_by = status.account if status.reblog else None

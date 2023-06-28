@@ -460,6 +460,16 @@ READ_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="status",
+        description="Show a single status",
+        arguments=[
+            (["status_id"], {
+                "help": "ID of the status to show.",
+            }),
+        ],
+        require_auth=True,
+    ),
+    Command(
         name="timeline",
         description="Show recent items in a timeline (home by default)",
         arguments=timeline_args,
