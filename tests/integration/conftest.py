@@ -8,7 +8,7 @@ To enable integration tests, export the following environment variables to match
 your test server and database:
 
 ```
-export TOOT_TEST_HOSTNAME="localhost:3000"
+export TOOT_TEST_BASE_URL="localhost:3000"
 export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 ```
 """
