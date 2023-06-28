@@ -127,11 +127,9 @@ def use_ansi_color():
     return True
 
 
-QUIET = "--quiet" in sys.argv
-
-
 def print_out(*args, **kwargs):
-    if not QUIET:
+    from toot import settings
+    if not settings.get_quiet():
         args = [colorize(a) if use_ansi_color() else strip_tags(a) for a in args]
         print(*args, **kwargs)
 

@@ -69,3 +69,11 @@ def get_debug_file() -> Optional[str]:
         return from_env
 
     return get_setting("common.debug_file", str)
+
+
+@lru_cache(maxsize=None)
+def get_quiet():
+    if "--quiet" in sys.argv:
+        return True
+
+    return get_setting("common.quiet", str, False)
