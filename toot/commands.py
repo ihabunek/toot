@@ -1,4 +1,5 @@
 
+import asyncio
 import sys
 import platform
 
@@ -68,20 +69,28 @@ def timeline(app, user, args, generator=None):
             break
 
 
-def thread(app, user, args):
-    toot = api.single_status(app, user, args.status_id)
-    context = api.context(app, user, args.status_id)
-    thread = []
-    for item in context['ancestors']:
-        thread.append(item)
+async def thread(ctx: Context, args):
+    if args.json:
+        context_response = await aapi.get_status_context(ctx, args.status_id)
+        print_out(context_response.body)
+    else:
+        status_response, context_response = await asyncio.gather(
+            aapi.get_status(ctx, args.status_id),
+            aapi.get_status_context(ctx, args.status_id),
+        )
+        status = status_response.json
+        context = context_response.json
+        thread = []
+        for item in context["ancestors"]:
+            thread.append(item)
 
-    thread.append(toot)
+        thread.append(status)
 
-    for item in context['descendants']:
-        thread.append(item)
+        for item in context["descendants"]:
+            thread.append(item)
 
-    statuses = [from_dict(Status, s) for s in thread]
-    print_timeline(statuses)
+        statuses = [from_dict(Status, s) for s in thread]
+        print_timeline(statuses)
 
 
 async def post(ctx, args):

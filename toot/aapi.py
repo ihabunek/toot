@@ -116,3 +116,13 @@ async def post_status(
         }
 
     return await request(ctx, "POST", "/api/v1/statuses", json=data, headers=headers)
+
+
+async def get_status(ctx: Context, status_id) -> Response:
+    url = f"/api/v1/statuses/{status_id}"
+    return await request(ctx, "GET", url)
+
+
+async def get_status_context(ctx: Context, status_id) -> Response:
+    url = f"/api/v1/statuses/{status_id}/context"
+    return await request(ctx, "GET", url)
