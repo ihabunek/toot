@@ -4,7 +4,7 @@ import sys
 from functools import lru_cache
 from os.path import exists, join
 from tomlkit import parse
-from toot.config import get_config_dir
+from toot import get_config_dir
 from typing import Optional, Type
 
 
@@ -15,14 +15,13 @@ def get_settings_path():
     return join(get_config_dir(), TOOT_SETTINGS_FILE_NAME)
 
 
-SETTINGS_FILE = get_settings_path()
-
-
 def load_settings() -> dict:
-    if not exists(SETTINGS_FILE):
+    path = get_settings_path()
+
+    if not exists(path):
         return {}
 
-    with open(SETTINGS_FILE) as f:
+    with open(path) as f:
         return parse(f.read())
 
 

@@ -4,6 +4,7 @@ import sys
 import textwrap
 
 from functools import lru_cache
+from toot import settings
 from toot.entities import Instance, Notification, Poll, Status
 from toot.utils import get_text, parse_html
 from toot.wcstring import wc_wrap
@@ -118,8 +119,7 @@ def use_ansi_color():
         return False
 
     # Check in settings
-    from toot.settings import get_setting
-    color = get_setting("common.color", bool)
+    color = settings.get_setting("common.color", bool)
     if color is not None:
         return color
 
@@ -128,7 +128,6 @@ def use_ansi_color():
 
 
 def print_out(*args, **kwargs):
-    from toot import settings
     if not settings.get_quiet():
         args = [colorize(a) if use_ansi_color() else strip_tags(a) for a in args]
         print(*args, **kwargs)
