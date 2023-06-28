@@ -5,9 +5,15 @@ Changelog
 
 **0.37.0 (TBA)**
 
+* **BREAKING:** Require Python 3.7+
 * Add `timeline --account` option to show the account timeline (thanks Dan
   Schwarz)
+* Add `toot status` command to show a single status
 * TUI: Add personal timeline (thanks Dan Schwarz)
+* TUI: Highlight followed accounts in status details (thanks Dan Schwarz)
+* TUI: Restructured goto menu (thanks Dan Schwarz)
+* TUI: Fix boosting boosted statuses (thanks Dan Schwarz)
+* TUI: Add support for list timelines (thanks Dan Schwarz)
 
 **0.36.0 (2023-03-09)**
 
