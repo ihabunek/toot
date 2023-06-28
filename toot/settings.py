@@ -8,6 +8,8 @@ from toot import get_config_dir
 from typing import Optional, Type
 
 
+DISABLE_SETTINGS = False
+
 TOOT_SETTINGS_FILE_NAME = "settings.toml"
 
 
@@ -16,6 +18,10 @@ def get_settings_path():
 
 
 def load_settings() -> dict:
+    # Used for testing without config file
+    if DISABLE_SETTINGS:
+        return {}
+
     path = get_settings_path()
 
     if not exists(path):

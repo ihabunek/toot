@@ -26,6 +26,11 @@ from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
 
 
+def pytest_configure(config):
+    import toot.settings
+    toot.settings.DISABLE_SETTINGS = True
+
+
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
 
