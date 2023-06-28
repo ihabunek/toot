@@ -3,6 +3,7 @@ import re
 import sys
 import textwrap
 
+from functools import lru_cache
 from toot.entities import Instance, Notification, Poll, Status
 from toot.utils import get_text, parse_html
 from toot.wcstring import wc_wrap
@@ -99,6 +100,7 @@ def strip_tags(message):
     return re.sub(STYLE_TAG_PATTERN, "", message)
 
 
+@lru_cache(maxsize=None)
 def use_ansi_color():
     """Returns True if ANSI color codes should be used."""
 
@@ -115,23 +117,28 @@ def use_ansi_color():
     if "--no-color" in sys.argv:
         return False
 
+    # Check in settings
+    from toot.settings import get_setting
+    color = get_setting("common.color", bool)
+    if color is not None:
+        return color
+
+    # Use color by default
     return True
 
-
-USE_ANSI_COLOR = use_ansi_color()
 
 QUIET = "--quiet" in sys.argv
 
 
 def print_out(*args, **kwargs):
     if not QUIET:
-        args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
+        args = [colorize(a) if use_ansi_color() else strip_tags(a) for a in args]
         print(*args, **kwargs)
 
 
 def print_err(*args, **kwargs):
     args = [f"<red>{a}</red>" for a in args]
-    args = [colorize(a) if USE_ANSI_COLOR else strip_tags(a) for a in args]
+    args = [colorize(a) if use_ansi_color() else strip_tags(a) for a in args]
     print(*args, file=sys.stderr, **kwargs)
 
 

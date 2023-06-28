@@ -1,8 +1,8 @@
 from functools import lru_cache
 from os.path import exists, join
-from typing import Optional, Type, TypeVar
 from tomlkit import parse
 from toot.config import get_config_dir
+from typing import Type
 
 
 TOOT_SETTINGS_FILE_NAME = "settings.toml"
@@ -43,6 +43,7 @@ def _get_setting(dct, keys, type: Type, default=None):
         if isinstance(dct, type):
             return dct
         else:
+            # TODO: warn? cast? both?
             return default
 
     key = keys[0]
