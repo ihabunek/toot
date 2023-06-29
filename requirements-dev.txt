@@ -1,5 +1,7 @@
 coverage
+ipython
 keyring
+pudb
 pyxdg
 pyyaml
 sphinx

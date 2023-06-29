@@ -1,4 +1,6 @@
+import re
 from typing import Optional
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from toot import Context
@@ -126,3 +128,27 @@ async def get_status(ctx: Context, status_id) -> Response:
 async def get_status_context(ctx: Context, status_id) -> Response:
     url = f"/api/v1/statuses/{status_id}/context"
     return await request(ctx, "GET", url)
+
+
+# Timelines
+
+async def home_timeline_generator(ctx: Context, limit=20):
+    path = "/api/v1/timelines/home"
+    params = {"limit": limit}
+    return _timeline_generator(ctx, path, params)
+
+
+async def _timeline_generator(ctx: Context, path: str, params=None):
+    while path:
+        response = await request(ctx, "GET", path, params=params)
+        yield response.json
+        path = _get_next_path(response.headers)
+
+
+def _get_next_path(headers: dict):
+    """Given timeline response headers, returns the path to the next batch"""
+    links = headers.get('Link', '')
+    matches = re.match('<([^>]+)>; rel="next"', links)
+    if matches:
+        parsed = urlparse(matches.group(1))
+        return "?".join([parsed.path, parsed.query])

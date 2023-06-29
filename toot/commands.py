@@ -16,7 +16,7 @@ from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
 
-def get_timeline_generator(app, user, args):
+async def get_timeline_generator(ctx, args):
     if len([arg for arg in [args.tag, args.list, args.public, args.account] if arg]) > 1:
         raise ConsoleError("Only one of --public, --tag, --account, or --list can be used at one time.")
 
@@ -26,35 +26,30 @@ def get_timeline_generator(app, user, args):
     if args.instance and not (args.public or args.tag):
         raise ConsoleError("The --instance option is only valid alongside --public or --tag.")
 
-    if args.public:
-        if args.instance:
-            return api.anon_public_timeline_generator(args.instance, local=args.local, limit=args.count)
-        else:
-            return api.public_timeline_generator(app, user, local=args.local, limit=args.count)
-    elif args.tag:
-        if args.instance:
-            return api.anon_tag_timeline_generator(args.instance, args.tag, limit=args.count)
-        else:
-            return api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
-    elif args.account:
-        return api.account_timeline_generator(app, user, args.account, limit=args.count)
-    elif args.list:
-        return api.timeline_list_generator(app, user, args.list, limit=args.count)
-    else:
-        return api.home_timeline_generator(app, user, limit=args.count)
+    return await aapi.home_timeline_generator(ctx, limit=args.count)
+    # if args.public:
+    #     if args.instance:
+    #         return api.anon_public_timeline_generator(args.instance, local=args.local, limit=args.count)
+    #     else:
+    #         return api.public_timeline_generator(app, user, local=args.local, limit=args.count)
+    # elif args.tag:
+    #     if args.instance:
+    #         return api.anon_tag_timeline_generator(args.instance, args.tag, limit=args.count)
+    #     else:
+    #         return api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
+    # elif args.account:
+    #     return api.account_timeline_generator(app, user, args.account, limit=args.count)
+    # elif args.list:
+    #     return api.timeline_list_generator(app, user, args.list, limit=args.count)
+    # else:
+    #     return api.home_timeline_generator(app, user, limit=args.count)
 
 
-def timeline(app, user, args, generator=None):
+async def timeline(ctx: Context, args, generator=None):
     if not generator:
-        generator = get_timeline_generator(app, user, args)
+        generator = await get_timeline_generator(ctx, args)
 
-    while True:
-        try:
-            items = next(generator)
-        except StopIteration:
-            print_out("That's all folks.")
-            return
-
+    async for items in generator:
         if args.reverse:
             items = reversed(items)
 
