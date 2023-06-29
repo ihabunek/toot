@@ -936,6 +936,8 @@ def make_session(app: App, user: User, debug: bool) -> ClientSession:
 
 
 def main():
+    from datetime import datetime
+    start = datetime.now()
     # Enable debug logging if --debug is in args
     if "--debug" in sys.argv:
         filename = os.getenv("TOOT_LOG_FILE")
@@ -963,3 +965,5 @@ def main():
         sys.exit(1)
     except KeyboardInterrupt:
         pass
+    finally:
+        print(datetime.now() - start)

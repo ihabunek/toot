@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 Params = Dict[str, str]
 Headers = Dict[str, str]
-Json = Dict[str, Any]
+Json = Any
 
 
 @dataclass(frozen=True)

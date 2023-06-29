@@ -5,7 +5,8 @@ import platform
 
 from datetime import datetime, timedelta, timezone
 from time import sleep, time
-from toot import api, aapi, config, __version__, Context
+from toot import api, config, __version__, Context
+from toot.async_api import timelines, statuses, accounts, search as search_api
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.entities import Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
@@ -16,7 +17,7 @@ from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 
 
-async def get_timeline_generator(ctx, args):
+async def get_timeline_generator(ctx: Context, args):
     if len([arg for arg in [args.tag, args.list, args.public, args.account] if arg]) > 1:
         raise ConsoleError("Only one of --public, --tag, --account, or --list can be used at one time.")
 
@@ -26,23 +27,22 @@ async def get_timeline_generator(ctx, args):
     if args.instance and not (args.public or args.tag):
         raise ConsoleError("The --instance option is only valid alongside --public or --tag.")
 
-    return await aapi.home_timeline_generator(ctx, limit=args.count)
-    # if args.public:
-    #     if args.instance:
-    #         return api.anon_public_timeline_generator(args.instance, local=args.local, limit=args.count)
-    #     else:
-    #         return api.public_timeline_generator(app, user, local=args.local, limit=args.count)
-    # elif args.tag:
-    #     if args.instance:
-    #         return api.anon_tag_timeline_generator(args.instance, args.tag, limit=args.count)
-    #     else:
-    #         return api.tag_timeline_generator(app, user, args.tag, local=args.local, limit=args.count)
-    # elif args.account:
-    #     return api.account_timeline_generator(app, user, args.account, limit=args.count)
-    # elif args.list:
-    #     return api.timeline_list_generator(app, user, args.list, limit=args.count)
-    # else:
-    #     return api.home_timeline_generator(app, user, limit=args.count)
+    if args.public:
+        if args.instance:
+            return await timelines.anon_public_timeline_generator(ctx, args.instance, local=args.local, limit=args.count)
+        else:
+            return await timelines.public_timeline_generator(ctx, local=args.local, limit=args.count)
+    elif args.tag:
+        if args.instance:
+            return await timelines.anon_tag_timeline_generator(ctx, args.instance, args.tag, limit=args.count)
+        else:
+            return await timelines.tag_timeline_generator(ctx, args.tag, local=args.local, limit=args.count)
+    elif args.account:
+        return await timelines.account_timeline_generator(ctx, args.account, limit=args.count)
+    elif args.list:
+        return await timelines.list_timeline_generator(ctx, args.list, limit=args.count)
+    else:
+        return await timelines.home_timeline_generator(ctx, limit=args.count)
 
 
 async def timeline(ctx: Context, args, generator=None):
@@ -66,12 +66,12 @@ async def timeline(ctx: Context, args, generator=None):
 
 async def thread(ctx: Context, args):
     if args.json:
-        context_response = await aapi.get_status_context(ctx, args.status_id)
+        context_response = await statuses.get_context(ctx, args.status_id)
         print_out(context_response.body)
     else:
         status_response, context_response = await asyncio.gather(
-            aapi.get_status(ctx, args.status_id),
-            aapi.get_status_context(ctx, args.status_id),
+            statuses.get_status(ctx, args.status_id),
+            statuses.get_context(ctx, args.status_id),
         )
         status = status_response.json
         context = context_response.json
@@ -84,8 +84,7 @@ async def thread(ctx: Context, args):
         for item in context["descendants"]:
             thread.append(item)
 
-        statuses = [from_dict(Status, s) for s in thread]
-        print_timeline(statuses)
+        print_timeline([from_dict(Status, s) for s in thread])
 
 
 async def post(ctx, args):
@@ -105,7 +104,7 @@ async def post(ctx, args):
     if not status_text and not media_ids:
         raise ConsoleError("You must specify either text or media to post.")
 
-    response = await aapi.post_status(
+    response = await statuses.post(
         ctx,
         status_text,
         visibility=args.visibility,
@@ -510,16 +509,15 @@ def unblock(app, user, args):
 
 
 async def whoami(ctx: Context, args):
-    response = await aapi.verify_credentials(ctx)
+    response = await accounts.verify_credentials(ctx)
     if args.json:
         print_out(response.body)
     else:
-        print(response.json)
         print_account(response.json)
 
 
 async def whois(ctx: Context, args):
-    account = await aapi.find_account(ctx, args.account)
+    account = await search_api.find_account(ctx, args.account)
     print_account(account)
 
 
