@@ -6,9 +6,11 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from datetime import datetime, timezone
 from PIL import Image, ImageDraw
 from term_image.image import auto_image_class, GraphicsImage
+from collections import OrderedDict
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 SECOND = 1
@@ -200,3 +202,32 @@ def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):
 
     screen.write(f"\033]52;c;{b64_text}\a")
     screen.flush()
+
+
+class ImageCache(OrderedDict):
+    """Dict with a limited size, ejecting LRUs as needed.
+        Default max size = 10Mb"""
+
+    def __init__(self, *args, cache_max_bytes: int = 1024 * 1024 * 10, **kwargs):
+        assert cache_max_bytes > 0
+        self.total_value_size = 0
+        self.cache_max_bytes = cache_max_bytes
+
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, key: str, value: Image):
+        if key not in self:
+            self.total_value_size += sys.getsizeof(value.tobytes())
+        super().__setitem__(key, value)
+        super().move_to_end(key)
+
+        while self.total_value_size > self.cache_max_bytes:
+            old_key, value = next(iter(self.items()))
+            sz = sys.getsizeof(value.tobytes())
+            super().__delitem__(old_key)
+            self.total_value_size -= sz
+
+    def __getitem__(self, key: str):
+        val = super().__getitem__(key)
+        super().move_to_end(key)
+        return val
