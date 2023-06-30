@@ -1,19 +1,12 @@
 import math
 import os
-import re
 
 from datetime import datetime, timezone
 
 
 def parse_datetime(value):
     """Returns an aware datetime in local timezone"""
-
-    # In Python < 3.7, `%z` does not match `Z` offset
-    # https://docs.python.org/3.7/library/datetime.html#strftime-and-strptime-behavior
-    if value.endswith("Z"):
-        dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-    else:
-        dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+    dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
 
     # When running tests return datetime in UTC so that tests don't depend on
     # the local timezone
