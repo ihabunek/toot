@@ -7,9 +7,10 @@ import sys
 from argparse import ArgumentParser, FileType, ArgumentTypeError, Action
 from collections import namedtuple
 from itertools import chain
-from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
+from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__, settings
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
+from toot.settings import get_setting
 
 VISIBILITY_CHOICES = ["public", "unlisted", "private", "direct"]
 VISIBILITY_CHOICES_STR = ", ".join(f"'{v}'" for v in VISIBILITY_CHOICES)
@@ -882,10 +883,22 @@ def get_argument_parser(name, command):
     if command.require_auth:
         combined_args += common_auth_args
 
+    defaults = get_setting(f"commands.{name}", dict, {})
+
     for args, kwargs in combined_args:
+        # Set default value from settings if exists
+        default = get_default_value(defaults, args)
+        if default is not None:
+            kwargs["default"] = default
         parser.add_argument(*args, **kwargs)
 
     return parser
+
+
+def get_default_value(defaults, args):
+    # Hacky way to determine command name from argparse args
+    name = args[-1].lstrip("-").replace("-", "_")
+    return defaults.get(name)
 
 
 def run_command(app, user, name, args):
@@ -919,9 +932,8 @@ def run_command(app, user, name, args):
 
 
 def main():
-    # Enable debug logging if --debug is in args
-    if "--debug" in sys.argv:
-        filename = os.getenv("TOOT_LOG_FILE")
+    if settings.get_debug():
+        filename = settings.get_debug_file()
         logging.basicConfig(level=logging.DEBUG, filename=filename)
         logging.getLogger("urllib3").setLevel(logging.INFO)
 
