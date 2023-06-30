@@ -11,8 +11,8 @@ from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_status, print_timeline, print_notifications, print_tag_list,
                          print_list_accounts, print_user_list)
-from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
+from toot.utils.datetime import parse_datetime
 
 
 def get_timeline_generator(app, user, args):
