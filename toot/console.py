@@ -65,6 +65,19 @@ def get_default_visibility():
     return os.getenv("TOOT_POST_VISIBILITY", "public")
 
 
+def cache_size(value):
+    """validates the cache size parameter"""
+    if value.isdigit():
+        size = int(value)
+    else:
+        raise ArgumentTypeError("Cache size must be numeric.")
+    if size > 1024:
+        raise ValueError("Cache size too large: 1024MB maximum.")
+    elif size < 1:
+        raise ValueError("Cache size too small: 1MB minimum.")
+    return size
+
+
 def language(value):
     """Validates the language parameter"""
     if len(value) != 2:
@@ -377,6 +390,10 @@ TUI_COMMANDS = [
                 "action": "store_true",
                 "default": False,
                 "help": "Show relative datetimes in status list.",
+            }),
+            (["--cache-size"], {
+                "type": cache_size,
+                "help": "Specify the image cache maximum size in megabytes. Default: 10MB. Minimum: 1MB.",
             }),
         ],
         require_auth=True,

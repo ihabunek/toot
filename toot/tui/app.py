@@ -1,6 +1,7 @@
 import logging
 import urwid
 import requests
+import warnings
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -131,6 +132,11 @@ class TUI(urwid.Frame):
         self.can_translate = False
         self.screen = UrwidImageScreen()
         self.account = None
+
+        if self.args.cache_size:
+            self.cache_max = 1024 * 1024 * self.args.cache_size
+        else:
+            self.cache_max = 1024 * 1024 * 10  # default 10MB
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -663,14 +669,16 @@ class TUI(urwid.Frame):
                 return
 
             if not hasattr(timeline, "images"):
-                timeline.images = ImageCache()  # use the default 10MB image cache for now
-            try:
-                img = Image.open(requests.get(path, stream=True).raw)
-                if img.format == 'PNG' and img.mode != 'RGBA':
-                    img = img.convert("RGBA")
-                timeline.images[str(hash(path))] = img
-            except Exception:
-                pass  # ignore errors; if we can't load an image, just show blank
+                timeline.images = ImageCache(cache_max_bytes=self.cache_max)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")  # suppress "corrupt exif" output from PIL
+                try:
+                    img = Image.open(requests.get(path, stream=True).raw)
+                    if img.format == 'PNG' and img.mode != 'RGBA':
+                        img = img.convert("RGBA")
+                    timeline.images[str(hash(path))] = img
+                except Exception:
+                    pass  # ignore errors; if we can't load an image, just show blank
 
         def _done(loop):
             # don't bother loading images for statuses we are not viewing now
