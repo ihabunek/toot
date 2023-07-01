@@ -314,8 +314,12 @@ class Timeline(urwid.Columns):
         assert self.statuses[index].id == status.id  # Sanity check
 
         # get the image and replace the placeholder with a graphics widget
+        img = None
         if hasattr(self, "images"):
-            img = self.images.get(str(hash(path)))
+            try:
+                img = self.images[(str(hash(path)))]
+            except KeyError:
+                pass
         if img:
             try:
                 render_img = add_corners(img, 10) if self.can_render_pixels else img
@@ -383,7 +387,10 @@ class StatusDetails(urwid.Pile):
 
         img = None
         if hasattr(self.timeline, "images"):
-            img = self.timeline.images.get(str(hash(path)))
+            try:
+                img = self.timeline.images[(str(hash(path)))]
+            except KeyError:
+                pass
         if img:
             render_img = add_corners(img, 10) if self.timeline.can_render_pixels else img
             return (urwid.BoxAdapter(

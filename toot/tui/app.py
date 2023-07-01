@@ -15,7 +15,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard
+from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard, ImageCache
 
 from PIL import Image
 from term_image.widget import UrwidImageScreen
@@ -663,13 +663,13 @@ class TUI(urwid.Frame):
                 return
 
             if not hasattr(timeline, "images"):
-                timeline.images = dict()
+                timeline.images = ImageCache()  # use the default 10MB image cache for now
             try:
                 img = Image.open(requests.get(path, stream=True).raw)
                 if img.format == 'PNG' and img.mode != 'RGBA':
                     img = img.convert("RGBA")
                 timeline.images[str(hash(path))] = img
-            except:  # noqa E722
+            except Exception:
                 pass  # ignore errors; if we can't load an image, just show blank
 
         def _done(loop):
