@@ -5,14 +5,15 @@ import webbrowser
 
 from typing import List, Optional
 
+from toot.tui import app
+from toot.utils import format_content
+from toot.utils.datetime import parse_datetime, time_ago
+from toot.utils.language import language_name
+
 from .entities import Status
 from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
+from .utils import highlight_hashtags, highlight_keys
 from .widgets import SelectableText, SelectableColumns
-from toot.tui import app
-from toot.tui.utils import time_ago
-from toot.utils import format_content
-from toot.utils.language import language_name
 
 logger = logging.getLogger("toot")
 

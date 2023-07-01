@@ -1,42 +1,20 @@
 import json
 import os
-import sys
 
 from functools import wraps
-from os.path import dirname, join, expanduser
+from os.path import dirname, join
 
-from toot import User, App
+from toot import User, App, get_config_dir
 from toot.exceptions import ConsoleError
 from toot.output import print_out
 
 
-TOOT_CONFIG_DIR_NAME = "toot"
 TOOT_CONFIG_FILE_NAME = "config.json"
-
-
-def get_config_dir():
-    """Returns the path to toot config directory"""
-
-    # On Windows, store the config in roaming appdata
-    if sys.platform == "win32" and "APPDATA" in os.environ:
-        return join(os.getenv("APPDATA"), TOOT_CONFIG_DIR_NAME)
-
-    # Respect XDG_CONFIG_HOME env variable if set
-    # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    if "XDG_CONFIG_HOME" in os.environ:
-        config_home = expanduser(os.environ["XDG_CONFIG_HOME"])
-        return join(config_home, TOOT_CONFIG_DIR_NAME)
-
-    # Default to ~/.config/toot/
-    return join(expanduser("~"), ".config", TOOT_CONFIG_DIR_NAME)
 
 
 def get_config_file_path():
     """Returns the path to toot config file."""
     return join(get_config_dir(), TOOT_CONFIG_FILE_NAME)
-
-
-CONFIG_FILE = get_config_file_path()
 
 
 def user_id(user):
@@ -63,15 +41,18 @@ def make_config(path):
 
 
 def load_config():
-    if not os.path.exists(CONFIG_FILE):
-        make_config(CONFIG_FILE)
+    path = get_config_file_path()
 
-    with open(CONFIG_FILE) as f:
+    if not os.path.exists(path):
+        make_config(path)
+
+    with open(path) as f:
         return json.load(f)
 
 
 def save_config(config):
-    with open(CONFIG_FILE, 'w') as f:
+    path = get_config_file_path()
+    with open(path, "w") as f:
         return json.dump(config, f, indent=True, sort_keys=True)
 
 

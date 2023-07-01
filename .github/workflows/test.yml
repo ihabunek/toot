@@ -25,7 +25,7 @@ jobs:
           pytest
       - name: Validate minimum required version
         run: |
-          vermin --target=3.6 --no-tips .
+          vermin --target=3.7 --no-tips .
       - name: Check style
         run: |
           flake8

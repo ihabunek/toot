@@ -3,7 +3,9 @@ import urwid
 from toot import api
 from toot.exceptions import ApiError
 from toot.utils import format_content
-from .utils import highlight_hashtags, parse_datetime
+from toot.utils.datetime import parse_datetime
+
+from .utils import highlight_hashtags
 from .widgets import Button, CheckBox, RadioButton
 
 
