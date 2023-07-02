@@ -113,7 +113,7 @@ class Timeline(urwid.Columns):
             "[Z]oom",
             "Tra[n]slate" if self.tui.can_translate else "",
             "Cop[y]",
-            "[H]elp",
+            "Help[?]",
         ]
         options = "\n" + " ".join(o for o in options if o)
         options = highlight_keys(options, "white_bold", "cyan")
