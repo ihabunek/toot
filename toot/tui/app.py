@@ -724,7 +724,7 @@ class TUI(urwid.Frame):
             if not self.overlay:
                 self.show_goto_menu()
 
-        elif key in ('h', 'H'):
+        elif key == '?':
             if not self.overlay:
                 self.show_help()
 
