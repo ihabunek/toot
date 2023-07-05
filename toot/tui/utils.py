@@ -107,7 +107,7 @@ def parse_content_links(content):
     return parser.links[:]
 
 
-def resize_image(basewidth: int, baseheight: int, img: Image) -> Image:
+def resize_image(basewidth: int, baseheight: int, img: Image.Image) -> Image.Image:
     if baseheight and not basewidth:
         hpercent = baseheight / float(img.size[1])
         width = math.ceil(img.size[0] * hpercent)
@@ -194,7 +194,7 @@ class ImageCache(OrderedDict):
 
         super().__init__(*args, **kwargs)
 
-    def __setitem__(self, key: str, value: Image):
+    def __setitem__(self, key: str, value: Image.Image):
         if key in self:
             self.total_value_size -= sys.getsizeof(super().__getitem__(key).tobytes())
         self.total_value_size += sys.getsizeof(value.tobytes())
