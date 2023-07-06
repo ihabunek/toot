@@ -106,7 +106,7 @@ class Timeline(urwid.Columns):
             "[F]avourite",
             "[V]iew",
             "[T]hread" if not self.is_thread else "",
-            "[L]inks",
+            "L[i]nks",
             "[R]eply",
             "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
@@ -218,7 +218,7 @@ class Timeline(urwid.Columns):
             self.tui.async_toggle_bookmark(self, status)
             return
 
-        if key in ("l", "L"):
+        if key in ("i", "I"):
             self.tui.show_links(status)
             return
 
