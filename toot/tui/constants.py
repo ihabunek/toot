@@ -3,6 +3,8 @@ PALETTE = [
     # Components
     ('button', 'white', 'black'),
     ('button_focused', 'light gray', 'dark magenta'),
+    ('card_author', 'yellow', ''),
+    ('card_title', 'dark green', ''),
     ('columns_divider', 'white', 'dark blue'),
     ('content_warning', 'white', 'dark magenta'),
     ('editbox', 'white', 'black'),
@@ -16,7 +18,12 @@ PALETTE = [
     ('intro_bigtext', 'yellow', ''),
     ('intro_smalltext', 'light blue', ''),
     ('poll_bar', 'white', 'dark blue'),
+    ('status_detail_account', 'dark green', ''),
+    ('status_detail_bookmarked', 'light red', ''),
+    ('status_detail_timestamp', 'light blue', ''),
+    ('status_list_account', 'dark green', ''),
     ('status_list_selected', 'white,bold', 'dark green'),
+    ('status_list_timestamp', 'light blue', ''),
 
     # Functional
     ('hashtag', 'light cyan,bold', ''),
@@ -27,20 +34,25 @@ PALETTE = [
     ('shortcut_highlight', 'white,bold', ''),
     ('warning', 'light red', ''),
 
-    # Colors
+    # Visiblity
+    ('visibility_public', 'dark gray', ''),
+    ('visibility_unlisted', 'white', ''),
+    ('visibility_private', 'dark cyan', ''),
+    ('visibility_direct', 'yellow', ''),
+
+    # Styles
     ('bold', ',bold', ''),
-    ('blue', 'light blue', ''),
-    ('cyan', 'dark cyan', ''),
-    ('gray', 'dark gray', ''),
-    ('green', 'dark green', ''),
-    ('yellow', 'yellow', ''),
-    ('red', 'dark red', ''),
+    ('dim', 'dark gray', ''),
+    ('highlight', 'yellow', ''),
+    ('success', 'dark green', ''),
 ]
 
 MONO_PALETTE = [
     # Components
     ('button', 'white', 'black'),
     ('button_focused', 'black', 'white'),
+    ('card_author', 'white', ''),
+    ('card_title', 'white, bold', ''),
     ('columns_divider', 'white', 'black'),
     ('content_warning', 'white', 'black'),
     ('editbox', 'white', 'black'),
@@ -54,25 +66,34 @@ MONO_PALETTE = [
     ('intro_bigtext', 'white', 'black'),
     ('intro_smalltext', 'white', 'black'),
     ('poll_bar', 'black', 'white'),
-    ('status_list_selected', 'black', 'white'),
+    ('status_detail_account', 'white', ''),
+    ('status_detail_bookmarked', 'white', ''),
+    ('status_detail_timestamp', 'white', ''),
+    ('status_list_account', 'white', ''),
+    ('status_list_selected', 'white,bold', ''),
+    ('status_list_timestamp', 'white', ''),
+    ('warning', 'white,bold', 'black'),
 
     # Functional
-    ('hashtag_followed', 'white,bold', 'black'),
-    ('hashtag', 'white,bold', 'black'),
-    ('link', ',italics', 'black'),
-    ('link_focused', ',bold,italics', 'black'),
+    ('account', 'dark green', ''),
+    ('hashtag_followed', 'white,bold', ''),
+    ('hashtag', 'white,bold', ''),
+    ('link', ',italics', ''),
+    ('link_focused', ',bold,italics', ''),
     ('shortcut', 'white', ''),
     ('shortcut_highlight', 'white,bold', ''),
 
-    # Colors
-    ('bold', ',bold', 'black'),
-    ('blue', 'white', 'black'),
-    ('cyan', 'white', 'black'),
-    ('gray', 'white', 'black'),
-    ('green', 'white', 'black'),
-    ('yellow', 'white', 'black'),
-    ('red', 'white', 'black'),
-    ('warning', 'white,bold', 'black'),
+    # Visiblity
+    ('visibility_public', 'white', ''),
+    ('visibility_unlisted', 'white', ''),
+    ('visibility_private', 'white', ''),
+    ('visibility_direct', 'white', ''),
+
+    # Styles
+    ('bold', ',bold', ''),
+    ('dim', 'light gray', ''),
+    ('highlight', ',bold', ''),
+    ('success', '', ''),
 ]
 
 VISIBILITY_OPTIONS = [

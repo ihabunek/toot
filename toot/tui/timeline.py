@@ -84,11 +84,10 @@ class Timeline(urwid.Columns):
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
-            "blue": "status_list_selected",
-            "green": "status_list_selected",
-            "yellow": "status_list_selected",
-            "cyan": "status_list_selected",
-            "red": "status_list_selected",
+            "status_list_account": "status_list_selected",
+            "status_list_timestamp": "status_list_selected",
+            "highligh": "status_list_selected",
+            "dim": "status_list_selected",
             None: "status_list_selected",
         })
 
@@ -323,13 +322,13 @@ class StatusDetails(urwid.Pile):
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
-            yield ("pack", urwid.Text(("gray", text)))
-            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+            yield ("pack", urwid.Text(("dim", text)))
+            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
+            yield ("pack", urwid.Text(("status_detail_author", status.author.display_name)))
 
-        account_color = "yellow" if status.author.account in self.followed_accounts else "gray"
+        account_color = "highlight" if status.author.account in self.followed_accounts else "dim"
         yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 
@@ -348,7 +347,7 @@ class StatusDetails(urwid.Pile):
             media = status.data["media_attachments"]
             if media:
                 for m in media:
-                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
@@ -367,7 +366,7 @@ class StatusDetails(urwid.Pile):
         application = status.data.get("application") or {}
         application = application.get("name")
 
-        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
+        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "dim"))
 
         translated_from = (
             language_name(status.original.translated_from)
@@ -376,24 +375,24 @@ class StatusDetails(urwid.Pile):
         )
 
         visibility_colors = {
-            "public": "gray",
-            "unlisted": "white",
-            "private": "cyan",
-            "direct": "yellow"
+            "public": "visibility_public",
+            "unlisted": "visibility_unlisted",
+            "private": "visibility_private",
+            "direct": "visibility_direct"
         }
 
         visibility = status.visibility.title()
-        visibility_color = visibility_colors.get(status.visibility, "gray")
+        visibility_color = visibility_colors.get(status.visibility, "dim")
 
         yield ("pack", urwid.Text([
-            ("blue", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
-            ("red" if status.bookmarked else "gray", "b "),
-            ("gray", f"⤶ {status.data['replies_count']} "),
-            ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
-            ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            ("status_detail_timestamp", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("status_detail_bookmarked" if status.bookmarked else "dim", "b "),
+            ("dim", f"⤶ {status.data['replies_count']} "),
+            ("highlight" if status.reblogged else "dim", f"♺ {status.data['reblogs_count']} "),
+            ("highlight" if status.favourited else "dim", f"★ {status.data['favourites_count']}"),
             (visibility_color, f" · {visibility}"),
-            ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
-            ("gray", f" · {application}" if application else ""),
+            ("highlight", f" · Translated from {translated_from} " if translated_from else ""),
+            ("dim", f" · {application}" if application else ""),
         ]))
 
         # Push things to bottom
@@ -405,9 +404,9 @@ class StatusDetails(urwid.Pile):
         return urwid.LineBox(contents)
 
     def card_generator(self, card):
-        yield urwid.Text(("green", card["title"].strip()))
+        yield urwid.Text(("card_title", card["title"].strip()))
         if card.get("author_name"):
-            yield urwid.Text(["by ", ("yellow", card["author_name"].strip())])
+            yield urwid.Text(["by ", ("card_author", card["author_name"].strip())])
         yield urwid.Text("")
         if card["description"]:
             yield urwid.Text(card["description"].strip())
@@ -436,7 +435,7 @@ class StatusDetails(urwid.Pile):
             expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
             status += " · Closes on {}".format(expires_at)
 
-        yield urwid.Text(("gray", status))
+        yield urwid.Text(("dim", status))
 
 
 class StatusListItem(SelectableColumns):
@@ -452,20 +451,20 @@ class StatusListItem(SelectableColumns):
         )
 
         edited_flag = "*" if edited_at else " "
-        favourited = ("yellow", "★") if status.original.favourited else " "
-        reblogged = ("yellow", "♺") if status.original.reblogged else " "
-        is_reblog = ("cyan", "♺") if status.reblog else " "
-        is_reply = ("cyan", "⤶") if status.original.in_reply_to else " "
+        favourited = ("highlight", "★") if status.original.favourited else " "
+        reblogged = ("highlight", "♺") if status.original.reblogged else " "
+        is_reblog = ("dim", "♺") if status.reblog else " "
+        is_reply = ("dim", "⤶") if status.original.in_reply_to else " "
 
         return super().__init__([
-            ("pack", SelectableText(("blue", created_at), wrap="clip")),
-            ("pack", urwid.Text(("blue", edited_flag))),
+            ("pack", SelectableText(("status_list_timestamp", created_at), wrap="clip")),
+            ("pack", urwid.Text(("status_list_timestamp", edited_flag))),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
-            urwid.Text(("green", status.original.account), wrap="clip"),
+            urwid.Text(("status_list_account", status.original.account), wrap="clip"),
             ("pack", urwid.Text(is_reply)),
             ("pack", urwid.Text(is_reblog)),
             ("pack", urwid.Text(" ")),

@@ -66,8 +66,8 @@ class StatusComposer(urwid.Frame):
 
     def generate_list_items(self):
         if self.in_reply_to:
-            yield urwid.Text(("gray", "Replying to {}".format(self.in_reply_to.original.account)))
-            yield urwid.AttrWrap(urwid.Divider("-"), "gray")
+            yield urwid.Text(("dim", "Replying to {}".format(self.in_reply_to.original.account)))
+            yield urwid.AttrWrap(urwid.Divider("-"), "dim")
 
         yield urwid.Text("Status message")
         yield self.content_edit

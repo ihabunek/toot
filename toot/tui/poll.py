@@ -61,7 +61,7 @@ class Poll(urwid.ListBox):
 
             if poll["voted"] or poll["expired"]:
                 prefix = " ✓  " if voted_for else "    "
-                yield urwid.Text(("gray", prefix + f'{option["title"]}'))
+                yield urwid.Text(("dim", prefix + f'{option["title"]}'))
             else:
                 if poll["multiple"]:
                     checkbox = CheckBox(f'{option["title"]}')
@@ -83,7 +83,7 @@ class Poll(urwid.ListBox):
             )
             poll_detail += " · Closes on {}".format(expires_at)
 
-        yield urwid.Text(("gray", poll_detail))
+        yield urwid.Text(("dim", poll_detail))
 
     def generate_contents(self, status):
         yield urwid.Divider()
