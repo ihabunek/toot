@@ -12,6 +12,7 @@ from toot.exceptions import ApiError
 from .compose import StatusComposer
 from .constants import PALETTE, MONO_PALETTE
 from .entities import Status
+from .images import TuiScreen
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
@@ -19,7 +20,6 @@ from .timeline import Timeline
 from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard, ImageCache
 
 from PIL import Image
-from term_image.widget import UrwidImageScreen
 
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class TUI(urwid.Frame):
     @classmethod
     def create(cls, app, user, args):
         """Factory method, sets up TUI and an event loop."""
-        screen = urwid.raw_display.Screen()
+        screen = TuiScreen()
         tui = cls(app, user, screen, args)
 
         if args.no_color:
@@ -97,7 +97,6 @@ class TUI(urwid.Frame):
         loop = urwid.MainLoop(
             tui,
             palette=MONO_PALETTE if args.no_color else PALETTE,
-            screen=UrwidImageScreen(),  # like urwid.raw_display.Screen, but clears Kitty + iTerm2 images on startup
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
             screen=screen,
@@ -130,7 +129,6 @@ class TUI(urwid.Frame):
         self.overlay = None
         self.exception = None
         self.can_translate = False
-        self.screen = UrwidImageScreen()
         self.account = None
 
         if self.args.cache_size:
