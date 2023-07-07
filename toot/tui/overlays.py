@@ -81,15 +81,15 @@ class StatusDeleteConfirmation(urwid.ListBox):
     signals = ["delete", "close"]
 
     def __init__(self, status):
-        yes = SelectableText("Yes, send it to heck")
-        no = SelectableText("No, I'll spare it for now")
+        def _delete(_):
+            self._emit("delete")
 
-        urwid.connect_signal(yes, "click", lambda *args: self._emit("delete"))
-        urwid.connect_signal(no, "click", lambda *args: self._emit("close"))
+        def _close(_):
+            self._emit("close")
 
         walker = urwid.SimpleFocusListWalker([
-            urwid.AttrWrap(yes, "", "blue_selected"),
-            urwid.AttrWrap(no, "", "blue_selected"),
+            Button("Yes, delete", on_press=_delete),
+            Button("No, cancel", on_press=_close),
         ])
         super().__init__(walker)
 

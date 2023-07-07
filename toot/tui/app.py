@@ -520,8 +520,8 @@ class TUI(urwid.Frame):
         urwid.connect_signal(widget, "close", _close)
         urwid.connect_signal(widget, "delete", _delete)
         self.open_overlay(widget, title="Delete status?", options=dict(
-            align="center", width=("relative", 60),
-            valign="middle", height=5,
+            align="center", width=30,
+            valign="middle", height=4,
         ))
 
     def post_status(self, content, warning, visibility, in_reply_to_id):
