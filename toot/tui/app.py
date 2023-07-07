@@ -75,38 +75,40 @@ class Footer(urwid.Pile):
 
 class TUI(urwid.Frame):
     """Main TUI frame."""
+    loop: urwid.MainLoop
+    screen: urwid.BaseScreen
 
     @classmethod
     def create(cls, app, user, args):
         """Factory method, sets up TUI and an event loop."""
+        screen = urwid.raw_display.Screen()
+        tui = cls(app, user, screen, args)
 
-        tui = cls(app, user, args)
+        if args.no_color:
+            screen.set_terminal_properties(1)
+            screen.reset_default_terminal_palette()
 
         loop = urwid.MainLoop(
             tui,
             palette=MONO_PALETTE if args.no_color else PALETTE,
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
+            screen=screen,
         )
         tui.loop = loop
 
         return tui
 
-    def __init__(self, app, user, args):
+    def __init__(self, app, user, screen, args):
         self.app = app
         self.user = user
         self.args = args
         self.config = config.load_config()
 
-        self.loop = None  # set in `create`
+        self.loop = None  # late init, set in `create`
+        self.screen = screen
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.timeline_generator = api.home_timeline_generator(app, user, limit=40)
-
-        self.screen = urwid.raw_display.Screen()
-
-        if args.no_color:
-            self.screen.set_terminal_properties(1)
-            self.screen.reset_default_terminal_palette()
 
         # Show intro screen while toots are being loaded
         self.body = self.build_intro()
@@ -355,7 +357,7 @@ class TUI(urwid.Frame):
         )
 
     def clear_screen(self):
-        self.loop.screen.clear()
+        self.screen.clear()
 
     def show_links(self, status):
         links = parse_content_links(status.original.data["content"]) if status else []
