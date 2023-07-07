@@ -3,7 +3,7 @@ import urwid
 
 from concurrent.futures import ThreadPoolExecutor
 
-from toot import api, config, __version__
+from toot import api, config, __version__, settings
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
@@ -88,9 +88,14 @@ class TUI(urwid.Frame):
             screen.set_terminal_properties(1)
             screen.reset_default_terminal_palette()
 
+        palette = MONO_PALETTE if args.no_color else PALETTE
+        overrides = settings.get_setting("tui.palette", dict, {})
+        for name, styles in overrides.items():
+            palette.append(tuple([name] + styles))
+
         loop = urwid.MainLoop(
             tui,
-            palette=MONO_PALETTE if args.no_color else PALETTE,
+            palette=palette,
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
             screen=screen,
