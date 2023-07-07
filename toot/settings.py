@@ -5,7 +5,7 @@ from functools import lru_cache
 from os.path import exists, join
 from tomlkit import parse
 from toot import get_config_dir
-from typing import Optional, Type
+from typing import Optional, Type, TypeVar
 
 
 DISABLE_SETTINGS = False
@@ -36,7 +36,10 @@ def get_settings():
     return load_settings()
 
 
-def get_setting(key: str, type: Type, default=None):
+T = TypeVar("T")
+
+
+def get_setting(key: str, type: Type[T], default: Optional[T] = None) -> Optional[T]:
     """
     Get a setting value. The key should be a dot-separated string,
     e.g. "commands.post.editor" which will correspond to the "editor" setting
