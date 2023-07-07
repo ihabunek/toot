@@ -198,7 +198,7 @@ class Help(urwid.Padding):
         def h(text):
             return highlight_keys(text, "cyan")
 
-        yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
+        yield urwid.Text(("bold", "toot {}".format(__version__)))
         yield urwid.Divider()
         yield urwid.Text(("bold", "General usage"))
         yield urwid.Divider()

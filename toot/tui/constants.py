@@ -16,28 +16,25 @@ PALETTE = [
     ('intro_bigtext', 'yellow', ''),
     ('intro_smalltext', 'light blue', ''),
     ('poll_bar', 'white', 'dark blue'),
+    ('status_list_selected', 'white,bold', 'dark green'),
 
     # Functional
     ('hashtag', 'light cyan,bold', ''),
-    ('followed_hashtag', 'yellow,bold', ''),
+    ('hashtag_followed', 'yellow,bold', ''),
     ('link', ',italics', ''),
     ('link_focused', ',italics', 'dark magenta'),
+    ('shortcut', 'light blue', ''),
+    ('shortcut_highlight', 'white,bold', ''),
+    ('warning', 'light red', ''),
 
     # Colors
     ('bold', ',bold', ''),
     ('blue', 'light blue', ''),
-    ('blue_bold', 'light blue, bold', ''),
-    ('blue_selected', 'white', 'dark blue'),
     ('cyan', 'dark cyan', ''),
-    ('cyan_bold', 'dark cyan,bold', ''),
     ('gray', 'dark gray', ''),
     ('green', 'dark green', ''),
-    ('green_selected', 'white,bold', 'dark green'),
     ('yellow', 'yellow', ''),
-    ('yellow_bold', 'yellow,bold', ''),
     ('red', 'dark red', ''),
-    ('warning', 'light red', ''),
-    ('white_bold', 'white,bold', '')
 ]
 
 MONO_PALETTE = [
@@ -57,28 +54,25 @@ MONO_PALETTE = [
     ('intro_bigtext', 'white', 'black'),
     ('intro_smalltext', 'white', 'black'),
     ('poll_bar', 'black', 'white'),
+    ('status_list_selected', 'black', 'white'),
 
     # Functional
+    ('hashtag_followed', 'white,bold', 'black'),
     ('hashtag', 'white,bold', 'black'),
-    ('followed_hashtag', 'white,bold', 'black'),
     ('link', ',italics', 'black'),
     ('link_focused', ',bold,italics', 'black'),
+    ('shortcut', 'white', ''),
+    ('shortcut_highlight', 'white,bold', ''),
 
     # Colors
     ('bold', ',bold', 'black'),
     ('blue', 'white', 'black'),
-    ('blue_bold', 'white, bold', 'black'),
-    ('blue_selected', 'white, bold', 'black'),
     ('cyan', 'white', 'black'),
-    ('cyan_bold', 'white,bold', 'black'),
     ('gray', 'white', 'black'),
     ('green', 'white', 'black'),
-    ('green_selected', 'black', 'white'),
     ('yellow', 'white', 'black'),
-    ('yellow_bold', 'white,bold', 'black'),
     ('red', 'white', 'black'),
     ('warning', 'white,bold', 'black'),
-    ('white_bold', 'white,bold', 'black')
 ]
 
 VISIBILITY_OPTIONS = [

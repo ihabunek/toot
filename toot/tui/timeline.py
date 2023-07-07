@@ -53,7 +53,7 @@ class Timeline(urwid.Columns):
 
         super().__init__([
             ("weight", 40, self.status_list),
-            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
+            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "columns_divider")),
             ("weight", 60, status_widget),
         ])
 
@@ -84,12 +84,12 @@ class Timeline(urwid.Columns):
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
-            "blue": "green_selected",
-            "green": "green_selected",
-            "yellow": "green_selected",
-            "cyan": "green_selected",
-            "red": "green_selected",
-            None: "green_selected",
+            "blue": "status_list_selected",
+            "green": "status_list_selected",
+            "yellow": "status_list_selected",
+            "cyan": "status_list_selected",
+            "red": "status_list_selected",
+            None: "status_list_selected",
         })
 
     def get_option_text(self, status: Optional[Status]) -> Optional[urwid.Text]:
@@ -113,10 +113,10 @@ class Timeline(urwid.Columns):
             "[Z]oom",
             "Tra[n]slate" if self.tui.can_translate else "",
             "Cop[y]",
-            "Help[?]",
+            "Help([?])",
         ]
         options = "\n" + " ".join(o for o in options if o)
-        options = highlight_keys(options, "white_bold", "cyan")
+        options = highlight_keys(options, "shortcut_highlight", "shortcut")
         return urwid.Text(options)
 
     def get_focused_status(self):
