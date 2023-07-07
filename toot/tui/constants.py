@@ -75,7 +75,6 @@ MONO_PALETTE = [
     ('warning', 'white,bold', 'black'),
 
     # Functional
-    ('account', 'dark green', ''),
     ('hashtag_followed', 'white,bold', ''),
     ('hashtag', 'white,bold', ''),
     ('link', ',italics', ''),
