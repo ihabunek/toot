@@ -78,15 +78,11 @@ class TUI(urwid.Frame):
     loop: urwid.MainLoop
     screen: urwid.BaseScreen
 
-    @classmethod
-    def create(cls, app, user, args):
+    @staticmethod
+    def create(app, user, args):
         """Factory method, sets up TUI and an event loop."""
-        screen = urwid.raw_display.Screen()
-        tui = cls(app, user, screen, args)
-
-        if args.no_color:
-            screen.set_terminal_properties(1)
-            screen.reset_default_terminal_palette()
+        screen = TUI.create_screen(args)
+        tui = TUI(app, user, screen, args)
 
         palette = MONO_PALETTE if args.no_color else PALETTE
         overrides = settings.get_setting("tui.palette", dict, {})
@@ -103,6 +99,18 @@ class TUI(urwid.Frame):
         tui.loop = loop
 
         return tui
+
+    @staticmethod
+    def create_screen(args):
+        screen = urwid.raw_display.Screen()
+
+        # Determine how many colors to use
+        default_colors = 1 if args.no_color else 16
+        colors = settings.get_setting("tui.colors", int, default_colors)
+        logger.debug(f"Setting colors to {colors}")
+        screen.set_terminal_properties(colors)
+
+        return screen
 
     def __init__(self, app, user, screen, args):
         self.app = app
