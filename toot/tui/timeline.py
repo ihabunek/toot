@@ -326,9 +326,9 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         if status.author.display_name:
-            yield ("pack", urwid.Text(("status_detail_author", status.author.display_name)))
+            yield ("pack", urwid.Text(("bold", status.author.display_name)))
 
-        account_color = "highlight" if status.author.account in self.followed_accounts else "dim"
+        account_color = "highlight" if status.author.account in self.followed_accounts else "account"
         yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 

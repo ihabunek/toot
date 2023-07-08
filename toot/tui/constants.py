@@ -26,6 +26,7 @@ PALETTE = [
     ('status_list_timestamp', 'light blue', ''),
 
     # Functional
+    ('account', 'dark green', ''),
     ('hashtag', 'light cyan,bold', ''),
     ('hashtag_followed', 'yellow,bold', ''),
     ('link', ',italics', ''),
@@ -75,6 +76,7 @@ MONO_PALETTE = [
     ('warning', 'white,bold', 'black'),
 
     # Functional
+    ('account', 'white', ''),
     ('hashtag_followed', 'white,bold', ''),
     ('hashtag', 'white,bold', ''),
     ('link', ',italics', ''),
