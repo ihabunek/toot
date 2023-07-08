@@ -50,3 +50,62 @@ sensitive = true
 visibility = "unlisted"
 scheduled_in = "30 minutes"
 ```
+
+## TUI color palette
+
+TUI uses Urwid which provides several color modes. See
+[Urwid documentation](https://urwid.org/manual/displayattributes.html)
+for more details.
+
+By default, TUI operates in 16-color mode which can be changed by setting the
+`color` setting in the `[tui]` section to one of the following values:
+
+* `1` (monochrome)
+* `16` (default)
+* `88`
+* `256`
+* `16777216` (24 bit)
+
+TUI defines a list of colors which can be customized, currently they can be seen
+[in the source code](https://github.com/ihabunek/toot/blob/master/toot/tui/constants.py). They can be overriden in the `[tui.palette]` section.
+
+Each color is defined as a list of upto 5 values:
+
+* foreground color (16 color mode)
+* background color (16 color mode)
+* monochrome color (monochrome mode)
+* foreground color (high-color mode)
+* background color (high-color mode)
+
+Any colors which are not used by your desired color mode can be skipped or set
+to an empty string.
+
+For example, to change the button colors in 16 color mode:
+
+```toml
+[tui.palette]
+button = ["dark red,bold", ""]
+button_focused = ["light gray", "green"]
+```
+
+In monochrome mode:
+
+```toml
+[tui]
+colors = 1
+
+[tui.palette]
+button = ["", "", "bold"]
+button_focused = ["", "", "italics"]
+```
+
+In 256 color mode:
+
+```toml
+[tui]
+colors = 256
+
+[tui.palette]
+button = ["", "", "", "#aaa", "#bbb"]
+button_focused = ["", "", "", "#aaa", "#bbb"]
+```
