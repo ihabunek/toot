@@ -8,7 +8,7 @@ from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer
-from .constants import PALETTE, MONO_PALETTE
+from .constants import PALETTE
 from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
@@ -84,7 +84,7 @@ class TUI(urwid.Frame):
         screen = TUI.create_screen(args)
         tui = TUI(app, user, screen, args)
 
-        palette = MONO_PALETTE if args.no_color else PALETTE
+        palette = PALETTE.copy()
         overrides = settings.get_setting("tui.palette", dict, {})
         for name, styles in overrides.items():
             palette.append(tuple([name] + styles))
