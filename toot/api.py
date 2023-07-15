@@ -458,6 +458,16 @@ def search(app, user, query, resolve=False, type=None):
     }).json()
 
 
+def search_url(app, user, query):
+    """
+    Perform a search for a URL as is, without encoding.
+    https://docs.joinmastodon.org/methods/search/#v2
+    """
+    # The Request object performs form encoding if a dict is passed
+    return http.get(app, user, "/api/v2/search?q={}&resolve=true".format(query)
+                    ).json()
+
+
 def follow(app, user, account):
     return _account_action(app, user, account, 'follow')
 

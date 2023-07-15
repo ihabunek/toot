@@ -260,8 +260,9 @@ def print_list_accounts(accounts):
 
 
 def print_search_results(results):
-    accounts = results['accounts']
-    hashtags = results['hashtags']
+    accounts = results.get("accounts")
+    hashtags = results.get("hashtags")
+    statuses = results.get("results")
 
     if accounts:
         print_out("\nAccounts:")
@@ -271,7 +272,11 @@ def print_search_results(results):
         print_out("\nHashtags:")
         print_out(", ".join([f"<green>#{t['name']}</green>" for t in hashtags]))
 
-    if not accounts and not hashtags:
+    if statuses:
+        print_out("\nStatuses:")
+        print_out(", ".join([f"<green>#{t['id']}</green>" for t in statuses]))
+
+    if not accounts and not hashtags and not statuses:
         print_out("<yellow>Nothing found</yellow>")
 
 
