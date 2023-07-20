@@ -10,8 +10,7 @@ from .utils import highlight_hashtags, highlight_keys, add_corners
 from .widgets import Button, EditBox, SelectableText, EmojiText
 from toot import api
 from PIL import Image
-from term_image.image import AutoImage
-from term_image.widget import UrwidImage
+from .images import AutoImage, UrwidImage, has_term_image
 
 
 class StatusSource(urwid.Padding):
@@ -259,7 +258,7 @@ class Account(urwid.ListBox):
         super().__init__(walker)
 
     def account_header(self, account):
-        if account['avatar'] and not account["avatar"].endswith("missing.png"):
+        if account['avatar'] and has_term_image and not account["avatar"].endswith("missing.png"):
             img = Image.open(requests.get(account['avatar'], stream=True).raw)
 
             if img.format == 'PNG' and img.mode != 'RGBA':
@@ -270,9 +269,9 @@ class Account(urwid.ListBox):
                         add_corners(img, 10)), upscale=True),
                 10)
         else:
-            aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
+            aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10 if has_term_image else 1)
 
-        if account['header'] and not account["header"].endswith("missing.png"):
+        if account['header'] and has_term_image and not account["header"].endswith("missing.png"):
             img = Image.open(requests.get(account['header'], stream=True).raw)
 
             if img.format == 'PNG' and img.mode != 'RGBA':
@@ -285,7 +284,7 @@ class Account(urwid.ListBox):
                     10)
                     )
         else:
-            himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
+            himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10 if has_term_image else 1)
 
         atxt = urwid.Pile([urwid.Divider(),
                         urwid.AttrMap(

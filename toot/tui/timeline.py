@@ -16,9 +16,7 @@ from .entities import Status
 from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, highlight_keys
 from .widgets import SelectableText, SelectableColumns, EmojiText
-
-from term_image.image import AutoImage
-from term_image.widget import UrwidImage
+from .images import AutoImage, UrwidImage, has_term_image
 
 logger = logging.getLogger("toot")
 screen = urwid.raw_display.Screen()
@@ -147,7 +145,8 @@ class Timeline(urwid.Columns):
     def modified(self):
         """Called when the list focus switches to a new status"""
         status, index, count = self.get_focused_status_with_counts()
-        self.tui.screen.clear_images()
+        if has_term_image:
+            self.tui.screen.clear_images()
         self.draw_status_details(status)
         self._emit("focus")
 
@@ -320,7 +319,7 @@ class Timeline(urwid.Columns):
                 img = self.images[(str(hash(path)))]
             except KeyError:
                 pass
-        if img:
+        if img and has_term_image:
             try:
                 render_img = add_corners(img, 10) if self.can_render_pixels else img
                 status.placeholders[placeholder_index]._set_original_widget(
@@ -391,7 +390,7 @@ class StatusDetails(urwid.Pile):
                 img = self.timeline.images[(str(hash(path)))]
             except KeyError:
                 pass
-        if img:
+        if img and has_term_image:
             render_img = add_corners(img, 10) if self.timeline.can_render_pixels else img
             return (urwid.BoxAdapter(
                 UrwidImage(
@@ -401,13 +400,14 @@ class StatusDetails(urwid.Pile):
         else:
             placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
             self.status.placeholders.append(placeholder)
-            self.timeline.tui.async_load_image(self.timeline, self.status, path, len(self.status.placeholders) - 1)
+            if has_term_image:
+                self.timeline.tui.async_load_image(self.timeline, self.status, path, len(self.status.placeholders) - 1)
             return placeholder
 
     def author_header(self, reblogged_by):
         avatar_url = self.status.original.data["account"]["avatar"]
 
-        if avatar_url:
+        if avatar_url and has_term_image:
             aimg = self.image_widget(avatar_url, 2)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
@@ -470,7 +470,8 @@ class StatusDetails(urwid.Pile):
                                 aspect = float(m["meta"]["original"]["aspect"])
                             except Exception:
                                 aspect = None
-                            yield self.image_widget(m["url"], aspect=aspect)
+                            if has_term_image:
+                                yield self.image_widget(m["url"], aspect=aspect)
                             yield urwid.Divider()
                         # video media may include a preview URL, show that as a fallback
                         elif m["preview_url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
@@ -479,7 +480,8 @@ class StatusDetails(urwid.Pile):
                                 aspect = float(m["meta"]["small"]["aspect"])
                             except Exception:
                                 aspect = None
-                            yield self.image_widget(m["preview_url"], aspect=aspect)
+                            if has_term_image:
+                                yield self.image_widget(m["preview_url"], aspect=aspect)
                             yield urwid.Divider()
                         yield ("pack", urwid.Text(("link", m["url"])))
 
@@ -544,7 +546,7 @@ class StatusDetails(urwid.Pile):
 
         yield urwid.Text(("link", card["url"]))
 
-        if card["image"]:
+        if card["image"] and has_term_image:
             if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
                 yield urwid.Text("")
                 try:

@@ -3,8 +3,13 @@ import urwid
 import re
 import requests
 from PIL import Image, ImageOps
-from term_image.image import AutoImage
-from term_image.widget import UrwidImage
+
+try:
+    from term_image.image import AutoImage
+    from term_image.widget import UrwidImage
+except ImportError:
+    pass
+
 from .utils import can_render_pixels
 from wcwidth import wcswidth
 
