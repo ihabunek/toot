@@ -533,6 +533,10 @@ def unblock(app, user, account):
     return _account_action(app, user, account, 'unblock')
 
 
+def blocked(app, user):
+    return _get_response_list(app, user, "/api/v1/blocks")
+
+
 def verify_credentials(app, user):
     return http.get(app, user, '/api/v1/accounts/verify_credentials').json()
 

@@ -510,6 +510,11 @@ def unblock(app, user, args):
     print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
 
+def blocked(app, user, args):
+    response = api.blocked(app, user)
+    print_acct_list(response)
+
+
 def whoami(app, user, args):
     account = api.verify_credentials(app, user)
     print_account(account)

@@ -726,6 +726,12 @@ ACCOUNTS_COMMANDS = [
         ],
         require_auth=True,
     ),
+    Command(
+        name="blocked",
+        description="List accounts the given account muted",
+        arguments=[],
+        require_auth=True,
+    ),
 ]
 
 TAG_COMMANDS = [
