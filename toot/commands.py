@@ -493,6 +493,11 @@ def unmute(app, user, args):
     print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
+def muted(app, user, args):
+    response = api.muted(app, user)
+    print_acct_list(response)
+
+
 def block(app, user, args):
     account = api.find_account(app, user, args.account)
     api.block(app, user, account['id'])

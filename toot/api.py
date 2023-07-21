@@ -521,6 +521,10 @@ def unmute(app, user, account):
     return _account_action(app, user, account, 'unmute')
 
 
+def muted(app, user):
+    return _get_response_list(app, user, "/api/v1/mutes")
+
+
 def block(app, user, account):
     return _account_action(app, user, account, 'block')
 
