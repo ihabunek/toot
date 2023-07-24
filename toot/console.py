@@ -705,6 +705,12 @@ ACCOUNTS_COMMANDS = [
         require_auth=True,
     ),
     Command(
+        name="muted",
+        description="List accounts the given account muted",
+        arguments=[],
+        require_auth=True,
+    ),
+    Command(
         name="block",
         description="Block an account",
         arguments=[
@@ -718,6 +724,12 @@ ACCOUNTS_COMMANDS = [
         arguments=[
             account_arg,
         ],
+        require_auth=True,
+    ),
+    Command(
+        name="blocked",
+        description="List accounts the given account muted",
+        arguments=[],
         require_auth=True,
     ),
 ]
