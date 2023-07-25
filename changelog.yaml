@@ -1,3 +1,10 @@
+0.38.0:
+  date: 2023-07-25
+  changes:
+    - "Add `toot muted` and `toot blocked` commands (thanks Florian Obser)"
+    - "Add settings file, allows setting common options, defining defaults for command arguments, and the TUI palette"
+    - "TUI: Remap shortcuts so they don't override HJKL used for navigation (thanks Dan Schwarz)"
+
 0.37.0:
   date: 2023-06-28
   changes:
