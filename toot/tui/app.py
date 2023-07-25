@@ -3,12 +3,12 @@ import urwid
 
 from concurrent.futures import ThreadPoolExecutor
 
-from toot import api, config, __version__
+from toot import api, config, __version__, settings
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer
-from .constants import PALETTE, MONO_PALETTE
+from .constants import PALETTE
 from .entities import Status
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
@@ -78,19 +78,20 @@ class TUI(urwid.Frame):
     loop: urwid.MainLoop
     screen: urwid.BaseScreen
 
-    @classmethod
-    def create(cls, app, user, args):
+    @staticmethod
+    def create(app, user, args):
         """Factory method, sets up TUI and an event loop."""
-        screen = urwid.raw_display.Screen()
-        tui = cls(app, user, screen, args)
+        screen = TUI.create_screen(args)
+        tui = TUI(app, user, screen, args)
 
-        if args.no_color:
-            screen.set_terminal_properties(1)
-            screen.reset_default_terminal_palette()
+        palette = PALETTE.copy()
+        overrides = settings.get_setting("tui.palette", dict, {})
+        for name, styles in overrides.items():
+            palette.append(tuple([name] + styles))
 
         loop = urwid.MainLoop(
             tui,
-            palette=MONO_PALETTE if args.no_color else PALETTE,
+            palette=palette,
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
             screen=screen,
@@ -98,6 +99,18 @@ class TUI(urwid.Frame):
         tui.loop = loop
 
         return tui
+
+    @staticmethod
+    def create_screen(args):
+        screen = urwid.raw_display.Screen()
+
+        # Determine how many colors to use
+        default_colors = 1 if args.no_color else 16
+        colors = settings.get_setting("tui.colors", int, default_colors)
+        logger.debug(f"Setting colors to {colors}")
+        screen.set_terminal_properties(colors)
+
+        return screen
 
     def __init__(self, app, user, screen, args):
         self.app = app
