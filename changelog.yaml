@@ -1,3 +1,8 @@
+0.38.1:
+  date: 2023-07-25
+  changes:
+    - "Fix relative datetimes option in TUI"
+
 0.38.0:
   date: 2023-07-25
   changes:
