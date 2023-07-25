@@ -80,7 +80,7 @@ class Timeline(urwid.Columns):
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
-        item = StatusListItem(status)
+        item = StatusListItem(status, self.tui.args.relative_datetimes)
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
@@ -439,14 +439,14 @@ class StatusDetails(urwid.Pile):
 
 
 class StatusListItem(SelectableColumns):
-    def __init__(self, status):
+    def __init__(self, status, relative_datetimes):
         edited_at = status.data.get("edited_at")
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
         created_at = (
             time_ago(status.created_at).ljust(3, " ")
-            if "--relative-datetimes" in sys.argv
+            if relative_datetimes
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 
