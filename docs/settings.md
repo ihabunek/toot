@@ -39,12 +39,12 @@ quiet = false
 
 ## Overriding command defaults
 
-Defaults for command arguments can be override by specifying a `[command.<name>]` section.
+Defaults for command arguments can be override by specifying a `[commands.<name>]` section.
 
 For example, to override `toot post`.
 
 ```toml
-[command.post]
+[commands.post]
 editor = "vim"
 sensitive = true
 visibility = "unlisted"
