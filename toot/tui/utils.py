@@ -62,6 +62,7 @@ def show_media(paths):
     potential_viewers = [
         "feh",
         "eog",
+        "gwenview",
         "display"
     ]
     for v in potential_viewers:
