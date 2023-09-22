@@ -12,7 +12,7 @@ from toot.exceptions import ApiError
 from .compose import StatusComposer
 from .constants import PALETTE, MONO_PALETTE
 from .entities import Status
-from .images import TuiScreen
+from .stubs.images import TuiScreen
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll

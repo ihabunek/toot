@@ -16,7 +16,7 @@ from .entities import Status
 from .scroll import Scrollable, ScrollBar
 from .utils import highlight_hashtags, highlight_keys
 from .widgets import SelectableText, SelectableColumns, EmojiText
-from .images import AutoImage, UrwidImage, has_term_image
+from .stubs.images import AutoImage, UrwidImage, has_term_image
 
 logger = logging.getLogger("toot")
 screen = urwid.raw_display.Screen()

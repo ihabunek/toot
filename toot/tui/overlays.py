@@ -10,7 +10,7 @@ from .utils import highlight_hashtags, highlight_keys, add_corners
 from .widgets import Button, EditBox, SelectableText, EmojiText
 from toot import api
 from PIL import Image
-from .images import AutoImage, UrwidImage, has_term_image
+from .stubs.images import AutoImage, UrwidImage, has_term_image
 
 
 class StatusSource(urwid.Padding):

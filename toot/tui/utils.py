@@ -11,7 +11,7 @@ from html.parser import HTMLParser
 from typing import List
 
 from PIL import Image, ImageDraw
-from .images import GraphicsImage, auto_image_class
+from .stubs.images import GraphicsImage, auto_image_class
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
