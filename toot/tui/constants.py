@@ -1,8 +1,21 @@
-# name, fg, bg, mono, fg_h, bg_h
+# Color definitions are tuples of:
+#   - name
+#   - foreground (normal mode)
+#   - background (normal mode)
+#   - foreground (monochrome mode)
+#   - foreground (high color mode)
+#   - background (high color mode)
+#
+# See:
+# http://urwid.org/tutorial/index.html#display-attributes
+# http://urwid.org/manual/displayattributes.html#using-display-attributes
+
 PALETTE = [
     # Components
     ('button', 'white', 'black'),
-    ('button_focused', 'light gray', 'dark magenta'),
+    ('button_focused', 'light gray', 'dark magenta', 'bold,underline'),
+    ('card_author', 'yellow', ''),
+    ('card_title', 'dark green', ''),
     ('columns_divider', 'white', 'dark blue'),
     ('content_warning', 'white', 'dark magenta'),
     ('editbox', 'white', 'black'),
@@ -12,54 +25,61 @@ PALETTE = [
     ('footer_status', 'white', 'dark blue'),
     ('footer_status_bold', 'white, bold', 'dark blue'),
     ('header', 'white', 'dark blue'),
-    ('header_bold', 'white,bold', 'dark blue'),
+    ('header_bold', 'white,bold', 'dark blue', 'bold'),
     ('intro_bigtext', 'yellow', ''),
     ('intro_smalltext', 'light blue', ''),
     ('poll_bar', 'white', 'dark blue'),
+    ('status_detail_account', 'dark green', ''),
+    ('status_detail_bookmarked', 'light red', ''),
+    ('status_detail_timestamp', 'light blue', ''),
+    ('status_list_account', 'dark green', ''),
+    ('status_list_selected', 'white,bold', 'dark green', 'bold,underline'),
+    ('status_list_timestamp', 'light blue', ''),
 
     # Functional
-    ('hashtag', 'light cyan,bold', ''),
-    ('followed_hashtag', 'yellow,bold', ''),
-    ('link', ',italics', ''),
-    ('link_focused', ',italics', 'dark magenta'),
-
-    # Colors
-    ('bold', ',bold', ''),
-    ('blue', 'light blue', ''),
-    ('blue_bold', 'light blue, bold', ''),
-    ('blue_selected', 'white', 'dark blue'),
-    ('cyan', 'dark cyan', ''),
-    ('cyan_bold', 'dark cyan,bold', ''),
-    ('gray', 'dark gray', ''),
-    ('green', 'dark green', ''),
-    ('green_selected', 'white,bold', 'dark green'),
-    ('yellow', 'yellow', ''),
-    ('yellow_bold', 'yellow,bold', ''),
-    ('red', 'dark red', ''),
+    ('account', 'dark green', ''),
+    ('hashtag', 'light cyan,bold', '', 'bold'),
+    ('hashtag_followed', 'yellow,bold', '', 'bold'),
+    ('link', ',italics', '', ',italics'),
+    ('link_focused', ',italics', 'dark magenta', "underline,italics"),
+    ('shortcut', 'light blue', ''),
+    ('shortcut_highlight', 'white,bold', '', 'bold'),
     ('warning', 'light red', ''),
-    ('white_bold', 'white,bold', ''),
+
+    # Visiblity
+    ('visibility_public', 'dark gray', ''),
+    ('visibility_unlisted', 'white', ''),
+    ('visibility_private', 'dark cyan', ''),
+    ('visibility_direct', 'yellow', ''),
+
+    # Styles
+    ('bold', ',bold', ''),
+    ('dim', 'dark gray', ''),
+    ('highlight', 'yellow', ''),
+    ('success', 'dark green', ''),
 
     # HTML tag styling
-    ('a', ',italics', ''),
+    ('a', ',italics', '', 'italics'),
     # em tag is mapped to i
-    ('i', ',italics', ''),
+    ('i', ',italics', '', 'italics'),
     # strong tag is mapped to b
-    ('b', ',bold', ''),
+    ('b', ',bold', '', 'bold'),
     # special case for bold + italic nested tags
-    ('bi', ',bold,italics', ''),
-    ('u', ',underline', ''),
-    ('del', ',strikethrough', ''),
-    ('code', 'light gray, standout', ''),
-    ('pre', 'light gray, standout', ''),
-    ('blockquote', 'light gray', ''),
-    ('h1', ',bold', ''),
-    ('h2', ',bold', ''),
-    ('h3', ',bold', ''),
-    ('h4', ',bold', ''),
-    ('h5', ',bold', ''),
-    ('h6', ',bold', ''),
-    ('class_mention_hashtag', 'light cyan,bold', ''),
-    ('class_hashtag', 'light cyan,bold', ''),
+    ('bi', ',bold,italics', '', ',bold,italics'),
+    ('u', ',underline', '', ',underline'),
+    ('del', ',strikethrough', '', ',strikethrough'),
+    ('code', 'light gray, standout', '', ',standout'),
+    ('pre', 'light gray, standout', '', ',standout'),
+    ('blockquote', 'light gray', '', ''),
+    ('h1', ',bold', '', ',bold'),
+    ('h2', ',bold', '', ',bold'),
+    ('h3', ',bold', '', ',bold'),
+    ('h4', ',bold', '', ',bold'),
+    ('h5', ',bold', '', ',bold'),
+    ('h6', ',bold', '', ',bold'),
+    ('class_mention_hashtag', 'light cyan,bold', '', ',bold'),
+    ('class_hashtag', 'light cyan,bold', '', ',bold'),
+
 ]
 
 VISIBILITY_OPTIONS = [

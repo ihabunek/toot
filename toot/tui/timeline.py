@@ -6,16 +6,17 @@ import webbrowser
 
 from typing import List, Optional
 
-from .entities import Status
-from .scroll import Scrollable, ScrollBar
-from .utils import parse_datetime, highlight_keys
-from .widgets import SelectableText, SelectableColumns
-from .richtext import ContentParser
 from toot.tui import app
-from toot.tui.utils import time_ago
+from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
+
+from toot.entities import Status
+from toot.tui.scroll import Scrollable, ScrollBar
+from toot.tui.utils import highlight_keys
+from toot.tui.widgets import SelectableText, SelectableColumns
+from toot.tui.richtext import ContentParser
 from toot.utils import urlencode_url
-from .stubs.urwidgets import Hyperlink, TextEmbed, parse_text, has_urwidgets
+from toot.tui.stubs.urwidgets import Hyperlink, TextEmbed, parse_text, has_urwidgets
 
 logger = logging.getLogger("toot")
 
@@ -55,7 +56,7 @@ class Timeline(urwid.Columns):
 
         super().__init__([
             ("weight", 40, self.status_list),
-            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
+            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "columns_divider")),
             ("weight", 60, status_widget),
         ])
 
@@ -82,16 +83,15 @@ class Timeline(urwid.Columns):
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
-        item = StatusListItem(status)
+        item = StatusListItem(status, self.tui.args.relative_datetimes)
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
-            "blue": "green_selected",
-            "green": "green_selected",
-            "yellow": "green_selected",
-            "cyan": "green_selected",
-            "red": "green_selected",
-            None: "green_selected",
+            "status_list_account": "status_list_selected",
+            "status_list_timestamp": "status_list_selected",
+            "highligh": "status_list_selected",
+            "dim": "status_list_selected",
+            None: "status_list_selected",
         })
 
     def get_option_text(self, status: Optional[Status]) -> Optional[urwid.Text]:
@@ -108,17 +108,17 @@ class Timeline(urwid.Columns):
             "[F]avourite",
             "[V]iew",
             "[T]hread" if not self.is_thread else "",
-            "[L]inks",
+            "L[i]nks",
             "[R]eply",
             "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
             "[Z]oom",
             "Tra[n]slate" if self.tui.can_translate else "",
             "Cop[y]",
-            "[H]elp",
+            "Help([?])",
         ]
         options = "\n" + " ".join(o for o in options if o)
-        options = highlight_keys(options, "white_bold", "cyan")
+        options = highlight_keys(options, "shortcut_highlight", "shortcut")
         return urwid.Text(options)
 
     def get_focused_status(self):
@@ -220,7 +220,7 @@ class Timeline(urwid.Columns):
             self.tui.async_toggle_bookmark(self, status)
             return
 
-        if key in ("l", "L"):
+        if key in ("i", "I"):
             self.tui.show_links(status)
             return
 
@@ -338,13 +338,13 @@ class StatusDetails(urwid.Pile):
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
-            yield ("pack", urwid.Text(("gray", text)))
-            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+            yield ("pack", urwid.Text(("dim", text)))
+            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
+            yield ("pack", urwid.Text(("bold", status.author.display_name)))
 
-        account_color = "yellow" if status.author.account in self.followed_accounts else "gray"
+        account_color = "highlight" if status.author.account in self.followed_accounts else "account"
         yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 
@@ -367,7 +367,7 @@ class StatusDetails(urwid.Pile):
             media = status.data["media_attachments"]
             if media:
                 for m in media:
-                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
@@ -386,7 +386,7 @@ class StatusDetails(urwid.Pile):
         application = status.data.get("application") or {}
         application = application.get("name")
 
-        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
+        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "dim"))
 
         translated_from = (
             language_name(status.original.translated_from)
@@ -395,24 +395,24 @@ class StatusDetails(urwid.Pile):
         )
 
         visibility_colors = {
-            "public": "gray",
-            "unlisted": "white",
-            "private": "cyan",
-            "direct": "yellow"
+            "public": "visibility_public",
+            "unlisted": "visibility_unlisted",
+            "private": "visibility_private",
+            "direct": "visibility_direct"
         }
 
         visibility = status.visibility.title()
-        visibility_color = visibility_colors.get(status.visibility, "gray")
+        visibility_color = visibility_colors.get(status.visibility, "dim")
 
         yield ("pack", urwid.Text([
-            ("blue", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
-            ("red" if status.bookmarked else "gray", "b "),
-            ("gray", f"⤶ {status.data['replies_count']} "),
-            ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
-            ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            ("status_detail_timestamp", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("status_detail_bookmarked" if status.bookmarked else "dim", "b "),
+            ("dim", f"⤶ {status.data['replies_count']} "),
+            ("highlight" if status.reblogged else "dim", f"♺ {status.data['reblogs_count']} "),
+            ("highlight" if status.favourited else "dim", f"★ {status.data['favourites_count']}"),
             (visibility_color, f" · {visibility}"),
-            ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
-            ("gray", f" · {application}" if application else ""),
+            ("highlight", f" · Translated from {translated_from} " if translated_from else ""),
+            ("dim", f" · {application}" if application else ""),
         ]))
 
         # Push things to bottom
@@ -424,9 +424,9 @@ class StatusDetails(urwid.Pile):
         return urwid.LineBox(contents)
 
     def card_generator(self, card):
-        yield urwid.Text(("green", card["title"].strip()))
+        yield urwid.Text(("card_title", card["title"].strip()))
         if card.get("author_name"):
-            yield urwid.Text(["by ", ("yellow", card["author_name"].strip())])
+            yield urwid.Text(["by ", ("card_author", card["author_name"].strip())])
         yield urwid.Text("")
         if card["description"]:
             yield urwid.Text(card["description"].strip())
@@ -455,36 +455,36 @@ class StatusDetails(urwid.Pile):
             expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
             status += " · Closes on {}".format(expires_at)
 
-        yield urwid.Text(("gray", status))
+        yield urwid.Text(("dim", status))
 
 
 class StatusListItem(SelectableColumns):
-    def __init__(self, status):
+    def __init__(self, status, relative_datetimes):
         edited_at = status.data.get("edited_at")
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
         created_at = (
             time_ago(status.created_at).ljust(3, " ")
-            if "--relative-datetimes" in sys.argv
+            if relative_datetimes
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 
         edited_flag = "*" if edited_at else " "
-        favourited = ("yellow", "★") if status.original.favourited else " "
-        reblogged = ("yellow", "♺") if status.original.reblogged else " "
-        is_reblog = ("cyan", "♺") if status.reblog else " "
-        is_reply = ("cyan", "⤶") if status.original.in_reply_to else " "
+        favourited = ("highlight", "★") if status.original.favourited else " "
+        reblogged = ("highlight", "♺") if status.original.reblogged else " "
+        is_reblog = ("dim", "♺") if status.reblog else " "
+        is_reply = ("dim", "⤶") if status.original.in_reply_to else " "
 
         return super().__init__([
-            ("pack", SelectableText(("blue", created_at), wrap="clip")),
-            ("pack", urwid.Text(("blue", edited_flag))),
+            ("pack", SelectableText(("status_list_timestamp", created_at), wrap="clip")),
+            ("pack", urwid.Text(("status_list_timestamp", edited_flag))),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
-            urwid.Text(("green", status.original.account), wrap="clip"),
+            urwid.Text(("status_list_account", status.original.account), wrap="clip"),
             ("pack", urwid.Text(is_reply)),
             ("pack", urwid.Text(is_reblog)),
             ("pack", urwid.Text(" ")),

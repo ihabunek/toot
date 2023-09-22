@@ -2,7 +2,7 @@ import urwid
 
 from toot import api
 from toot.exceptions import ApiError
-from .utils import parse_datetime
+from toot.utils.datetime import parse_datetime
 from .widgets import Button, CheckBox, RadioButton
 from .richtext import ContentParser
 
@@ -59,7 +59,7 @@ class Poll(urwid.ListBox):
 
             if poll["voted"] or poll["expired"]:
                 prefix = " ✓  " if voted_for else "    "
-                yield urwid.Text(("gray", prefix + f'{option["title"]}'))
+                yield urwid.Text(("dim", prefix + f'{option["title"]}'))
             else:
                 if poll["multiple"]:
                     checkbox = CheckBox(f'{option["title"]}')
@@ -81,7 +81,7 @@ class Poll(urwid.ListBox):
             )
             poll_detail += " · Closes on {}".format(expires_at)
 
-        yield urwid.Text(("gray", poll_detail))
+        yield urwid.Text(("dim", poll_detail))
 
     def generate_contents(self, status):
         yield urwid.Divider()

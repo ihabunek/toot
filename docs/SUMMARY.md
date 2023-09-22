@@ -5,6 +5,7 @@
 - [Installation](installation.md)
 - [Usage](usage.md)
     - [Advanced](advanced.md)
+    - [Settings](settings.md)
     - [TUI](tui.md)
 - [Contributing](contributing.md)
     - [Documentation](documentation.md)

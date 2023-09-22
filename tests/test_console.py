@@ -161,6 +161,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
             'acct': 'fz'
         },
         'reblog': {
+            'created_at': '2017-04-12T15:53:18.174Z',
             'account': {
                 'display_name': 'Johnny Cash',
                 'acct': 'jc'
@@ -179,8 +180,8 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
     out, err = capsys.readouterr()
     lines = uncolorize(out).split("\n")
 
-    assert "Frank Zappa" in lines[1]
-    assert "@fz" in lines[1]
+    assert "Johnny Cash" in lines[1]
+    assert "@jc" in lines[1]
     assert "2017-04-12 15:53 UTC" in lines[1]
 
     assert (
@@ -188,7 +189,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
         "exact mathematical design, but\nwhat's missing is the eyebrows." in out)
 
     assert "111111111111111111" in lines[-3]
-    assert "↻ Reblogged @jc" in lines[-3]
+    assert "↻ @fz boosted" in lines[-3]
 
     assert err == ""
 

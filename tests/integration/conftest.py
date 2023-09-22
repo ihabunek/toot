@@ -8,7 +8,7 @@ To enable integration tests, export the following environment variables to match
 your test server and database:
 
 ```
-export TOOT_TEST_HOSTNAME="localhost:3000"
+export TOOT_TEST_BASE_URL="localhost:3000"
 export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 ```
 """
@@ -24,6 +24,11 @@ from toot import api, App, User
 from toot.console import run_command
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
+
+
+def pytest_configure(config):
+    import toot.settings
+    toot.settings.DISABLE_SETTINGS = True
 
 
 # Mastodon database name, used to confirm user registration without having to click the link

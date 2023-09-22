@@ -81,15 +81,15 @@ class StatusDeleteConfirmation(urwid.ListBox):
     signals = ["delete", "close"]
 
     def __init__(self, status):
-        yes = SelectableText("Yes, send it to heck")
-        no = SelectableText("No, I'll spare it for now")
+        def _delete(_):
+            self._emit("delete")
 
-        urwid.connect_signal(yes, "click", lambda *args: self._emit("delete"))
-        urwid.connect_signal(no, "click", lambda *args: self._emit("close"))
+        def _close(_):
+            self._emit("close")
 
         walker = urwid.SimpleFocusListWalker([
-            urwid.AttrWrap(yes, "", "blue_selected"),
-            urwid.AttrWrap(no, "", "blue_selected"),
+            Button("Yes, delete", on_press=_delete),
+            Button("No, cancel", on_press=_close),
         ])
         super().__init__(walker)
 
@@ -196,9 +196,9 @@ class Help(urwid.Padding):
 
     def generate_contents(self):
         def h(text):
-            return highlight_keys(text, "cyan")
+            return highlight_keys(text, "shortcut")
 
-        yield urwid.Text(("yellow_bold", "toot {}".format(__version__)))
+        yield urwid.Text(("bold", "toot {}".format(__version__)))
         yield urwid.Divider()
         yield urwid.Text(("bold", "General usage"))
         yield urwid.Divider()
@@ -211,9 +211,9 @@ class Help(urwid.Padding):
         yield urwid.Divider()
         yield urwid.Text(h("  [Q] - quit toot"))
         yield urwid.Text(h("  [G] - go to - switch timelines"))
-        yield urwid.Text(h("  [P] - save/unsave (pin) current timeline"))
+        yield urwid.Text(h("  [E] - save/unsave (pin) current timeline"))
         yield urwid.Text(h("  [,] - refresh current timeline"))
-        yield urwid.Text(h("  [H] - show this help"))
+        yield urwid.Text(h("  [?] - show this help"))
         yield urwid.Divider()
         yield urwid.Text(("bold", "Status keys"))
         yield urwid.Divider()
@@ -262,10 +262,10 @@ class Account(urwid.ListBox):
             yield Button("Cancel", on_press=cancel_action, user_data=self)
         else:
             if self.user.username == account["acct"]:
-                yield urwid.Text(("light gray", "This is your account"))
+                yield urwid.Text(("dim", "This is your account"))
             else:
                 if relationship['requested']:
-                    yield urwid.Text(("light gray", "< Follow request is pending >"))
+                    yield urwid.Text(("dim", "< Follow request is pending >"))
                 else:
                     yield Button("Unfollow" if relationship['following'] else "Follow",
                     on_press=confirm_action, user_data=self)
@@ -277,7 +277,7 @@ class Account(urwid.ListBox):
 
         yield urwid.Divider("─")
         yield urwid.Divider()
-        yield urwid.Text([('green', f"@{account['acct']}"), f"  {account['display_name']}"])
+        yield urwid.Text([("account", f"@{account['acct']}"), f"  {account['display_name']}"])
 
         if account["note"]:
             yield urwid.Divider()
@@ -287,12 +287,12 @@ class Account(urwid.ListBox):
                 yield (line)
 
         yield urwid.Divider()
-        yield urwid.Text(["ID: ", ("green", f"{account['id']}")])
-        yield urwid.Text(["Since: ", ("green", f"{account['created_at'][:10]}")])
+        yield urwid.Text(["ID: ", ("highlight", f"{account['id']}")])
+        yield urwid.Text(["Since: ", ("highlight", f"{account['created_at'][:10]}")])
         yield urwid.Divider()
 
         if account["bot"]:
-            yield urwid.Text([("green", "Bot \N{robot face}")])
+            yield urwid.Text([("highlight", "Bot \N{robot face}")])
             yield urwid.Divider()
         if account["locked"]:
             yield urwid.Text([("warning", "Locked \N{lock}")])
@@ -301,28 +301,28 @@ class Account(urwid.ListBox):
             yield urwid.Text([("warning", "Suspended \N{cross mark}")])
             yield urwid.Divider()
         if relationship["followed_by"]:
-            yield urwid.Text(("green", "Follows you \N{busts in silhouette}"))
+            yield urwid.Text(("highlight", "Follows you \N{busts in silhouette}"))
             yield urwid.Divider()
         if relationship["blocked_by"]:
             yield urwid.Text(("warning", "Blocks you \N{no entry}"))
             yield urwid.Divider()
 
-        yield urwid.Text(["Followers: ", ("yellow", f"{account['followers_count']}")])
-        yield urwid.Text(["Following: ", ("yellow", f"{account['following_count']}")])
-        yield urwid.Text(["Statuses: ", ("yellow", f"{account['statuses_count']}")])
+        yield urwid.Text(["Followers: ", ("highlight", f"{account['followers_count']}")])
+        yield urwid.Text(["Following: ", ("highlight", f"{account['following_count']}")])
+        yield urwid.Text(["Statuses: ", ("highlight", f"{account['statuses_count']}")])
 
         if account["fields"]:
             for field in account["fields"]:
                 name = field["name"].title()
                 yield urwid.Divider()
-                yield urwid.Text([("yellow", f"{name.rstrip(':')}"), ":"])
+                yield urwid.Text([("bold", f"{name.rstrip(':')}"), ":"])
 
                 widgetlist = parser.html_to_widgets(field["value"])
                 for line in widgetlist:
                     yield (line)
 
                 if field["verified_at"]:
-                    yield urwid.Text(("green", "✓ Verified"))
+                    yield urwid.Text(("success", "✓ Verified"))
 
         yield urwid.Divider()
         yield link("", account["url"])

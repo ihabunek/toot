@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from .utils import parse_datetime
+from toot.utils.datetime import parse_datetime
 
 Author = namedtuple("Author", ["account", "display_name", "username"])
 

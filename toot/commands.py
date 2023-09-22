@@ -6,12 +6,13 @@ from datetime import datetime, timedelta, timezone
 from time import sleep, time
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
+from toot.entities import Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_timeline, print_notifications, print_tag_list,
+                         print_search_results, print_status, print_timeline, print_notifications, print_tag_list,
                          print_list_accounts, print_user_list)
-from toot.tui.utils import parse_datetime
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
+from toot.utils.datetime import parse_datetime
 
 
 def get_timeline_generator(app, user, args):
@@ -56,7 +57,8 @@ def timeline(app, user, args, generator=None):
         if args.reverse:
             items = reversed(items)
 
-        print_timeline(items)
+        statuses = [from_dict(Status, item) for item in items]
+        print_timeline(statuses)
 
         if args.once or not sys.stdout.isatty():
             break
@@ -64,6 +66,12 @@ def timeline(app, user, args, generator=None):
         char = input("\nContinue? [Y/n] ")
         if char.lower() == "n":
             break
+
+
+def status(app, user, args):
+    status = api.single_status(app, user, args.status_id)
+    status = from_dict(Status, status)
+    print_status(status)
 
 
 def thread(app, user, args):
@@ -78,7 +86,8 @@ def thread(app, user, args):
     for item in context['descendants']:
         thread.append(item)
 
-    print_timeline(thread)
+    statuses = [from_dict(Status, s) for s in thread]
+    print_timeline(statuses)
 
 
 def post(app, user, args):
@@ -484,6 +493,11 @@ def unmute(app, user, args):
     print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
+def muted(app, user, args):
+    response = api.muted(app, user)
+    print_acct_list(response)
+
+
 def block(app, user, args):
     account = api.find_account(app, user, args.account)
     api.block(app, user, account['id'])
@@ -494,6 +508,11 @@ def unblock(app, user, args):
     account = api.find_account(app, user, args.account)
     api.unblock(app, user, account['id'])
     print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
+
+
+def blocked(app, user, args):
+    response = api.blocked(app, user)
+    print_acct_list(response)
 
 
 def whoami(app, user, args):
@@ -515,6 +534,7 @@ def instance(app, user, args):
 
     try:
         instance = api.get_instance(base_url)
+        instance = from_dict(Instance, instance)
         print_instance(instance)
     except ApiError:
         raise ConsoleError(
@@ -542,6 +562,7 @@ def notifications(app, user, args):
     if args.reverse:
         notifications = reversed(notifications)
 
+    notifications = [from_dict(Notification, n) for n in notifications]
     print_notifications(notifications)
 
 
