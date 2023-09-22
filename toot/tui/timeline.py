@@ -407,7 +407,7 @@ class StatusDetails(urwid.Pile):
     def author_header(self, reblogged_by):
         avatar_url = self.status.original.data["account"]["avatar"]
 
-        if avatar_url and has_term_image:
+        if avatar_url:
             aimg = self.image_widget(avatar_url, 2)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
@@ -425,7 +425,11 @@ class StatusDetails(urwid.Pile):
                                 "account")),
                            ("pack", urwid.Text((account_color, self.status.original.author.account)))])
 
-        columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        if has_term_image:
+            columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        else:
+            columns = urwid.Columns([("weight", 9999, atxt)], dividechars=1, min_width=5)
+
         return columns
 
     def content_generator(self, status, reblogged_by):
