@@ -15,7 +15,7 @@ from toot.tui import app
 from toot.tui.utils import time_ago
 from toot.utils.language import language_name
 from toot.utils import urlencode_url
-from urwidgets import Hyperlink, TextEmbed, parse_text
+from .stubs.urwidgets import Hyperlink, TextEmbed, parse_text, has_urwidgets
 
 logger = logging.getLogger("toot")
 
@@ -322,6 +322,8 @@ class StatusDetails(urwid.Pile):
         return super().__init__(widget_list)
 
     def linkify_content(self, text) -> urwid.Widget:
+        if not has_urwidgets:
+            return urwid.Text(("link", text))
         TRANSFORM = {
             # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
             re.compile(r'(https?://[^\s]+)'):

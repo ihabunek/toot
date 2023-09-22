@@ -1,4 +1,5 @@
 [flake8]
-exclude=build,tests,tmp,venv,toot/tui/scroll.py
+exclude=.tox,build,tests,tmp,venv,toot/tui/scroll.py
+per-file-ignores=toot/tui/stubs/urwidgets.py:F401
 ignore=E128,W503
 max-line-length=120

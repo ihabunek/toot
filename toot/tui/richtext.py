@@ -8,7 +8,7 @@ import unicodedata
 from .constants import PALETTE
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
-from urwidgets import TextEmbed, Hyperlink, parse_text
+from .stubs.urwidgets import TextEmbed, Hyperlink, parse_text, has_urwidgets
 from urwid.util import decompose_tagmarkup
 from toot.utils import urlencode_url
 
@@ -101,7 +101,10 @@ class ContentParser:
                 markups.append(child)
         return markups
 
-    def text_to_widget(self, attr, markup) -> TextEmbed:
+    def text_to_widget(self, attr, markup) -> urwid.Widget:
+        if not has_urwidgets:
+            return urwid.Text((attr, markup))
+
         TRANSFORM = {
             # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
             re.compile(r"(^.+)\x03(.+$)"): lambda g: (
@@ -232,7 +235,8 @@ class ContentParser:
         title, attrib_list = decompose_tagmarkup(markups)
         if not attrib_list:
             attrib_list = [tag]
-        if href:
+        if href and has_urwidgets:
+            # only if we have urwidgets loaded for OCS 8 hyperlinks:
             # urlencode the path and query portions of the URL
             href = urlencode_url(href)
             # use ASCII ETX (end of record) as a
