@@ -1,18 +1,21 @@
 import logging
+import re
 import urwid
 import webbrowser
 
 from typing import List, Optional
 
 from toot.tui import app
-from toot.utils import format_content
 from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
 
-from .entities import Status
-from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, highlight_keys
-from .widgets import SelectableText, SelectableColumns
+from toot.entities import Status
+from toot.tui.scroll import Scrollable, ScrollBar
+from toot.tui.utils import highlight_keys
+from toot.tui.widgets import SelectableText, SelectableColumns
+from toot.tui.richtext import ContentParser
+from toot.utils import urlencode_url
+from toot.tui.stubs.urwidgets import Hyperlink, TextEmbed, parse_text, has_urwidgets
 
 logger = logging.getLogger("toot")
 
@@ -310,13 +313,26 @@ class Timeline(urwid.Columns):
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
-        self.followed_tags = timeline.tui.followed_tags
         self.followed_accounts = timeline.tui.followed_accounts
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
             if status else ())
         return super().__init__(widget_list)
+
+    def linkify_content(self, text) -> urwid.Widget:
+        if not has_urwidgets:
+            return urwid.Text(("link", text))
+        TRANSFORM = {
+            # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
+            re.compile(r'(https?://[^\s]+)'):
+                lambda g: (len(g[1]), urwid.Filler(Hyperlink(urlencode_url(g[1]), "link", g[1]))),
+        }
+        markup_list = []
+
+        markup_list.append(parse_text(text, TRANSFORM,
+            lambda pattern, groups, span: TRANSFORM[pattern](groups)))
+        return TextEmbed(markup_list, align='left')
 
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
@@ -340,8 +356,12 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
-            for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
+
+            parser = ContentParser()
+            widgetlist = parser.html_to_widgets(content)
+
+            for line in widgetlist:
+                yield (line)
 
             media = status.data["media_attachments"]
             if media:
@@ -350,7 +370,7 @@ class StatusDetails(urwid.Pile):
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    yield ("pack", self.linkify_content(m["url"]))
 
             poll = status.original.data.get("poll")
             if poll:
@@ -410,7 +430,7 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
-        yield urwid.Text(("link", card["url"]))
+        yield self.linkify_content(card["url"])
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):

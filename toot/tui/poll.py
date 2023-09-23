@@ -2,11 +2,9 @@ import urwid
 
 from toot import api
 from toot.exceptions import ApiError
-from toot.utils import format_content
 from toot.utils.datetime import parse_datetime
-
-from .utils import highlight_hashtags
 from .widgets import Button, CheckBox, RadioButton
+from .richtext import ContentParser
 
 
 class Poll(urwid.ListBox):
@@ -87,8 +85,12 @@ class Poll(urwid.ListBox):
 
     def generate_contents(self, status):
         yield urwid.Divider()
-        for line in format_content(status.data["content"]):
-            yield urwid.Text(highlight_hashtags(line, set()))
+
+        parser = ContentParser()
+        widgetlist = parser.html_to_widgets(status.data["content"])
+
+        for line in widgetlist:
+            yield (line)
 
         yield urwid.Divider()
         yield self.build_linebox(self.generate_poll_detail())

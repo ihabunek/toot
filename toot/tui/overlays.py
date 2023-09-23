@@ -4,10 +4,10 @@ import urwid
 import webbrowser
 
 from toot import __version__
-from toot.utils import format_content
-from .utils import highlight_hashtags, highlight_keys
-from .widgets import Button, EditBox, SelectableText
 from toot import api
+from toot.tui.utils import highlight_keys
+from toot.tui.widgets import Button, EditBox, SelectableText
+from toot.tui.richtext import ContentParser
 
 
 class StatusSource(urwid.Padding):
@@ -255,6 +255,8 @@ class Account(urwid.ListBox):
         super().__init__(walker)
 
     def generate_contents(self, account, relationship=None, last_action=None):
+        parser = ContentParser()
+
         if self.last_action and not self.last_action.startswith("Confirm"):
             yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
             yield Button("Cancel", on_press=cancel_action, user_data=self)
@@ -279,8 +281,10 @@ class Account(urwid.ListBox):
 
         if account["note"]:
             yield urwid.Divider()
-            for line in format_content(account["note"]):
-                yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+
+            widgetlist = parser.html_to_widgets(account["note"])
+            for line in widgetlist:
+                yield (line)
 
         yield urwid.Divider()
         yield urwid.Text(["ID: ", ("highlight", f"{account['id']}")])
@@ -312,8 +316,11 @@ class Account(urwid.ListBox):
                 name = field["name"].title()
                 yield urwid.Divider()
                 yield urwid.Text([("bold", f"{name.rstrip(':')}"), ":"])
-                for line in format_content(field["value"]):
-                    yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+
+                widgetlist = parser.html_to_widgets(field["value"])
+                for line in widgetlist:
+                    yield (line)
+
                 if field["verified_at"]:
                     yield urwid.Text(("success", "✓ Verified"))
 

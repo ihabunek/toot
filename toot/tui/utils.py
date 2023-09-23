@@ -35,21 +35,6 @@ def highlight_keys(text, high_attr, low_attr=""):
     return list(_gen())
 
 
-def highlight_hashtags(line, followed_tags, attr="hashtag", followed_attr="hashtag_followed"):
-    hline = []
-
-    for p in re.split(HASHTAG_PATTERN, line):
-        if p.startswith("#"):
-            if p[1:].lower() in (t.lower() for t in followed_tags):
-                hline.append((followed_attr, p))
-            else:
-                hline.append((attr, p))
-        else:
-            hline.append(p)
-
-    return hline
-
-
 def show_media(paths):
     """
     Attempt to open an image viewer to show given media files.

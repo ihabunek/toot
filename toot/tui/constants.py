@@ -57,6 +57,29 @@ PALETTE = [
     ('dim', 'dark gray', ''),
     ('highlight', 'yellow', ''),
     ('success', 'dark green', ''),
+
+    # HTML tag styling
+    ('a', ',italics', '', 'italics'),
+    # em tag is mapped to i
+    ('i', ',italics', '', 'italics'),
+    # strong tag is mapped to b
+    ('b', ',bold', '', 'bold'),
+    # special case for bold + italic nested tags
+    ('bi', ',bold,italics', '', ',bold,italics'),
+    ('u', ',underline', '', ',underline'),
+    ('del', ',strikethrough', '', ',strikethrough'),
+    ('code', 'light gray, standout', '', ',standout'),
+    ('pre', 'light gray, standout', '', ',standout'),
+    ('blockquote', 'light gray', '', ''),
+    ('h1', ',bold', '', ',bold'),
+    ('h2', ',bold', '', ',bold'),
+    ('h3', ',bold', '', ',bold'),
+    ('h4', ',bold', '', ',bold'),
+    ('h5', ',bold', '', ',bold'),
+    ('h6', ',bold', '', ',bold'),
+    ('class_mention_hashtag', 'light cyan', '', ''),
+    ('class_hashtag', 'light cyan', '', ''),
+
 ]
 
 VISIBILITY_OPTIONS = [
