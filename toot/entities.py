@@ -394,7 +394,7 @@ def _convert(field_type, value):
         return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
 
     if field_type == date:
-        return date.fromisoformat(value)
+        return datetime.fromisoformat(value).date()
 
     if get_origin(field_type) == list:
         (inner_type,) = get_args(field_type)
