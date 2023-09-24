@@ -122,6 +122,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'id': '111111111111111111',
         'account': {
             'display_name': 'Frank Zappa 🎸',
+            'last_status_at': '2017-04-12T15:53:18.174Z',
             'acct': 'fz'
         },
         'created_at': '2017-04-12T15:53:18.174Z',
@@ -164,6 +165,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
             'created_at': '2017-04-12T15:53:18.174Z',
             'account': {
                 'display_name': 'Johnny Cash',
+                'last_status_at': '2011-04-12',
                 'acct': 'jc'
             },
             'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
