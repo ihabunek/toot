@@ -40,6 +40,9 @@ setup(
         "urwid>=2.0.0,<3.0",
         "tomlkit>=0.10.0,<1.0"
     ],
+    extras_require={
+        "hyperlinks": ['urwidgets>=0.1,<0.2'],
+    },
     entry_points={
         'console_scripts': [
             'toot=toot.console:main',
