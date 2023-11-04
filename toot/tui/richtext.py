@@ -2,11 +2,10 @@ import re
 import urwid
 import unicodedata
 
-from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 from toot.tui.constants import PALETTE
 from toot.tui.stubs.urwidgets import TextEmbed, Hyperlink, parse_text, has_urwidgets
-from toot.utils import urlencode_url
+from toot.utils import parse_html, urlencode_url
 from typing import List, Tuple
 from urwid.util import decompose_tagmarkup
 
@@ -23,7 +22,7 @@ class ContentParser:
         """Convert html to urwid widgets"""
         widgets: List[urwid.Widget] = []
         html = unicodedata.normalize("NFKC", html)
-        soup = BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
+        soup = parse_html(html)
         first_tag = True
         for e in soup.body or soup:
             if isinstance(e, NavigableString):

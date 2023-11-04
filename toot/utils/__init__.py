@@ -23,17 +23,19 @@ def str_bool_nullable(b):
     return None if b is None else str_bool(b)
 
 
-def get_text(html):
-    """Converts html to text, strips all tags."""
-
+def parse_html(html: str) -> BeautifulSoup:
     # Ignore warnings made by BeautifulSoup, if passed something that looks like
     # a file (e.g. a dot which matches current dict), it will warn that the file
     # should be opened instead of passing a filename.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        text = BeautifulSoup(html.replace('&apos;', "'"), "html.parser").get_text()
+        return BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
 
-    return unicodedata.normalize('NFKC', text)
+
+def get_text(html):
+    """Converts html to text, strips all tags."""
+    text = parse_html(html).get_text()
+    return unicodedata.normalize("NFKC", text)
 
 
 def html_to_paragraphs(html):
