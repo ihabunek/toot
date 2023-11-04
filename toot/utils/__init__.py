@@ -36,7 +36,7 @@ def get_text(html):
     return unicodedata.normalize('NFKC', text)
 
 
-def parse_html(html):
+def html_to_paragraphs(html):
     """Attempt to convert html to plain text while keeping line breaks.
     Returns a list of paragraphs, each being a list of lines.
     """
@@ -55,7 +55,7 @@ def format_content(content):
     Returns a generator yielding lines of content.
     """
 
-    paragraphs = parse_html(content)
+    paragraphs = html_to_paragraphs(content)
 
     first = True
 
