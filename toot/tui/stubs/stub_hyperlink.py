@@ -4,12 +4,7 @@ import urwid
 
 
 class Hyperlink(urwid.WidgetWrap):
-    def __init__(
-        self,
-        uri,
-        attr,
-        text,
-    ):
+    def __init__(self, uri, attr, text):
         pass
 
     def render(self, size, focus):

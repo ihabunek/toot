@@ -4,9 +4,7 @@ import urwid
 
 
 class TextEmbed(urwid.Text):
-    def get_text(
-        self,
-    ):
+    def get_text(self):
         return None
 
     def render(self, size, focus):
@@ -19,11 +17,5 @@ class TextEmbed(urwid.Text):
         pass
 
 
-def parse_text(
-    text,
-    patterns,
-    repl,
-    *repl_args,
-    **repl_kwargs,
-):
+def parse_text(text, patterns, repl, *repl_args, **repl_kwargs):
     return None

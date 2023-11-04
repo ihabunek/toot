@@ -1,16 +1,14 @@
-"""
-richtext
-"""
-from typing import List, Tuple
 import re
 import urwid
 import unicodedata
-from .constants import PALETTE
+
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
-from .stubs.urwidgets import TextEmbed, Hyperlink, parse_text, has_urwidgets
-from urwid.util import decompose_tagmarkup
+from toot.tui.constants import PALETTE
+from toot.tui.stubs.urwidgets import TextEmbed, Hyperlink, parse_text, has_urwidgets
 from toot.utils import urlencode_url
+from typing import List, Tuple
+from urwid.util import decompose_tagmarkup
 
 
 class ContentParser:
