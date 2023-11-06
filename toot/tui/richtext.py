@@ -12,6 +12,9 @@ from urwid.util import decompose_tagmarkup
 
 STYLE_NAMES = [p[0] for p in PALETTE]
 
+# NOTE: update this list if Mastodon starts supporting more block tags
+BLOCK_TAGS = ["p", "pre", "li", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6"]
+
 
 class ContentParser:
     """Parse a limited subset of HTML and create urwid widgets."""
@@ -21,6 +24,7 @@ class ContentParser:
         widgets: List[urwid.Widget] = []
         html = unicodedata.normalize("NFKC", html)
         soup = parse_html(html)
+
         first_tag = True
         for e in soup.body or soup:
             if isinstance(e, NavigableString):
@@ -37,23 +41,7 @@ class ContentParser:
                 # if our HTML starts with a tag, but not a block tag
                 # the HTML is out of spec. Attempt a fix by wrapping the
                 # HTML with <p></p>
-                if (
-                    first_tag
-                    and not recovery_attempt
-                    and name
-                    not in (
-                        "p",
-                        "pre",
-                        "li",
-                        "blockquote",
-                        "h1",
-                        "h2",
-                        "h3",
-                        "h4",
-                        "h5",
-                        "h6",
-                    )  # NOTE: update this list if Mastodon starts supporting more block tags
-                ):
+                if (first_tag and not recovery_attempt and name not in BLOCK_TAGS):
                     return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt=True)
 
                 # First, look for a custom tag handler method in this class
