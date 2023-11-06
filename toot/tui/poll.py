@@ -4,7 +4,7 @@ from toot import api
 from toot.exceptions import ApiError
 from toot.utils.datetime import parse_datetime
 from .widgets import Button, CheckBox, RadioButton
-from .richtext import ContentParser
+from .richtext import html_to_widgets
 
 
 class Poll(urwid.ListBox):
@@ -86,8 +86,7 @@ class Poll(urwid.ListBox):
     def generate_contents(self, status):
         yield urwid.Divider()
 
-        parser = ContentParser()
-        widgetlist = parser.html_to_widgets(status.data["content"])
+        widgetlist = html_to_widgets(status.data["content"])
 
         for line in widgetlist:
             yield (line)

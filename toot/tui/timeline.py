@@ -6,6 +6,7 @@ import webbrowser
 from typing import List, Optional
 
 from toot.tui import app
+from toot.tui.richtext import html_to_widgets
 from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
 
@@ -13,7 +14,6 @@ from toot.entities import Status
 from toot.tui.scroll import Scrollable, ScrollBar
 from toot.tui.utils import highlight_keys
 from toot.tui.widgets import SelectableText, SelectableColumns
-from toot.tui.richtext import ContentParser
 from toot.utils import urlencode_url
 from toot.tui.stubs.urwidgets import Hyperlink, TextEmbed, parse_text, has_urwidgets
 
@@ -356,9 +356,7 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
-
-            parser = ContentParser()
-            widgetlist = parser.html_to_widgets(content)
+            widgetlist = html_to_widgets(content)
 
             for line in widgetlist:
                 yield (line)
