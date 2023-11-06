@@ -202,13 +202,43 @@ class ContentParser:
 
         return "a"
 
-    def render(self, attr, content):
-        # First, look for a custom tag handler method in this class
-        # If that fails, fall back to inline_tag_to_text handler
-        method = getattr(self, f"_{attr}", self.inline_tag_to_text)
-        return method(content)
+    def render(self, attr: str, content: str):
+        if attr in ["a"]:
+            return self.render_anchor(content)
 
-    def _a(self, tag) -> Tuple:
+        if attr in ["blockquote"]:
+            return self.render_blockquote(content)
+
+        if attr in ["br"]:
+            return self.render_br(content)
+
+        if attr in ["em"]:
+            return self.render_em(content)
+
+        if attr in ["ol"]:
+            return self.render_ol(content)
+
+        if attr in ["pre"]:
+            return self.render_pre(content)
+
+        if attr in ["span"]:
+            return self.render_span(content)
+
+        if attr in ["b", "strong"]:
+            return self.render_strong(content)
+
+        if attr in ["ul"]:
+            return self.render_ul(content)
+
+        # Glitch-soc and Pleroma allow <H1>...<H6> in content
+        # Mastodon (PR #23913) does not; header tags are converted to <P><STRONG></STRONG></P>
+        if attr in ["p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6"]:
+            return self.basic_block_tag_handler(content)
+
+        # Fall back to inline_tag_to_text handler
+        return self.inline_tag_to_text(content)
+
+    def render_anchor(self, tag) -> Tuple:
         """anchor tag handler"""
 
         markups = self.process_inline_tag_children(tag)
@@ -245,7 +275,7 @@ class ContentParser:
 
         return (attr, title)
 
-    def _blockquote(self, tag) -> urwid.Widget:
+    def render_blockquote(self, tag) -> urwid.Widget:
         widget_list = self.process_block_tag_children(tag)
         blockquote_widget = urwid.LineBox(
             urwid.Padding(
@@ -267,10 +297,10 @@ class ContentParser:
         )
         return urwid.Pile([urwid.AttrMap(blockquote_widget, "blockquote")])
 
-    def _br(self, tag) -> Tuple:
+    def render_br(self, tag) -> Tuple:
         return ("br", "\n")
 
-    def _em(self, tag) -> Tuple:
+    def render_em(self, tag) -> Tuple:
         # to simplify the number of palette entries
         # translate EM to I (italic)
         markups = self.process_inline_tag_children(tag)
@@ -284,7 +314,7 @@ class ContentParser:
 
         return ("i", markups)
 
-    def _ol(self, tag) -> urwid.Widget:
+    def render_ol(self, tag) -> urwid.Widget:
         """ordered list tag handler"""
 
         widgets = []
@@ -325,7 +355,7 @@ class ContentParser:
 
         return urwid.Pile(widgets)
 
-    def _pre(self, tag) -> urwid.Widget:
+    def render_pre(self, tag) -> urwid.Widget:
         # <PRE> tag spec says that text should not wrap,
         # but horizontal screen space is at a premium
         # and we have no horizontal scroll bar, so allow
@@ -344,7 +374,7 @@ class ContentParser:
         )
         return urwid.Pile([urwid.AttrMap(pre_widget, "pre")])
 
-    def _span(self, tag) -> Tuple:
+    def render_span(self, tag) -> Tuple:
         markups = self.process_inline_tag_children(tag)
 
         if not markups:
@@ -376,7 +406,7 @@ class ContentParser:
             # fallback
             return ("span", markups)
 
-    def _strong(self, tag) -> Tuple:
+    def render_strong(self, tag) -> Tuple:
         # to simplify the number of palette entries
         # translate STRONG to B (bold)
         markups = self.process_inline_tag_children(tag)
@@ -390,7 +420,7 @@ class ContentParser:
 
         return ("b", markups)
 
-    def _ul(self, tag) -> urwid.Widget:
+    def render_ul(self, tag) -> urwid.Widget:
         """unordered list tag handler"""
 
         widgets = []
@@ -410,25 +440,6 @@ class ContentParser:
                 widgets.append(columns)
 
         return urwid.Pile(widgets)
-
-    # These tags are handled identically to others
-    # the only difference being the tag name used for
-    # urwid attribute mapping
-
-    _b = _strong
-
-    _div = basic_block_tag_handler
-
-    _i = _em
-
-    _li = basic_block_tag_handler
-
-    # Glitch-soc and Pleroma allow <H1>...<H6> in content
-    # Mastodon (PR #23913) does not; header tags are converted to <P><STRONG></STRONG></P>
-
-    _h1 = _h2 = _h3 = _h4 = _h5 = _h6 = basic_block_tag_handler
-
-    _p = basic_block_tag_handler
 
 
 def flatten(data):
