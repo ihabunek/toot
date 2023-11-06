@@ -10,13 +10,11 @@ from typing import List, Tuple
 from urwid.util import decompose_tagmarkup
 
 
-class ContentParser:
-    def __init__(self):
-        self.palette_names = []
-        for p in PALETTE:
-            self.palette_names.append(p[0])
+STYLE_NAMES = [p[0] for p in PALETTE]
 
-        """Parse a limited subset of HTML and create urwid widgets."""
+
+class ContentParser:
+    """Parse a limited subset of HTML and create urwid widgets."""
 
     def html_to_widgets(self, html, recovery_attempt=False) -> List[urwid.Widget]:
         """Convert html to urwid widgets"""
@@ -187,7 +185,7 @@ class ContentParser:
                 style_name = "class_" + "_".join(clss)
                 # return the class name, only if we
                 # find it as a defined palette name
-                if style_name in self.palette_names:
+                if style_name in STYLE_NAMES:
                     return style_name
 
         # fallback to returning the tag name
