@@ -44,10 +44,7 @@ class ContentParser:
                 if (first_tag and not recovery_attempt and name not in BLOCK_TAGS):
                     return self.html_to_widgets(f"<p>{html}</p>", recovery_attempt=True)
 
-                # First, look for a custom tag handler method in this class
-                # If that fails, fall back to inline_tag_to_text handler
-                method = getattr(self, "_" + name, self.inline_tag_to_text)
-                markup = method(e)  # either returns a Widget, or plain text
+                markup = self.render(name, e)
                 first_tag = False
 
             if not isinstance(markup, urwid.Widget):
@@ -77,8 +74,7 @@ class ContentParser:
         markups = []
         for child in tag.children:
             if isinstance(child, Tag):
-                method = getattr(self, "_" + child.name, self.inline_tag_to_text)
-                markup = method(child)
+                markup = self.render(child.name, child)
                 markups.append(markup)
             else:
                 markups.append(child)
@@ -133,8 +129,7 @@ class ContentParser:
             if isinstance(child, Tag):
                 # child is a nested tag; process using custom method
                 # or default to inline_tag_to_text
-                method = getattr(self, "_" + child.name, self.inline_tag_to_text)
-                result = method(child)
+                result = self.render(child.name, child)
                 if isinstance(result, urwid.Widget):
                     found_nested_widget = True
                     child_widgets.append(result)
@@ -206,6 +201,12 @@ class ContentParser:
                 continue
 
         return "a"
+
+    def render(self, attr, content):
+        # First, look for a custom tag handler method in this class
+        # If that fails, fall back to inline_tag_to_text handler
+        method = getattr(self, f"_{attr}", self.inline_tag_to_text)
+        return method(content)
 
     def _a(self, tag) -> Tuple:
         """anchor tag handler"""
@@ -298,8 +299,7 @@ class ContentParser:
                 pass
 
         for li in tag.find_all("li", recursive=False):
-            method = getattr(self, "_li", self.inline_tag_to_text)
-            markup = method(li)
+            markup = self.render("li", li)
 
             # li value= attribute will change the item number
             # it also overrides any ol start= attribute
@@ -396,8 +396,7 @@ class ContentParser:
         widgets = []
 
         for li in tag.find_all("li", recursive=False):
-            method = getattr(self, "_li", self.inline_tag_to_text)
-            markup = method(li)
+            markup = self.render("li", li)
 
             if not isinstance(markup, urwid.Widget):
                 txt = self.text_to_widget("li", ["\N{bullet} ", markup])
