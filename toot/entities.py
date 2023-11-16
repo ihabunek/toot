@@ -1,5 +1,11 @@
 """
 Dataclasses which represent entities returned by the Mastodon API.
+
+Data classes my have an optional static method named `__toot_prepare__` which is
+used when constructing the data class using `from_dict`. The method will be
+called with the dict and may modify it and return a modified dict. This is used
+to implement any pre-processing which may be required, e.g. to support
+different versions of the Mastodon API.
 """
 
 import dataclasses
@@ -65,6 +71,16 @@ class Account:
     statuses_count: int
     followers_count: int
     following_count: int
+
+    @staticmethod
+    def __toot_prepare__(obj: Dict) -> Dict:
+        # Pleroma has not yet converted last_status_at from datetime to date
+        # so trim it here so it doesn't break when converting to date.
+        # See: https://git.pleroma.social/pleroma/pleroma/-/issues/1470
+        last_status_at = obj.get("last_status_at")
+        if last_status_at:
+            obj.update(last_status_at=obj["last_status_at"][:10])
+        return obj
 
     @property
     def note_plaintext(self) -> str:
@@ -362,6 +378,11 @@ T = TypeVar("T")
 
 def from_dict(cls: Type[T], data: Dict) -> T:
     """Convert a nested dict into an instance of `cls`."""
+    # Apply __toot_prepare__ if it exists
+    prepare = getattr(cls, '__toot_prepare__', None)
+    if prepare:
+        data = prepare(data)
+
     def _fields():
         hints = get_type_hints(cls)
         for field in dataclasses.fields(cls):
@@ -394,7 +415,7 @@ def _convert(field_type, value):
         return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
 
     if field_type == date:
-        return datetime.fromisoformat(value.replace('Z', '+00:00')).date()
+        return date.fromisoformat(value)
 
     if get_origin(field_type) == list:
         (inner_type,) = get_args(field_type)
