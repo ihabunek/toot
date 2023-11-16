@@ -4,7 +4,7 @@ import unicodedata
 
 from bs4.element import NavigableString, Tag
 from toot.tui.constants import PALETTE
-from toot.tui.stubs.urwidgets import TextEmbed, Hyperlink, parse_text, has_urwidgets
+from toot.tui.stubs.urwidgets import TextEmbed, Hyperlink, has_urwidgets
 from toot.utils import parse_html, urlencode_url
 from typing import List, Tuple
 from urwid.util import decompose_tagmarkup
@@ -80,33 +80,26 @@ def process_inline_tag_children(tag) -> List:
     return markups
 
 
+URL_PATTERN = re.compile(r"(^.+)\x03(.+$)")
+
+
 def text_to_widget(attr, markup) -> urwid.Widget:
     if not has_urwidgets:
         return urwid.Text((attr, markup))
 
-    TRANSFORM = {
-        # convert http[s] URLs to Hyperlink widgets for nesting in a TextEmbed widget
-        re.compile(r"(^.+)\x03(.+$)"): lambda g: (
-            len(g[1]),
-            urwid.Filler(Hyperlink(g[2], anchor_attr, g[1])),
-        ),
-    }
     markup_list = []
-
     for run in markup:
         if isinstance(run, tuple):
             txt, attr_list = decompose_tagmarkup(run)
             # find anchor titles with an ETX separator followed by href
-            m = re.match(r"(^.+)\x03(.+$)", txt)
-            if m:
+            match = URL_PATTERN.match(txt)
+            if match:
+                label, url = match.groups()
                 anchor_attr = get_best_anchor_attr(attr_list)
-                markup_list.append(
-                    parse_text(
-                        txt,
-                        TRANSFORM,
-                        lambda pattern, groups, span: TRANSFORM[pattern](groups),
-                    )
-                )
+                markup_list.append((
+                    len(label),
+                    urwid.Filler(Hyperlink(url, anchor_attr, label)),
+                ))
             else:
                 markup_list.append(run)
         else:
