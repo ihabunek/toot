@@ -59,6 +59,11 @@ def html_to_widgets(html, recovery_attempt=False) -> List[urwid.Widget]:
     return widgets[:-1]  # but suppress the last blank line
 
 
+def url_to_widget(url: str):
+    widget = len(url), urwid.Filler(Hyperlink(url, "link", url))
+    return TextEmbed(widget)
+
+
 def inline_tag_to_text(tag) -> Tuple:
     """Convert html tag to plain text with tag as attributes recursively"""
     markups = process_inline_tag_children(tag)
