@@ -1,3 +1,9 @@
+0.38.2:
+  date: 2023-11-16
+  changes:
+    - "Fix compatibility with Pleroma (#399, thanks Sandra Snan)"
+    - "Fix language documentation (thanks Sandra Snan)"
+
 0.38.1:
   date: 2023-07-25
   changes:
