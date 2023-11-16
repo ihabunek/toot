@@ -7,7 +7,7 @@ from toot import __version__
 from toot import api
 from toot.tui.utils import highlight_keys
 from toot.tui.widgets import Button, EditBox, SelectableText
-from toot.tui.richtext import ContentParser
+from toot.tui.richtext import html_to_widgets
 
 
 class StatusSource(urwid.Padding):
@@ -255,8 +255,6 @@ class Account(urwid.ListBox):
         super().__init__(walker)
 
     def generate_contents(self, account, relationship=None, last_action=None):
-        parser = ContentParser()
-
         if self.last_action and not self.last_action.startswith("Confirm"):
             yield Button(f"Confirm {self.last_action}", on_press=take_action, user_data=self)
             yield Button("Cancel", on_press=cancel_action, user_data=self)
@@ -282,7 +280,7 @@ class Account(urwid.ListBox):
         if account["note"]:
             yield urwid.Divider()
 
-            widgetlist = parser.html_to_widgets(account["note"])
+            widgetlist = html_to_widgets(account["note"])
             for line in widgetlist:
                 yield (line)
 
@@ -317,7 +315,7 @@ class Account(urwid.ListBox):
                 yield urwid.Divider()
                 yield urwid.Text([("bold", f"{name.rstrip(':')}"), ":"])
 
-                widgetlist = parser.html_to_widgets(field["value"])
+                widgetlist = html_to_widgets(field["value"])
                 for line in widgetlist:
                     yield (line)
 

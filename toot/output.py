@@ -6,7 +6,7 @@ import textwrap
 from functools import lru_cache
 from toot import settings
 from toot.entities import Instance, Notification, Poll, Status
-from toot.utils import get_text, parse_html
+from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
 from typing import List
 from wcwidth import wcswidth
@@ -321,7 +321,7 @@ def print_status(status: Status, width: int = 80):
 
 def print_html(text, width=80):
     first = True
-    for paragraph in parse_html(text):
+    for paragraph in html_to_paragraphs(text):
         if not first:
             print_out("")
         for line in paragraph:
