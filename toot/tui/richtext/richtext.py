@@ -4,10 +4,10 @@ import unicodedata
 
 from bs4.element import NavigableString, Tag
 from toot.tui.constants import PALETTE
-from toot.tui.stubs.urwidgets import TextEmbed, Hyperlink, has_urwidgets
 from toot.utils import parse_html, urlencode_url
 from typing import List, Tuple
 from urwid.util import decompose_tagmarkup
+from urwidgets import Hyperlink, TextEmbed
 
 
 STYLE_NAMES = [p[0] for p in PALETTE]
@@ -84,9 +84,6 @@ URL_PATTERN = re.compile(r"(^.+)\x03(.+$)")
 
 
 def text_to_widget(attr, markup) -> urwid.Widget:
-    if not has_urwidgets:
-        return urwid.Text((attr, markup))
-
     markup_list = []
     for run in markup:
         if isinstance(run, tuple):
@@ -242,8 +239,7 @@ def render_anchor(tag) -> Tuple:
     title, attrib_list = decompose_tagmarkup(markups)
     if not attrib_list:
         attrib_list = [tag]
-    if href and has_urwidgets:
-        # only if we have urwidgets loaded for OCS 8 hyperlinks:
+    if href:
         # urlencode the path and query portions of the URL
         href = urlencode_url(href)
         # use ASCII ETX (end of record) as a
