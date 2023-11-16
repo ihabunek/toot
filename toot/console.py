@@ -361,7 +361,7 @@ AUTH_COMMANDS = [
             }),
             (["--language"], {
                 "type": language,
-                "help": "Default language to use for authored statuses (ISO 6391)."
+                "help": "Default language to use for authored statuses (ISO 639-1)."
             }),
         ],
         require_auth=True,
@@ -527,7 +527,7 @@ POST_COMMANDS = [
             }),
             (["-l", "--language"], {
                 "type": language,
-                "help": "ISO 639-2 language code of the toot, to skip automatic detection",
+                "help": "ISO 639-1 language code of the toot, to skip automatic detection",
             }),
             (["-e", "--editor"], {
                 "type": editor,
