@@ -41,7 +41,7 @@ setup(
         "tomlkit>=0.10.0,<1.0"
     ],
     extras_require={
-        "hyperlinks": ['urwidgets>=0.1,<0.2'],
+        "richtext": ['urwidgets>=0.1,<0.2'],
     },
     entry_points={
         'console_scripts': [
