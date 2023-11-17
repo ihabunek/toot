@@ -3,6 +3,7 @@ import pytest
 
 from toot.console import duration
 from toot.wcstring import wc_wrap, trunc, pad, fit_text
+from toot.utils import urlencode_url
 
 
 def test_pad():
@@ -201,3 +202,8 @@ def test_duration():
 
     with pytest.raises(ArgumentTypeError):
         duration("banana")
+
+
+def test_urlencode_url():
+    assert urlencode_url("https://www.example.com") == "https://www.example.com"
+    assert urlencode_url("https://www.example.com/url%20with%20spaces") == "https://www.example.com/url%20with%20spaces"
