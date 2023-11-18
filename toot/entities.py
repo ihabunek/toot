@@ -383,7 +383,7 @@ class ConversionError(Exception):
         data_class: Type,
         field_name: str,
         field_type: Type,
-        field_value: str | None,
+        field_value: Optional[str]
     ):
         super().__init__(
             f"Failed converting field `{data_class.__name__}.{field_name}` " +
