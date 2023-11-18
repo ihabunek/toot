@@ -17,6 +17,7 @@ from typing import get_type_hints
 
 from toot.typing_compat import get_args, get_origin
 from toot.utils import get_text
+from toot.utils.datetime import parse_datetime
 
 
 @dataclass
@@ -454,7 +455,7 @@ def _convert(field_type, value):
         return value
 
     if field_type == datetime:
-        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z").astimezone()
+        return parse_datetime(value)
 
     if field_type == date:
         return date.fromisoformat(value)
