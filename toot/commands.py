@@ -516,8 +516,12 @@ def blocked(app, user, args):
 
 
 def whoami(app, user, args):
-    account = api.verify_credentials(app, user).json()
-    print_account(account)
+    response = api.verify_credentials(app, user)
+    if args.json:
+        print(response.text)
+    else:
+        account = response.json()
+        print_account(account)
 
 
 def whois(app, user, args):

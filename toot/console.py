@@ -232,6 +232,12 @@ tag_arg = (["tag_name"], {
     "help": "tag name, e.g. Caturday, or \"#Caturday\"",
 })
 
+json_arg = (["--json"], {
+    "action": "store_true",
+    "default": False,
+    "help": "print json instead of plaintext",
+})
+
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
 common_timeline_args = [
     (["-p", "--public"], {
@@ -388,7 +394,7 @@ READ_COMMANDS = [
     Command(
         name="whoami",
         description="Display logged in user details",
-        arguments=[],
+        arguments=[json_arg],
         require_auth=True,
     ),
     Command(
