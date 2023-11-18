@@ -1,4 +1,4 @@
-
+import json
 import sys
 import platform
 
@@ -526,8 +526,12 @@ def whoami(app, user, args):
 
 def whois(app, user, args):
     account = api.find_account(app, user, args.account)
-    account = from_dict(Account, account)
-    print_account(account)
+    # Here it's not possible to avoid parsing json since it's needed to find the account.
+    if args.json:
+        print(json.dumps(account))
+    else:
+        account = from_dict(Account, account)
+        print_account(account)
 
 
 def instance(app, user, args):

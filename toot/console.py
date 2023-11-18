@@ -404,6 +404,7 @@ READ_COMMANDS = [
             (["account"], {
                 "help": "account name or numeric ID"
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
