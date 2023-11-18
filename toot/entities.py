@@ -262,6 +262,18 @@ class Status:
     def original(self) -> "Status":
         return self.reblog or self
 
+    @staticmethod
+    def __toot_prepare__(obj: Dict) -> Dict:
+        # Pleroma has a bug where created_at is set to an empty string.
+        # To avoid marking created_at as optional, which would require work
+        # because we count on it always existing, set it to current datetime.
+        # Possible underlying issue:
+        # https://git.pleroma.social/pleroma/pleroma/-/issues/2851
+        created_at = obj.get("created_at")
+        if not obj["created_at"]:
+            obj["created_at"] = datetime.now().astimezone().isoformat()
+        return obj
+
 
 @dataclass
 class Report:
