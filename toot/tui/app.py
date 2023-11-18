@@ -1,7 +1,9 @@
 import logging
+import subprocess
 import urwid
 
 from concurrent.futures import ThreadPoolExecutor
+from typing import List
 
 from toot import api, config, __version__, settings
 from toot.console import get_default_visibility
@@ -14,7 +16,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard
+from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard
 
 logger = logging.getLogger(__name__)
 
@@ -137,12 +139,13 @@ class TUI(urwid.Frame):
         self.exception = None
         self.can_translate = False
         self.account = None
+        self.followed_accounts = []
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
-        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
+        # self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
         self.loop.run()
@@ -496,9 +499,24 @@ class TUI(urwid.Frame):
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def show_media(self, status):
-        urls = [m["url"] for m in status.original.data["media_attachments"]]
+        urls: List[str] = [m["url"] for m in status.original.data["media_attachments"]]
+        if not urls:
+            return
+
+        viewer = settings.get_setting("tui.media_viewer", str)
+        if not viewer:
+            self.footer.set_error_message("Media viewer not configured")
+
+        # TODO: this breaks in an ugly way if viewer is not found, handle this
+        def _show():
+            if viewer:
+                subprocess.run([viewer] + urls, capture_output=True)
+
+        def _done():
+            self.footer.set_message(f"Launched media viewer with {len(urls)} URL(s).")
+
         if urls:
-            show_media(urls)
+            self.run_in_thread(_show, done_callback=_done)
 
     def show_context_menu(self, status):
         # TODO: show context menu

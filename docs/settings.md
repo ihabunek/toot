@@ -37,6 +37,16 @@ verbose = false
 quiet = false
 ```
 
+## TUI options
+
+```toml
+[tui]
+
+# Define executable to use as image viewer
+# The given executable will be passed one or more images as aguments
+media_viewer = "eog"
+```
+
 ## Overriding command defaults
 
 Defaults for command arguments can be override by specifying a `[commands.<name>]` section.
