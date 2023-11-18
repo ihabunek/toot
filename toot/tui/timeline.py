@@ -5,14 +5,14 @@ import webbrowser
 from typing import List, Optional
 
 from toot.tui import app
-from toot.utils import format_content
+from toot.tui.richtext import html_to_widgets, url_to_widget
 from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
 
-from .entities import Status
-from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, highlight_keys
-from .widgets import SelectableText, SelectableColumns
+from toot.entities import Status
+from toot.tui.scroll import Scrollable, ScrollBar
+from toot.tui.utils import highlight_keys
+from toot.tui.widgets import SelectableText, SelectableColumns
 
 logger = logging.getLogger("toot")
 
@@ -310,7 +310,6 @@ class Timeline(urwid.Columns):
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
-        self.followed_tags = timeline.tui.followed_tags
         self.followed_accounts = timeline.tui.followed_accounts
 
         reblogged_by = status.author if status and status.reblog else None
@@ -340,8 +339,10 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
-            for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
+            widgetlist = html_to_widgets(content)
+
+            for line in widgetlist:
+                yield (line)
 
             media = status.data["media_attachments"]
             if media:
@@ -350,7 +351,7 @@ class StatusDetails(urwid.Pile):
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    yield ("pack", url_to_widget(m["url"]))
 
             poll = status.original.data.get("poll")
             if poll:
@@ -410,7 +411,7 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
-        yield urwid.Text(("link", card["url"]))
+        yield url_to_widget(card["url"])
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):

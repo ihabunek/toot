@@ -31,7 +31,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
     ],
-    packages=['toot', 'toot.tui', 'toot.utils'],
+    packages=['toot', 'toot.tui', 'toot.tui.richtext', 'toot.utils'],
     python_requires=">=3.7",
     install_requires=[
         "requests>=2.13,<3.0",
@@ -40,6 +40,9 @@ setup(
         "urwid>=2.0.0,<3.0",
         "tomlkit>=0.10.0,<1.0"
     ],
+    extras_require={
+        "richtext": ['urwidgets>=0.1,<0.2'],
+    },
     entry_points={
         'console_scripts': [
             'toot=toot.console:main',

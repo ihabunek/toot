@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from typing import Dict
 
 from toot.exceptions import ConsoleError
+from urllib.parse import urlparse, urlencode, quote, unquote
 
 
 def str_bool(b):
@@ -22,20 +23,22 @@ def str_bool_nullable(b):
     return None if b is None else str_bool(b)
 
 
-def get_text(html):
-    """Converts html to text, strips all tags."""
-
+def parse_html(html: str) -> BeautifulSoup:
     # Ignore warnings made by BeautifulSoup, if passed something that looks like
     # a file (e.g. a dot which matches current dict), it will warn that the file
     # should be opened instead of passing a filename.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        text = BeautifulSoup(html.replace('&apos;', "'"), "html.parser").get_text()
-
-    return unicodedata.normalize('NFKC', text)
+        return BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
 
 
-def parse_html(html):
+def get_text(html):
+    """Converts html to text, strips all tags."""
+    text = parse_html(html).get_text()
+    return unicodedata.normalize("NFKC", text)
+
+
+def html_to_paragraphs(html):
     """Attempt to convert html to plain text while keeping line breaks.
     Returns a list of paragraphs, each being a list of lines.
     """
@@ -54,7 +57,7 @@ def format_content(content):
     Returns a generator yielding lines of content.
     """
 
-    paragraphs = parse_html(content)
+    paragraphs = html_to_paragraphs(content)
 
     first = True
 
@@ -186,3 +189,14 @@ def _warn_scheme_deprecated():
         "instead write:",
         "  toot instance http://unsafehost.com\n"
     ]))
+
+
+def urlencode_url(url):
+    parsed_url = urlparse(url)
+
+    # unencode before encoding, to prevent double-urlencoding
+    encoded_path = quote(unquote(parsed_url.path), safe="-._~()'!*:@,;+&=/")
+    encoded_query = urlencode({k: quote(unquote(v), safe="-._~()'!*:@,;?/") for k, v in parsed_url.params})
+    encoded_url = parsed_url._replace(path=encoded_path, params=encoded_query).geturl()
+
+    return encoded_url
