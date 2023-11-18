@@ -376,6 +376,21 @@ class Instance:
 T = TypeVar("T")
 
 
+class ConversionError(Exception):
+    """Raised when conversion fails from JSON value to data class field."""
+    def __init__(
+        self,
+        data_class: Type,
+        field_name: str,
+        field_type: Type,
+        field_value: str | None,
+    ):
+        super().__init__(
+            f"Failed converting field `{data_class.__name__}.{field_name}` " +
+            f"of type `{field_type.__name__}` from value {field_value!r}"
+        )
+
+
 def from_dict(cls: Type[T], data: Dict) -> T:
     """Convert a nested dict into an instance of `cls`."""
     # Apply __toot_prepare__ if it exists
@@ -389,7 +404,8 @@ def from_dict(cls: Type[T], data: Dict) -> T:
             field_type = _prune_optional(hints[field.name])
             default_value = _get_default_value(field)
             value = data.get(field.name, default_value)
-            yield field.name, _convert(field_type, value)
+            converted = _convert_with_error_handling(cls, field.name, field_type, value)
+            yield field.name, converted
 
     return cls(**dict(_fields()))
 
@@ -402,6 +418,20 @@ def _get_default_value(field):
         return field.default_factory()
 
     return None
+
+
+def _convert_with_error_handling(
+    data_class: Type,
+    field_name: str,
+    field_type: Type,
+    field_value: str | None
+):
+    try:
+        return _convert(field_type, field_value)
+    except ConversionError:
+        raise
+    except Exception:
+        raise ConversionError(data_class, field_name, field_type, field_value)
 
 
 def _convert(field_type, value):
