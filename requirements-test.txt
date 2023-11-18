@@ -3,3 +3,4 @@ psycopg2-binary
 pytest
 pytest-xdist[psutil]
 vermin
+setuptools
