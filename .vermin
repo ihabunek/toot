@@ -1,0 +1,4 @@
+[vermin]
+only_show_violations = yes
+show_tips = no
+targets = 3.7
