@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from time import sleep, time
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
-from toot.entities import Instance, Notification, Status, from_dict
+from toot.entities import Account, Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
                          print_search_results, print_status, print_timeline, print_notifications, print_tag_list,
@@ -520,12 +520,13 @@ def whoami(app, user, args):
     if args.json:
         print(response.text)
     else:
-        account = response.json()
+        account = from_dict(Account, response.json())
         print_account(account)
 
 
 def whois(app, user, args):
     account = api.find_account(app, user, args.account)
+    account = from_dict(Account, account)
     print_account(account)
 
 
