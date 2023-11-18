@@ -270,7 +270,6 @@ class Status:
         # because we count on it always existing, set it to current datetime.
         # Possible underlying issue:
         # https://git.pleroma.social/pleroma/pleroma/-/issues/2851
-        created_at = obj.get("created_at")
         if not obj["created_at"]:
             obj["created_at"] = datetime.now().astimezone().isoformat()
         return obj
@@ -399,8 +398,8 @@ class ConversionError(Exception):
         field_value: Optional[str]
     ):
         super().__init__(
-            f"Failed converting field `{data_class.__name__}.{field_name}` " +
-            f"of type `{field_type.__name__}` from value {field_value!r}"
+            f"Failed converting field `{data_class.__name__}.{field_name}` "
+            + f"of type `{field_type.__name__}` from value {field_value!r}"
         )
 
 
