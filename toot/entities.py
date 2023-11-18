@@ -437,7 +437,7 @@ def _convert_with_error_handling(
     data_class: Type,
     field_name: str,
     field_type: Type,
-    field_value: str | None
+    field_value: Optional[str]
 ):
     try:
         return _convert(field_type, field_value)
