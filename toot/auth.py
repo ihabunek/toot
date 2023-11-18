@@ -66,7 +66,7 @@ def get_instance_domain(base_url):
 def create_user(app, access_token):
     # Username is not yet known at this point, so fetch it from Mastodon
     user = User(app.instance, None, access_token)
-    creds = api.verify_credentials(app, user)
+    creds = api.verify_credentials(app, user).json()
 
     user = User(app.instance, creds['username'], access_token)
     config.save_user(user, activate=True)

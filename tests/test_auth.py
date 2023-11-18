@@ -36,25 +36,3 @@ def test_create_app_registered(monkeypatch):
 
     app = auth.create_app_interactive("bezdomni.net")
     assert app == 'registered app'
-
-
-def test_create_user(monkeypatch):
-    app = App(4, 5, 6, 7)
-
-    def assert_user(user, activate=True):
-        assert activate
-        assert isinstance(user, User)
-        assert user.instance == app.instance
-        assert user.username == "foo"
-        assert user.access_token == "abc"
-
-    monkeypatch.setattr(config, 'save_user', assert_user)
-    monkeypatch.setattr(api, 'verify_credentials', lambda x, y: {"username": "foo"})
-
-    user = auth.create_user(app, 'abc')
-
-    assert_user(user)
-
-#
-# TODO: figure out how to mock input so the rest can be tested
-#

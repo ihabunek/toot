@@ -1,8 +1,9 @@
 import mimetypes
-from os import path
 import re
 import uuid
 
+from os import path
+from requests import Response
 from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
@@ -537,8 +538,8 @@ def blocked(app, user):
     return _get_response_list(app, user, "/api/v1/blocks")
 
 
-def verify_credentials(app, user):
-    return http.get(app, user, '/api/v1/accounts/verify_credentials').json()
+def verify_credentials(app, user) -> Response:
+    return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
 def single_status(app, user, status_id):
