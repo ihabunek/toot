@@ -41,7 +41,24 @@ setup(
         "tomlkit>=0.10.0,<1.0"
     ],
     extras_require={
-        "richtext": ['urwidgets>=0.1,<0.2'],
+        # Required to display rich text in the TUI
+        "richtext": [
+            "urwidgets>=0.1,<0.2"
+        ],
+        "dev": [
+            "coverage",
+            "pyyaml",
+            "twine",
+            "wheel",
+        ],
+        "test": [
+            "flake8",
+            "psycopg2-binary",
+            "pytest",
+            "pytest-xdist[psutil]",
+            "setuptools",
+            "vermin",
+        ],
     },
     entry_points={
         'console_scripts': [

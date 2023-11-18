@@ -1,6 +1,0 @@
-flake8
-psycopg2-binary
-pytest
-pytest-xdist[psutil]
-setuptools
-vermin
