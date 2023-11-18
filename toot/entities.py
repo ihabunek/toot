@@ -412,7 +412,7 @@ def _convert(field_type, value):
         return value
 
     if field_type == datetime:
-        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z").astimezone()
 
     if field_type == date:
         return date.fromisoformat(value)
