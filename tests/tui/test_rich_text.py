@@ -14,7 +14,7 @@ def test_url_to_widget():
     assert length == len(url)
     assert isinstance(filler, Filler)
 
-    link_widget: Hyperlink = filler.base_widget
+    link_widget = filler.base_widget
     assert isinstance(link_widget, Hyperlink)
 
     assert link_widget.attrib == "link"
@@ -34,12 +34,12 @@ def test_html_to_widgets():
     assert isinstance(divider, Divider)
     assert isinstance(bar, Pile)
 
-    [foo_embed] = foo.widget_list
+    [(foo_embed, _)] = foo.contents
     assert foo_embed.embedded == []
     assert foo_embed.attrib == []
     assert foo_embed.text == "foo"
 
-    [bar_embed] = bar.widget_list
+    [(bar_embed, _)] = bar.contents
     assert bar_embed.embedded == []
     assert bar_embed.attrib == [(None, 4), ("b", 3), (None, 1), ("i", 3)]
     assert bar_embed.text == "foo bar baz"
