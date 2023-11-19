@@ -77,8 +77,9 @@ pip install -r requirements-dev.txt
 pip install -r requirements-test.txt
 ```
 
-While the virtual env is active, running `toot` will execute the one you checked
-out. This allows you to make changes and test them.
+While the virtual env is active, you can run `./_env/bin/toot` to
+execute the one you checked out. This allows you to make changes and
+test them.
 
 #### Crafting good commits
 
