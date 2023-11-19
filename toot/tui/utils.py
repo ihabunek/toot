@@ -2,11 +2,9 @@ import base64
 import re
 import urwid
 
-from functools import lru_cache, reduce
+from functools import reduce
 from html.parser import HTMLParser
-from typing import List, Optional
-
-from toot import settings
+from typing import List
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
