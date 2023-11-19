@@ -137,14 +137,15 @@ class TUI(urwid.Frame):
         self.exception = None
         self.can_translate = False
         self.account = None
+        self.followed_accounts = []
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
-        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
         self.loop.run()
         self.executor.shutdown(wait=False)
 
