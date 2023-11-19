@@ -452,11 +452,13 @@ def search(app, user, query, resolve=False, type=None):
     Perform a search.
     https://docs.joinmastodon.org/methods/search/#v2
     """
-    return http.get(app, user, "/api/v2/search", {
+    params = drop_empty_values({
         "q": query,
-        "resolve": resolve,
+        "resolve": str_bool(resolve),
         "type": type
-    }).json()
+    })
+
+    return http.get(app, user, "/api/v2/search", params).json()
 
 
 def follow(app, user, account):
