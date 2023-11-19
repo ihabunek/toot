@@ -242,8 +242,18 @@ def unpin(app, user, args):
 
 
 def bookmark(app, user, args):
-    api.bookmark(app, user, args.status_id)
-    print_out("<green>✓ Status bookmarked</green>")
+    if "://" in args.status_id:
+        print_out("Not a status ID but an URL was provided. Attempting to fetch a status ID.")
+        result = api.search_url(app, user, args.status_id)
+        if result.get("statuses"):
+            status_id = result.get("statuses")[0].get("id")
+        else:
+            print_out(f"<red>Status not found for {args.status_id}</red>")
+            return
+    else:
+        status_id = args.status_id
+    api.bookmark(app, user, status_id)
+    print_out(f"<green>✓ Status {status_id} bookmarked</green>")
 
 
 def unbookmark(app, user, args):
@@ -366,7 +376,11 @@ def upload(app, user, args):
 
 
 def search(app, user, args):
-    response = api.search(app, user, args.query, args.resolve)
+    print_out(args.query)
+    if "://" in args.query:
+        response = api.search_url(app, user, args.query)
+    else:
+        response = api.search(app, user, args.query, args.resolve)
     print_search_results(response)
 
 
