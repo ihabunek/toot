@@ -1,4 +1,5 @@
 import logging
+import subprocess
 import urwid
 
 from concurrent.futures import ThreadPoolExecutor
@@ -14,7 +15,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard
+from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +139,7 @@ class TUI(urwid.Frame):
         self.can_translate = False
         self.account = None
         self.followed_accounts = []
+        self.media_viewer = settings.get_setting("tui.media_viewer", str)
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -498,8 +500,13 @@ class TUI(urwid.Frame):
 
     def show_media(self, status):
         urls = [m["url"] for m in status.original.data["media_attachments"]]
-        if urls:
-            show_media(urls)
+        if not urls:
+            return
+
+        if self.media_viewer:
+            subprocess.run([self.media_viewer] + urls)
+        else:
+            self.footer.set_error_message("Media viewer not configured")
 
     def show_context_menu(self, status):
         # TODO: show context menu

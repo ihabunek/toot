@@ -1,12 +1,12 @@
 import base64
 import re
-import shutil
-import subprocess
 import urwid
 
-from functools import reduce
+from functools import lru_cache, reduce
 from html.parser import HTMLParser
-from typing import List
+from typing import List, Optional
+
+from toot import settings
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
@@ -47,33 +47,7 @@ def highlight_hashtags(line):
     return hline
 
 
-def show_media(paths):
-    """
-    Attempt to open an image viewer to show given media files.
-
-    FIXME: This is not very thought out, but works for me.
-    Once settings are implemented, add an option for the user to configure their
-    prefered media viewer.
-    """
-    viewer = None
-    potential_viewers = [
-        "feh",
-        "eog",
-        "display"
-    ]
-    for v in potential_viewers:
-        viewer = shutil.which(v)
-        if viewer:
-            break
-
-    if not viewer:
-        raise Exception("Cannot find an image viewer")
-
-    subprocess.run([viewer] + paths)
-
-
 class LinkParser(HTMLParser):
-
     def reset(self):
         super().reset()
         self.links = []

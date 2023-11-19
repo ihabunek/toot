@@ -51,6 +51,21 @@ visibility = "unlisted"
 scheduled_in = "30 minutes"
 ```
 
+## TUI view images
+
+> Introduced in toot 0.39.0
+
+You can view images in a toot using an external program by setting the
+`tui.media_viewer` option to your desired image viewer. When a toot is focused,
+pressing `m` will launch the specified executable giving one or more URLs as
+arguments. This works well with image viewers like `feh` which accept URLs as
+arguments.
+
+```toml
+[tui]
+media_viewer = "feh"
+```
+
 ## TUI color palette
 
 TUI uses Urwid which provides several color modes. See

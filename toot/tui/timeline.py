@@ -95,6 +95,7 @@ class Timeline(urwid.Columns):
             return None
 
         poll = status.original.data.get("poll")
+        show_media = status.original.data["media_attachments"] and self.tui.media_viewer
 
         options = [
             "[A]ccount" if not status.is_mine else "",
@@ -105,6 +106,8 @@ class Timeline(urwid.Columns):
             "[V]iew",
             "[T]hread" if not self.is_thread else "",
             "L[i]nks",
+            "[M]edia" if show_media else "",
+            self.tui.media_viewer,
             "[R]eply",
             "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
