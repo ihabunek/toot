@@ -558,9 +558,9 @@ def clear_notifications(app, user):
     http.post(app, user, '/api/v1/notifications/clear')
 
 
-def get_instance(base_url):
+def get_instance(base_url: str) -> Response:
     url = f"{base_url}/api/v1/instance"
-    return http.anon_get(url).json()
+    return http.anon_get(url)
 
 
 def get_lists(app, user):

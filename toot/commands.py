@@ -542,7 +542,7 @@ def instance(app, user, args):
         raise ConsoleError("Please specify an instance.")
 
     try:
-        instance = api.get_instance(base_url)
+        instance = api.get_instance(base_url).json()
         instance = from_dict(Instance, instance)
         print_instance(instance)
     except ApiError:

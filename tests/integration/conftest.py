@@ -41,7 +41,7 @@ ASSETS_DIR = str(Path(__file__).parent.parent / "assets")
 
 
 def create_app(base_url):
-    instance = api.get_instance(base_url)
+    instance = api.get_instance(base_url).json()
     response = api.create_app(base_url)
     return App(instance["uri"], base_url, response["client_id"], response["client_secret"])
 
