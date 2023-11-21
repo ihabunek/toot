@@ -2,10 +2,11 @@ import os
 import re
 import sys
 import textwrap
+import html2text
 
 from functools import lru_cache
 from toot import settings
-from toot.utils import get_text, html_to_paragraphs
+from toot.utils import get_text
 from toot.entities import Account, Instance, Notification, Poll, Status
 from toot.wcstring import wc_wrap
 from typing import List
@@ -174,7 +175,6 @@ def print_account(account: Account):
     print_out(f"<green>@{account.acct}</green> {account.display_name}")
 
     if account.note:
-        print_out("")
         print_html(account.note)
 
     since = account.created_at.strftime('%Y-%m-%d')
@@ -299,7 +299,6 @@ def print_status(status: Status, width: int = 80):
         f"<yellow>{time}</yellow>",
     )
 
-    print_out("")
     print_html(status.content, width)
 
     if status.media_attachments:
@@ -322,14 +321,20 @@ def print_status(status: Status, width: int = 80):
 
 
 def print_html(text, width=80):
-    first = True
-    for paragraph in html_to_paragraphs(text):
-        if not first:
-            print_out("")
-        for line in paragraph:
-            for subline in wc_wrap(line, width):
-                print_out(highlight_hashtags(subline))
-        first = False
+    h2t = html2text.HTML2Text()
+
+    h2t.body_width = width
+    h2t.single_line_break = True
+    h2t.ignore_links = True
+    h2t.wrap_links = True
+    h2t.wrap_list_items = True
+    h2t.wrap_tables = True
+    h2t.unicode_snob = True
+    h2t.ul_item_mark = "\N{bullet}"
+    markdown = h2t.handle(text).strip()
+
+    print_out("")
+    print_out(highlight_hashtags(markdown))
 
 
 def print_poll(poll: Poll):
