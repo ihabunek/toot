@@ -1,7 +1,6 @@
 import urwid
 import html2text
 
-from toot.tui.utils import highlight_hashtags
 from typing import List
 
 try:
@@ -10,7 +9,7 @@ except ImportError:
     # Fallback if urwidgets are not available
     def html_to_widgets(html: str) -> List[urwid.Widget]:
         return [
-            urwid.Text(highlight_hashtags(_format_markdown(html)))
+            urwid.Text(_format_markdown(html))
         ]
 
     def url_to_widget(url: str):
