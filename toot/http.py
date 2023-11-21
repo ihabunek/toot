@@ -3,7 +3,7 @@ from requests.exceptions import RequestException
 
 from toot import __version__
 from toot.exceptions import NotFoundError, ApiError
-from toot.logging import log_request, log_response
+from toot.logging import log_request, log_request_exception, log_response
 
 
 def send_request(request, allow_redirects=True):
@@ -19,6 +19,7 @@ def send_request(request, allow_redirects=True):
             settings = session.merge_environment_settings(prepared.url, {}, None, None, None)
             response = session.send(prepared, allow_redirects=allow_redirects, **settings)
     except RequestException as ex:
+        log_request_exception(request, ex)
         raise ApiError(f"Request failed: {str(ex)}")
 
     log_response(response)
