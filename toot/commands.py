@@ -5,13 +5,14 @@ import platform
 
 from datetime import datetime, timedelta, timezone
 from time import sleep, time
+
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
 from toot.entities import Account, Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_status, print_table, print_timeline, print_notifications, print_tag_list,
-                         print_list_accounts, print_user_list)
+                         print_search_results, print_status, print_table, print_timeline, print_notifications,
+                         print_tag_list, print_list_accounts, print_user_list)
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 from toot.utils.datetime import parse_datetime
 
@@ -418,26 +419,38 @@ def _do_upload(app, user, file, description, thumbnail):
 
 def follow(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.follow(app, user, account['id'])
-    print_out("<green>✓ You are now following {}</green>".format(args.account))
+    response = api.follow(app, user, account["id"])
+    if args.json:
+        print(response.text)
+    else:
+        print_out(f"<green>✓ You are now following {args.account}</green>")
 
 
 def unfollow(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.unfollow(app, user, account['id'])
-    print_out("<green>✓ You are no longer following {}</green>".format(args.account))
+    response = api.unfollow(app, user, account["id"])
+    if args.json:
+        print(response.text)
+    else:
+        print_out(f"<green>✓ You are no longer following {args.account}</green>")
 
 
 def following(app, user, args):
     account = api.find_account(app, user, args.account)
-    response = api.following(app, user, account['id'])
-    print_acct_list(response)
+    accounts = api.following(app, user, account["id"])
+    if args.json:
+        print(json.dumps(accounts))
+    else:
+        print_acct_list(accounts)
 
 
 def followers(app, user, args):
     account = api.find_account(app, user, args.account)
-    response = api.followers(app, user, account['id'])
-    print_acct_list(response)
+    accounts = api.followers(app, user, account["id"])
+    if args.json:
+        print(json.dumps(accounts))
+    else:
+        print_acct_list(accounts)
 
 
 def tags_follow(app, user, args):
@@ -524,36 +537,62 @@ def _get_list_id(app, user, args):
 
 def mute(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.mute(app, user, account['id'])
-    print_out("<green>✓ You have muted {}</green>".format(args.account))
+    response = api.mute(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ You have muted {}</green>".format(args.account))
 
 
 def unmute(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.unmute(app, user, account['id'])
-    print_out("<green>✓ {} is no longer muted</green>".format(args.account))
+    response = api.unmute(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ {} is no longer muted</green>".format(args.account))
 
 
 def muted(app, user, args):
     response = api.muted(app, user)
-    print_acct_list(response)
+    if args.json:
+        print(json.dumps(response))
+    else:
+        if len(response) > 0:
+            print("Muted accounts:")
+            print_acct_list(response)
+        else:
+            print("No accounts muted")
 
 
 def block(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.block(app, user, account['id'])
-    print_out("<green>✓ You are now blocking {}</green>".format(args.account))
+    response = api.block(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ You are now blocking {}</green>".format(args.account))
 
 
 def unblock(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.unblock(app, user, account['id'])
-    print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
+    response = api.unblock(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
 
 
 def blocked(app, user, args):
     response = api.blocked(app, user)
-    print_acct_list(response)
+    if args.json:
+        print(json.dumps(response))
+    else:
+        if len(response) > 0:
+            print("Blocked accounts:")
+            print_acct_list(response)
+        else:
+            print("No accounts blocked")
 
 
 def whoami(app, user, args):

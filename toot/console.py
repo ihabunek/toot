@@ -671,77 +671,61 @@ ACCOUNTS_COMMANDS = [
     Command(
         name="follow",
         description="Follow an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unfollow",
         description="Unfollow an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="following",
         description="List accounts followed by the given account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="followers",
         description="List accounts following the given account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="mute",
         description="Mute an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unmute",
         description="Unmute an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="muted",
         description="List muted accounts",
-        arguments=[],
+        arguments=[json_arg],
         require_auth=True,
     ),
     Command(
         name="block",
         description="Block an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unblock",
         description="Unblock an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="blocked",
         description="List blocked accounts",
-        arguments=[],
+        arguments=[json_arg],
         require_auth=True,
     ),
 ]

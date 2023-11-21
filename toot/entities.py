@@ -384,6 +384,29 @@ class Instance:
     rules: List[Rule]
 
 
+@dataclass
+class Relationship:
+    """
+    Represents the relationship between accounts, such as following / blocking /
+    muting / etc.
+    https://docs.joinmastodon.org/entities/Relationship/
+    """
+    id: str
+    following: bool
+    showing_reblogs: bool
+    notifying: bool
+    languages: List[str]
+    followed_by: bool
+    blocking: bool
+    blocked_by: bool
+    muting: bool
+    muting_notifications: bool
+    requested: bool
+    domain_blocking: bool
+    endorsed: bool
+    note: str
+
+
 # Generic data class instance
 T = TypeVar("T")
 
@@ -420,6 +443,10 @@ def from_dict(cls: Type[T], data: Dict) -> T:
             yield field.name, converted
 
     return cls(**dict(_fields()))
+
+
+def from_dict_list(cls: Type[T], data: List[Dict]) -> List[T]:
+    return [from_dict(cls, x) for x in data]
 
 
 def _get_default_value(field):

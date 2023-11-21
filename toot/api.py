@@ -38,9 +38,9 @@ def find_account(app, user, account_name):
     raise ConsoleError("Account not found")
 
 
-def _account_action(app, user, account, action):
+def _account_action(app, user, account, action) -> Response:
     url = f"/api/v1/accounts/{account}/{action}"
-    return http.post(app, user, url).json()
+    return http.post(app, user, url)
 
 
 def _status_action(app, user, status_id, action, data=None) -> Response:

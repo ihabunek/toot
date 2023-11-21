@@ -1,8 +1,10 @@
 import json
+from pprint import pprint
 import pytest
 import re
 
 from toot import api
+from toot.entities import Account, from_dict_list
 from toot.exceptions import ConsoleError
 from uuid import uuid4
 
@@ -58,6 +60,12 @@ def test_search_account(friend, run):
     assert out == f"Accounts:\n* @{friend.username}"
 
 
+def test_search_account_json(friend, run_json):
+    out = run_json("search", friend.username, "--json")
+    [account] = from_dict_list(Account, out["accounts"])
+    assert account.acct == friend.username
+
+
 def test_search_hashtag(app, user, run):
     api.post_status(app, user, "#hashtag_x")
     api.post_status(app, user, "#hashtag_y")
@@ -65,6 +73,19 @@ def test_search_hashtag(app, user, run):
 
     out = run("search", "#hashtag")
     assert out == "Hashtags:\n#hashtag_x, #hashtag_y, #hashtag_z"
+
+
+def test_search_hashtag_json(app, user, run_json):
+    api.post_status(app, user, "#hashtag_x")
+    api.post_status(app, user, "#hashtag_y")
+    api.post_status(app, user, "#hashtag_z")
+
+    out = run_json("search", "#hashtag", "--json")
+    [h1, h2, h3] = sorted(out["hashtags"], key=lambda h: h["name"])
+
+    assert h1["name"] == "hashtag_x"
+    assert h2["name"] == "hashtag_y"
+    assert h3["name"] == "hashtag_z"
 
 
 def test_tags(run, base_url):

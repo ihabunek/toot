@@ -330,17 +330,17 @@ def take_action(button: Button, self: Account):
     action = button.get_label()
 
     if action == "Confirm Follow":
-        self.relationship = api.follow(self.app, self.user, self.account["id"])
+        self.relationship = api.follow(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Unfollow":
-        self.relationship = api.unfollow(self.app, self.user, self.account["id"])
+        self.relationship = api.unfollow(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Mute":
-        self.relationship = api.mute(self.app, self.user, self.account["id"])
+        self.relationship = api.mute(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Unmute":
-        self.relationship = api.unmute(self.app, self.user, self.account["id"])
+        self.relationship = api.unmute(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Block":
-        self.relationship = api.block(self.app, self.user, self.account["id"])
+        self.relationship = api.block(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Unblock":
-        self.relationship = api.unblock(self.app, self.user, self.account["id"])
+        self.relationship = api.unblock(self.app, self.user, self.account["id"]).json()
 
     self.last_action = None
     self.setup_listbox()
