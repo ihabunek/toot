@@ -1,9 +1,10 @@
-import re
-from uuid import uuid4
+import json
 import pytest
+import re
 
 from toot import api
 from toot.exceptions import ConsoleError
+from uuid import uuid4
 
 
 def test_instance(app, run):
@@ -11,6 +12,14 @@ def test_instance(app, run):
     assert "Mastodon" in out
     assert app.instance in out
     assert "running Mastodon" in out
+
+
+def test_instance_json(app, run):
+    out = run("instance", "--json")
+    data = json.loads(out)
+    assert data["title"] is not None
+    assert data["description"] is not None
+    assert data["version"] is not None
 
 
 def test_instance_anon(app, run_anon, base_url):

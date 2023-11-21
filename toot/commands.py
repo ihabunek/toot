@@ -542,14 +542,18 @@ def instance(app, user, args):
         raise ConsoleError("Please specify an instance.")
 
     try:
-        instance = api.get_instance(base_url).json()
-        instance = from_dict(Instance, instance)
-        print_instance(instance)
+        response = api.get_instance(base_url)
     except ApiError:
         raise ConsoleError(
             f"Instance not found at {base_url}.\n"
             "The given domain probably does not host a Mastodon instance."
         )
+
+    if args.json:
+        print(response.text)
+    else:
+        instance = from_dict(Instance, response.json())
+        print_instance(instance)
 
 
 def notifications(app, user, args):

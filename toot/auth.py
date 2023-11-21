@@ -40,7 +40,7 @@ def create_app_interactive(base_url):
 def get_instance_domain(base_url):
     print_out("Looking up instance info...")
 
-    instance = api.get_instance(base_url)
+    instance = api.get_instance(base_url).json()
 
     print_out(
         f"Found instance <blue>{instance['title']}</blue> "
