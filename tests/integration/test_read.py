@@ -95,7 +95,7 @@ def test_tags(run, base_url):
 
 def test_status(app, user, run):
     uuid = str(uuid4())
-    response = api.post_status(app, user, uuid)
+    response = api.post_status(app, user, uuid).json()
 
     out = run("status", response["id"])
     assert uuid in out
@@ -105,9 +105,9 @@ def test_status(app, user, run):
 
 def test_thread(app, user, run):
     uuid = str(uuid4())
-    s1 = api.post_status(app, user, uuid + "1")
-    s2 = api.post_status(app, user, uuid + "2", in_reply_to_id=s1["id"])
-    s3 = api.post_status(app, user, uuid + "3", in_reply_to_id=s2["id"])
+    s1 = api.post_status(app, user, uuid + "1").json()
+    s2 = api.post_status(app, user, uuid + "2", in_reply_to_id=s1["id"]).json()
+    s3 = api.post_status(app, user, uuid + "3", in_reply_to_id=s2["id"]).json()
 
     for status in [s1, s2, s3]:
         out = run("thread", status["id"])

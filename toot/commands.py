@@ -121,12 +121,16 @@ def post(app, user, args):
         poll_hide_totals=args.poll_hide_totals,
     )
 
-    if "scheduled_at" in response:
-        scheduled_at = parse_datetime(response["scheduled_at"])
-        scheduled_at = datetime.strftime(scheduled_at, "%Y-%m-%d %H:%M:%S%z")
-        print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
+    if args.json:
+        print(response.text)
     else:
-        print_out(f"Toot posted: <green>{response['url']}")
+        status = response.json()
+        if "scheduled_at" in status:
+            scheduled_at = parse_datetime(status["scheduled_at"])
+            scheduled_at = datetime.strftime(scheduled_at, "%Y-%m-%d %H:%M:%S%z")
+            print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
+        else:
+            print_out(f"Toot posted: <green>{status['url']}")
 
     delete_tmp_status_file()
 

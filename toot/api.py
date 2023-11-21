@@ -201,7 +201,7 @@ def post_status(
     poll_expires_in=None,
     poll_multiple=None,
     poll_hide_totals=None,
-):
+) -> Response:
     """
     Publish a new status.
     https://docs.joinmastodon.org/methods/statuses/#create
@@ -233,7 +233,7 @@ def post_status(
             "hide_totals": poll_hide_totals,
         }
 
-    return http.post(app, user, '/api/v1/statuses', json=data, headers=headers).json()
+    return http.post(app, user, '/api/v1/statuses', json=data, headers=headers)
 
 
 def fetch_status(app, user, id):

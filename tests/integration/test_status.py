@@ -6,7 +6,7 @@ from toot.exceptions import NotFoundError
 
 
 def test_delete_status(app, user, run):
-    status = api.post_status(app, user, "foo")
+    status = api.post_status(app, user, "foo").json()
 
     out = run("delete", status["id"])
     assert out == "✓ Status deleted"
@@ -16,7 +16,7 @@ def test_delete_status(app, user, run):
 
 
 def test_favourite(app, user, run):
-    status = api.post_status(app, user, "foo")
+    status = api.post_status(app, user, "foo").json()
     assert not status["favourited"]
 
     out = run("favourite", status["id"])
@@ -36,7 +36,7 @@ def test_favourite(app, user, run):
 
 
 def test_reblog(app, user, run):
-    status = api.post_status(app, user, "foo")
+    status = api.post_status(app, user, "foo").json()
     assert not status["reblogged"]
 
     out = run("reblog", status["id"])
@@ -56,7 +56,7 @@ def test_reblog(app, user, run):
 
 
 def test_pin(app, user, run):
-    status = api.post_status(app, user, "foo")
+    status = api.post_status(app, user, "foo").json()
     assert not status["pinned"]
 
     out = run("pin", status["id"])
@@ -73,7 +73,7 @@ def test_pin(app, user, run):
 
 
 def test_bookmark(app, user, run):
-    status = api.post_status(app, user, "foo")
+    status = api.post_status(app, user, "foo").json()
     assert not status["bookmarked"]
 
     out = run("bookmark", status["id"])

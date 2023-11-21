@@ -583,6 +583,7 @@ POST_COMMANDS = [
                 "default": False,
                 "help": "Hide vote counts until the poll ends. Defaults to false."
             }),
+            json_arg,
         ],
         require_auth=True,
     ),

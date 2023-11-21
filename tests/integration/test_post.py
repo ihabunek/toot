@@ -1,3 +1,4 @@
+import json
 import re
 import uuid
 
@@ -25,6 +26,18 @@ def test_post(app, user, run):
     if status["application"]:
         assert status["application"]["name"] == CLIENT_NAME
         assert status["application"]["website"] == CLIENT_WEBSITE
+
+
+def test_post_json(run):
+    content = "i wish i was a #lumberjack"
+    out = run("post", content, "--json")
+    status = json.loads(out)
+
+    assert get_text(status["content"]) == content
+    assert status["visibility"] == "public"
+    assert status["sensitive"] is False
+    assert status["spoiler_text"] == ""
+    assert status["poll"] is None
 
 
 def test_post_visibility(app, user, run):
@@ -269,7 +282,7 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
 
 
 def test_reply_thread(app, user, friend, run):
-    status = api.post_status(app, friend, "This is the status")
+    status = api.post_status(app, friend, "This is the status").json()
 
     out = run("post", "--reply-to", status["id"], "This is the reply")
     status_id = posted_status_id(out)

@@ -529,10 +529,15 @@ class TUI(urwid.Frame):
         ))
 
     def post_status(self, content, warning, visibility, in_reply_to_id):
-        data = api.post_status(self.app, self.user, content,
+        data = api.post_status(
+            self.app,
+            self.user,
+            content,
             spoiler_text=warning,
             visibility=visibility,
-            in_reply_to_id=in_reply_to_id)
+            in_reply_to_id=in_reply_to_id
+        ).json()
+
         status = self.make_status(data)
 
         # TODO: fetch new items from the timeline?
