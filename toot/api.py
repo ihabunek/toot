@@ -31,7 +31,7 @@ def find_account(app, user, account_name):
             normalized_name = username
 
     response = search(app, user, account_name, type="accounts", resolve=True)
-    for account in response["accounts"]:
+    for account in response.json()["accounts"]:
         if account["acct"].lower() == normalized_name:
             return account
 
@@ -458,7 +458,7 @@ def search(app, user, query, resolve=False, type=None):
         "type": type
     })
 
-    return http.get(app, user, "/api/v2/search", params).json()
+    return http.get(app, user, "/api/v2/search", params)
 
 
 def follow(app, user, account):

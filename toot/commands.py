@@ -367,7 +367,10 @@ def upload(app, user, args):
 
 def search(app, user, args):
     response = api.search(app, user, args.query, args.resolve)
-    print_search_results(response)
+    if args.json:
+        print(response.text)
+    else:
+        print_search_results(response.json())
 
 
 def _do_upload(app, user, file, description, thumbnail):
