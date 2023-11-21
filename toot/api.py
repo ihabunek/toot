@@ -43,9 +43,9 @@ def _account_action(app, user, account, action):
     return http.post(app, user, url).json()
 
 
-def _status_action(app, user, status_id, action, data=None):
+def _status_action(app, user, status_id, action, data=None) -> Response:
     url = f"/api/v1/statuses/{status_id}/{action}"
-    return http.post(app, user, url, data=data).json()
+    return http.post(app, user, url, data=data)
 
 
 def _tag_action(app, user, tag_name, action):
@@ -301,9 +301,9 @@ def context(app, user, status_id) -> Response:
     return http.get(app, user, url)
 
 
-def reblogged_by(app, user, status_id):
+def reblogged_by(app, user, status_id) -> Response:
     url = f"/api/v1/statuses/{status_id}/reblogged_by"
-    return http.get(app, user, url).json()
+    return http.get(app, user, url)
 
 
 def _get_next_path(headers):

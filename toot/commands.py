@@ -10,7 +10,7 @@ from toot.auth import login_interactive, login_browser_interactive, create_app_i
 from toot.entities import Account, Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_status, print_timeline, print_notifications, print_tag_list,
+                         print_search_results, print_status, print_table, print_timeline, print_notifications, print_tag_list,
                          print_list_accounts, print_user_list)
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 from toot.utils.datetime import parse_datetime
@@ -212,48 +212,75 @@ def _wait_until_processed(app, user, media, start_time, timeout):
 
 
 def delete(app, user, args):
-    api.delete_status(app, user, args.status_id)
-    print_out("<green>✓ Status deleted</green>")
+    response = api.delete_status(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status deleted</green>")
 
 
 def favourite(app, user, args):
-    api.favourite(app, user, args.status_id)
-    print_out("<green>✓ Status favourited</green>")
+    response = api.favourite(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status favourited</green>")
 
 
 def unfavourite(app, user, args):
-    api.unfavourite(app, user, args.status_id)
-    print_out("<green>✓ Status unfavourited</green>")
+    response = api.unfavourite(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unfavourited</green>")
 
 
 def reblog(app, user, args):
-    api.reblog(app, user, args.status_id, visibility=args.visibility)
-    print_out("<green>✓ Status reblogged</green>")
+    response = api.reblog(app, user, args.status_id, visibility=args.visibility)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status reblogged</green>")
 
 
 def unreblog(app, user, args):
-    api.unreblog(app, user, args.status_id)
-    print_out("<green>✓ Status unreblogged</green>")
+    response = api.unreblog(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unreblogged</green>")
 
 
 def pin(app, user, args):
-    api.pin(app, user, args.status_id)
-    print_out("<green>✓ Status pinned</green>")
+    response = api.pin(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status pinned</green>")
 
 
 def unpin(app, user, args):
-    api.unpin(app, user, args.status_id)
-    print_out("<green>✓ Status unpinned</green>")
+    response = api.unpin(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unpinned</green>")
 
 
 def bookmark(app, user, args):
-    api.bookmark(app, user, args.status_id)
-    print_out("<green>✓ Status bookmarked</green>")
+    response = api.bookmark(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status bookmarked</green>")
 
 
 def unbookmark(app, user, args):
-    api.unbookmark(app, user, args.status_id)
-    print_out("<green>✓ Status unbookmarked</green>")
+    response = api.unbookmark(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unbookmarked</green>")
 
 
 def bookmarks(app, user, args):
@@ -261,8 +288,14 @@ def bookmarks(app, user, args):
 
 
 def reblogged_by(app, user, args):
-    for account in api.reblogged_by(app, user, args.status_id):
-        print_out("{}\n @{}".format(account['display_name'], account['acct']))
+    response = api.reblogged_by(app, user, args.status_id)
+
+    if args.json:
+        print(response.text)
+    else:
+        headers = ["Account", "Display name"]
+        rows = [[a["acct"], a["display_name"]] for a in response.json()]
+        print_table(headers, rows)
 
 
 def auth(app, user, args):
