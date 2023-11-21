@@ -296,9 +296,9 @@ def translate(app, user, status_id):
     return _status_action(app, user, status_id, 'translate')
 
 
-def context(app, user, status_id):
+def context(app, user, status_id) -> Response:
     url = f"/api/v1/statuses/{status_id}/context"
-    return http.get(app, user, url).json()
+    return http.get(app, user, url)
 
 
 def reblogged_by(app, user, status_id):
@@ -544,9 +544,9 @@ def verify_credentials(app, user) -> Response:
     return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
-def single_status(app, user, status_id):
+def single_status(app, user, status_id) -> Response:
     url = f"/api/v1/statuses/{status_id}"
-    return http.get(app, user, url).json()
+    return http.get(app, user, url)
 
 
 def get_notifications(app, user, exclude_types=[], limit=20):

@@ -466,6 +466,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "Show thread for toot.",
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -476,6 +477,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "ID of the status to show.",
             }),
+            json_arg,
         ],
         require_auth=True,
     ),

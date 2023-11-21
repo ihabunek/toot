@@ -1,3 +1,4 @@
+from itertools import chain
 import json
 import sys
 import platform
@@ -69,25 +70,25 @@ def timeline(app, user, args, generator=None):
 
 
 def status(app, user, args):
-    status = api.single_status(app, user, args.status_id)
-    status = from_dict(Status, status)
-    print_status(status)
+    response = api.single_status(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        status = from_dict(Status, response.json())
+        print_status(status)
 
 
 def thread(app, user, args):
-    toot = api.single_status(app, user, args.status_id)
-    context = api.context(app, user, args.status_id)
-    thread = []
-    for item in context['ancestors']:
-        thread.append(item)
+    context_response = api.context(app, user, args.status_id)
 
-    thread.append(toot)
+    if args.json:
+        print(context_response.text)
+    else:
+        toot = api.single_status(app, user, args.status_id).json()
+        context = context_response.json()
 
-    for item in context['descendants']:
-        thread.append(item)
-
-    statuses = [from_dict(Status, s) for s in thread]
-    print_timeline(statuses)
+        statuses = chain(context["ancestors"], [toot], context["descendants"])
+        print_timeline(from_dict(Status, s) for s in statuses)
 
 
 def post(app, user, args):

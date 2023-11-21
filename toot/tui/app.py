@@ -251,7 +251,7 @@ class TUI(urwid.Frame):
 
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
-        context = api.context(self.app, self.user, status.original.id)
+        context = api.context(self.app, self.user, status.original.id).json()
         ancestors = [self.make_status(s) for s in context["ancestors"]]
         descendants = [self.make_status(s) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants

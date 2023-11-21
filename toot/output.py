@@ -8,7 +8,7 @@ from toot import settings
 from toot.utils import get_text, html_to_paragraphs
 from toot.entities import Account, Instance, Notification, Poll, Status
 from toot.wcstring import wc_wrap
-from typing import List
+from typing import Iterable, List
 from wcwidth import wcswidth
 
 
@@ -358,7 +358,7 @@ def print_poll(poll: Poll):
     print_out(poll_footer)
 
 
-def print_timeline(items: List[Status], width=100):
+def print_timeline(items: Iterable[Status], width=100):
     print_out("─" * width)
     for item in items:
         print_status(item, width)
