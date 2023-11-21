@@ -153,6 +153,210 @@ def test_timeline(mock_get, monkeypatch, capsys):
 
 
 @mock.patch('toot.http.get')
+def test_timeline_html_content(mock_get, monkeypatch, capsys):
+    mock_get.return_value = MockResponse([{
+        'id': '111111111111111111',
+        'account': {
+            'display_name': 'Frank Zappa 🎸',
+            'acct': 'fz'
+        },
+        'created_at': '2017-04-12T15:53:18.174Z',
+        'content': "<h2>HTML Render Test</h2><p><em>emphasized</em><br><u>underlined</u><br><strong>bold</strong><br><strong><em>bold and italic</em></strong><br><del>strikethrough</del><br>regular text</p><p>Code block:</p><pre><code>10 PRINT \"HELLO WORLD\"<br>20 GOTO 10<br></code></pre><blockquote><p>Something blockquoted here. The indentation is maintained as the text line wraps.</p></blockquote><ol><li>List item<ul><li>Nested item</li><li>Another nested </li></ul></li><li>Another list item. <ol><li>Something else nested</li><li>And a last nested</li></ol></li></ol><blockquote><p>Blockquote</p><ol><li>List in BQ</li><li>List item 2 in BQ</li></ol></blockquote><p><a href=\"https://babka.social/tags/hashtag\" class=\"mention hashtag\" rel=\"tag\">#<span>hashtag</span></a> <a href=\"https://babka.social/tags/test\" class=\"mention hashtag\" rel=\"tag\">#<span>test</span></a> <br><a href=\"https://a.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\"><span class=\"invisible\">https://</span><span class=\"\">a.com</span><span class=\"invisible\"></span></a> text after link</p>",
+        'reblog': None,
+        'in_reply_to_id': None,
+        'media_attachments': [],
+    }])
+
+    console.run_command(app, user, 'timeline', ['--once'])
+
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
+
+    out, err = capsys.readouterr()
+    lines = out.split("\n")  
+    reference = [
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
+        "Frank Zappa 🎸 @fz                                                              2017-04-12 15:53 UTC",
+        "",
+        "## HTML Render Test",
+        "",
+        " _emphasized_  ",
+        " _underlined_  ",
+        " **bold**  ",
+        " ** _bold and italic_**  ",
+        " ~~strikethrough~~  ",
+        "regular text",
+        "",
+        "Code block:",
+        "",
+        "    ",
+        "    10 PRINT \"HELLO WORLD\"  ",
+        "    20 GOTO 10  ",
+        "    ",
+        "> Something blockquoted here. The indentation is maintained as the text line wraps.",
+        "  1. List item",
+        "    • Nested item",
+        "    • Another nested ",
+        "  2. Another list item. ",
+        "    1. Something else nested",
+        "    2. And a last nested",
+        "",
+        "> Blockquote",
+        ">   1. List in BQ",
+        ">   2. List item 2 in BQ",
+        ">",
+        "",
+        "#hashtag #test  ",
+        "https://a.com text after link",
+        "",
+        "ID 111111111111111111   ",
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
+        "",
+    ]
+
+    assert len(lines) == len(reference)
+    for index, line in enumerate(lines):
+        assert line == reference[index], f"Line #{index}: Expected:\n{reference[index]}\nGot:\n{line}"
+
+    assert err == ""
+
+
+@mock.patch('toot.http.get')
+def test_timeline_html_content(mock_get, monkeypatch, capsys):
+    mock_get.return_value = MockResponse([{
+        'id': '111111111111111111',
+        'account': {
+            'display_name': 'Frank Zappa 🎸',
+            'acct': 'fz'
+        },
+        'created_at': '2017-04-12T15:53:18.174Z',
+        'content': "<h2>HTML Render Test</h2><p><em>emphasized</em><br><u>underlined</u><br><strong>bold</strong><br><strong><em>bold and italic</em></strong><br><del>strikethrough</del><br>regular text</p><p>Code block:</p><pre><code>10 PRINT \"HELLO WORLD\"<br>20 GOTO 10<br></code></pre><blockquote><p>Something blockquoted here. The indentation is maintained as the text line wraps.</p></blockquote><ol><li>List item<ul><li>Nested item</li><li>Another nested </li></ul></li><li>Another list item. <ol><li>Something else nested</li><li>And a last nested</li></ol></li></ol><blockquote><p>Blockquote</p><ol><li>List in BQ</li><li>List item 2 in BQ</li></ol></blockquote><p><a href=\"https://babka.social/tags/hashtag\" class=\"mention hashtag\" rel=\"tag\">#<span>hashtag</span></a> <a href=\"https://babka.social/tags/test\" class=\"mention hashtag\" rel=\"tag\">#<span>test</span></a> <br><a href=\"https://a.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\"><span class=\"invisible\">https://</span><span class=\"\">a.com</span><span class=\"invisible\"></span></a> text after link</p>",
+        'reblog': None,
+        'in_reply_to_id': None,
+        'media_attachments': [],
+    }])
+
+    console.run_command(app, user, 'timeline', ['--once'])
+
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
+
+    out, err = capsys.readouterr()
+    lines = out.split("\n")  
+    reference = [
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
+        "Frank Zappa 🎸 @fz                                                              2017-04-12 15:53 UTC",
+        "",
+        "## HTML Render Test",
+        "",
+        " _emphasized_  ",
+        " _underlined_  ",
+        " **bold**  ",
+        " ** _bold and italic_**  ",
+        " ~~strikethrough~~  ",
+        "regular text",
+        "",
+        "Code block:",
+        "",
+        "    ",
+        "    10 PRINT \"HELLO WORLD\"  ",
+        "    20 GOTO 10  ",
+        "    ",
+        "> Something blockquoted here. The indentation is maintained as the text line wraps.",
+        "  1. List item",
+        "    • Nested item",
+        "    • Another nested ",
+        "  2. Another list item. ",
+        "    1. Something else nested",
+        "    2. And a last nested",
+        "",
+        "> Blockquote",
+        ">   1. List in BQ",
+        ">   2. List item 2 in BQ",
+        ">",
+        "",
+        "#hashtag #test  ",
+        "https://a.com text after link",
+        "",
+        "ID 111111111111111111   ",
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
+        "",
+    ]
+
+    assert len(lines) == len(reference)
+    for index, line in enumerate(lines):
+        assert line == reference[index], f"Line #{index}: Expected:\n{reference[index]}\nGot:\n{line}"
+
+    assert err == ""
+
+
+@mock.patch('toot.http.get')
+def test_timeline_html_content(mock_get, monkeypatch, capsys):
+    mock_get.return_value = MockResponse([{
+        'id': '111111111111111111',
+        'account': {
+            'display_name': 'Frank Zappa 🎸',
+            'acct': 'fz'
+        },
+        'created_at': '2017-04-12T15:53:18.174Z',
+        'content': "<h2>HTML Render Test</h2><p><em>emphasized</em><br><u>underlined</u><br><strong>bold</strong><br><strong><em>bold and italic</em></strong><br><del>strikethrough</del><br>regular text</p><p>Code block:</p><pre><code>10 PRINT \"HELLO WORLD\"<br>20 GOTO 10<br></code></pre><blockquote><p>Something blockquoted here. The indentation is maintained as the text line wraps.</p></blockquote><ol><li>List item<ul><li>Nested item</li><li>Another nested </li></ul></li><li>Another list item. <ol><li>Something else nested</li><li>And a last nested</li></ol></li></ol><blockquote><p>Blockquote</p><ol><li>List in BQ</li><li>List item 2 in BQ</li></ol></blockquote><p><a href=\"https://babka.social/tags/hashtag\" class=\"mention hashtag\" rel=\"tag\">#<span>hashtag</span></a> <a href=\"https://babka.social/tags/test\" class=\"mention hashtag\" rel=\"tag\">#<span>test</span></a> <br><a href=\"https://a.com\" target=\"_blank\" rel=\"nofollow noopener noreferrer\"><span class=\"invisible\">https://</span><span class=\"\">a.com</span><span class=\"invisible\"></span></a> text after link</p>",
+        'reblog': None,
+        'in_reply_to_id': None,
+        'media_attachments': [],
+    }])
+
+    console.run_command(app, user, 'timeline', ['--once'])
+
+    mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
+
+    out, err = capsys.readouterr()
+    lines = out.split("\n")
+    reference = [
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
+        "Frank Zappa 🎸 @fz                                                              2017-04-12 15:53 UTC",
+        "",
+        "## HTML Render Test",
+        "",
+        " _emphasized_  ",
+        " _underlined_  ",
+        " **bold**  ",
+        " ** _bold and italic_**  ",
+        " ~~strikethrough~~  ",
+        "regular text",
+        "",
+        "Code block:",
+        "",
+        "    ",
+        "    10 PRINT \"HELLO WORLD\"  ",
+        "    20 GOTO 10  ",
+        "    ",
+        "> Something blockquoted here. The indentation is maintained as the text line wraps.",
+        "  1. List item",
+        "    • Nested item",
+        "    • Another nested ",
+        "  2. Another list item. ",
+        "    1. Something else nested",
+        "    2. And a last nested",
+        "",
+        "> Blockquote",
+        ">   1. List in BQ",
+        ">   2. List item 2 in BQ",
+        ">",
+        "",
+        "#hashtag #test  ",
+        "https://a.com text after link",
+        "",
+        "ID 111111111111111111   ",
+        "────────────────────────────────────────────────────────────────────────────────────────────────────",
+        "",
+    ]
+
+    assert len(lines) == len(reference)
+    for index, line in enumerate(lines):
+        assert line == reference[index], f"Line #{index}: Expected:\n{reference[index]}\nGot:\n{line}"
+
+    assert err == ""
+
+
+@mock.patch('toot.http.get')
 def test_timeline_with_re(mock_get, monkeypatch, capsys):
     mock_get.return_value = MockResponse([{
         'id': '111111111111111111',
@@ -588,8 +792,6 @@ def test_notifications(mock_get, capsys):
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "",
     ])
-
-
 @mock.patch('toot.http.get')
 def test_notifications_empty(mock_get, capsys):
     mock_get.return_value = MockResponse([])
