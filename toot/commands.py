@@ -70,7 +70,7 @@ def timeline(app, user, args, generator=None):
 
 
 def status(app, user, args):
-    response = api.single_status(app, user, args.status_id)
+    response = api.fetch_status(app, user, args.status_id)
     if args.json:
         print(response.text)
     else:
@@ -84,7 +84,7 @@ def thread(app, user, args):
     if args.json:
         print(context_response.text)
     else:
-        toot = api.single_status(app, user, args.status_id).json()
+        toot = api.fetch_status(app, user, args.status_id).json()
         context = context_response.json()
 
         statuses = chain(context["ancestors"], [toot], context["descendants"])

@@ -15,7 +15,7 @@ def test_post(app, user, run):
     out = run("post", text)
     status_id = posted_status_id(out)
 
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     assert text == get_text(status["content"])
     assert status["visibility"] == "public"
     assert status["sensitive"] is False
@@ -44,7 +44,7 @@ def test_post_visibility(app, user, run):
     for visibility in ["public", "unlisted", "private", "direct"]:
         out = run("post", "foo", "--visibility", visibility)
         status_id = posted_status_id(out)
-        status = api.fetch_status(app, user, status_id)
+        status = api.fetch_status(app, user, status_id).json()
         assert status["visibility"] == visibility
 
 
@@ -105,7 +105,7 @@ def test_post_poll(app, user, run):
 
     status_id = posted_status_id(out)
 
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     assert status["poll"]["expired"] is False
     assert status["poll"]["multiple"] is False
     assert status["poll"]["options"] == [
@@ -134,7 +134,7 @@ def test_post_poll_multiple(app, user, run):
 
     status_id = posted_status_id(out)
 
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     assert status["poll"]["multiple"] is True
 
 
@@ -150,7 +150,7 @@ def test_post_poll_expires_in(app, user, run):
 
     status_id = posted_status_id(out)
 
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     actual = datetime.strptime(status["poll"]["expires_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
     expected = datetime.now(timezone.utc) + timedelta(hours=8)
     delta = actual - expected
@@ -169,7 +169,7 @@ def test_post_poll_hide_totals(app, user, run):
 
     status_id = posted_status_id(out)
 
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
 
     # votes_count is None when totals are hidden
     assert status["poll"]["options"] == [
@@ -181,12 +181,12 @@ def test_post_poll_hide_totals(app, user, run):
 def test_post_language(app, user, run):
     out = run("post", "test", "--language", "hr")
     status_id = posted_status_id(out)
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     assert status["language"] == "hr"
 
     out = run("post", "test", "--language", "zh")
     status_id = posted_status_id(out)
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     assert status["language"] == "zh"
 
 
@@ -203,7 +203,7 @@ def test_media_thumbnail(app, user, run):
     )
 
     status_id = posted_status_id(out)
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     [media] = status["media_attachments"]
 
     assert media["description"] == "foo"
@@ -241,7 +241,7 @@ def test_media_attachments(app, user, run):
     )
 
     status_id = posted_status_id(out)
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
 
     [a1, a2, a3, a4] = status["media_attachments"]
 
@@ -270,7 +270,7 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
     out = run("post", "--media", media_path)
     status_id = posted_status_id(out)
 
-    status = api.fetch_status(app, user, status_id)
+    status = api.fetch_status(app, user, status_id).json()
     assert status["content"] == ""
 
     [attachment] = status["media_attachments"]
@@ -286,7 +286,7 @@ def test_reply_thread(app, user, friend, run):
 
     out = run("post", "--reply-to", status["id"], "This is the reply")
     status_id = posted_status_id(out)
-    reply = api.fetch_status(app, user, status_id)
+    reply = api.fetch_status(app, user, status_id).json()
 
     assert reply["in_reply_to_id"] == status["id"]
 

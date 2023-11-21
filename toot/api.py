@@ -241,7 +241,7 @@ def fetch_status(app, user, id):
     Fetch a single status
     https://docs.joinmastodon.org/methods/statuses/#get
     """
-    return http.get(app, user, f"/api/v1/statuses/{id}").json()
+    return http.get(app, user, f"/api/v1/statuses/{id}")
 
 
 def scheduled_statuses(app, user):
@@ -542,11 +542,6 @@ def blocked(app, user):
 
 def verify_credentials(app, user) -> Response:
     return http.get(app, user, '/api/v1/accounts/verify_credentials')
-
-
-def single_status(app, user, status_id) -> Response:
-    url = f"/api/v1/statuses/{status_id}"
-    return http.get(app, user, url)
 
 
 def get_notifications(app, user, exclude_types=[], limit=20):
