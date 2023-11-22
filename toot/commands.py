@@ -340,7 +340,7 @@ def update_account(app, user, args):
     if all(option is None for option in options):
         raise ConsoleError("Please specify at least one option to update the account")
 
-    api.update_account(
+    response = api.update_account(
         app,
         user,
         avatar=args.avatar,
@@ -355,7 +355,10 @@ def update_account(app, user, args):
         sensitive=args.sensitive,
     )
 
-    print_out("<green>✓ Account updated</green>")
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Account updated</green>")
 
 
 def login_cli(app, user, args):

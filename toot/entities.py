@@ -72,6 +72,7 @@ class Account:
     statuses_count: int
     followers_count: int
     following_count: int
+    source: Optional[dict]
 
     @staticmethod
     def __toot_prepare__(obj: Dict) -> Dict:

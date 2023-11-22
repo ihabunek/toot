@@ -1,5 +1,6 @@
 from tests.integration.conftest import TRUMPET
 from toot import api
+from toot.entities import Account, from_dict
 from toot.utils import get_text
 
 
@@ -14,6 +15,13 @@ def test_update_account_display_name(run, app, user):
 
     account = api.verify_credentials(app, user).json()
     assert account["display_name"] == "elwood"
+
+
+def test_update_account_json(run_json, app, user):
+    out = run_json("update_account", "--display-name", "elwood", "--json")
+    account = from_dict(Account, out)
+    assert account.acct == user.username
+    assert account.display_name == "elwood"
 
 
 def test_update_account_note(run, app, user):

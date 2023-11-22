@@ -370,6 +370,7 @@ AUTH_COMMANDS = [
                 "type": language,
                 "help": "Default language to use for authored statuses (ISO 639-1)."
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
