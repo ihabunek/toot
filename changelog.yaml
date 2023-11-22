@@ -1,3 +1,10 @@
+0.39.0:
+  date: "TBA"
+  changes:
+    - "Add `--json` option to many commands, this makes them print the JSON data returned by the server instead of human-readable data. Useful for scripting."
+    - "TUI: Make media viewer configurable in settings, see: https://toot.bezdomni.net/settings.html#tui-view-images"
+    - "TUI: Add rich text rendering (thanks Dan Schwarz)"
+
 0.38.2:
   date: 2023-11-16
   changes:
