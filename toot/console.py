@@ -191,6 +191,7 @@ common_auth_args = [
 account_arg = (["account"], {
     "help": "account name, e.g. 'Gargron@mastodon.social'",
 })
+
 optional_account_arg = (["account"], {
     "nargs": "?",
     "help": "account name, e.g. 'Gargron@mastodon.social'",
@@ -682,14 +683,16 @@ ACCOUNTS_COMMANDS = [
     ),
     Command(
         name="following",
-        description="List accounts followed by the given account",
-        arguments=[account_arg, json_arg],
+        description="List accounts followed by the given account, " +
+                    "or your account if no account given",
+        arguments=[optional_account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="followers",
-        description="List accounts following the given account",
-        arguments=[account_arg, json_arg],
+        description="List accounts following the given account, " +
+                    "or your account if no account given",
+        arguments=[optional_account_arg, json_arg],
         require_auth=True,
     ),
     Command(

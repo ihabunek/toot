@@ -42,6 +42,10 @@ def test_following(app: App, user: User, friend: User, friend_id, run):
     out = run("following", user.username)
     assert friend.username in out
 
+    # If no account is given defaults to logged in user
+    out = run("following")
+    assert friend.username in out
+
     out = run("unfollow", friend.username)
     assert out == f"✓ You are no longer following {friend.username}"
 
@@ -78,6 +82,11 @@ def test_following_json(app: App, user: User, friend: User, user_id, friend_id, 
     assert relationship.id == friend_id
     assert relationship.following is True
 
+    [result] = run_json("following", user.username, "--json")
+    relationship = from_dict(Relationship, result)
+    assert relationship.id == friend_id
+
+    # If no account is given defaults to logged in user
     [result] = run_json("following", user.username, "--json")
     relationship = from_dict(Relationship, result)
     assert relationship.id == friend_id

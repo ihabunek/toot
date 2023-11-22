@@ -436,7 +436,8 @@ def unfollow(app, user, args):
 
 
 def following(app, user, args):
-    account = api.find_account(app, user, args.account)
+    account = args.account or user.username
+    account = api.find_account(app, user, account)
     accounts = api.following(app, user, account["id"])
     if args.json:
         print(json.dumps(accounts))
@@ -445,7 +446,8 @@ def following(app, user, args):
 
 
 def followers(app, user, args):
-    account = api.find_account(app, user, args.account)
+    account = args.account or user.username
+    account = api.find_account(app, user, account)
     accounts = api.followers(app, user, account["id"])
     if args.json:
         print(json.dumps(accounts))
