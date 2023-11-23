@@ -2,7 +2,7 @@ import os
 import re
 import sys
 import textwrap
-import html2text
+import pypandoc
 
 from functools import lru_cache
 from toot import settings
@@ -321,17 +321,10 @@ def print_status(status: Status, width: int = 80):
 
 
 def print_html(text, width=80):
-    h2t = html2text.HTML2Text()
-
-    h2t.body_width = width
-    h2t.single_line_break = True
-    h2t.ignore_links = True
-    h2t.wrap_links = True
-    h2t.wrap_list_items = True
-    h2t.wrap_tables = True
-    h2t.unicode_snob = True
-    h2t.ul_item_mark = "\N{bullet}"
-    markdown = h2t.handle(text).strip()
+    markdown = pypandoc.convert_text(text,
+                                   format='html',
+                                     to='gfm-raw_html',
+                                     extra_args=["--wrap=auto", f"--columns={width}"])
 
     print_out("")
     print_out(highlight_hashtags(markdown))

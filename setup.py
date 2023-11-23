@@ -39,7 +39,8 @@ setup(
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
         "tomlkit>=0.10.0,<1.0",
-        "html2text>=2020.1.16"
+        "pypandoc>=1.12.0,<2.0",
+        "pypandoc-binary>=1.12.0,<2.0"
     ],
     extras_require={
         # Required to display rich text in the TUI

@@ -1,7 +1,7 @@
 import logging
 import subprocess
 import urwid
-import html2text
+import pypandoc
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -656,12 +656,10 @@ class TUI(urwid.Frame):
         return self.run_in_thread(_delete, done_callback=_done)
 
     def copy_status(self, status):
-        h2t = html2text.HTML2Text()
-        h2t.body_width = 0  # nowrap
-        h2t.single_line_break = True
-        h2t.ignore_links = True
-        h2t.unicode_snob = True
-        h2t.ul_item_mark = "\N{bullet}"
+        markdown = pypandoc.convert_text(status.original.data["content"],
+                                         format='html',
+                                         to='gfm-raw_html',
+                                         extra_args=["--wrap=none"])
 
         time = parse_datetime(status.original.data['created_at'])
         time = time.strftime('%Y-%m-%d %H:%M %Z')
@@ -671,7 +669,7 @@ class TUI(urwid.Frame):
             + "\n"
             + (status.original.author.account or "")
             + "\n\n"
-            + h2t.handle(status.original.data["content"]).strip()
+            + markdown
             + "\n\n"
             + f"Created at: {time}")
 
