@@ -2,11 +2,11 @@ import os
 import re
 import sys
 import textwrap
-import html2text
 
 from functools import lru_cache
 from toot import settings
 from toot.utils import get_text
+from toot.richtext import html_to_text
 from toot.entities import Account, Instance, Notification, Poll, Status
 from toot.wcstring import wc_wrap
 from typing import List
@@ -321,20 +321,9 @@ def print_status(status: Status, width: int = 80):
 
 
 def print_html(text, width=80):
-    h2t = html2text.HTML2Text()
-
-    h2t.body_width = width
-    h2t.single_line_break = True
-    h2t.ignore_links = True
-    h2t.wrap_links = True
-    h2t.wrap_list_items = True
-    h2t.wrap_tables = True
-    h2t.unicode_snob = True
-    h2t.ul_item_mark = "\N{bullet}"
-    markdown = h2t.handle(text).strip()
-
+    markdown = "\n".join(html_to_text(text, columns=width, highlight_tags=False))
     print_out("")
-    print_out(highlight_hashtags(markdown))
+    print_out(markdown)
 
 
 def print_poll(poll: Poll):
