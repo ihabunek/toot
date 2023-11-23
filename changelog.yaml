@@ -1,5 +1,5 @@
 0.39.0:
-  date: "TBA"
+  date: 2023-11-23
   changes:
     - "Add `--json` option to many commands, this makes them print the JSON data returned by the server instead of human-readable data. Useful for scripting."
     - "TUI: Make media viewer configurable in settings, see: https://toot.bezdomni.net/settings.html#tui-view-images"
