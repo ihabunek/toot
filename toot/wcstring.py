@@ -3,11 +3,12 @@ Utilities for dealing with string containing wide characters.
 """
 
 import re
+from typing import Generator, List
 
 from wcwidth import wcwidth, wcswidth
 
 
-def _wc_hard_wrap(line, length):
+def _wc_hard_wrap(line: str, length: int) -> Generator[str, None, None]:
     """
     Wrap text to length characters, breaking when target length is reached,
     taking into account character width.
@@ -20,7 +21,7 @@ def _wc_hard_wrap(line, length):
         char_len = wcwidth(char)
         if chars_len + char_len > length:
             yield "".join(chars)
-            chars = []
+            chars: List[str] = []
             chars_len = 0
 
         chars.append(char)
@@ -30,7 +31,7 @@ def _wc_hard_wrap(line, length):
         yield "".join(chars)
 
 
-def wc_wrap(text, length):
+def wc_wrap(text: str, length: int) -> Generator[str, None, None]:
     """
     Wrap text to given length, breaking on whitespace and taking into account
     character width.
@@ -38,7 +39,7 @@ def wc_wrap(text, length):
     Meant for use on a single line or paragraph. Will destroy spacing between
     words and paragraphs and any indentation.
     """
-    line_words = []
+    line_words: List[str] = []
     line_len = 0
 
     words = re.split(r"\s+", text.strip())
@@ -66,7 +67,7 @@ def wc_wrap(text, length):
             yield from _wc_hard_wrap(line, length)
 
 
-def trunc(text, length):
+def trunc(text: str, length: int) -> str:
     """
     Truncates text to given length, taking into account wide characters.
 
@@ -98,7 +99,7 @@ def trunc(text, length):
     return text[:-n].strip() + '…'
 
 
-def pad(text, length):
+def pad(text: str, length: int) -> str:
     """Pads text to given length, taking into account wide characters."""
     text_length = wcswidth(text)
 
@@ -108,7 +109,7 @@ def pad(text, length):
     return text
 
 
-def fit_text(text, length):
+def fit_text(text: str, length: int) -> str:
     """Makes text fit the given length by padding or truncating it."""
     text_length = wcswidth(text)
 
