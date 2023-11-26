@@ -363,8 +363,6 @@ def test_notifications(mock_get, capsys):
         "────────────────────────────────────────────────────────────────────────────────────────────────────",
         "",
     ])
-
-
 @mock.patch('toot.http.get')
 def test_notifications_empty(mock_get, capsys):
     mock_get.return_value = MockResponse([])

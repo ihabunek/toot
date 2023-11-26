@@ -7,6 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 from toot import api, config, __version__, settings
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
+from toot.richtext import html_to_text
+from toot.utils.datetime import parse_datetime
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -659,9 +661,22 @@ class TUI(urwid.Frame):
         return self.run_in_thread(_delete, done_callback=_done)
 
     def copy_status(self, status):
-        # TODO: copy a better version of status content
-        # including URLs
-        copy_to_clipboard(self.screen, status.original.data["content"])
+
+        markdown = "\n".join(html_to_text(status.original.data["content"], columns=1024, highlight_tags=False))
+
+        time = parse_datetime(status.original.data['created_at'])
+        time = time.strftime('%Y-%m-%d %H:%M %Z')
+
+        text_status = (f"{status.original.data['url']}\n\n"
+            + (status.original.author.display_name or "")
+            + "\n"
+            + (status.original.author.account or "")
+            + "\n\n"
+            + markdown
+            + "\n\n"
+            + f"Created at: {time}")
+
+        copy_to_clipboard(self.screen, text_status)
         self.footer.set_message(f"Status {status.original.id} copied")
 
     # --- Overlay handling -----------------------------------------------------
