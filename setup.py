@@ -34,6 +34,7 @@ setup(
     packages=['toot', 'toot.tui', 'toot.tui.richtext', 'toot.utils'],
     python_requires=">=3.7",
     install_requires=[
+        "click~=8.1",
         "requests>=2.13,<3.0",
         "beautifulsoup4>=4.5.0,<5.0",
         "wcwidth>=0.1.7",
@@ -62,7 +63,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'toot=toot.console:main',
+            'toot=toot.cli:cli',
         ],
     }
 )

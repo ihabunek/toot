@@ -20,8 +20,10 @@ import psycopg2
 import pytest
 import uuid
 
+from click.testing import CliRunner, Result
 from pathlib import Path
 from toot import api, App, User
+from toot.cli import Context
 from toot.console import run_command
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out
@@ -105,19 +107,21 @@ def friend_id(app, user, friend):
     return api.find_account(app, user, friend.username)["id"]
 
 
-@pytest.fixture
-def run(app, user, capsys):
-    def _run(command, *params, as_user=None):
-        # The try/catch duplicates logic from console.main to convert exceptions
-        # to printed error messages. TODO: could be deduped
-        try:
-            run_command(app, as_user or user, command, params or [])
-        except (ConsoleError, ApiError) as e:
-            print_out(str(e))
+@pytest.fixture(scope="session", autouse=True)
+def testing_env():
+    os.environ["TOOT_TESTING"] = "true"
 
-        out, err = capsys.readouterr()
-        assert err == ""
-        return strip_ansi(out)
+
+@pytest.fixture(scope="session")
+def runner():
+    return CliRunner(mix_stderr=False)
+
+
+@pytest.fixture
+def run(app, user, runner):
+    def _run(command, *params, as_user=None) -> Result:
+        ctx = Context(app, as_user or user)
+        return runner.invoke(command, params, obj=ctx)
     return _run
 
 
@@ -130,12 +134,10 @@ def run_json(run):
 
 
 @pytest.fixture
-def run_anon(capsys):
-    def _run(command, *params):
-        run_command(None, None, command, params or [])
-        out, err = capsys.readouterr()
-        assert err == ""
-        return strip_ansi(out)
+def run_anon(runner):
+    def _run(command, *params) -> Result:
+        ctx = Context(None, None)
+        return runner.invoke(command, params, obj=ctx)
     return _run
 
 
