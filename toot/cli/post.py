@@ -128,6 +128,7 @@ def post(
     poll_hide_totals: bool,
     json: bool
 ):
+    """Post a new status"""
     if editor and not sys.stdin.isatty():
         raise click.ClickException("Cannot run editor if not in tty.")
 

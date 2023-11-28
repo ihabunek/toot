@@ -204,3 +204,23 @@ def test_thread(app, user, run):
         assert uuid1 in bits[0]
         assert uuid2 in bits[1]
         assert uuid3 in bits[2]
+
+
+def test_thread_json(app, user, run):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
+    uuid3 = str(uuid4())
+
+    s1 = api.post_status(app, user, uuid1).json()
+    s2 = api.post_status(app, user, uuid2, in_reply_to_id=s1["id"]).json()
+    s3 = api.post_status(app, user, uuid3, in_reply_to_id=s2["id"]).json()
+
+    result = run(cli.thread, s2["id"], "--json")
+    assert result.exit_code == 0
+
+    result = json.loads(result.stdout)
+    [ancestor] = [from_dict(Status, s) for s in result["ancestors"]]
+    [descendent] = [from_dict(Status, s) for s in result["descendants"]]
+
+    assert ancestor.id == s1["id"]
+    assert descendent.id == s3["id"]
