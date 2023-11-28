@@ -1,6 +1,5 @@
-from toot.tui.utils import highlight_hashtags
-from toot.utils import html_to_paragraphs
-from toot.wcstring import wc_wrap
+from toot.exceptions import ConsoleError
+from toot.richtext.plaintext import html_to_plaintext
 from typing import List
 
 try:
@@ -9,17 +8,8 @@ try:
 
 except ImportError:
     # Fallback to render in plaintext
-    def html_to_text(html: str, columns=80, highlight_tags=False) -> List:
-        output = []
-        first = True
-        for paragraph in html_to_paragraphs(html):
-            if not first:
-                output.append("")
-            for line in paragraph:
-                for subline in wc_wrap(line, columns):
-                    if highlight_tags:
-                        output.append(highlight_hashtags(subline))
-                    else:
-                        output.append(subline)
-            first = False
-        return output
+    def html_to_text(html: str, columns=80, render_mode: str = "", highlight_tags=False) -> List:
+        if render_mode == "markdown":
+            raise ConsoleError("Can't render as markdown because the pypandoc library is not available.")
+
+        return html_to_plaintext(html, columns, highlight_tags)

@@ -235,7 +235,13 @@ tag_arg = (["tag_name"], {
 json_arg = (["--json"], {
     "action": "store_true",
     "default": False,
-    "help": "print json instead of plaintext",
+    "help": "print json instead of standard text",
+})
+
+plaintext_arg = (["-pt", "--plaintext"], {
+    "action": "store_true",
+    "help": "Render status messages in plaintext, not markdown",
+    "default": False,
 })
 
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
@@ -284,6 +290,7 @@ timeline_and_bookmark_args = [
         "default": False,
         "help": "Only show the first <count> toots, do not prompt to continue.",
     }),
+    plaintext_arg,
 ]
 
 timeline_args = common_timeline_args + timeline_and_bookmark_args
@@ -426,7 +433,8 @@ READ_COMMANDS = [
                 "action": "store_true",
                 "default": False,
                 "help": "Only print mentions",
-            })
+            }),
+            plaintext_arg,
         ],
         require_auth=True,
     ),
@@ -464,6 +472,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "Show thread for toot.",
             }),
+            plaintext_arg,
         ],
         require_auth=True,
     ),
@@ -474,6 +483,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "ID of the status to show.",
             }),
+            plaintext_arg,
         ],
         require_auth=True,
     ),

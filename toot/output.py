@@ -277,7 +277,7 @@ def print_search_results(results):
         print_out("<yellow>Nothing found</yellow>")
 
 
-def print_status(status: Status, width: int = 80):
+def print_status(status: Status, width=80, render_mode=""):
     status_id = status.id
     in_reply_to_id = status.in_reply_to_id
     reblogged_by = status.account if status.reblog else None
@@ -299,7 +299,7 @@ def print_status(status: Status, width: int = 80):
         f"<yellow>{time}</yellow>",
     )
 
-    print_html(status.content, width)
+    print_html(status.content, width, render_mode=render_mode)
 
     if status.media_attachments:
         print_out("\nMedia:")
@@ -320,8 +320,8 @@ def print_status(status: Status, width: int = 80):
     )
 
 
-def print_html(text, width=80):
-    markdown = "\n".join(html_to_text(text, columns=width, highlight_tags=False))
+def print_html(text, width=80, render_mode=""):
+    markdown = "\n".join(html_to_text(text, columns=width, render_mode=render_mode, highlight_tags=False))
     print_out("")
     print_out(markdown)
 
@@ -352,10 +352,10 @@ def print_poll(poll: Poll):
     print_out(poll_footer)
 
 
-def print_timeline(items: List[Status], width=100):
+def print_timeline(items: List[Status], width=100, render_mode=""):
     print_out("─" * width)
     for item in items:
-        print_status(item, width)
+        print_status(item, width, render_mode=render_mode)
         print_out("─" * width)
 
 
@@ -367,7 +367,7 @@ notification_msgs = {
 }
 
 
-def print_notification(notification: Notification, width=100):
+def print_notification(notification: Notification, width=100, render_mode=""):
     account = f"{notification.account.display_name} @{notification.account.acct}"
     msg = notification_msgs.get(notification.type)
     if msg is None:
@@ -376,10 +376,10 @@ def print_notification(notification: Notification, width=100):
     print_out("─" * width)
     print_out(msg.format(account=account))
     if notification.status:
-        print_status(notification.status, width)
+        print_status(notification.status, width, render_mode=render_mode)
 
 
-def print_notifications(notifications: List[Notification], width=100):
+def print_notifications(notifications: List[Notification], render_mode="", width=100):
     for notification in notifications:
-        print_notification(notification)
+        print_notification(notification, render_mode=render_mode)
     print_out("─" * width)

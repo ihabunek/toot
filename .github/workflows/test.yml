@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[test,richtext]"
+          pip install -e ".[test,richtext,markdown]"
       - name: Run tests
         run: |
           pytest
