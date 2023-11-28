@@ -126,10 +126,12 @@ def run(app, user, runner):
 
 
 @pytest.fixture
-def run_json(run):
+def run_json(app, user, runner):
     def _run_json(command, *params):
-        out = run(command, *params)
-        return json.loads(out)
+        ctx = Context(app, user)
+        result = runner.invoke(command, params, obj=ctx)
+        assert result.exit_code == 0
+        return json.loads(result.stdout)
     return _run_json
 
 
