@@ -3,7 +3,7 @@ import sys
 import click
 
 from functools import wraps
-from toot import App, User, config
+from toot import App, User, config, __version__
 from typing import Callable, Concatenate, NamedTuple, Optional, ParamSpec, TypeVar
 
 
@@ -57,6 +57,7 @@ json_option = click.option(
 @click.option("--debug/--no-debug", default=False, help="Log debug info to stderr")
 @click.option("--color/--no-color", default=sys.stdout.isatty(), help="Use ANSI color in output")
 @click.option("--quiet/--no-quiet", default=False, help="Don't print anything to stdout")
+@click.version_option(__version__, message="%(prog)s v%(version)s")
 @click.pass_context
 def cli(ctx, color, debug, quiet, app=None, user=None):
     """Toot is a Mastodon CLI"""
