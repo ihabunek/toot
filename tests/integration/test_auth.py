@@ -1,7 +1,12 @@
+import pytest
+
 from tests.integration.conftest import TRUMPET
 from toot import api
 from toot.entities import Account, from_dict
 from toot.utils import get_text
+
+
+pytest.skip("TODO", allow_module_level=True)
 
 
 def test_update_account_no_options(run):

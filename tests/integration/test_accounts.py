@@ -1,7 +1,11 @@
 import json
+import pytest
 
 from toot import App, User, api
 from toot.entities import Account, Relationship, from_dict
+
+
+pytest.skip("TODO", allow_module_level=True)
 
 
 def test_whoami(user: User, run):

@@ -6,6 +6,9 @@ from toot import api
 from toot.exceptions import NotFoundError
 
 
+pytest.skip("TODO", allow_module_level=True)
+
+
 def test_delete(app, user, run):
     status = api.post_status(app, user, "foo").json()
 

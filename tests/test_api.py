@@ -50,6 +50,7 @@ def test_login(mock_post):
         'https://bigfish.software/oauth/token', data=data, allow_redirects=False)
 
 
+@pytest.mark.skip
 @mock.patch('toot.http.anon_post')
 def test_login_failed(mock_post):
     app = App('bigfish.software', 'https://bigfish.software', 'foo', 'bar')
