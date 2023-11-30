@@ -2,12 +2,23 @@ import os
 import sys
 
 from os.path import join, expanduser
-from collections import namedtuple
+from typing import NamedTuple
 
 __version__ = '0.39.0'
 
-App = namedtuple('App', ['instance', 'base_url', 'client_id', 'client_secret'])
-User = namedtuple('User', ['instance', 'username', 'access_token'])
+
+class App(NamedTuple):
+    instance: str
+    base_url: str
+    client_id: str
+    client_secret: str
+
+
+class User(NamedTuple):
+    instance: str
+    username: str
+    access_token: str
+
 
 DEFAULT_INSTANCE = 'https://mastodon.social'
 
