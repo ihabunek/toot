@@ -24,9 +24,6 @@ from click.testing import CliRunner, Result
 from pathlib import Path
 from toot import api, App, User
 from toot.cli import Context
-from toot.console import run_command
-from toot.exceptions import ApiError, ConsoleError
-from toot.output import print_out
 
 
 def pytest_configure(config):
@@ -36,6 +33,7 @@ def pytest_configure(config):
 
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
+TOOT_TEST_BASE_URL = os.getenv("TOOT_TEST_BASE_URL")
 
 # Toot logo used for testing image upload
 TRUMPET = str(Path(__file__).parent.parent.parent / "trumpet.png")
@@ -74,12 +72,10 @@ def confirm_user(email):
 # DO NOT USE PUBLIC INSTANCES!!!
 @pytest.fixture(scope="session")
 def base_url():
-    base_url = os.getenv("TOOT_TEST_BASE_URL")
-
-    if not base_url:
+    if not TOOT_TEST_BASE_URL:
         pytest.skip("Skipping integration tests, TOOT_TEST_BASE_URL not set")
 
-    return base_url
+    return TOOT_TEST_BASE_URL
 
 
 @pytest.fixture(scope="session")
@@ -119,9 +115,9 @@ def runner():
 
 @pytest.fixture
 def run(app, user, runner):
-    def _run(command, *params, as_user=None) -> Result:
+    def _run(command, *params, as_user=None, input=None) -> Result:
         ctx = Context(app, as_user or user)
-        return runner.invoke(command, params, obj=ctx)
+        return runner.invoke(command, params, obj=ctx, input=input)
     return _run
 
 

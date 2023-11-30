@@ -1,13 +1,23 @@
 import json
 import re
 
+from tests.integration.conftest import TOOT_TEST_BASE_URL
 from toot import api, cli
 from toot.entities import Account, Status, from_dict, from_dict_list
 from uuid import uuid4
 
 
-def test_instance(app, run):
+def test_instance_default(app, run):
     result = run(cli.instance)
+    assert result.exit_code == 0
+
+    assert "Mastodon" in result.stdout
+    assert app.instance in result.stdout
+    assert "running Mastodon" in result.stdout
+
+
+def test_instance_with_url(app, run):
+    result = run(cli.instance, TOOT_TEST_BASE_URL)
     assert result.exit_code == 0
 
     assert "Mastodon" in result.stdout
