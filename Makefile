@@ -15,7 +15,7 @@ test:
 coverage:
 	coverage erase
 	coverage run
-	coverage html
+	coverage html --omit toot/tui/*
 	coverage report
 
 clean :

@@ -4,9 +4,8 @@ import json as pyjson
 from typing import BinaryIO, Optional
 
 from toot import api
-from toot.cli.base import cli, json_option, Context, pass_context
+from toot.cli.base import PRIVACY_CHOICES, cli, json_option, Context, pass_context
 from toot.cli.validators import validate_language
-from toot.console import PRIVACY_CHOICES
 from toot.output import print_acct_list
 
 

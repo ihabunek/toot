@@ -1,8 +1,8 @@
 import click
 
 from toot import api
-from toot.console import VISIBILITY_CHOICES, get_default_visibility
 from toot.cli.base import cli, json_option, Context, pass_context
+from toot.cli.base import VISIBILITY_CHOICES, get_default_visibility
 from toot.output import print_table
 
 

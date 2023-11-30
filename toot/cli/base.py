@@ -1,10 +1,27 @@
-import logging
-import sys
 import click
+import logging
+import os
+import sys
 
+from click.testing import Result
 from functools import wraps
 from toot import App, User, config, __version__
 from typing import Callable, Concatenate, NamedTuple, Optional, ParamSpec, TypeVar
+
+
+PRIVACY_CHOICES = ["public", "unlisted", "private"]
+VISIBILITY_CHOICES = ["public", "unlisted", "private", "direct"]
+
+DURATION_EXAMPLES = """e.g. "1 day", "2 hours 30 minutes", "5 minutes 30
+seconds" or any combination of above. Shorthand: "1d", "2h30m", "5m30s\""""
+
+
+# Type alias for run commands
+Run = Callable[..., Result]
+
+
+def get_default_visibility() -> str:
+    return os.getenv("TOOT_POST_VISIBILITY", "public")
 
 
 # Tweak the Click context

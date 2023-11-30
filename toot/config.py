@@ -3,6 +3,7 @@ import os
 
 from functools import wraps
 from os.path import dirname, join
+from typing import Optional
 
 from toot import User, App, get_config_dir
 from toot.exceptions import ConsoleError
@@ -85,7 +86,7 @@ def get_user_app(user_id):
     return extract_user_app(load_config(), user_id)
 
 
-def load_app(instance):
+def load_app(instance: str) -> Optional[App]:
     config = load_config()
     if instance in config['apps']:
         return App(**config['apps'][instance])

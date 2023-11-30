@@ -140,7 +140,7 @@ def fetch_app_token(app):
     return http.anon_post(f"{app.base_url}/oauth/token", json=json).json()
 
 
-def login(app, username, password):
+def login(app: App, username: str, password: str):
     url = app.base_url + '/oauth/token'
 
     data = {
@@ -152,16 +152,10 @@ def login(app, username, password):
         'scope': SCOPES,
     }
 
-    response = http.anon_post(url, data=data, allow_redirects=False)
-
-    # If auth fails, it redirects to the login page
-    if response.is_redirect:
-        raise AuthenticationError()
-
-    return response.json()
+    return http.anon_post(url, data=data).json()
 
 
-def get_browser_login_url(app):
+def get_browser_login_url(app: App) -> str:
     """Returns the URL for manual log in via browser"""
     return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
         "response_type": "code",
@@ -171,7 +165,7 @@ def get_browser_login_url(app):
     }))
 
 
-def request_access_token(app, authorization_code):
+def request_access_token(app: App, authorization_code: str):
     url = app.base_url + '/oauth/token'
 
     data = {

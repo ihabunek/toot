@@ -8,8 +8,8 @@ from typing import Optional, Tuple
 
 from toot import api
 from toot.cli.base import cli, json_option, pass_context, Context
+from toot.cli.base import DURATION_EXAMPLES, VISIBILITY_CHOICES, get_default_visibility
 from toot.cli.validators import validate_duration, validate_language
-from toot.console import DURATION_EXAMPLES, VISIBILITY_CHOICES, get_default_visibility
 from toot.utils import EOF_KEY, delete_tmp_status_file, editor_input, multiline_input
 from toot.utils.datetime import parse_datetime
 

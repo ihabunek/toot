@@ -1,5 +1,6 @@
 from toot.cli.base import cli, Context  # noqa
 
+from toot.cli.auth import *
 from toot.cli.accounts import *
 from toot.cli.lists import *
 from toot.cli.post import *

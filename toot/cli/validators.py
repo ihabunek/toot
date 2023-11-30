@@ -1,8 +1,11 @@
 import click
 import re
 
+from click import Context
+from typing import Optional
 
-def validate_language(ctx, param, value):
+
+def validate_language(ctx: Context, param: str, value: Optional[str]):
     if value is None:
         return None
 
@@ -13,7 +16,7 @@ def validate_language(ctx, param, value):
     raise click.BadParameter("Language should be a two letter abbreviation.")
 
 
-def validate_duration(ctx, param, value: str) -> int:
+def validate_duration(ctx: Context, param: str, value: Optional[str]) -> Optional[int]:
     if value is None:
         return None
 
@@ -43,3 +46,15 @@ def validate_duration(ctx, param, value: str) -> int:
         raise click.BadParameter("Empty duration")
 
     return duration
+
+
+def validate_instance(ctx: click.Context, param: str, value: Optional[str]):
+    """
+    Instance can be given either as a base URL or the domain name.
+    Return the base URL.
+    """
+    if not value:
+        return None
+
+    value = value.rstrip("/")
+    return value if value.startswith("http") else f"https://{value}"
