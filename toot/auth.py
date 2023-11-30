@@ -50,16 +50,11 @@ def get_instance_domain(base_url):
     # Pleroma and its forks return an actual URI here, rather than a
     # domain name like Mastodon. This is contrary to the spec.¯
     # in that case, parse out the domain and return it.
+    uri = instance["uri"]
+    if uri.startswith("http"):
+        return urlparse(uri).netloc
 
-    parsed_uri = urlparse(instance["uri"])
-
-    if parsed_uri.netloc:
-        # Pleroma, Akkoma, GotoSocial, etc.
-        return parsed_uri.netloc
-    else:
-        # Others including Mastodon servers
-        return parsed_uri.path
-
+    return uri
     # NB: when updating to v2 instance endpoint, this field has been renamed to `domain`
 
 
