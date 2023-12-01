@@ -59,7 +59,7 @@ def timeline(app, user, args, generator=None):
 
         statuses = [from_dict(Status, item) for item in items]
 
-        print_timeline(statuses, render_mode="plaintext" if args.plaintext else "markdown")
+        print_timeline(statuses, render_mode="markdown" if args.markdown else "plaintext")
 
         if args.once or not sys.stdout.isatty():
             break
@@ -72,7 +72,7 @@ def timeline(app, user, args, generator=None):
 def status(app, user, args):
     status = api.single_status(app, user, args.status_id)
     status = from_dict(Status, status)
-    print_status(status, render_mode="plaintext" if args.plaintext else "markdown")
+    print_status(status, render_mode="markdown" if args.markdown else "plaintext")
 
 
 def thread(app, user, args):
@@ -88,7 +88,7 @@ def thread(app, user, args):
         thread.append(item)
 
     statuses = [from_dict(Status, s) for s in thread]
-    print_timeline(statuses, render_mode="plaintext" if args.plaintext else "markdown")
+    print_timeline(statuses, render_mode="markdown" if args.markdown else "plaintext")
 
 
 def post(app, user, args):
@@ -573,7 +573,7 @@ def notifications(app, user, args):
         notifications = reversed(notifications)
 
     notifications = [from_dict(Notification, n) for n in notifications]
-    print_notifications(notifications, render_mode="plaintext" if args.plaintext else "markdown")
+    print_notifications(notifications, render_mode="markdown" if args.markdown else "plaintext")
 
 
 def tui(app, user, args):

@@ -235,12 +235,12 @@ tag_arg = (["tag_name"], {
 json_arg = (["--json"], {
     "action": "store_true",
     "default": False,
-    "help": "print json instead of standard text",
+    "help": "print json instead of plaintext",
 })
 
-plaintext_arg = (["-pt", "--plaintext"], {
+markdown_arg = (["-md", "--markdown"], {
     "action": "store_true",
-    "help": "Render status messages in plaintext, not markdown",
+    "help": "print status messages in markdown instead of plaintext",
     "default": False,
 })
 
@@ -290,7 +290,7 @@ timeline_and_bookmark_args = [
         "default": False,
         "help": "Only show the first <count> toots, do not prompt to continue.",
     }),
-    plaintext_arg,
+    markdown_arg,
 ]
 
 timeline_args = common_timeline_args + timeline_and_bookmark_args
@@ -434,7 +434,7 @@ READ_COMMANDS = [
                 "default": False,
                 "help": "Only print mentions",
             }),
-            plaintext_arg,
+            markdown_arg,
         ],
         require_auth=True,
     ),
@@ -472,7 +472,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "Show thread for toot.",
             }),
-            plaintext_arg,
+            markdown_arg,
         ],
         require_auth=True,
     ),
@@ -483,7 +483,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "ID of the status to show.",
             }),
-            plaintext_arg,
+            markdown_arg,
         ],
         require_auth=True,
     ),

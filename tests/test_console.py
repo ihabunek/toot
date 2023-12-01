@@ -132,7 +132,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'media_attachments': [],
     }])
 
-    console.run_command(app, user, 'timeline', ['--once', '--plaintext'])
+    console.run_command(app, user, 'timeline', ['--once'])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
@@ -175,7 +175,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
         'media_attachments': [],
     }])
 
-    console.run_command(app, user, 'timeline', ['--once', '--plaintext'])
+    console.run_command(app, user, 'timeline', ['--once'])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/timelines/home', {'limit': 10})
 
@@ -237,7 +237,7 @@ def test_thread(mock_get, monkeypatch, capsys):
         }),
     ]
 
-    console.run_command(app, user, 'thread', ['--plaintext', '111111111111111111'])
+    console.run_command(app, user, 'thread', ['111111111111111111'])
 
     calls = [
         mock.call(app, user, '/api/v1/statuses/111111111111111111'),
@@ -553,7 +553,7 @@ def test_notifications(mock_get, capsys):
         },
     }])
 
-    console.run_command(app, user, 'notifications', ['--plaintext'])
+    console.run_command(app, user, 'notifications', [])
 
     mock_get.assert_called_once_with(app, user, '/api/v1/notifications', {'exclude_types[]': [], 'limit': 20})
 
