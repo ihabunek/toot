@@ -6,6 +6,7 @@ from toot.wcstring import wc_wrap, trunc, pad, fit_text
 from toot.tui.utils import ImageCache
 from PIL import Image
 from collections import namedtuple
+from toot.utils import urlencode_url
 
 
 def test_pad():
@@ -309,3 +310,8 @@ def test_cache_miss_doesnt_eject():
     assert len(cache) == 2
     assert "one" in cache.keys()
     assert "two" in cache.keys()
+
+def test_urlencode_url():
+    assert urlencode_url("https://www.example.com") == "https://www.example.com"
+    assert urlencode_url("https://www.example.com/url%20with%20spaces") == "https://www.example.com/url%20with%20spaces"
+

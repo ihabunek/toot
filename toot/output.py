@@ -5,10 +5,10 @@ import textwrap
 
 from functools import lru_cache
 from toot import settings
-from toot.entities import Instance, Notification, Poll, Status
-from toot.utils import get_text, parse_html
+from toot.utils import get_text, html_to_paragraphs
+from toot.entities import Account, Instance, Notification, Poll, Status
 from toot.wcstring import wc_wrap
-from typing import List
+from typing import Iterable, List
 from wcwidth import wcswidth
 
 
@@ -170,31 +170,33 @@ def print_instance(instance: Instance):
         print_out(f"Contact: {contact.display_name} @{contact.acct}")
 
 
-def print_account(account):
-    print_out(f"<green>@{account['acct']}</green> {account['display_name']}")
+def print_account(account: Account):
+    print_out(f"<green>@{account.acct}</green> {account.display_name}")
 
-    if account["note"]:
+    if account.note:
         print_out("")
-        print_html(account["note"])
+        print_html(account.note)
+
+    since = account.created_at.strftime('%Y-%m-%d')
 
     print_out("")
-    print_out(f"ID: <green>{account['id']}</green>")
-    print_out(f"Since: <green>{account['created_at'][:10]}</green>")
+    print_out(f"ID: <green>{account.id}</green>")
+    print_out(f"Since: <green>{since}</green>")
     print_out("")
-    print_out(f"Followers: <yellow>{account['followers_count']}</yellow>")
-    print_out(f"Following: <yellow>{account['following_count']}</yellow>")
-    print_out(f"Statuses: <yellow>{account['statuses_count']}</yellow>")
+    print_out(f"Followers: <yellow>{account.followers_count}</yellow>")
+    print_out(f"Following: <yellow>{account.following_count}</yellow>")
+    print_out(f"Statuses: <yellow>{account.statuses_count}</yellow>")
 
-    if account["fields"]:
-        for field in account["fields"]:
-            name = field["name"].title()
+    if account.fields:
+        for field in account.fields:
+            name = field.name.title()
             print_out(f'\n<yellow>{name}</yellow>:')
-            print_html(field["value"])
-            if field["verified_at"]:
+            print_html(field.value)
+            if field.verified_at:
                 print_out("<green>✓ Verified</green>")
 
     print_out("")
-    print_out(account["url"])
+    print_out(account.url)
 
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
@@ -321,7 +323,7 @@ def print_status(status: Status, width: int = 80):
 
 def print_html(text, width=80):
     first = True
-    for paragraph in parse_html(text):
+    for paragraph in html_to_paragraphs(text):
         if not first:
             print_out("")
         for line in paragraph:
@@ -356,7 +358,7 @@ def print_poll(poll: Poll):
     print_out(poll_footer)
 
 
-def print_timeline(items: List[Status], width=100):
+def print_timeline(items: Iterable[Status], width=100):
     print_out("─" * width)
     for item in items:
         print_status(item, width)

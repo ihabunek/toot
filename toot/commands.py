@@ -1,16 +1,18 @@
-
+from itertools import chain
+import json
 import sys
 import platform
 
 from datetime import datetime, timedelta, timezone
 from time import sleep, time
+
 from toot import api, config, __version__
 from toot.auth import login_interactive, login_browser_interactive, create_app_interactive
-from toot.entities import Instance, Notification, Status, from_dict
+from toot.entities import Account, Instance, Notification, Status, from_dict
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import (print_lists, print_out, print_instance, print_account, print_acct_list,
-                         print_search_results, print_status, print_timeline, print_notifications, print_tag_list,
-                         print_list_accounts, print_user_list)
+                         print_search_results, print_status, print_table, print_timeline, print_notifications,
+                         print_tag_list, print_list_accounts, print_user_list)
 from toot.utils import args_get_instance, delete_tmp_status_file, editor_input, multiline_input, EOF_KEY
 from toot.utils.datetime import parse_datetime
 
@@ -69,25 +71,25 @@ def timeline(app, user, args, generator=None):
 
 
 def status(app, user, args):
-    status = api.single_status(app, user, args.status_id)
-    status = from_dict(Status, status)
-    print_status(status)
+    response = api.fetch_status(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        status = from_dict(Status, response.json())
+        print_status(status)
 
 
 def thread(app, user, args):
-    toot = api.single_status(app, user, args.status_id)
-    context = api.context(app, user, args.status_id)
-    thread = []
-    for item in context['ancestors']:
-        thread.append(item)
+    context_response = api.context(app, user, args.status_id)
 
-    thread.append(toot)
+    if args.json:
+        print(context_response.text)
+    else:
+        toot = api.fetch_status(app, user, args.status_id).json()
+        context = context_response.json()
 
-    for item in context['descendants']:
-        thread.append(item)
-
-    statuses = [from_dict(Status, s) for s in thread]
-    print_timeline(statuses)
+        statuses = chain(context["ancestors"], [toot], context["descendants"])
+        print_timeline(from_dict(Status, s) for s in statuses)
 
 
 def post(app, user, args):
@@ -120,12 +122,16 @@ def post(app, user, args):
         poll_hide_totals=args.poll_hide_totals,
     )
 
-    if "scheduled_at" in response:
-        scheduled_at = parse_datetime(response["scheduled_at"])
-        scheduled_at = datetime.strftime(scheduled_at, "%Y-%m-%d %H:%M:%S%z")
-        print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
+    if args.json:
+        print(response.text)
     else:
-        print_out(f"Toot posted: <green>{response['url']}")
+        status = response.json()
+        if "scheduled_at" in status:
+            scheduled_at = parse_datetime(status["scheduled_at"])
+            scheduled_at = datetime.strftime(scheduled_at, "%Y-%m-%d %H:%M:%S%z")
+            print_out(f"Toot scheduled for: <green>{scheduled_at}</green>")
+        else:
+            print_out(f"Toot posted: <green>{status['url']}")
 
     delete_tmp_status_file()
 
@@ -207,48 +213,75 @@ def _wait_until_processed(app, user, media, start_time, timeout):
 
 
 def delete(app, user, args):
-    api.delete_status(app, user, args.status_id)
-    print_out("<green>✓ Status deleted</green>")
+    response = api.delete_status(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status deleted</green>")
 
 
 def favourite(app, user, args):
-    api.favourite(app, user, args.status_id)
-    print_out("<green>✓ Status favourited</green>")
+    response = api.favourite(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status favourited</green>")
 
 
 def unfavourite(app, user, args):
-    api.unfavourite(app, user, args.status_id)
-    print_out("<green>✓ Status unfavourited</green>")
+    response = api.unfavourite(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unfavourited</green>")
 
 
 def reblog(app, user, args):
-    api.reblog(app, user, args.status_id, visibility=args.visibility)
-    print_out("<green>✓ Status reblogged</green>")
+    response = api.reblog(app, user, args.status_id, visibility=args.visibility)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status reblogged</green>")
 
 
 def unreblog(app, user, args):
-    api.unreblog(app, user, args.status_id)
-    print_out("<green>✓ Status unreblogged</green>")
+    response = api.unreblog(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unreblogged</green>")
 
 
 def pin(app, user, args):
-    api.pin(app, user, args.status_id)
-    print_out("<green>✓ Status pinned</green>")
+    response = api.pin(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status pinned</green>")
 
 
 def unpin(app, user, args):
-    api.unpin(app, user, args.status_id)
-    print_out("<green>✓ Status unpinned</green>")
+    response = api.unpin(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unpinned</green>")
 
 
 def bookmark(app, user, args):
-    api.bookmark(app, user, args.status_id)
-    print_out("<green>✓ Status bookmarked</green>")
+    response = api.bookmark(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status bookmarked</green>")
 
 
 def unbookmark(app, user, args):
-    api.unbookmark(app, user, args.status_id)
-    print_out("<green>✓ Status unbookmarked</green>")
+    response = api.unbookmark(app, user, args.status_id)
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Status unbookmarked</green>")
 
 
 def bookmarks(app, user, args):
@@ -256,8 +289,14 @@ def bookmarks(app, user, args):
 
 
 def reblogged_by(app, user, args):
-    for account in api.reblogged_by(app, user, args.status_id):
-        print_out("{}\n @{}".format(account['display_name'], account['acct']))
+    response = api.reblogged_by(app, user, args.status_id)
+
+    if args.json:
+        print(response.text)
+    else:
+        headers = ["Account", "Display name"]
+        rows = [[a["acct"], a["display_name"]] for a in response.json()]
+        print_table(headers, rows)
 
 
 def auth(app, user, args):
@@ -301,7 +340,7 @@ def update_account(app, user, args):
     if all(option is None for option in options):
         raise ConsoleError("Please specify at least one option to update the account")
 
-    api.update_account(
+    response = api.update_account(
         app,
         user,
         avatar=args.avatar,
@@ -316,7 +355,10 @@ def update_account(app, user, args):
         sensitive=args.sensitive,
     )
 
-    print_out("<green>✓ Account updated</green>")
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ Account updated</green>")
 
 
 def login_cli(app, user, args):
@@ -367,7 +409,10 @@ def upload(app, user, args):
 
 def search(app, user, args):
     response = api.search(app, user, args.query, args.resolve)
-    print_search_results(response)
+    if args.json:
+        print(response.text)
+    else:
+        print_search_results(response.json())
 
 
 def _do_upload(app, user, file, description, thumbnail):
@@ -377,26 +422,40 @@ def _do_upload(app, user, file, description, thumbnail):
 
 def follow(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.follow(app, user, account['id'])
-    print_out("<green>✓ You are now following {}</green>".format(args.account))
+    response = api.follow(app, user, account["id"])
+    if args.json:
+        print(response.text)
+    else:
+        print_out(f"<green>✓ You are now following {args.account}</green>")
 
 
 def unfollow(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.unfollow(app, user, account['id'])
-    print_out("<green>✓ You are no longer following {}</green>".format(args.account))
+    response = api.unfollow(app, user, account["id"])
+    if args.json:
+        print(response.text)
+    else:
+        print_out(f"<green>✓ You are no longer following {args.account}</green>")
 
 
 def following(app, user, args):
-    account = api.find_account(app, user, args.account)
-    response = api.following(app, user, account['id'])
-    print_acct_list(response)
+    account = args.account or user.username
+    account = api.find_account(app, user, account)
+    accounts = api.following(app, user, account["id"])
+    if args.json:
+        print(json.dumps(accounts))
+    else:
+        print_acct_list(accounts)
 
 
 def followers(app, user, args):
-    account = api.find_account(app, user, args.account)
-    response = api.followers(app, user, account['id'])
-    print_acct_list(response)
+    account = args.account or user.username
+    account = api.find_account(app, user, account)
+    accounts = api.followers(app, user, account["id"])
+    if args.json:
+        print(json.dumps(accounts))
+    else:
+        print_acct_list(accounts)
 
 
 def tags_follow(app, user, args):
@@ -483,36 +542,81 @@ def _get_list_id(app, user, args):
 
 def mute(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.mute(app, user, account['id'])
-    print_out("<green>✓ You have muted {}</green>".format(args.account))
+    response = api.mute(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ You have muted {}</green>".format(args.account))
 
 
 def unmute(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.unmute(app, user, account['id'])
-    print_out("<green>✓ {} is no longer muted</green>".format(args.account))
+    response = api.unmute(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ {} is no longer muted</green>".format(args.account))
+
+
+def muted(app, user, args):
+    response = api.muted(app, user)
+    if args.json:
+        print(json.dumps(response))
+    else:
+        if len(response) > 0:
+            print("Muted accounts:")
+            print_acct_list(response)
+        else:
+            print("No accounts muted")
 
 
 def block(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.block(app, user, account['id'])
-    print_out("<green>✓ You are now blocking {}</green>".format(args.account))
+    response = api.block(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ You are now blocking {}</green>".format(args.account))
 
 
 def unblock(app, user, args):
     account = api.find_account(app, user, args.account)
-    api.unblock(app, user, account['id'])
-    print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
+    response = api.unblock(app, user, account['id'])
+    if args.json:
+        print(response.text)
+    else:
+        print_out("<green>✓ {} is no longer blocked</green>".format(args.account))
+
+
+def blocked(app, user, args):
+    response = api.blocked(app, user)
+    if args.json:
+        print(json.dumps(response))
+    else:
+        if len(response) > 0:
+            print("Blocked accounts:")
+            print_acct_list(response)
+        else:
+            print("No accounts blocked")
 
 
 def whoami(app, user, args):
-    account = api.verify_credentials(app, user)
-    print_account(account)
+    response = api.verify_credentials(app, user)
+    if args.json:
+        print(response.text)
+    else:
+        account = from_dict(Account, response.json())
+        print_account(account)
 
 
 def whois(app, user, args):
     account = api.find_account(app, user, args.account)
-    print_account(account)
+    # Here it's not possible to avoid parsing json since it's needed to find the account.
+    if args.json:
+        print(json.dumps(account))
+    else:
+        account = from_dict(Account, account)
+        print_account(account)
 
 
 def instance(app, user, args):
@@ -523,14 +627,18 @@ def instance(app, user, args):
         raise ConsoleError("Please specify an instance.")
 
     try:
-        instance = api.get_instance(base_url)
-        instance = from_dict(Instance, instance)
-        print_instance(instance)
+        response = api.get_instance(base_url)
     except ApiError:
         raise ConsoleError(
             f"Instance not found at {base_url}.\n"
             "The given domain probably does not host a Mastodon instance."
         )
+
+    if args.json:
+        print(response.text)
+    else:
+        instance = from_dict(Instance, response.json())
+        print_instance(instance)
 
 
 def notifications(app, user, args):

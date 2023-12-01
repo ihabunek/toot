@@ -5,9 +5,12 @@ import urwid
 import webbrowser
 
 from toot import __version__
+from toot import api
+
 from toot.utils import format_content
-from .utils import highlight_hashtags, highlight_keys, add_corners
-from .widgets import Button, EditBox, SelectableText, EmojiText
+from toot.tui.utils import highlight_hashtags, highlight_keys, add_corners
+from toot.tui.widgets import Button, EditBox, SelectableText, EmojiText
+from toot.tui.richtext import html_to_widgets
 from toot import api
 from PIL import Image
 from term_image.image import AutoImage
@@ -323,9 +326,14 @@ class Account(urwid.ListBox):
 
         if account["note"]:
             yield urwid.Divider()
-            for line in format_content(account["note"]):
-                yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
-            yield urwid.Divider()
+            widgetlist = html_to_widgets(account["note"])
+            for line in widgetlist:
+                yield (line)
+
+        yield urwid.Divider()
+        yield urwid.Text(["ID: ", ("highlight", f"{account['id']}")])
+        yield urwid.Text(["Since: ", ("highlight", f"{account['created_at'][:10]}")])
+        yield urwid.Divider()
 
         if account["bot"]:
             yield urwid.Text([("highlight", "Bot \N{robot face}")])
@@ -352,8 +360,11 @@ class Account(urwid.ListBox):
                 name = field["name"].title()
                 yield urwid.Divider()
                 yield urwid.Text([("bold", f"{name.rstrip(':')}"), ":"])
-                for line in format_content(field["value"]):
-                    yield urwid.Text(highlight_hashtags(line, followed_tags=set()))
+
+                widgetlist = html_to_widgets(field["value"])
+                for line in widgetlist:
+                    yield (line)
+
                 if field["verified_at"]:
                     yield urwid.Text(("success", "✓ Verified"))
 
@@ -365,17 +376,17 @@ def take_action(button: Button, self: Account):
     action = button.get_label()
 
     if action == "Confirm Follow":
-        self.relationship = api.follow(self.app, self.user, self.account["id"])
+        self.relationship = api.follow(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Unfollow":
-        self.relationship = api.unfollow(self.app, self.user, self.account["id"])
+        self.relationship = api.unfollow(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Mute":
-        self.relationship = api.mute(self.app, self.user, self.account["id"])
+        self.relationship = api.mute(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Unmute":
-        self.relationship = api.unmute(self.app, self.user, self.account["id"])
+        self.relationship = api.unmute(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Block":
-        self.relationship = api.block(self.app, self.user, self.account["id"])
+        self.relationship = api.block(self.app, self.user, self.account["id"]).json()
     elif action == "Confirm Unblock":
-        self.relationship = api.unblock(self.app, self.user, self.account["id"])
+        self.relationship = api.unblock(self.app, self.user, self.account["id"]).json()
 
     self.last_action = None
     self.setup_listbox()

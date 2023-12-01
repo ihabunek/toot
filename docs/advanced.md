@@ -21,10 +21,10 @@ through the specified server.
 
 For example:
 
-.. code-block:: sh
-
-    export HTTPS_PROXY="http://1.2.3.4:5678"
-    toot login --instance mastodon.social
+```sh
+export HTTPS_PROXY="http://1.2.3.4:5678"
+toot login --instance mastodon.social
+```
 
 **NB:** This feature is provided by
 [requests](http://docs.python-requests.org/en/master/user/advanced/#proxies>)

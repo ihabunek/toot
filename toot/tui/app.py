@@ -1,16 +1,17 @@
 import logging
+import subprocess
 import urwid
 import requests
 import warnings
 
 from concurrent.futures import ThreadPoolExecutor
 
-from toot import api, config, __version__
+from toot import api, config, __version__, settings
 from toot.console import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer
-from .constants import PALETTE, MONO_PALETTE
+from .constants import PALETTE
 from .entities import Status
 from .images import TuiScreen
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
@@ -18,7 +19,6 @@ from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
 from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard, ImageCache
-
 from PIL import Image
 
 
@@ -84,19 +84,20 @@ class TUI(urwid.Frame):
     loop: urwid.MainLoop
     screen: urwid.BaseScreen
 
-    @classmethod
-    def create(cls, app, user, args):
+    @staticmethod
+    def create(app, user, args):
         """Factory method, sets up TUI and an event loop."""
-        screen = TuiScreen()
-        tui = cls(app, user, screen, args)
+        screen = TUI.create_screen(args)
+        tui = TUI(app, user, screen, args)
 
-        if args.no_color:
-            screen.set_terminal_properties(1)
-            screen.reset_default_terminal_palette()
+        palette = PALETTE.copy()
+        overrides = settings.get_setting("tui.palette", dict, {})
+        for name, styles in overrides.items():
+            palette.append(tuple([name] + styles))
 
         loop = urwid.MainLoop(
             tui,
-            palette=MONO_PALETTE if args.no_color else PALETTE,
+            palette=palette,
             event_loop=urwid.AsyncioEventLoop(),
             unhandled_input=tui.unhandled_input,
             screen=screen,
@@ -104,6 +105,18 @@ class TUI(urwid.Frame):
         tui.loop = loop
 
         return tui
+
+    @staticmethod
+    def create_screen(args):
+        screen = urwid.raw_display.Screen()
+
+        # Determine how many colors to use
+        default_colors = 1 if args.no_color else 16
+        colors = settings.get_setting("tui.colors", int, default_colors)
+        logger.debug(f"Setting colors to {colors}")
+        screen.set_terminal_properties(colors)
+
+        return screen
 
     def __init__(self, app, user, screen, args):
         self.app = app
@@ -130,6 +143,8 @@ class TUI(urwid.Frame):
         self.exception = None
         self.can_translate = False
         self.account = None
+        self.followed_accounts = []
+        self.media_viewer = settings.get_setting("tui.media_viewer", str)
 
         if self.args.cache_size:
             self.cache_max = 1024 * 1024 * self.args.cache_size
@@ -140,10 +155,9 @@ class TUI(urwid.Frame):
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
-        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
-        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_tags())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
         self.loop.run()
         self.executor.shutdown(wait=False)
 
@@ -247,7 +261,7 @@ class TUI(urwid.Frame):
 
         # This is pretty fast, so it's probably ok to block while context is
         # loaded, can be made async later if needed
-        context = api.context(self.app, self.user, status.original.id)
+        context = api.context(self.app, self.user, status.original.id).json()
         ancestors = [self.make_status(s) for s in context["ancestors"]]
         descendants = [self.make_status(s) for s in context["descendants"]]
         statuses = ancestors + [status] + descendants
@@ -302,7 +316,7 @@ class TUI(urwid.Frame):
         See: https://github.com/mastodon/mastodon/issues/19328
         """
         def _load_instance():
-            return api.get_instance(self.app.base_url)
+            return api.get_instance(self.app.base_url).json()
 
         def _done(instance):
             self.max_toot_chars = get_max_toot_chars(instance, DEFAULT_MAX_TOOT_CHARS)
@@ -336,22 +350,6 @@ class TUI(urwid.Frame):
             self.followed_accounts = {a["acct"] for a in accounts}
 
         self.run_in_thread(_load_accounts, done_callback=_done_accounts)
-
-    def async_load_followed_tags(self):
-        def _load_tag_list():
-            try:
-                return api.followed_tags(self.app, self.user)
-            except ApiError:
-                # not supported by all Mastodon servers so fail silently if necessary
-                return []
-
-        def _done_tag_list(tags):
-            if len(tags) > 0:
-                self.followed_tags = [t["name"] for t in tags]
-            else:
-                self.followed_tags = []
-
-        self.run_in_thread(_load_tag_list, done_callback=_done_tag_list)
 
     def refresh_footer(self, timeline):
         """Show status details in footer."""
@@ -512,8 +510,13 @@ class TUI(urwid.Frame):
 
     def show_media(self, status):
         urls = [m["url"] for m in status.original.data["media_attachments"]]
-        if urls:
-            show_media(urls)
+        if not urls:
+            return
+
+        if self.media_viewer:
+            subprocess.run([self.media_viewer] + urls)
+        else:
+            self.footer.set_error_message("Media viewer not configured")
 
     def show_context_menu(self, status):
         # TODO: show context menu
@@ -536,10 +539,15 @@ class TUI(urwid.Frame):
         ))
 
     def post_status(self, content, warning, visibility, in_reply_to_id):
-        data = api.post_status(self.app, self.user, content,
+        data = api.post_status(
+            self.app,
+            self.user,
+            content,
             spoiler_text=warning,
             visibility=visibility,
-            in_reply_to_id=in_reply_to_id)
+            in_reply_to_id=in_reply_to_id
+        ).json()
+
         status = self.make_status(data)
 
         # TODO: fetch new items from the timeline?

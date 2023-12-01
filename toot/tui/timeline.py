@@ -7,16 +7,17 @@ import webbrowser
 from typing import List, Optional
 
 from toot.tui import app
-from toot.tui.utils import can_render_pixels, add_corners
+
 from toot.utils import format_content
+from toot.tui.utils import can_render_pixels, add_corners
+from toot.tui.richtext import html_to_widgets, url_to_widget
 from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
 
-from .entities import Status
-from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, highlight_keys
-from .widgets import SelectableText, SelectableColumns, EmojiText
-
+from toot.entities import Status
+from toot.tui.scroll import Scrollable, ScrollBar
+from toot.tui.utils import highlight_keys
+from toot.tui.widgets import SelectableText, SelectableColumns, EmojiText
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage
 
@@ -88,7 +89,7 @@ class Timeline(urwid.Columns):
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
-        item = StatusListItem(status)
+        item = StatusListItem(status, self.tui.args.relative_datetimes)
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
@@ -104,6 +105,7 @@ class Timeline(urwid.Columns):
             return None
 
         poll = status.original.data.get("poll")
+        show_media = status.original.data["media_attachments"] and self.tui.media_viewer
 
         options = [
             "[A]ccount" if not status.is_mine else "",
@@ -114,6 +116,8 @@ class Timeline(urwid.Columns):
             "[V]iew",
             "[T]hread" if not self.is_thread else "",
             "L[i]nks",
+            "[M]edia" if show_media else "",
+            self.tui.media_viewer,
             "[R]eply",
             "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
@@ -347,6 +351,7 @@ class StatusDetails(urwid.Pile):
         self.timeline = timeline
         if self.status:
             self.status.placeholders = []
+        self.followed_accounts = timeline.tui.followed_accounts
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
@@ -442,6 +447,11 @@ class StatusDetails(urwid.Pile):
 
         yield self.author_header(reblogged_by)
 
+        if status.author.display_name:
+            yield ("pack", urwid.Text(("bold", status.author.display_name)))
+
+        account_color = "highlight" if status.author.account in self.followed_accounts else "account"
+        yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
@@ -453,8 +463,10 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
             content = status.original.translation if status.original.show_translation else status.data["content"]
-            for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.timeline.tui.followed_tags)))
+            widgetlist = html_to_widgets(content)
+
+            for line in widgetlist:
+                yield (line)
 
             media = status.data["media_attachments"]
             if media:
@@ -481,7 +493,7 @@ class StatusDetails(urwid.Pile):
                                 aspect = None
                             yield self.image_widget(m["preview_url"], aspect=aspect)
                             yield urwid.Divider()
-                        yield ("pack", urwid.Text(("link", m["url"])))
+                        yield ("pack", url_to_widget(m["url"]))
 
             poll = status.original.data.get("poll")
             if poll:
@@ -541,8 +553,7 @@ class StatusDetails(urwid.Pile):
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
-
-        yield urwid.Text(("link", card["url"]))
+        yield url_to_widget(card["url"])
 
         if card["image"]:
             if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
@@ -579,14 +590,14 @@ class StatusDetails(urwid.Pile):
 
 
 class StatusListItem(SelectableColumns):
-    def __init__(self, status):
+    def __init__(self, status, relative_datetimes):
         edited_at = status.data.get("edited_at")
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
         created_at = (
             time_ago(status.created_at).ljust(3, " ")
-            if "--relative-datetimes" in sys.argv
+            if relative_datetimes
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 

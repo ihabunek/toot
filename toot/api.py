@@ -1,8 +1,9 @@
 import mimetypes
-from os import path
 import re
 import uuid
 
+from os import path
+from requests import Response
 from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
@@ -30,21 +31,21 @@ def find_account(app, user, account_name):
             normalized_name = username
 
     response = search(app, user, account_name, type="accounts", resolve=True)
-    for account in response["accounts"]:
+    for account in response.json()["accounts"]:
         if account["acct"].lower() == normalized_name:
             return account
 
     raise ConsoleError("Account not found")
 
 
-def _account_action(app, user, account, action):
+def _account_action(app, user, account, action) -> Response:
     url = f"/api/v1/accounts/{account}/{action}"
-    return http.post(app, user, url).json()
+    return http.post(app, user, url)
 
 
-def _status_action(app, user, status_id, action, data=None):
+def _status_action(app, user, status_id, action, data=None) -> Response:
     url = f"/api/v1/statuses/{status_id}/{action}"
-    return http.post(app, user, url, data=data).json()
+    return http.post(app, user, url, data=data)
 
 
 def _tag_action(app, user, tag_name, action):
@@ -200,7 +201,7 @@ def post_status(
     poll_expires_in=None,
     poll_multiple=None,
     poll_hide_totals=None,
-):
+) -> Response:
     """
     Publish a new status.
     https://docs.joinmastodon.org/methods/statuses/#create
@@ -232,7 +233,7 @@ def post_status(
             "hide_totals": poll_hide_totals,
         }
 
-    return http.post(app, user, '/api/v1/statuses', json=data, headers=headers).json()
+    return http.post(app, user, '/api/v1/statuses', json=data, headers=headers)
 
 
 def fetch_status(app, user, id):
@@ -240,7 +241,7 @@ def fetch_status(app, user, id):
     Fetch a single status
     https://docs.joinmastodon.org/methods/statuses/#get
     """
-    return http.get(app, user, f"/api/v1/statuses/{id}").json()
+    return http.get(app, user, f"/api/v1/statuses/{id}")
 
 
 def scheduled_statuses(app, user):
@@ -295,14 +296,14 @@ def translate(app, user, status_id):
     return _status_action(app, user, status_id, 'translate')
 
 
-def context(app, user, status_id):
+def context(app, user, status_id) -> Response:
     url = f"/api/v1/statuses/{status_id}/context"
-    return http.get(app, user, url).json()
+    return http.get(app, user, url)
 
 
-def reblogged_by(app, user, status_id):
+def reblogged_by(app, user, status_id) -> Response:
     url = f"/api/v1/statuses/{status_id}/reblogged_by"
-    return http.get(app, user, url).json()
+    return http.get(app, user, url)
 
 
 def _get_next_path(headers):
@@ -451,11 +452,13 @@ def search(app, user, query, resolve=False, type=None):
     Perform a search.
     https://docs.joinmastodon.org/methods/search/#v2
     """
-    return http.get(app, user, "/api/v2/search", {
+    params = drop_empty_values({
         "q": query,
-        "resolve": resolve,
+        "resolve": str_bool(resolve),
         "type": type
-    }).json()
+    })
+
+    return http.get(app, user, "/api/v2/search", params)
 
 
 def follow(app, user, account):
@@ -521,6 +524,10 @@ def unmute(app, user, account):
     return _account_action(app, user, account, 'unmute')
 
 
+def muted(app, user):
+    return _get_response_list(app, user, "/api/v1/mutes")
+
+
 def block(app, user, account):
     return _account_action(app, user, account, 'block')
 
@@ -529,13 +536,12 @@ def unblock(app, user, account):
     return _account_action(app, user, account, 'unblock')
 
 
-def verify_credentials(app, user):
-    return http.get(app, user, '/api/v1/accounts/verify_credentials').json()
+def blocked(app, user):
+    return _get_response_list(app, user, "/api/v1/blocks")
 
 
-def single_status(app, user, status_id):
-    url = f"/api/v1/statuses/{status_id}"
-    return http.get(app, user, url).json()
+def verify_credentials(app, user) -> Response:
+    return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
 def get_notifications(app, user, exclude_types=[], limit=20):
@@ -547,9 +553,9 @@ def clear_notifications(app, user):
     http.post(app, user, '/api/v1/notifications/clear')
 
 
-def get_instance(base_url):
+def get_instance(base_url: str) -> Response:
     url = f"{base_url}/api/v1/instance"
-    return http.anon_get(url).json()
+    return http.anon_get(url)
 
 
 def get_lists(app, user):

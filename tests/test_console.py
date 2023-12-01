@@ -122,6 +122,7 @@ def test_timeline(mock_get, monkeypatch, capsys):
         'id': '111111111111111111',
         'account': {
             'display_name': 'Frank Zappa 🎸',
+            'last_status_at': '2017-04-12T15:53:18.174Z',
             'acct': 'fz'
         },
         'created_at': '2017-04-12T15:53:18.174Z',
@@ -164,6 +165,7 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
             'created_at': '2017-04-12T15:53:18.174Z',
             'account': {
                 'display_name': 'Johnny Cash',
+                'last_status_at': '2011-04-12',
                 'acct': 'jc'
             },
             'content': "<p>The computer can&apos;t tell you the emotional story. It can give you the exact mathematical design, but what's missing is the eyebrows.</p>",
@@ -194,101 +196,6 @@ def test_timeline_with_re(mock_get, monkeypatch, capsys):
     assert err == ""
 
 
-@mock.patch('toot.http.get')
-def test_thread(mock_get, monkeypatch, capsys):
-    mock_get.side_effect = [
-        MockResponse({
-            'id': '111111111111111111',
-            'account': {
-                'display_name': 'Frank Zappa',
-                'acct': 'fz'
-            },
-            'created_at': '2017-04-12T15:53:18.174Z',
-            'content': "my response in the middle",
-            'reblog': None,
-            'in_reply_to_id': '111111111111111110',
-            'media_attachments': [],
-        }),
-        MockResponse({
-            'ancestors': [{
-                'id': '111111111111111110',
-                'account': {
-                    'display_name': 'Frank Zappa',
-                    'acct': 'fz'
-                },
-                'created_at': '2017-04-12T15:53:18.174Z',
-                'content': "original content",
-                'media_attachments': [],
-                'reblog': None,
-                'in_reply_to_id': None}],
-            'descendants': [{
-                'id': '111111111111111112',
-                'account': {
-                    'display_name': 'Frank Zappa',
-                    'acct': 'fz'
-                },
-                'created_at': '2017-04-12T15:53:18.174Z',
-                'content': "response message",
-                'media_attachments': [],
-                'reblog': None,
-                'in_reply_to_id': '111111111111111111'}],
-        }),
-    ]
-
-    console.run_command(app, user, 'thread', ['111111111111111111'])
-
-    calls = [
-        mock.call(app, user, '/api/v1/statuses/111111111111111111'),
-        mock.call(app, user, '/api/v1/statuses/111111111111111111/context'),
-    ]
-    mock_get.assert_has_calls(calls, any_order=False)
-
-    out, err = capsys.readouterr()
-
-    assert not err
-
-    # Display order
-    assert out.index('original content') < out.index('my response in the middle')
-    assert out.index('my response in the middle') < out.index('response message')
-
-    assert "original content" in out
-    assert "my response in the middle" in out
-    assert "response message" in out
-    assert "Frank Zappa" in out
-    assert "@fz" in out
-    assert "111111111111111111" in out
-    assert "In reply to" in out
-
-@mock.patch('toot.http.get')
-def test_reblogged_by(mock_get, monkeypatch, capsys):
-    mock_get.return_value = MockResponse([{
-        'display_name': 'Terry Bozzio',
-        'acct': 'bozzio@drummers.social',
-    }, {
-        'display_name': 'Dweezil',
-        'acct': 'dweezil@zappafamily.social',
-    }])
-
-    console.run_command(app, user, 'reblogged_by', ['111111111111111111'])
-
-    calls = [
-        mock.call(app, user, '/api/v1/statuses/111111111111111111/reblogged_by'),
-    ]
-    mock_get.assert_has_calls(calls, any_order=False)
-
-    out, err = capsys.readouterr()
-
-    # Display order
-    expected = "\n".join([
-        "Terry Bozzio",
-        " @bozzio@drummers.social",
-        "Dweezil",
-        " @dweezil@zappafamily.social",
-        "",
-    ])
-    assert out == expected
-
-
 @mock.patch('toot.http.post')
 def test_upload(mock_post, capsys):
     mock_post.return_value = MockResponse({
@@ -309,136 +216,6 @@ def test_upload(mock_post, capsys):
     out, err = capsys.readouterr()
     assert "Uploading media" in out
     assert __file__ in out
-
-
-@mock.patch('toot.http.get')
-def test_search(mock_get, capsys):
-    mock_get.return_value = MockResponse({
-        'hashtags': [
-            {
-                'history': [],
-                'name': 'foo',
-                'url': 'https://mastodon.social/tags/foo'
-            },
-            {
-                'history': [],
-                'name': 'bar',
-                'url': 'https://mastodon.social/tags/bar'
-            },
-            {
-                'history': [],
-                'name': 'baz',
-                'url': 'https://mastodon.social/tags/baz'
-            },
-        ],
-        'accounts': [{
-            'acct': 'thequeen',
-            'display_name': 'Freddy Mercury'
-        }, {
-            'acct': 'thequeen@other.instance',
-            'display_name': 'Mercury Freddy'
-        }],
-        'statuses': [],
-    })
-
-    console.run_command(app, user, 'search', ['freddy'])
-
-    mock_get.assert_called_once_with(app, user, '/api/v2/search', {
-        'q': 'freddy',
-        'type': None,
-        'resolve': False,
-    })
-
-    out, err = capsys.readouterr()
-    out = uncolorize(out)
-    assert "Hashtags:\n#foo, #bar, #baz" in out
-    assert "Accounts:" in out
-    assert "@thequeen Freddy Mercury" in out
-    assert "@thequeen@other.instance Mercury Freddy" in out
-
-
-@mock.patch('toot.http.post')
-@mock.patch('toot.http.get')
-def test_follow(mock_get, mock_post, capsys):
-    mock_get.return_value = MockResponse({
-        "accounts": [
-            {"id": 123, "acct": "blixa@other.acc"},
-            {"id": 321, "acct": "blixa"},
-        ]
-    })
-    mock_post.return_value = MockResponse()
-
-    console.run_command(app, user, 'follow', ['blixa'])
-
-    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
-    mock_post.assert_called_once_with(app, user, '/api/v1/accounts/321/follow')
-
-    out, err = capsys.readouterr()
-    assert "You are now following blixa" in out
-
-
-@mock.patch('toot.http.post')
-@mock.patch('toot.http.get')
-def test_follow_case_insensitive(mock_get, mock_post, capsys):
-    mock_get.return_value = MockResponse({
-        "accounts": [
-            {"id": 123, "acct": "blixa@other.acc"},
-            {"id": 321, "acct": "blixa"},
-        ]
-    })
-    mock_post.return_value = MockResponse()
-
-    console.run_command(app, user, 'follow', ['bLiXa@oThEr.aCc'])
-
-    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'bLiXa@oThEr.aCc', 'type': 'accounts', 'resolve': True})
-    mock_post.assert_called_once_with(app, user, '/api/v1/accounts/123/follow')
-
-    out, err = capsys.readouterr()
-    assert "You are now following bLiXa@oThEr.aCc" in out
-
-
-@mock.patch('toot.http.get')
-def test_follow_not_found(mock_get, capsys):
-    mock_get.return_value = MockResponse({"accounts": []})
-
-    with pytest.raises(ConsoleError) as ex:
-        console.run_command(app, user, 'follow', ['blixa'])
-
-    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
-    assert "Account not found" == str(ex.value)
-
-
-@mock.patch('toot.http.post')
-@mock.patch('toot.http.get')
-def test_unfollow(mock_get, mock_post, capsys):
-    mock_get.return_value = MockResponse({
-        "accounts": [
-            {'id': 123, 'acct': 'blixa@other.acc'},
-            {'id': 321, 'acct': 'blixa'},
-        ]
-    })
-
-    mock_post.return_value = MockResponse()
-
-    console.run_command(app, user, 'unfollow', ['blixa'])
-
-    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
-    mock_post.assert_called_once_with(app, user, '/api/v1/accounts/321/unfollow')
-
-    out, err = capsys.readouterr()
-    assert "You are no longer following blixa" in out
-
-
-@mock.patch('toot.http.get')
-def test_unfollow_not_found(mock_get, capsys):
-    mock_get.return_value = MockResponse({"accounts": []})
-
-    with pytest.raises(ConsoleError) as ex:
-        console.run_command(app, user, 'unfollow', ['blixa'])
-
-    mock_get.assert_called_once_with(app, user, '/api/v2/search', {'q': 'blixa', 'type': 'accounts', 'resolve': True})
-
-    assert "Account not found" == str(ex.value)
 
 
 @mock.patch('toot.http.get')

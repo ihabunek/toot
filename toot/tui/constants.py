@@ -1,8 +1,19 @@
-# name, fg, bg, mono, fg_h, bg_h
+# Color definitions are tuples of:
+#   - name
+#   - foreground (normal mode)
+#   - background (normal mode)
+#   - foreground (monochrome mode)
+#   - foreground (high color mode)
+#   - background (high color mode)
+#
+# See:
+# http://urwid.org/tutorial/index.html#display-attributes
+# http://urwid.org/manual/displayattributes.html#using-display-attributes
+
 PALETTE = [
     # Components
     ('button', 'white', 'black'),
-    ('button_focused', 'light gray', 'dark magenta'),
+    ('button_focused', 'light gray', 'dark magenta', 'bold,underline'),
     ('card_author', 'yellow', ''),
     ('card_title', 'dark green', ''),
     ('columns_divider', 'white', 'dark blue'),
@@ -14,7 +25,7 @@ PALETTE = [
     ('footer_status', 'white', 'dark blue'),
     ('footer_status_bold', 'white, bold', 'dark blue'),
     ('header', 'white', 'dark blue'),
-    ('header_bold', 'white,bold', 'dark blue'),
+    ('header_bold', 'white,bold', 'dark blue', 'bold'),
     ('intro_bigtext', 'yellow', ''),
     ('intro_smalltext', 'light blue', ''),
     ('poll_bar', 'white', 'dark blue'),
@@ -22,16 +33,17 @@ PALETTE = [
     ('status_detail_bookmarked', 'light red', ''),
     ('status_detail_timestamp', 'light blue', ''),
     ('status_list_account', 'dark green', ''),
-    ('status_list_selected', 'white,bold', 'dark green'),
+    ('status_list_selected', 'white,bold', 'dark green', 'bold,underline'),
     ('status_list_timestamp', 'light blue', ''),
 
     # Functional
-    ('hashtag', 'light cyan,bold', ''),
-    ('hashtag_followed', 'yellow,bold', ''),
-    ('link', ',italics', ''),
-    ('link_focused', ',italics', 'dark magenta'),
+    ('account', 'dark green', ''),
+    ('hashtag', 'light cyan,bold', '', 'bold'),
+    ('hashtag_followed', 'yellow,bold', '', 'bold'),
+    ('link', ',italics', '', ',italics'),
+    ('link_focused', ',italics', 'dark magenta', "underline,italics"),
     ('shortcut', 'light blue', ''),
-    ('shortcut_highlight', 'white,bold', ''),
+    ('shortcut_highlight', 'white,bold', '', 'bold'),
     ('warning', 'light red', ''),
 
     # Visiblity
@@ -45,55 +57,29 @@ PALETTE = [
     ('dim', 'dark gray', ''),
     ('highlight', 'yellow', ''),
     ('success', 'dark green', ''),
-]
 
-MONO_PALETTE = [
-    # Components
-    ('button', 'white', 'black'),
-    ('button_focused', 'black', 'white'),
-    ('card_author', 'white', ''),
-    ('card_title', 'white, bold', ''),
-    ('columns_divider', 'white', 'black'),
-    ('content_warning', 'white', 'black'),
-    ('editbox', 'white', 'black'),
-    ('editbox_focused', 'black', 'white'),
-    ('footer_message', 'white', 'black'),
-    ('footer_message_error', 'white,bold', 'black'),
-    ('footer_status', 'black', 'white'),
-    ('footer_status_bold', 'black,bold', 'white'),
-    ('header', 'black', 'white'),
-    ('header_bold', 'black,bold', 'white'),
-    ('intro_bigtext', 'white', 'black'),
-    ('intro_smalltext', 'white', 'black'),
-    ('poll_bar', 'black', 'white'),
-    ('status_detail_account', 'white', ''),
-    ('status_detail_bookmarked', 'white', ''),
-    ('status_detail_timestamp', 'white', ''),
-    ('status_list_account', 'white', ''),
-    ('status_list_selected', 'white,bold', ''),
-    ('status_list_timestamp', 'white', ''),
-    ('warning', 'white,bold', 'black'),
+    # HTML tag styling
+    ('a', ',italics', '', 'italics'),
+    # em tag is mapped to i
+    ('i', ',italics', '', 'italics'),
+    # strong tag is mapped to b
+    ('b', ',bold', '', 'bold'),
+    # special case for bold + italic nested tags
+    ('bi', ',bold,italics', '', ',bold,italics'),
+    ('u', ',underline', '', ',underline'),
+    ('del', ',strikethrough', '', ',strikethrough'),
+    ('code', 'light gray, standout', '', ',standout'),
+    ('pre', 'light gray, standout', '', ',standout'),
+    ('blockquote', 'light gray', '', ''),
+    ('h1', ',bold', '', ',bold'),
+    ('h2', ',bold', '', ',bold'),
+    ('h3', ',bold', '', ',bold'),
+    ('h4', ',bold', '', ',bold'),
+    ('h5', ',bold', '', ',bold'),
+    ('h6', ',bold', '', ',bold'),
+    ('class_mention_hashtag', 'light cyan', '', ''),
+    ('class_hashtag', 'light cyan', '', ''),
 
-    # Functional
-    ('account', 'dark green', ''),
-    ('hashtag_followed', 'white,bold', ''),
-    ('hashtag', 'white,bold', ''),
-    ('link', ',italics', ''),
-    ('link_focused', ',bold,italics', ''),
-    ('shortcut', 'white', ''),
-    ('shortcut_highlight', 'white,bold', ''),
-
-    # Visiblity
-    ('visibility_public', 'white', ''),
-    ('visibility_unlisted', 'white', ''),
-    ('visibility_private', 'white', ''),
-    ('visibility_direct', 'white', ''),
-
-    # Styles
-    ('bold', ',bold', ''),
-    ('dim', 'light gray', ''),
-    ('highlight', ',bold', ''),
-    ('success', '', ''),
 ]
 
 VISIBILITY_OPTIONS = [

@@ -40,48 +40,19 @@ def highlight_keys(text, high_attr, low_attr=""):
     return list(_gen())
 
 
-def highlight_hashtags(line, followed_tags, attr="hashtag", followed_attr="hashtag_followed"):
+def highlight_hashtags(line):
     hline = []
 
     for p in re.split(HASHTAG_PATTERN, line):
         if p.startswith("#"):
-            if p[1:].lower() in (t.lower() for t in followed_tags):
-                hline.append((followed_attr, p))
-            else:
-                hline.append((attr, p))
+            hline.append(("hashtag", p))
         else:
             hline.append(p)
 
     return hline
 
 
-def show_media(paths):
-    """
-    Attempt to open an image viewer to show given media files.
-
-    FIXME: This is not very thought out, but works for me.
-    Once settings are implemented, add an option for the user to configure their
-    prefered media viewer.
-    """
-    viewer = None
-    potential_viewers = [
-        "feh",
-        "eog",
-        "display"
-    ]
-    for v in potential_viewers:
-        viewer = shutil.which(v)
-        if viewer:
-            break
-
-    if not viewer:
-        raise Exception("Cannot find an image viewer")
-
-    subprocess.run([viewer] + paths)
-
-
 class LinkParser(HTMLParser):
-
     def reset(self):
         super().reset()
         self.links = []

@@ -13,6 +13,7 @@ export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 ```
 """
 
+import json
 import re
 import os
 import psycopg2
@@ -41,7 +42,7 @@ ASSETS_DIR = str(Path(__file__).parent.parent / "assets")
 
 
 def create_app(base_url):
-    instance = api.get_instance(base_url)
+    instance = api.get_instance(base_url).json()
     response = api.create_app(base_url)
     return App(instance["uri"], base_url, response["client_id"], response["client_secret"])
 
@@ -94,6 +95,16 @@ def friend(app):
     return register_account(app)
 
 
+@pytest.fixture(scope="session")
+def user_id(app, user):
+    return api.find_account(app, user, user.username)["id"]
+
+
+@pytest.fixture(scope="session")
+def friend_id(app, user, friend):
+    return api.find_account(app, user, friend.username)["id"]
+
+
 @pytest.fixture
 def run(app, user, capsys):
     def _run(command, *params, as_user=None):
@@ -108,6 +119,14 @@ def run(app, user, capsys):
         assert err == ""
         return strip_ansi(out)
     return _run
+
+
+@pytest.fixture
+def run_json(run):
+    def _run_json(command, *params):
+        out = run(command, *params)
+        return json.loads(out)
+    return _run_json
 
 
 @pytest.fixture

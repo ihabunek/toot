@@ -1,3 +1,28 @@
+0.39.0:
+  date: 2023-11-23
+  changes:
+    - "Add `--json` option to many commands, this makes them print the JSON data returned by the server instead of human-readable data. Useful for scripting."
+    - "TUI: Make media viewer configurable in settings, see: https://toot.bezdomni.net/settings.html#tui-view-images"
+    - "TUI: Add rich text rendering (thanks Dan Schwarz)"
+
+0.38.2:
+  date: 2023-11-16
+  changes:
+    - "Fix compatibility with Pleroma (#399, thanks Sandra Snan)"
+    - "Fix language documentation (thanks Sandra Snan)"
+
+0.38.1:
+  date: 2023-07-25
+  changes:
+    - "Fix relative datetimes option in TUI"
+
+0.38.0:
+  date: 2023-07-25
+  changes:
+    - "Add `toot muted` and `toot blocked` commands (thanks Florian Obser)"
+    - "Add settings file, allows setting common options, defining defaults for command arguments, and the TUI palette"
+    - "TUI: Remap shortcuts so they don't override HJKL used for navigation (thanks Dan Schwarz)"
+
 0.37.0:
   date: 2023-06-28
   changes:

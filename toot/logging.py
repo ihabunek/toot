@@ -2,7 +2,7 @@ import json
 import sys
 
 from logging import getLogger
-from requests import Request, Response
+from requests import Request, RequestException, Response
 from urllib.parse import urlencode
 
 logger = getLogger("toot")
@@ -54,6 +54,10 @@ def log_response(response: Response):
     if VERBOSE and response.content:
         content = truncate(response.content.decode())
         logger.debug(f" <-- {content}")
+
+
+def log_request_exception(request: Request, ex: RequestException):
+    logger.debug(f" <-- {request.method} {_url(request)} Exception: {ex}")
 
 
 def _url(request):

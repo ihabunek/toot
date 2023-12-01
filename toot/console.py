@@ -204,6 +204,7 @@ common_auth_args = [
 account_arg = (["account"], {
     "help": "account name, e.g. 'Gargron@mastodon.social'",
 })
+
 optional_account_arg = (["account"], {
     "nargs": "?",
     "help": "account name, e.g. 'Gargron@mastodon.social'",
@@ -243,6 +244,12 @@ visibility_arg = (["-v", "--visibility"], {
 tag_arg = (["tag_name"], {
     "type": str,
     "help": "tag name, e.g. Caturday, or \"#Caturday\"",
+})
+
+json_arg = (["--json"], {
+    "action": "store_true",
+    "default": False,
+    "help": "print json instead of plaintext",
 })
 
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
@@ -374,8 +381,9 @@ AUTH_COMMANDS = [
             }),
             (["--language"], {
                 "type": language,
-                "help": "Default language to use for authored statuses (ISO 6391)."
+                "help": "Default language to use for authored statuses (ISO 639-1)."
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -405,7 +413,7 @@ READ_COMMANDS = [
     Command(
         name="whoami",
         description="Display logged in user details",
-        arguments=[],
+        arguments=[json_arg],
         require_auth=True,
     ),
     Command(
@@ -415,6 +423,7 @@ READ_COMMANDS = [
             (["account"], {
                 "help": "account name or numeric ID"
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -449,6 +458,7 @@ READ_COMMANDS = [
                 "nargs": "?",
             }),
             scheme_arg,
+            json_arg,
         ],
         require_auth=False,
     ),
@@ -464,6 +474,7 @@ READ_COMMANDS = [
                 "default": False,
                 "help": "Resolve non-local accounts",
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -474,6 +485,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "Show thread for toot.",
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -484,6 +496,7 @@ READ_COMMANDS = [
             (["status_id"], {
                 "help": "ID of the status to show.",
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -544,7 +557,7 @@ POST_COMMANDS = [
             }),
             (["-l", "--language"], {
                 "type": language,
-                "help": "ISO 639-2 language code of the toot, to skip automatic detection",
+                "help": "ISO 639-1 language code of the toot, to skip automatic detection",
             }),
             (["-e", "--editor"], {
                 "type": editor,
@@ -589,6 +602,7 @@ POST_COMMANDS = [
                 "default": False,
                 "help": "Hide vote counts until the poll ends. Defaults to false."
             }),
+            json_arg,
         ],
         require_auth=True,
     ),
@@ -613,61 +627,61 @@ STATUS_COMMANDS = [
     Command(
         name="delete",
         description="Delete a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="favourite",
         description="Favourite a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unfavourite",
         description="Unfavourite a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="reblog",
         description="Reblog a status",
-        arguments=[status_id_arg, visibility_arg],
+        arguments=[status_id_arg, visibility_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unreblog",
         description="Unreblog a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="reblogged_by",
         description="Show accounts that reblogged the status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=False,
     ),
     Command(
         name="pin",
         description="Pin a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unpin",
         description="Unpin a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="bookmark",
         description="Bookmark a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unbookmark",
         description="Unbookmark a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, json_arg],
         require_auth=True,
     ),
 ]
@@ -676,65 +690,63 @@ ACCOUNTS_COMMANDS = [
     Command(
         name="follow",
         description="Follow an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unfollow",
         description="Unfollow an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="following",
-        description="List accounts followed by the given account",
-        arguments=[
-            account_arg,
-        ],
+        description="List accounts followed by the given account, " +
+                    "or your account if no account given",
+        arguments=[optional_account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="followers",
-        description="List accounts following the given account",
-        arguments=[
-            account_arg,
-        ],
+        description="List accounts following the given account, " +
+                    "or your account if no account given",
+        arguments=[optional_account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="mute",
         description="Mute an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unmute",
         description="Unmute an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="muted",
+        description="List muted accounts",
+        arguments=[json_arg],
         require_auth=True,
     ),
     Command(
         name="block",
         description="Block an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
         require_auth=True,
     ),
     Command(
         name="unblock",
         description="Unblock an account",
-        arguments=[
-            account_arg,
-        ],
+        arguments=[account_arg, json_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="blocked",
+        description="List blocked accounts",
+        arguments=[json_arg],
         require_auth=True,
     ),
 ]
