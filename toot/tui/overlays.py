@@ -7,11 +7,10 @@ import webbrowser
 from toot import __version__
 from toot import api
 
-from toot.utils import format_content
-from toot.tui.utils import highlight_hashtags, highlight_keys, add_corners
+from toot.tui.utils import highlight_keys, add_corners
 from toot.tui.widgets import Button, EditBox, SelectableText, EmojiText
 from toot.tui.richtext import html_to_widgets
-from toot import api
+
 from PIL import Image
 from term_image.image import AutoImage
 from term_image.widget import UrwidImage

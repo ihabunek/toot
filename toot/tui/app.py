@@ -18,7 +18,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard, ImageCache
+from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard, ImageCache
 from PIL import Image
 
 
@@ -108,7 +108,7 @@ class TUI(urwid.Frame):
 
     @staticmethod
     def create_screen(args):
-        screen = urwid.raw_display.Screen()
+        screen = TuiScreen()
 
         # Determine how many colors to use
         default_colors = 1 if args.no_color else 16
