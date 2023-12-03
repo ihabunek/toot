@@ -457,7 +457,7 @@ def upload_media(
         "thumbnail": _add_mime_type(thumbnail)
     })
 
-    return http.post(app, user, "/api/v2/media", data=data, files=files).json()
+    return http.post(app, user, "/api/v2/media", data=data, files=files)
 
 
 def _add_mime_type(file):

@@ -4,12 +4,13 @@ import click
 import os
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from typing import BinaryIO, Optional, Tuple
 
 from toot import api
 from toot.cli.base import cli, json_option, pass_context, Context
 from toot.cli.base import DURATION_EXAMPLES, VISIBILITY_CHOICES, get_default_visibility
 from toot.cli.validators import validate_duration, validate_language
+from toot.entities import MediaAttachment, from_dict
 from toot.utils import EOF_KEY, delete_tmp_status_file, editor_input, multiline_input
 from toot.utils.datetime import parse_datetime
 
@@ -174,6 +175,36 @@ def post(
     delete_tmp_status_file()
 
 
+@cli.command()
+@click.argument("file", type=click.File(mode="rb"))
+@click.option(
+    "--description", "-d",
+    help="Plain-text description of the media for accessibility purposes"
+)
+@json_option
+@pass_context
+def upload(
+    ctx: Context,
+    file: BinaryIO,
+    description: Optional[str],
+    json: bool,
+):
+    """Upload an image or video file
+
+    This is probably not very useful, see `toot post --media` instead.
+    """
+    response = _do_upload(ctx.app, ctx.user, file, description, None)
+    if json:
+        click.echo(response.text)
+    else:
+        media = from_dict(MediaAttachment, response.json())
+        click.echo()
+        click.echo(f"Successfully uploaded media ID {media.id}, type '{media.type}'")
+        click.echo(f"URL: {media.url}")
+        click.echo(f"Preview URL: {media.preview_url}")
+
+
+
 def _get_status_text(text, editor, media):
     isatty = sys.stdin.isatty()
 
@@ -220,7 +251,6 @@ def _upload_media(app, user, media, descriptions, thumbnails):
 
 
 def _do_upload(app, user, file, description, thumbnail):
-    click.echo(f"Uploading media: {file.name}")
     return api.upload_media(app, user, file, description=description, thumbnail=thumbnail)
 
 
