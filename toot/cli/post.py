@@ -24,13 +24,13 @@ from toot.utils.datetime import parse_datetime
     multiple=True
 )
 @click.option(
-    "--description", "-d",
+    "--description", "-d", "descriptions",
     help="""Plain-text description of the media for accessibility purposes, one
             per attached media""",
     multiple=True,
 )
 @click.option(
-    "--thumbnail",
+    "--thumbnail", "thumbnails",
     help="Path to an image file to serve as media thumbnail, one per attached media",
     type=click.File(mode="rb"),
     multiple=True
@@ -111,8 +111,8 @@ def post(
     ctx: Context,
     text: Optional[str],
     media: Tuple[str],
-    description: Tuple[str],
-    thumbnail: Tuple[str],
+    descriptions: Tuple[str],
+    thumbnails: Tuple[str],
     visibility: str,
     sensitive: bool,
     spoiler_text: Optional[str],
@@ -135,7 +135,7 @@ def post(
     if len(media) > 4:
         raise click.ClickException("Cannot attach more than 4 files.")
 
-    media_ids = _upload_media(ctx.app, ctx.user, media, description, thumbnail)
+    media_ids = _upload_media(ctx.app, ctx.user, media, descriptions, thumbnails)
     status_text = _get_status_text(text, editor, media)
     scheduled_at = _get_scheduled_at(scheduled_at, scheduled_in)
 
@@ -201,11 +201,11 @@ def _get_scheduled_at(scheduled_at, scheduled_in):
     return None
 
 
-def _upload_media(app, user, media, description, thumbnail):
-    # Match media to corresponding description and thumbnail
+def _upload_media(app, user, media, descriptions, thumbnails):
+    # Match media to corresponding descriptions and thumbnail
     media = media or []
-    descriptions = description or []
-    thumbnails = thumbnail or []
+    descriptions = descriptions or []
+    thumbnails = thumbnails or []
     uploaded_media = []
 
     for idx, file in enumerate(media):
