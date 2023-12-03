@@ -74,6 +74,7 @@ def instance(ctx: Context, instance_url: Optional[str], json: bool):
 @json_option
 @pass_context
 def search(ctx: Context, query: str, resolve: bool, json: bool):
+    """Search for users or hashtags"""
     response = api.search(ctx.app, ctx.user, query, resolve)
     if json:
         print(response.text)

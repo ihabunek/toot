@@ -115,10 +115,18 @@ def runner():
 
 @pytest.fixture
 def run(app, user, runner):
-    def _run(command, *params, as_user=None, input=None) -> Result:
-        ctx = Context(app, as_user or user)
+    def _run(command, *params, input=None) -> Result:
+        ctx = Context(app, user)
         return runner.invoke(command, params, obj=ctx, input=input)
     return _run
+
+
+@pytest.fixture
+def run_as(app, runner):
+    def _run_as(user, command, *params, input=None) -> Result:
+        ctx = Context(app, user)
+        return runner.invoke(command, params, obj=ctx, input=input)
+    return _run_as
 
 
 @pytest.fixture

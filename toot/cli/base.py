@@ -40,7 +40,7 @@ CONTEXT = dict(
 
 # Data object to add to Click context
 class Context(NamedTuple):
-    app: Optional[App] = None
+    app: Optional[App]
     user: Optional[User] = None
     color: bool = False
     debug: bool = False

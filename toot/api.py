@@ -8,7 +8,7 @@ from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError, ConsoleError
+from toot.exceptions import ConsoleError
 from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 
@@ -300,6 +300,35 @@ def reblogged_by(app, user, status_id) -> Response:
     return http.get(app, user, url)
 
 
+def get_timeline_generator(
+    app: Optional[App],
+    user: Optional[User],
+    base_url: Optional[str] = None,
+    account: Optional[str] = None,
+    list_id: Optional[str] = None,
+    tag: Optional[str] = None,
+    local: bool = False,
+    public: bool = False,
+    limit=20,  # TODO
+):
+    if public:
+        if base_url:
+            return anon_public_timeline_generator(base_url, local=local, limit=limit)
+        else:
+            return public_timeline_generator(app, user, local=local, limit=limit)
+    elif tag:
+        if base_url:
+            return anon_tag_timeline_generator(base_url, tag, limit=limit)
+        else:
+            return tag_timeline_generator(app, user, tag, local=local, limit=limit)
+    elif account:
+        return account_timeline_generator(app, user, account, limit=limit)
+    elif list_id:
+        return timeline_list_generator(app, user, list_id, limit=limit)
+    else:
+        return home_timeline_generator(app, user, limit=limit)
+
+
 def _get_next_path(headers):
     """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
@@ -307,6 +336,14 @@ def _get_next_path(headers):
     if matches:
         parsed = urlparse(matches.group(1))
         return "?".join([parsed.path, parsed.query])
+
+
+def _get_next_url(headers) -> Optional[str]:
+    """Given timeline response headers, returns the url to the next batch"""
+    links = headers.get('Link', '')
+    match = re.match('<([^>]+)>; rel="next"', links)
+    if match:
+        return match.group(1)
 
 
 def _timeline_generator(app, user, path, params=None):
@@ -369,7 +406,7 @@ def conversation_timeline_generator(app, user, limit=20):
     return _conversation_timeline_generator(app, user, path, params)
 
 
-def account_timeline_generator(app: App, user: User, account_name: str, replies=False, reblogs=False, limit=20):
+def account_timeline_generator(app, user, account_name: str, replies=False, reblogs=False, limit=20):
     account = find_account(app, user, account_name)
     path = f"/api/v1/accounts/{account['id']}/statuses"
     params = {"limit": limit, "exclude_replies": not replies, "exclude_reblogs": not reblogs}
@@ -381,24 +418,23 @@ def timeline_list_generator(app, user, list_id, limit=20):
     return _timeline_generator(app, user, path, {'limit': limit})
 
 
-def _anon_timeline_generator(instance, path, params=None):
-    while path:
-        url = f"https://{instance}{path}"
+def _anon_timeline_generator(url, params=None):
+    while url:
         response = http.anon_get(url, params)
         yield response.json()
-        path = _get_next_path(response.headers)
+        url = _get_next_url(response.headers)
 
 
-def anon_public_timeline_generator(instance, local=False, limit=20):
-    path = '/api/v1/timelines/public'
-    params = {'local': str_bool(local), 'limit': limit}
-    return _anon_timeline_generator(instance, path, params)
+def anon_public_timeline_generator(base_url, local=False, limit=20):
+    query = urlencode({"local": str_bool(local), "limit": limit})
+    url = f"{base_url}/api/v1/timelines/public?{query}"
+    return _anon_timeline_generator(url)
 
 
-def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
-    path = f"/api/v1/timelines/tag/{quote(hashtag)}"
-    params = {'local': str_bool(local), 'limit': limit}
-    return _anon_timeline_generator(instance, path, params)
+def anon_tag_timeline_generator(base_url, hashtag, local=False, limit=20):
+    query = urlencode({"local": str_bool(local), "limit": limit})
+    url = f"{base_url}/api/v1/timelines/tag/{quote(hashtag)}?{query}"
+    return _anon_timeline_generator(url)
 
 
 def get_media(app: App, user: User, id: str):
@@ -538,8 +574,8 @@ def verify_credentials(app, user) -> Response:
     return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
-def get_notifications(app, user, exclude_types=[], limit=20):
-    params = {"exclude_types[]": exclude_types, "limit": limit}
+def get_notifications(app, user, types=[], exclude_types=[], limit=20):
+    params = {"types[]": types, "exclude_types[]": exclude_types, "limit": limit}
     return http.get(app, user, '/api/v1/notifications', params).json()
 
 
@@ -570,7 +606,7 @@ def get_list_accounts(app, user, list_id):
     return _get_response_list(app, user, path)
 
 
-def create_list(app, user, title, replies_policy):
+def create_list(app, user, title, replies_policy="none"):
     url = "/api/v1/lists"
     json = {'title': title}
     if replies_policy:
