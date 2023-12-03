@@ -3,9 +3,11 @@ import subprocess
 import urwid
 
 from concurrent.futures import ThreadPoolExecutor
+from typing import NamedTuple
 
 from toot import api, config, __version__, settings
-from toot.console import get_default_visibility
+from toot import App, User
+from toot.cli.base import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer
@@ -23,6 +25,11 @@ urwid.set_encoding('UTF-8')
 
 
 DEFAULT_MAX_TOOT_CHARS = 500
+
+
+class TuiOptions(NamedTuple):
+    relative_datetimes: bool
+    color: bool
 
 
 class Header(urwid.WidgetWrap):
@@ -80,7 +87,7 @@ class TUI(urwid.Frame):
     screen: urwid.BaseScreen
 
     @staticmethod
-    def create(app, user, args):
+    def create(app: App, user: User, args: TuiOptions):
         """Factory method, sets up TUI and an event loop."""
         screen = TUI.create_screen(args)
         tui = TUI(app, user, screen, args)
@@ -102,18 +109,18 @@ class TUI(urwid.Frame):
         return tui
 
     @staticmethod
-    def create_screen(args):
+    def create_screen(args: TuiOptions):
         screen = urwid.raw_display.Screen()
 
         # Determine how many colors to use
-        default_colors = 1 if args.no_color else 16
+        default_colors = 16 if args.color else 1
         colors = settings.get_setting("tui.colors", int, default_colors)
         logger.debug(f"Setting colors to {colors}")
         screen.set_terminal_properties(colors)
 
         return screen
 
-    def __init__(self, app, user, screen, args):
+    def __init__(self, app, user, screen, args: TuiOptions):
         self.app = app
         self.user = user
         self.args = args

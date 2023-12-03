@@ -9,3 +9,4 @@ from toot.cli.read import *
 from toot.cli.statuses import *
 from toot.cli.tags import *
 from toot.cli.timelines import *
+from toot.cli.tui import *
