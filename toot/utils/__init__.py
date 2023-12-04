@@ -127,17 +127,6 @@ def editor_input(editor: str, initial_text: str):
         return f.read().split(EDITOR_DIVIDER)[0].strip()
 
 
-def read_char(values, default):
-    values = [v.lower() for v in values]
-
-    while True:
-        value = input().lower()
-        if value == "":
-            return default
-        if value in values:
-            return value
-
-
 def delete_tmp_status_file():
     try:
         os.unlink(_tmp_status_path())
@@ -164,32 +153,6 @@ def _use_existing_tmp_file(tmp_path: str) -> bool:
 def drop_empty_values(data: Dict) -> Dict:
     """Remove keys whose values are null"""
     return {k: v for k, v in data.items() if v is not None}
-
-
-def args_get_instance(instance, scheme, default=None):
-    if not instance:
-        return default
-
-    if scheme == "http":
-        _warn_scheme_deprecated()
-
-    if instance.startswith("http"):
-        return instance.rstrip("/")
-    else:
-        return f"{scheme}://{instance}"
-
-
-def _warn_scheme_deprecated():
-    from toot.output import print_err
-
-    print_err("\n".join([
-        "--disable-https flag is deprecated and will be removed.",
-        "Please specify the instance as URL instead.",
-        "e.g. instead of writing:",
-        "  toot instance unsafehost.com --disable-https",
-        "instead write:",
-        "  toot instance http://unsafehost.com\n"
-    ]))
 
 
 def urlencode_url(url):
