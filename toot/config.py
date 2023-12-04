@@ -7,7 +7,6 @@ from typing import Optional
 
 from toot import User, App, get_config_dir
 from toot.exceptions import ConsoleError
-from toot.output import print_out
 
 
 TOOT_CONFIG_FILE_NAME = "config.json"
@@ -29,8 +28,6 @@ def make_config(path):
         "users": {},
         "active_user": None,
     }
-
-    print_out("Creating config file at <blue>{}</blue>".format(path))
 
     # Ensure dir exists
     os.makedirs(dirname(path), exist_ok=True)

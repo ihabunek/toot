@@ -9,6 +9,8 @@ import warnings
 from bs4 import BeautifulSoup
 from typing import Dict
 
+import click
+
 from toot.exceptions import ConsoleError
 from urllib.parse import urlparse, urlencode, quote, unquote
 
@@ -148,14 +150,13 @@ def _tmp_status_path() -> str:
     return f"{tmp_dir}/.status.toot"
 
 
-def _use_existing_tmp_file(tmp_path) -> bool:
-    from toot.output import print_out
-
+def _use_existing_tmp_file(tmp_path: str) -> bool:
     if os.path.exists(tmp_path):
-        print_out(f"<cyan>Found a draft status at: {tmp_path}</cyan>")
-        print_out("<cyan>[O]pen (default) or [D]elete?</cyan> ", end="")
-        char = read_char(["o", "d"], "o")
-        return char == "o"
+        click.echo(f"Found draft status at: {tmp_path}")
+
+        choice = click.Choice(["O", "D"], case_sensitive=False)
+        char = click.prompt("Open or Delete?", type=choice, default="O")
+        return char == "O"
 
     return False
 
