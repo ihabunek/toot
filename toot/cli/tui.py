@@ -1,7 +1,8 @@
-from typing import NamedTuple
 import click
+
 from toot.cli.base import Context, cli, pass_context
 from toot.tui.app import TUI, TuiOptions
+
 
 @cli.command()
 @click.option(

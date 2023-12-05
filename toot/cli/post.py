@@ -204,7 +204,6 @@ def upload(
         click.echo(f"Preview URL: {media.preview_url}")
 
 
-
 def _get_status_text(text, editor, media):
     isatty = sys.stdin.isatty()
 

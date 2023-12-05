@@ -7,7 +7,7 @@ from typing import Optional
 from toot import api
 from toot.entities import Instance, Status, from_dict, Account
 from toot.exceptions import ApiError, ConsoleError
-from toot.output import print_account, print_instance, print_search_results, print_status, print_tag_list, print_timeline
+from toot.output import print_account, print_instance, print_search_results, print_status, print_timeline
 from toot.cli.base import cli, json_option, pass_context, Context
 
 
