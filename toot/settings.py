@@ -17,7 +17,7 @@ def get_settings_path():
     return join(get_config_dir(), TOOT_SETTINGS_FILE_NAME)
 
 
-def load_settings() -> dict:
+def _load_settings() -> dict:
     # Used for testing without config file
     if DISABLE_SETTINGS:
         return {}
@@ -33,7 +33,7 @@ def load_settings() -> dict:
 
 @lru_cache(maxsize=None)
 def get_settings():
-    return load_settings()
+    return _load_settings()
 
 
 T = TypeVar("T")

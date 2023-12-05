@@ -7,7 +7,7 @@ import typing as t
 from click.testing import Result
 from functools import wraps
 from toot import App, User, config, __version__
-from toot.settings import load_settings
+from toot.settings import get_settings
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -33,7 +33,7 @@ def get_default_visibility() -> str:
 
 
 def get_default_map():
-    settings = load_settings()
+    settings = get_settings()
     common = settings.get("common", {})
     commands = settings.get("commands", {})
     return {**common, **commands}
