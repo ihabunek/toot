@@ -7,7 +7,7 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
-from typing import Dict
+from typing import Any, Dict
 
 import click
 
@@ -111,7 +111,7 @@ Everything below it will be ignored.
 """
 
 
-def editor_input(editor: str, initial_text: str):
+def editor_input(editor: str, initial_text: str) -> str:
     """Lets user input text using an editor."""
     tmp_path = _tmp_status_path()
     initial_text = (initial_text or "") + EDITOR_INPUT_INSTRUCTIONS
@@ -127,7 +127,7 @@ def editor_input(editor: str, initial_text: str):
         return f.read().split(EDITOR_DIVIDER)[0].strip()
 
 
-def delete_tmp_status_file():
+def delete_tmp_status_file() -> None:
     try:
         os.unlink(_tmp_status_path())
     except FileNotFoundError:
@@ -150,12 +150,12 @@ def _use_existing_tmp_file(tmp_path: str) -> bool:
     return False
 
 
-def drop_empty_values(data: Dict) -> Dict:
+def drop_empty_values(data: Dict[Any, Any]) -> Dict[Any, Any]:
     """Remove keys whose values are null"""
     return {k: v for k, v in data.items() if v is not None}
 
 
-def urlencode_url(url):
+def urlencode_url(url: str) -> str:
     parsed_url = urlparse(url)
 
     # unencode before encoding, to prevent double-urlencoding
