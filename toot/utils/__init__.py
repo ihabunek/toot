@@ -7,7 +7,7 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import click
 
@@ -40,7 +40,7 @@ def get_text(html):
     return unicodedata.normalize("NFKC", text)
 
 
-def html_to_paragraphs(html):
+def html_to_paragraphs(html: str) -> List[List[str]]:
     """Attempt to convert html to plain text while keeping line breaks.
     Returns a list of paragraphs, each being a list of lines.
     """

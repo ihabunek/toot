@@ -117,7 +117,7 @@ def test_empty_timeline(app, run_as):
     user = register_account(app)
     result = run_as(user, cli.timeline)
     assert result.exit_code == 0
-    assert result.stdout.strip() == "─" * 100
+    assert result.stdout.strip() == "─" * 80
 
 
 def test_timeline_cant_combine_timelines(run):
