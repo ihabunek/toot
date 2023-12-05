@@ -5,6 +5,7 @@ from itertools import chain
 from typing import Optional
 
 from toot import api
+from toot.cli.validators import validate_instance
 from toot.entities import Instance, Status, from_dict, Account
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_account, print_instance, print_search_results, print_status, print_timeline
@@ -42,7 +43,7 @@ def whois(ctx: Context, account: str, json: bool):
 
 
 @cli.command()
-@click.argument("instance_url", required=False)
+@click.argument("instance_url", required=False, callback=validate_instance)
 @json_option
 @pass_context
 def instance(ctx: Context, instance_url: Optional[str], json: bool):
