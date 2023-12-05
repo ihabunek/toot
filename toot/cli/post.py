@@ -242,7 +242,7 @@ def _upload_media(app, user, media, descriptions, thumbnails):
     for idx, file in enumerate(media):
         description = descriptions[idx].strip() if idx < len(descriptions) else None
         thumbnail = thumbnails[idx] if idx < len(thumbnails) else None
-        result = _do_upload(app, user, file, description, thumbnail)
+        result = _do_upload(app, user, file, description, thumbnail).json()
         uploaded_media.append(result)
 
     _wait_until_all_processed(app, user, uploaded_media)
