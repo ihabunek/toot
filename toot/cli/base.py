@@ -78,10 +78,18 @@ json_option = click.option(
 @click.option("--quiet/--no-quiet", default=False, help="Don't print anything to stdout")
 @click.version_option(__version__, message="%(prog)s v%(version)s")
 @click.pass_context
-def cli(ctx, color, debug, quiet, app=None, user=None):
+def cli(
+    ctx: click.Context,
+    color: bool,
+    debug: bool,
+    quiet: bool,
+    app: t.Optional[App] = None,
+    user: t.Optional[User] = None,
+):
     """Toot is a Mastodon CLI"""
     user, app = config.get_active_user_app()
     ctx.obj = Context(app, user, color, debug, quiet)
+    ctx.color = color
 
     if debug:
         logging.basicConfig(level=logging.DEBUG)
