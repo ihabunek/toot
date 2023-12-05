@@ -7,6 +7,7 @@ import typing as t
 from click.testing import Result
 from functools import wraps
 from toot import App, User, config, __version__
+from toot.settings import load_settings
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -31,6 +32,13 @@ def get_default_visibility() -> str:
     return os.getenv("TOOT_POST_VISIBILITY", "public")
 
 
+def get_default_map():
+    settings = load_settings()
+    common = settings.get("common", {})
+    commands = settings.get("commands", {})
+    return {**common, **commands}
+
+
 # Tweak the Click context
 # https://click.palletsprojects.com/en/8.1.x/api/#context
 CONTEXT = dict(
@@ -42,6 +50,8 @@ CONTEXT = dict(
     max_content_width=100,
     # Always show default values for options
     show_default=True,
+    # Load command defaults from settings
+    default_map=get_default_map(),
 )
 
 
