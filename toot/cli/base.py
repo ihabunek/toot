@@ -2,11 +2,18 @@ import click
 import logging
 import os
 import sys
+import typing as t
 
 from click.testing import Result
 from functools import wraps
 from toot import App, User, config, __version__
-from typing import Callable, Concatenate, NamedTuple, Optional, ParamSpec, TypeVar
+
+if t.TYPE_CHECKING:
+    import typing_extensions as te
+    P = te.ParamSpec("P")
+
+R = t.TypeVar("R")
+T = t.TypeVar("T")
 
 
 PRIVACY_CHOICES = ["public", "unlisted", "private"]
@@ -17,7 +24,7 @@ seconds" or any combination of above. Shorthand: "1d", "2h30m", "5m30s\""""
 
 
 # Type alias for run commands
-Run = Callable[..., Result]
+Run = t.Callable[..., Result]
 
 
 def get_default_visibility() -> str:
@@ -39,23 +46,18 @@ CONTEXT = dict(
 
 
 # Data object to add to Click context
-class Context(NamedTuple):
-    app: Optional[App]
-    user: Optional[User] = None
+class Context(t.NamedTuple):
+    app: t.Optional[App]
+    user: t.Optional[User] = None
     color: bool = False
     debug: bool = False
     quiet: bool = False
 
 
-P = ParamSpec("P")
-R = TypeVar("R")
-T = TypeVar("T")
-
-
-def pass_context(f: Callable[Concatenate[Context, P], R]) -> Callable[P, R]:
+def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[P, R]":
     """Pass `obj` from click context as first argument."""
     @wraps(f)
-    def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+    def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> R:
         ctx = click.get_current_context()
         return f(ctx.obj, *args, **kwargs)
 

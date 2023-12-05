@@ -59,6 +59,7 @@ setup(
             "pytest-xdist[psutil]",
             "setuptools",
             "vermin",
+            "typing-extensions",
         ],
     },
     entry_points={
