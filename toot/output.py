@@ -110,6 +110,11 @@ def use_ansi_color():
     if sys.platform == 'win32' and 'ANSICON' not in os.environ:
         return False
 
+    # With the --color flag, force color, even if stdout is a tty
+    # and even if --no-color is also specified (!)
+    if "--color" in sys.argv:
+        return True
+
     # Don't show color if stdout is not a tty, e.g. if output is piped on
     if not sys.stdout.isatty():
         return False

@@ -164,6 +164,11 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--color"], {
+        "help": "always use ANSI colors in output",
+        "action": 'store_true',
+        "default": False,
+    }),
     (["--quiet"], {
         "help": "don't write to stdout on success",
         "action": 'store_true',
