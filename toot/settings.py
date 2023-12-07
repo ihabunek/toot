@@ -1,6 +1,3 @@
-import os
-import sys
-
 from functools import lru_cache
 from os.path import exists, join
 from tomlkit import parse
@@ -62,26 +59,3 @@ def _get_setting(dct, keys, type: Type, default=None):
         return _get_setting(dct[key], keys[1:], type, default)
 
     return default
-
-
-def get_debug() -> bool:
-    if "--debug" in sys.argv:
-        return True
-
-    return get_setting("common.debug", bool, False)
-
-
-def get_debug_file() -> Optional[str]:
-    from_env = os.getenv("TOOT_LOG_FILE")
-    if from_env:
-        return from_env
-
-    return get_setting("common.debug_file", str)
-
-
-@lru_cache(maxsize=None)
-def get_quiet():
-    if "--quiet" in sys.argv:
-        return True
-
-    return get_setting("common.quiet", str, False)
