@@ -46,8 +46,6 @@ CONTEXT = dict(
     auto_envvar_prefix="TOOT",
     # Add shorthand -h for invoking help
     help_option_names=["-h", "--help"],
-    # Give help some more room (default is 80)
-    max_content_width=100,
     # Always show default values for options
     show_default=True,
     # Load command defaults from settings
@@ -83,6 +81,7 @@ json_option = click.option(
 
 
 @click.group(context_settings=CONTEXT)
+@click.option("-w", "--max-width", type=int, default=80, help="Maximum width for content rendered by toot")
 @click.option("--debug/--no-debug", default=False, help="Log debug info to stderr")
 @click.option("--color/--no-color", default=sys.stdout.isatty(), help="Use ANSI color in output")
 @click.option("--quiet/--no-quiet", default=False, help="Don't print anything to stdout")
@@ -90,6 +89,7 @@ json_option = click.option(
 @click.pass_context
 def cli(
     ctx: click.Context,
+    max_width: int,
     color: bool,
     debug: bool,
     quiet: bool,
@@ -100,6 +100,7 @@ def cli(
     user, app = config.get_active_user_app()
     ctx.obj = Context(app, user, color, debug, quiet)
     ctx.color = color
+    ctx.max_content_width = max_width
 
     if debug:
         logging.basicConfig(level=logging.DEBUG)

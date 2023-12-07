@@ -1,6 +1,7 @@
 import click
 import re
 import textwrap
+import shutil
 
 from toot.entities import Account, Instance, Notification, Poll, Status
 from toot.utils import get_text, html_to_paragraphs
@@ -9,7 +10,23 @@ from typing import Any, Generator, Iterable, List
 from wcwidth import wcswidth
 
 
-def print_instance(instance: Instance, width: int = 80):
+DEFAULT_WIDTH = 80
+
+
+def get_max_width() -> int:
+    return click.get_current_context().max_content_width or DEFAULT_WIDTH
+
+
+def get_terminal_width() -> int:
+    return shutil.get_terminal_size().columns
+
+
+def get_width() -> int:
+    return min(get_terminal_width(), get_max_width())
+
+
+def print_instance(instance: Instance):
+    width = get_width()
     click.echo(instance_to_text(instance, width))
 
 
@@ -48,7 +65,8 @@ def instance_lines(instance: Instance, width: int) -> Generator[str, None, None]
         yield f"Contact: {contact.display_name} @{contact.acct}"
 
 
-def print_account(account: Account, width: int = 80) -> None:
+def print_account(account: Account) -> None:
+    width = get_width()
     click.echo(account_to_text(account, width))
 
 
@@ -150,15 +168,17 @@ def print_search_results(results):
         click.echo("Nothing found")
 
 
-def print_status(status: Status, width: int = 80) -> None:
+def print_status(status: Status) -> None:
+    width = get_width()
     click.echo(status_to_text(status, width))
 
 
 def status_to_text(status: Status, width: int) -> str:
-    return "\n".join(status_lines(status, width))
+    return "\n".join(status_lines(status))
 
 
-def status_lines(status: Status, width: int = 80) -> Generator[str, None, None]:
+def status_lines(status: Status) -> Generator[str, None, None]:
+    width = get_width()
     status_id = status.id
     in_reply_to_id = status.in_reply_to_id
     reblogged_by = status.account if status.reblog else None
@@ -237,10 +257,11 @@ def poll_lines(poll: Poll) -> Generator[str, None, None]:
     yield poll_footer
 
 
-def print_timeline(items: Iterable[Status], width=80):
+def print_timeline(items: Iterable[Status]):
+    width = get_width()
     click.echo("─" * width)
     for item in items:
-        print_status(item, width)
+        print_status(item)
         click.echo("─" * width)
 
 
@@ -252,14 +273,16 @@ notification_msgs = {
 }
 
 
-def print_notification(notification: Notification, width=80):
+def print_notification(notification: Notification):
+    width = get_width()
     print_notification_header(notification)
     if notification.status:
         click.echo("-" * width)
-        print_status(notification.status, width)
+        print_status(notification.status)
 
 
-def print_notifications(notifications: List[Notification], width=80):
+def print_notifications(notifications: List[Notification]):
+    width = get_width()
     for notification in notifications:
         click.echo("─" * width)
         print_notification(notification)
