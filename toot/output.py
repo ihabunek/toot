@@ -258,11 +258,10 @@ def poll_lines(poll: Poll) -> Generator[str, None, None]:
 
 
 def print_timeline(items: Iterable[Status]):
-    width = get_width()
-    click.echo("─" * width)
+    print_divider()
     for item in items:
         print_status(item)
-        click.echo("─" * width)
+        print_divider()
 
 
 notification_msgs = {
@@ -274,19 +273,17 @@ notification_msgs = {
 
 
 def print_notification(notification: Notification):
-    width = get_width()
     print_notification_header(notification)
     if notification.status:
-        click.echo("-" * width)
+        print_divider(char="-")
         print_status(notification.status)
 
 
 def print_notifications(notifications: List[Notification]):
-    width = get_width()
     for notification in notifications:
-        click.echo("─" * width)
+        print_divider()
         print_notification(notification)
-    click.echo("─" * width)
+    print_divider()
 
 
 def print_notification_header(notification: Notification):
@@ -313,6 +310,10 @@ notification_msgs = {
     "reblog": "{account} reblogged your status",
     "favourite": "{account} favourited your status",
 }
+
+
+def print_divider(char: str = "─"):
+    click.echo(char * get_width())
 
 
 def format_tag_name(tag):
