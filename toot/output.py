@@ -25,6 +25,10 @@ def get_width() -> int:
     return min(get_terminal_width(), get_max_width())
 
 
+def print_warning(text: str):
+    click.secho(f"Warning: {text}", fg="yellow", err=True)
+
+
 def print_instance(instance: Instance):
     width = get_width()
     click.echo(instance_to_text(instance, width))

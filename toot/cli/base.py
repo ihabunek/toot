@@ -20,6 +20,17 @@ T = t.TypeVar("T")
 PRIVACY_CHOICES = ["public", "unlisted", "private"]
 VISIBILITY_CHOICES = ["public", "unlisted", "private", "direct"]
 
+TUI_COLORS = {
+    "1": 1,
+    "16": 16,
+    "88": 88,
+    "256": 256,
+    "16777216": 16777216,
+    "24bit": 16777216,
+}
+TUI_COLORS_CHOICES = list(TUI_COLORS.keys())
+TUI_COLORS_VALUES = list(TUI_COLORS.values())
+
 DURATION_EXAMPLES = """e.g. "1 day", "2 hours 30 minutes", "5 minutes 30
 seconds" or any combination of above. Shorthand: "1d", "2h30m", "5m30s\""""
 

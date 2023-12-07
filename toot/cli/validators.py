@@ -4,6 +4,8 @@ import re
 from click import Context
 from typing import Optional
 
+from toot.cli.base import TUI_COLORS
+
 
 def validate_language(ctx: Context, param: str, value: Optional[str]):
     if value is None:
@@ -58,3 +60,16 @@ def validate_instance(ctx: click.Context, param: str, value: Optional[str]):
 
     value = value.rstrip("/")
     return value if value.startswith("http") else f"https://{value}"
+
+
+def validate_tui_colors(ctx, param, value) -> Optional[int]:
+    if value is None:
+        return None
+
+    if value in TUI_COLORS.values():
+        return value
+
+    if value in TUI_COLORS.keys():
+        return TUI_COLORS[value]
+
+    raise click.BadParameter(f"Invalid value: {value}. Expected one of: {', '.join(TUI_COLORS)}")
