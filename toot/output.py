@@ -264,14 +264,6 @@ def print_timeline(items: Iterable[Status]):
         print_divider()
 
 
-notification_msgs = {
-    "follow": "{account} now follows you",
-    "mention": "{account} mentioned you in",
-    "reblog": "{account} reblogged your status",
-    "favourite": "{account} favourited your status",
-}
-
-
 def print_notification(notification: Notification):
     print_notification_header(notification)
     if notification.status:
@@ -302,14 +294,6 @@ def print_notification_header(notification: Notification):
     else:
         click.secho(f"Unknown notification type: '{notification.type}'", err=True, fg="yellow")
         click.secho("Please report an issue to toot.", err=True, fg="yellow")
-
-
-notification_msgs = {
-    "follow": "{account} now follows you",
-    "mention": "{account} mentioned you in",
-    "reblog": "{account} reblogged your status",
-    "favourite": "{account} favourited your status",
-}
 
 
 def print_divider(char: str = "─"):

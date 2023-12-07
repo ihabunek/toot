@@ -151,12 +151,6 @@ def run_anon(runner):
 # Utils
 # ------------------------------------------------------------------------------
 
-strip_ansi_pattern = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-
-
-def strip_ansi(string):
-    return strip_ansi_pattern.sub("", string).strip()
-
 
 def posted_status_id(out):
     pattern = re.compile(r"Toot posted: http://([^/]+)/([^/]+)/(.+)")
