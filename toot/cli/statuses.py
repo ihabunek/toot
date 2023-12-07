@@ -2,7 +2,7 @@ import click
 
 from toot import api
 from toot.cli.base import cli, json_option, Context, pass_context
-from toot.cli.base import VISIBILITY_CHOICES, get_default_visibility
+from toot.cli.base import VISIBILITY_CHOICES
 from toot.output import print_table
 
 
@@ -51,7 +51,7 @@ def unfavourite(ctx: Context, status_id: str, json: bool):
     "--visibility", "-v",
     help="Post visibility",
     type=click.Choice(VISIBILITY_CHOICES),
-    default=get_default_visibility(),
+    default="public",
 )
 @json_option
 @pass_context
