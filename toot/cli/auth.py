@@ -2,6 +2,9 @@ import click
 import platform
 import sys
 import webbrowser
+from click.shell_completion import CompletionItem
+
+from click.types import StringParamType
 
 from toot import api, config, __version__
 from toot.auth import get_or_create_app, login_auth_code, login_username_password
@@ -17,6 +20,18 @@ instance_option = click.option(
     help="""Domain or base URL of the instance to log into,
             e.g. 'mastodon.social' or 'https://mastodon.social'""",
 )
+
+
+class AccountParamType(StringParamType):
+    """Custom type to add shell completion for account names"""
+
+    def shell_complete(self, ctx, param, incomplete: str):
+        accounts = config.load_config()["users"].keys()
+        return [
+            CompletionItem(a)
+            for a in accounts
+            if a.lower().startswith(incomplete.lower())
+        ]
 
 
 @cli.command()
@@ -101,7 +116,7 @@ def login(base_url: str):
 
 
 @cli.command()
-@click.argument("account", required=False)
+@click.argument("account", type=AccountParamType(), required=False)
 def logout(account: str):
     """Log out of ACCOUNT, delete stored access keys"""
     accounts = _get_accounts_list()
@@ -119,7 +134,7 @@ def logout(account: str):
 
 
 @cli.command()
-@click.argument("account", required=False)
+@click.argument("account", type=AccountParamType(), required=False)
 def activate(account: str):
     """Switch to logged in ACCOUNT."""
     accounts = _get_accounts_list()
