@@ -589,8 +589,7 @@ def get_instance(base_url: str) -> Response:
 
 
 def get_lists(app, user):
-    path = "/api/v1/lists"
-    return _get_response_list(app, user, path)
+    return http.get(app, user, "/api/v1/lists").json()
 
 
 def find_list_id(app, user, title):
