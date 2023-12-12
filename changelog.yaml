@@ -1,9 +1,10 @@
 0.40.0:
   date: TBA
   changes:
+    - "BREAKING: Remove deprecated `--disable-https` option for `login` and `login_cli`, pass the base URL instead"
     - "Migrate to `click` for commandline arguments. BC should be mostly preserved, please report any issues."
     - "Add shell completion, see: https://toot.bezdomni.net/shell_completion.html"
-    - "Remove deprecated `--disable-https` option for `login` and `login_cli`, pass the base URL instead"
+    - "Add `--json` option to tag commands"
 
 0.39.0:
   date: 2023-11-23

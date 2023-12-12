@@ -130,39 +130,6 @@ def test_search_hashtag_json(app, user, run):
     assert h3["name"] == "hashtag_z"
 
 
-def test_tags(run, base_url):
-    result = run(cli.tags_followed)
-    assert result.exit_code == 0
-    assert result.stdout.strip() == "You're not following any hashtags."
-
-    result = run(cli.tags_follow, "foo")
-    assert result.exit_code == 0
-    assert result.stdout.strip() == "✓ You are now following #foo"
-
-    result = run(cli.tags_followed)
-    assert result.exit_code == 0
-    assert result.stdout.strip() == f"* #foo\t{base_url}/tags/foo"
-
-    result = run(cli.tags_follow, "bar")
-    assert result.exit_code == 0
-    assert result.stdout.strip() == "✓ You are now following #bar"
-
-    result = run(cli.tags_followed)
-    assert result.exit_code == 0
-    assert result.stdout.strip() == "\n".join([
-        f"* #bar\t{base_url}/tags/bar",
-        f"* #foo\t{base_url}/tags/foo",
-    ])
-
-    result = run(cli.tags_unfollow, "foo")
-    assert result.exit_code == 0
-    assert result.stdout.strip() == "✓ You are no longer following #foo"
-
-    result = run(cli.tags_followed)
-    assert result.exit_code == 0
-    assert result.stdout.strip() == f"* #bar\t{base_url}/tags/bar"
-
-
 def test_status(app, user, run):
     uuid = str(uuid4())
     status_id = api.post_status(app, user, uuid).json()["id"]

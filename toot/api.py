@@ -48,9 +48,9 @@ def _status_action(app, user, status_id, action, data=None) -> Response:
     return http.post(app, user, url, data=data)
 
 
-def _tag_action(app, user, tag_name, action):
+def _tag_action(app, user, tag_name, action) -> Response:
     url = f"/api/v1/tags/{tag_name}/{action}"
-    return http.post(app, user, url).json()
+    return http.post(app, user, url)
 
 
 def create_app(base_url):
@@ -499,11 +499,11 @@ def unfollow(app, user, account):
     return _account_action(app, user, account, 'unfollow')
 
 
-def follow_tag(app, user, tag_name):
+def follow_tag(app, user, tag_name) -> Response:
     return _tag_action(app, user, tag_name, 'follow')
 
 
-def unfollow_tag(app, user, tag_name):
+def unfollow_tag(app, user, tag_name) -> Response:
     return _tag_action(app, user, tag_name, 'unfollow')
 
 

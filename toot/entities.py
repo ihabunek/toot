@@ -409,6 +409,25 @@ class Relationship:
     note: str
 
 
+@dataclass
+class TagHistory:
+    day: str
+    uses: str
+    accounts: str
+
+
+@dataclass
+class Tag:
+    """
+    Represents a hashtag used within the content of a status.
+    https://docs.joinmastodon.org/entities/Tag/
+    """
+    name: str
+    url: str
+    history: List[TagHistory]
+    following: Optional[bool]
+
+
 # Generic data class instance
 T = TypeVar("T")
 

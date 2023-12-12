@@ -1,39 +1,52 @@
 import click
+import json as pyjson
 
 from toot import api
-from toot.cli.base import cli, pass_context, Context
+from toot.cli.base import cli, pass_context, json_option, Context
 from toot.output import print_tag_list, print_warning
 
 
 @cli.group(invoke_without_command=True)
+@json_option
 @click.pass_context
-def tags(ctx: click.Context):
+def tags(ctx: click.Context, json):
     """List, follow, and unfollow tags
 
     When invoked without a command, lists followed tags."""
     if ctx.invoked_subcommand is None:
-        response = api.followed_tags(ctx.obj.app, ctx.obj.user)
-        print_tag_list(response)
+        tags = api.followed_tags(ctx.obj.app, ctx.obj.user)
+        if json:
+            click.echo(pyjson.dumps(tags))
+        else:
+            print_tag_list(tags)
 
 
 @tags.command()
 @click.argument("tag")
+@json_option
 @pass_context
-def follow(ctx: Context, tag: str):
+def follow(ctx: Context, tag: str, json: bool):
     """Follow a hashtag"""
     tag = tag.lstrip("#")
-    api.follow_tag(ctx.app, ctx.user, tag)
-    click.secho(f"✓ You are now following #{tag}", fg="green")
+    response = api.follow_tag(ctx.app, ctx.user, tag)
+    if json:
+        click.echo(response.text)
+    else:
+        click.secho(f"✓ You are now following #{tag}", fg="green")
 
 
 @tags.command()
 @click.argument("tag")
+@json_option
 @pass_context
-def unfollow(ctx: Context, tag: str):
+def unfollow(ctx: Context, tag: str, json: bool):
     """Unfollow a hashtag"""
     tag = tag.lstrip("#")
-    api.unfollow_tag(ctx.app, ctx.user, tag)
-    click.secho(f"✓ You are no longer following #{tag}", fg="green")
+    response = api.unfollow_tag(ctx.app, ctx.user, tag)
+    if json:
+        click.echo(response.text)
+    else:
+        click.secho(f"✓ You are no longer following #{tag}", fg="green")
 
 
 # -- Deprecated commands -------------------------------------------------------
