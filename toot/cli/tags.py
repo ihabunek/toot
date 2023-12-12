@@ -6,19 +6,21 @@ from toot.cli.base import cli, pass_context, json_option, Context
 from toot.output import print_tag_list, print_warning
 
 
-@cli.group(invoke_without_command=True)
-@json_option
-@click.pass_context
-def tags(ctx: click.Context, json):
-    """List, follow, and unfollow tags
+@cli.group()
+def tags():
+    """List, follow, and unfollow tags"""
 
-    When invoked without a command, lists followed tags."""
-    if ctx.invoked_subcommand is None:
-        tags = api.followed_tags(ctx.obj.app, ctx.obj.user)
-        if json:
-            click.echo(pyjson.dumps(tags))
-        else:
-            print_tag_list(tags)
+
+@tags.command()
+@json_option
+@pass_context
+def followed(ctx: Context, json: bool):
+    """List followed tags"""
+    tags = api.followed_tags(ctx.app, ctx.user)
+    if json:
+        click.echo(pyjson.dumps(tags))
+    else:
+        print_tag_list(tags)
 
 
 @tags.command()
@@ -55,7 +57,7 @@ def unfollow(ctx: Context, tag: str, json: bool):
 @pass_context
 def tags_followed(ctx: Context):
     """List hashtags you follow"""
-    print_warning("`toot tags_followed` is deprecated in favour of `toot tags`")
+    print_warning("`toot tags_followed` is deprecated in favour of `toot tags followed`")
     response = api.followed_tags(ctx.app, ctx.user)
     print_tag_list(response)
 

@@ -3,7 +3,7 @@ from toot.entities import Tag, from_dict, from_dict_list
 
 
 def test_tags(run, base_url):
-    result = run(cli.tags)
+    result = run(cli.tags, "followed")
     assert result.exit_code == 0
     assert result.stdout.strip() == "You're not following any hashtags."
 
@@ -11,7 +11,7 @@ def test_tags(run, base_url):
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ You are now following #foo"
 
-    result = run(cli.tags)
+    result = run(cli.tags, "followed")
     assert result.exit_code == 0
     assert result.stdout.strip() == f"* #foo\t{base_url}/tags/foo"
 
@@ -19,7 +19,7 @@ def test_tags(run, base_url):
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ You are now following #bar"
 
-    result = run(cli.tags)
+    result = run(cli.tags, "followed")
     assert result.exit_code == 0
     assert result.stdout.strip() == "\n".join([
         f"* #bar\t{base_url}/tags/bar",
@@ -30,7 +30,7 @@ def test_tags(run, base_url):
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ You are no longer following #foo"
 
-    result = run(cli.tags)
+    result = run(cli.tags, "followed")
     assert result.exit_code == 0
     assert result.stdout.strip() == f"* #bar\t{base_url}/tags/bar"
 
@@ -38,13 +38,13 @@ def test_tags(run, base_url):
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ You are no longer following #bar"
 
-    result = run(cli.tags)
+    result = run(cli.tags, "followed")
     assert result.exit_code == 0
     assert result.stdout.strip() == "You're not following any hashtags."
 
 
 def test_tags_json(run_json):
-    result = run_json(cli.tags, "--json")
+    result = run_json(cli.tags, "followed", "--json")
     assert result == []
 
     result = run_json(cli.tags, "follow", "foo", "--json")
@@ -52,7 +52,7 @@ def test_tags_json(run_json):
     assert tag.name == "foo"
     assert tag.following is True
 
-    result = run_json(cli.tags, "--json")
+    result = run_json(cli.tags, "followed", "--json")
     [tag] = from_dict_list(Tag, result)
     assert tag.name == "foo"
     assert tag.following is True
@@ -62,7 +62,7 @@ def test_tags_json(run_json):
     assert tag.name == "bar"
     assert tag.following is True
 
-    result = run_json(cli.tags, "--json")
+    result = run_json(cli.tags, "followed", "--json")
     tags = from_dict_list(Tag, result)
     [bar, foo] = sorted(tags, key=lambda t: t.name)
     assert foo.name == "foo"
@@ -80,5 +80,5 @@ def test_tags_json(run_json):
     assert tag.name == "bar"
     assert tag.following is False
 
-    result = run_json(cli.tags, "--json")
+    result = run_json(cli.tags, "followed", "--json")
     assert result == []
