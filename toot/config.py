@@ -39,6 +39,10 @@ def make_config(path):
 
 
 def load_config():
+    # Just to prevent accidentally running tests on production
+    if os.environ.get("TOOT_TESTING"):
+        raise Exception("Tests should not access the config file!")
+
     path = get_config_file_path()
 
     if not os.path.exists(path):
