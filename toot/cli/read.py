@@ -63,7 +63,7 @@ def instance(ctx: Context, instance_url: Optional[str], json: bool):
         )
 
     if json:
-        print(response.text)
+        click.echo(response.text)
     else:
         instance = from_dict(Instance, response.json())
         print_instance(instance)
@@ -78,7 +78,7 @@ def search(ctx: Context, query: str, resolve: bool, json: bool):
     """Search for users or hashtags"""
     response = api.search(ctx.app, ctx.user, query, resolve)
     if json:
-        print(response.text)
+        click.echo(response.text)
     else:
         print_search_results(response.json())
 
@@ -91,7 +91,7 @@ def status(ctx: Context, status_id: str, json: bool):
     """Show a single status"""
     response = api.fetch_status(ctx.app, ctx.user, status_id)
     if json:
-        print(response.text)
+        click.echo(response.text)
     else:
         status = from_dict(Status, response.json())
         print_status(status)
@@ -105,7 +105,7 @@ def thread(ctx: Context, status_id: str, json: bool):
     """Show thread for a toot."""
     context_response = api.context(ctx.app, ctx.user, status_id)
     if json:
-        print(context_response.text)
+        click.echo(context_response.text)
     else:
         toot = api.fetch_status(ctx.app, ctx.user, status_id).json()
         context = context_response.json()
