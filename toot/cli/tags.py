@@ -3,12 +3,36 @@ import json as pyjson
 
 from toot import api
 from toot.cli.base import cli, pass_context, json_option, Context
+from toot.entities import Tag, from_dict
 from toot.output import print_tag_list, print_warning
 
 
 @cli.group()
 def tags():
     """List, follow, and unfollow tags"""
+
+
+@tags.command()
+@click.argument("tag")
+@json_option
+@pass_context
+def info(ctx: Context, tag, json: bool):
+    """Show a hashtag and its associated information"""
+    tag = api.find_tag(ctx.app, ctx.user, tag)
+
+    if not tag:
+        raise click.ClickException("Tag not found")
+
+    if json:
+        click.echo(pyjson.dumps(tag))
+    else:
+        tag = from_dict(Tag, tag)
+        click.secho(f"#{tag.name}", fg="yellow")
+        click.secho(tag.url, italic=True)
+        if tag.following:
+            click.echo("Followed")
+        else:
+            click.echo("Not followed")
 
 
 @tags.command()

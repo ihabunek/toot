@@ -543,6 +543,20 @@ def unfeature_tag(app, user, tag_id: str) -> Response:
     return http.delete(app, user, f"/api/v1/featured_tags/{tag_id}")
 
 
+def find_tag(app, user, tag) -> Optional[dict]:
+    """Find a hashtag by tag name or ID"""
+    tag = tag.lstrip("#")
+    results = search(app, user, tag, type="hashtags").json()
+
+    return next(
+        (
+            t for t in results["hashtags"]
+            if t["name"].lower() == tag.lstrip("#").lower() or t["id"] == tag
+        ),
+        None
+    )
+
+
 def find_featured_tag(app, user, tag) -> Optional[dict]:
     """Find a featured tag by tag name or ID"""
     return next(

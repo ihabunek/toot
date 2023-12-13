@@ -5,6 +5,7 @@
     - "Migrate to `click` for commandline arguments. BC should be mostly preserved, please report any issues."
     - "Add shell completion, see: https://toot.bezdomni.net/shell_completion.html"
     - "Add `--json` option to tag commands"
+    - "Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature` commands"
 
 0.39.0:
   date: 2023-11-23
