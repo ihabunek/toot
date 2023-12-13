@@ -4,7 +4,7 @@ import sys
 from os.path import join, expanduser
 from typing import NamedTuple
 
-__version__ = '0.39.0'
+__version__ = '0.40.0'
 
 
 class App(NamedTuple):
