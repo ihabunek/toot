@@ -5,11 +5,28 @@ Changelog
 
 **0.40.0 (TBA)**
 
-* Migrate to `click` for commandline arguments. BC should be mostly preserved,
-  please report any issues.
+This release includes a major rewrite to use
+[Click](https://click.palletsprojects.com/) for creating the command line
+interface. This allows for some new features like nested commands, setting
+parameters via environment variables, and shell completion. See docs for
+details. Backward compatibility should be mostly preserved, except for cases
+noted below please report any issues.
+
+* BREAKING: Remove deprecated `--disable-https` option for `login` and
+  `login_cli`, pass the base URL instead
+* BREAKING: Options `--debug`, `--color`, `--quiet` must be specified after
+  `toot` but before the command
+* Enable passing params via environment variables, see:
+  https://toot.bezdomni.net/environment_variables.html
 * Add shell completion, see: https://toot.bezdomni.net/shell_completion.html
-* Remove deprecated `--disable-https` option for `login` and `login_cli`, pass
-  the base URL instead
+* Add `--json` option to tag commands
+* Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature`
+  commands
+* Add `tags followed`, `tags follow`, and `tags unfollow` commands, deprecate
+  `tags_followed`, `tags_follow`, and `tags tags_unfollow`
+* Add `toot --width` option for setting your prefered terminal width
+* Add `--media-viewer` and `--colors` options to `toot tui`. These were
+  previously accessible only via settings.
 
 **0.39.0 (2023-11-23)**
 
