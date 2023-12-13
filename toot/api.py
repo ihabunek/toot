@@ -629,14 +629,6 @@ def get_lists(app, user):
     return http.get(app, user, "/api/v1/lists").json()
 
 
-def find_list_id(app, user, title):
-    lists = get_lists(app, user)
-    for list_item in lists:
-        if list_item["title"] == title:
-            return list_item["id"]
-    return None
-
-
 def get_list_accounts(app, user, list_id):
     path = f"/api/v1/lists/{list_id}/accounts"
     return _get_response_list(app, user, path)
