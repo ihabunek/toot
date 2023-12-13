@@ -531,6 +531,29 @@ def followed_tags(app, user):
     return _get_response_list(app, user, path)
 
 
+def featured_tags(app, user):
+    return http.get(app, user, "/api/v1/featured_tags")
+
+
+def feature_tag(app, user, tag: str) -> Response:
+    return http.post(app, user, "/api/v1/featured_tags", data={"name": tag})
+
+
+def unfeature_tag(app, user, tag_id: str) -> Response:
+    return http.delete(app, user, f"/api/v1/featured_tags/{tag_id}")
+
+
+def find_featured_tag(app, user, tag) -> Optional[dict]:
+    """Find a featured tag by tag name or ID"""
+    return next(
+        (
+            t for t in featured_tags(app, user).json()
+            if t["name"].lower() == tag.lstrip("#").lower() or t["id"] == tag
+        ),
+        None
+    )
+
+
 def whois(app, user, account):
     return http.get(app, user, f'/api/v1/accounts/{account}').json()
 

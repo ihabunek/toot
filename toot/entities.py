@@ -411,6 +411,10 @@ class Relationship:
 
 @dataclass
 class TagHistory:
+    """
+    Usage statistics for given days (typically the past week).
+    https://docs.joinmastodon.org/entities/Tag/#history
+    """
     day: str
     uses: str
     accounts: str
@@ -426,6 +430,19 @@ class Tag:
     url: str
     history: List[TagHistory]
     following: Optional[bool]
+
+
+@dataclass
+class FeaturedTag:
+    """
+    Represents a hashtag that is featured on a profile.
+    https://docs.joinmastodon.org/entities/FeaturedTag/
+    """
+    id: str
+    name: str
+    url: str
+    statuses_count: int
+    last_status_at: datetime
 
 
 # Generic data class instance

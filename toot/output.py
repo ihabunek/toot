@@ -115,11 +115,8 @@ def print_acct_list(accounts):
 
 
 def print_tag_list(tags):
-    if tags:
-        for tag in tags:
-            click.echo(f"* {format_tag_name(tag)}\t{tag['url']}")
-    else:
-        click.echo("You're not following any hashtags.")
+    for tag in tags:
+        click.echo(f"* {format_tag_name(tag)}\t{tag['url']}")
 
 
 def print_lists(lists):
