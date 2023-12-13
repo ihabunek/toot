@@ -12,7 +12,7 @@ from unittest import mock
 
 def test_post(app, user, run):
     text = "i wish i was a #lumberjack"
-    result = run(cli.post, text)
+    result = run(cli.post.post, text)
     assert result.exit_code == 0
 
     status_id = posted_status_id(result.stdout)
@@ -31,14 +31,14 @@ def test_post(app, user, run):
 
 
 def test_post_no_text(run):
-    result = run(cli.post)
+    result = run(cli.post.post)
     assert result.exit_code == 1
     assert result.stderr.strip() == "Error: You must specify either text or media to post."
 
 
 def test_post_json(run):
     content = "i wish i was a #lumberjack"
-    result = run(cli.post, content, "--json")
+    result = run(cli.post.post, content, "--json")
     assert result.exit_code == 0
 
     status = json.loads(result.stdout)
@@ -51,7 +51,7 @@ def test_post_json(run):
 
 def test_post_visibility(app, user, run):
     for visibility in ["public", "unlisted", "private", "direct"]:
-        result = run(cli.post, "foo", "--visibility", visibility)
+        result = run(cli.post.post, "foo", "--visibility", visibility)
         assert result.exit_code == 0
 
         status_id = posted_status_id(result.stdout)
@@ -63,7 +63,7 @@ def test_post_scheduled_at(app, user, run):
     text = str(uuid.uuid4())
     scheduled_at = datetime.now(timezone.utc).replace(microsecond=0) + timedelta(minutes=10)
 
-    result = run(cli.post, text, "--scheduled-at", scheduled_at.isoformat())
+    result = run(cli.post.post, text, "--scheduled-at", scheduled_at.isoformat())
     assert result.exit_code == 0
 
     assert "Toot scheduled for" in result.stdout
@@ -74,7 +74,7 @@ def test_post_scheduled_at(app, user, run):
 
 
 def test_post_scheduled_at_error(run):
-    result = run(cli.post, "foo", "--scheduled-at", "banana")
+    result = run(cli.post.post, "foo", "--scheduled-at", "banana")
     assert result.exit_code == 1
     # Stupid error returned by mastodon
     assert result.stderr.strip() == "Error: Record invalid"
@@ -96,7 +96,7 @@ def test_post_scheduled_in(app, user, run):
 
     datetimes = []
     for scheduled_in, delta in variants:
-        result = run(cli.post, text, "--scheduled-in", scheduled_in)
+        result = run(cli.post.post, text, "--scheduled-in", scheduled_in)
         assert result.exit_code == 0
 
         dttm = datetime.utcnow() + delta
@@ -115,13 +115,13 @@ def test_post_scheduled_in(app, user, run):
 
 
 def test_post_scheduled_in_invalid_duration(run):
-    result = run(cli.post, "foo", "--scheduled-in", "banana")
+    result = run(cli.post.post, "foo", "--scheduled-in", "banana")
     assert result.exit_code == 2
     assert "Invalid duration: banana" in result.stderr
 
 
 def test_post_scheduled_in_empty_duration(run):
-    result = run(cli.post, "foo", "--scheduled-in", "0m")
+    result = run(cli.post.post, "foo", "--scheduled-in", "0m")
     assert result.exit_code == 2
     assert "Empty duration" in result.stderr
 
@@ -130,7 +130,7 @@ def test_post_poll(app, user, run):
     text = str(uuid.uuid4())
 
     result = run(
-        cli.post, text,
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-option", "baz",
@@ -161,7 +161,7 @@ def test_post_poll_multiple(app, user, run):
     text = str(uuid.uuid4())
 
     result = run(
-        cli.post, text,
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-multiple"
@@ -177,7 +177,7 @@ def test_post_poll_expires_in(app, user, run):
     text = str(uuid.uuid4())
 
     result = run(
-        cli.post, text,
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-expires-in", "8h",
@@ -197,7 +197,7 @@ def test_post_poll_hide_totals(app, user, run):
     text = str(uuid.uuid4())
 
     result = run(
-        cli.post, text,
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-hide-totals"
@@ -216,14 +216,14 @@ def test_post_poll_hide_totals(app, user, run):
 
 
 def test_post_language(app, user, run):
-    result = run(cli.post, "test", "--language", "hr")
+    result = run(cli.post.post, "test", "--language", "hr")
     assert result.exit_code == 0
 
     status_id = posted_status_id(result.stdout)
     status = api.fetch_status(app, user, status_id).json()
     assert status["language"] == "hr"
 
-    result = run(cli.post, "test", "--language", "zh")
+    result = run(cli.post.post, "test", "--language", "zh")
     assert result.exit_code == 0
 
     status_id = posted_status_id(result.stdout)
@@ -232,7 +232,7 @@ def test_post_language(app, user, run):
 
 
 def test_post_language_error(run):
-    result = run(cli.post, "test", "--language", "banana")
+    result = run(cli.post.post, "test", "--language", "banana")
     assert result.exit_code == 2
     assert "Language should be a two letter abbreviation." in result.stderr
 
@@ -242,7 +242,7 @@ def test_media_thumbnail(app, user, run):
     thumbnail_path = path.join(ASSETS_DIR, "test1.png")
 
     result = run(
-        cli.post,
+        cli.post.post,
         "--media", video_path,
         "--thumbnail", thumbnail_path,
         "--description", "foo",
@@ -276,7 +276,7 @@ def test_media_attachments(app, user, run):
     path4 = path.join(ASSETS_DIR, "test4.png")
 
     result = run(
-        cli.post,
+        cli.post.post,
         "--media", path1,
         "--media", path2,
         "--media", path3,
@@ -309,7 +309,7 @@ def test_media_attachments(app, user, run):
 
 def test_too_many_media(run):
     m = path.join(ASSETS_DIR, "test1.png")
-    result = run(cli.post, "-m", m, "-m", m, "-m", m, "-m", m, "-m", m)
+    result = run(cli.post.post, "-m", m, "-m", m, "-m", m, "-m", m, "-m", m)
     assert result.exit_code == 1
     assert result.stderr.strip() == "Error: Cannot attach more than 4 files."
 
@@ -323,7 +323,7 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
 
     media_path = path.join(ASSETS_DIR, "test1.png")
 
-    result = run(cli.post, "--media", media_path)
+    result = run(cli.post.post, "--media", media_path)
     assert result.exit_code == 0
 
     status_id = posted_status_id(result.stdout)
@@ -342,7 +342,7 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
 def test_reply_thread(app, user, friend, run):
     status = api.post_status(app, friend, "This is the status").json()
 
-    result = run(cli.post, "--reply-to", status["id"], "This is the reply")
+    result = run(cli.post.post, "--reply-to", status["id"], "This is the reply")
     assert result.exit_code == 0
 
     status_id = posted_status_id(result.stdout)
@@ -350,7 +350,7 @@ def test_reply_thread(app, user, friend, run):
 
     assert reply["in_reply_to_id"] == status["id"]
 
-    result = run(cli.thread, status["id"])
+    result = run(cli.read.thread, status["id"])
     assert result.exit_code == 0
 
     [s1, s2] = [s.strip() for s in re.split(r"─+", result.stdout) if s.strip()]

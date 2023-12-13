@@ -8,7 +8,7 @@ from uuid import uuid4
 
 
 def test_instance_default(app, run):
-    result = run(cli.instance)
+    result = run(cli.read.instance)
     assert result.exit_code == 0
 
     assert "Mastodon" in result.stdout
@@ -17,7 +17,7 @@ def test_instance_default(app, run):
 
 
 def test_instance_with_url(app, run):
-    result = run(cli.instance, TOOT_TEST_BASE_URL)
+    result = run(cli.read.instance, TOOT_TEST_BASE_URL)
     assert result.exit_code == 0
 
     assert "Mastodon" in result.stdout
@@ -26,7 +26,7 @@ def test_instance_with_url(app, run):
 
 
 def test_instance_json(app, run):
-    result = run(cli.instance, "--json")
+    result = run(cli.read.instance, "--json")
     assert result.exit_code == 0
 
     data = json.loads(result.stdout)
@@ -36,7 +36,7 @@ def test_instance_json(app, run):
 
 
 def test_instance_anon(app, run_anon, base_url):
-    result = run_anon(cli.instance, base_url)
+    result = run_anon(cli.read.instance, base_url)
     assert result.exit_code == 0
 
     assert "Mastodon" in result.stdout
@@ -44,19 +44,19 @@ def test_instance_anon(app, run_anon, base_url):
     assert "running Mastodon" in result.stdout
 
     # Need to specify the instance name when running anon
-    result = run_anon(cli.instance)
+    result = run_anon(cli.read.instance)
     assert result.exit_code == 1
     assert result.stderr == "Error: Please specify an instance.\n"
 
 
 def test_whoami(user, run):
-    result = run(cli.whoami)
+    result = run(cli.read.whoami)
     assert result.exit_code == 0
     assert f"@{user.username}" in result.stdout
 
 
 def test_whoami_json(user, run):
-    result = run(cli.whoami, "--json")
+    result = run(cli.read.whoami, "--json")
     assert result.exit_code == 0
 
     data = json.loads(result.stdout)
@@ -74,13 +74,13 @@ def test_whois(app, friend, run):
     ]
 
     for username in variants:
-        result = run(cli.whois, username)
+        result = run(cli.read.whois, username)
         assert result.exit_code == 0
         assert f"@{friend.username}" in result.stdout
 
 
 def test_whois_json(app, friend, run):
-    result = run(cli.whois, friend.username, "--json")
+    result = run(cli.read.whois, friend.username, "--json")
     assert result.exit_code == 0
 
     data = json.loads(result.stdout)
@@ -90,13 +90,13 @@ def test_whois_json(app, friend, run):
 
 
 def test_search_account(friend, run):
-    result = run(cli.search, friend.username)
+    result = run(cli.read.search, friend.username)
     assert result.exit_code == 0
     assert result.stdout.strip() == f"Accounts:\n* @{friend.username}"
 
 
 def test_search_account_json(friend, run):
-    result = run(cli.search, friend.username, "--json")
+    result = run(cli.read.search, friend.username, "--json")
     assert result.exit_code == 0
 
     data = json.loads(result.stdout)
@@ -109,7 +109,7 @@ def test_search_hashtag(app, user, run):
     api.post_status(app, user, "#hashtag_y")
     api.post_status(app, user, "#hashtag_z")
 
-    result = run(cli.search, "#hashtag")
+    result = run(cli.read.search, "#hashtag")
     assert result.exit_code == 0
     assert result.stdout.strip() == "Hashtags:\n#hashtag_x, #hashtag_y, #hashtag_z"
 
@@ -119,7 +119,7 @@ def test_search_hashtag_json(app, user, run):
     api.post_status(app, user, "#hashtag_y")
     api.post_status(app, user, "#hashtag_z")
 
-    result = run(cli.search, "#hashtag", "--json")
+    result = run(cli.read.search, "#hashtag", "--json")
     assert result.exit_code == 0
 
     data = json.loads(result.stdout)
@@ -134,7 +134,7 @@ def test_status(app, user, run):
     uuid = str(uuid4())
     status_id = api.post_status(app, user, uuid).json()["id"]
 
-    result = run(cli.status, status_id)
+    result = run(cli.read.status, status_id)
     assert result.exit_code == 0
 
     out = result.stdout.strip()
@@ -147,7 +147,7 @@ def test_status_json(app, user, run):
     uuid = str(uuid4())
     status_id = api.post_status(app, user, uuid).json()["id"]
 
-    result = run(cli.status, status_id, "--json")
+    result = run(cli.read.status, status_id, "--json")
     assert result.exit_code == 0
 
     status = from_dict(Status, json.loads(result.stdout))
@@ -166,7 +166,7 @@ def test_thread(app, user, run):
     s3 = api.post_status(app, user, uuid3, in_reply_to_id=s2["id"]).json()
 
     for status in [s1, s2, s3]:
-        result = run(cli.thread, status["id"])
+        result = run(cli.read.thread, status["id"])
         assert result.exit_code == 0
 
         bits = re.split(r"─+", result.stdout.strip())
@@ -192,7 +192,7 @@ def test_thread_json(app, user, run):
     s2 = api.post_status(app, user, uuid2, in_reply_to_id=s1["id"]).json()
     s3 = api.post_status(app, user, uuid3, in_reply_to_id=s2["id"]).json()
 
-    result = run(cli.thread, s2["id"], "--json")
+    result = run(cli.read.thread, s2["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)

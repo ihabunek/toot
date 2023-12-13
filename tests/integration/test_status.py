@@ -9,7 +9,7 @@ from toot.exceptions import NotFoundError
 def test_delete(app, user, run):
     status = api.post_status(app, user, "foo").json()
 
-    result = run(cli.delete, status["id"])
+    result = run(cli.statuses.delete, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status deleted"
 
@@ -20,7 +20,7 @@ def test_delete(app, user, run):
 def test_delete_json(app, user, run):
     status = api.post_status(app, user, "foo").json()
 
-    result = run(cli.delete, status["id"], "--json")
+    result = run(cli.statuses.delete, status["id"], "--json")
     assert result.exit_code == 0
 
     out = result.stdout
@@ -35,14 +35,14 @@ def test_favourite(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["favourited"]
 
-    result = run(cli.favourite, status["id"])
+    result = run(cli.statuses.favourite, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status favourited"
 
     status = api.fetch_status(app, user, status["id"]).json()
     assert status["favourited"]
 
-    result = run(cli.unfavourite, status["id"])
+    result = run(cli.statuses.unfavourite, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status unfavourited"
 
@@ -57,14 +57,14 @@ def test_favourite_json(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["favourited"]
 
-    result = run(cli.favourite, status["id"], "--json")
+    result = run(cli.statuses.favourite, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
     assert result["id"] == status["id"]
     assert result["favourited"] is True
 
-    result = run(cli.unfavourite, status["id"], "--json")
+    result = run(cli.statuses.unfavourite, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
@@ -76,22 +76,22 @@ def test_reblog(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["reblogged"]
 
-    result = run(cli.reblogged_by, status["id"])
+    result = run(cli.statuses.reblogged_by, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "This status is not reblogged by anyone"
 
-    result = run(cli.reblog, status["id"])
+    result = run(cli.statuses.reblog, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status reblogged"
 
     status = api.fetch_status(app, user, status["id"]).json()
     assert status["reblogged"]
 
-    result = run(cli.reblogged_by, status["id"])
+    result = run(cli.statuses.reblogged_by, status["id"])
     assert result.exit_code == 0
     assert user.username in result.stdout
 
-    result = run(cli.unreblog, status["id"])
+    result = run(cli.statuses.unreblog, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status unreblogged"
 
@@ -103,20 +103,20 @@ def test_reblog_json(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["reblogged"]
 
-    result = run(cli.reblog, status["id"], "--json")
+    result = run(cli.statuses.reblog, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
     assert result["reblogged"] is True
     assert result["reblog"]["id"] == status["id"]
 
-    result = run(cli.reblogged_by, status["id"], "--json")
+    result = run(cli.statuses.reblogged_by, status["id"], "--json")
     assert result.exit_code == 0
 
     [reblog] = json.loads(result.stdout)
     assert reblog["acct"] == user.username
 
-    result = run(cli.unreblog, status["id"], "--json")
+    result = run(cli.statuses.unreblog, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
@@ -128,14 +128,14 @@ def test_pin(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["pinned"]
 
-    result = run(cli.pin, status["id"])
+    result = run(cli.statuses.pin, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status pinned"
 
     status = api.fetch_status(app, user, status["id"]).json()
     assert status["pinned"]
 
-    result = run(cli.unpin, status["id"])
+    result = run(cli.statuses.unpin, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status unpinned"
 
@@ -147,14 +147,14 @@ def test_pin_json(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["pinned"]
 
-    result = run(cli.pin, status["id"], "--json")
+    result = run(cli.statuses.pin, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
     assert result["pinned"] is True
     assert result["id"] == status["id"]
 
-    result = run(cli.unpin, status["id"], "--json")
+    result = run(cli.statuses.unpin, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
@@ -166,14 +166,14 @@ def test_bookmark(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["bookmarked"]
 
-    result = run(cli.bookmark, status["id"])
+    result = run(cli.statuses.bookmark, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status bookmarked"
 
     status = api.fetch_status(app, user, status["id"]).json()
     assert status["bookmarked"]
 
-    result = run(cli.unbookmark, status["id"])
+    result = run(cli.statuses.unbookmark, status["id"])
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status unbookmarked"
 
@@ -185,14 +185,14 @@ def test_bookmark_json(app, user, run):
     status = api.post_status(app, user, "foo").json()
     assert not status["bookmarked"]
 
-    result = run(cli.bookmark, status["id"], "--json")
+    result = run(cli.statuses.bookmark, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)
     assert result["id"] == status["id"]
     assert result["bookmarked"] is True
 
-    result = run(cli.unbookmark, status["id"], "--json")
+    result = run(cli.statuses.unbookmark, status["id"], "--json")
     assert result.exit_code == 0
 
     result = json.loads(result.stdout)

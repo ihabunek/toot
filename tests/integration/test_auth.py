@@ -46,7 +46,7 @@ SAMPLE_CONFIG = {
 
 
 def test_env(run: Run):
-    result = run(cli.env)
+    result = run(cli.auth.env)
     assert result.exit_code == 0
     assert "toot" in result.stdout
     assert "Python" in result.stdout
@@ -55,7 +55,7 @@ def test_env(run: Run):
 @mock.patch("toot.config.load_config")
 def test_auth_empty(load_config: MagicMock, run: Run):
     load_config.return_value = EMPTY_CONFIG
-    result = run(cli.auth)
+    result = run(cli.auth.auth)
     assert result.exit_code == 0
     assert result.stdout.strip() == "You are not logged in to any accounts"
 
@@ -63,7 +63,7 @@ def test_auth_empty(load_config: MagicMock, run: Run):
 @mock.patch("toot.config.load_config")
 def test_auth_full(load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
-    result = run(cli.auth)
+    result = run(cli.auth.auth)
     assert result.exit_code == 0
     assert result.stdout.strip().startswith("Authenticated accounts:")
     assert "frank@foo.social" in result.stdout
@@ -86,7 +86,7 @@ def test_login_cli(
     load_app.return_value = None
 
     result = run(
-        cli.login_cli,
+        cli.auth.login_cli,
         "--instance", "http://localhost:3000",
         "--email", f"{user.username}@example.com",
         "--password", "password",
@@ -123,7 +123,7 @@ def test_login_cli_wrong_password(
     load_app.return_value = None
 
     result = run(
-        cli.login_cli,
+        cli.auth.login_cli,
         "--instance", "http://localhost:3000",
         "--email", f"{user.username}@example.com",
         "--password", "wrong password",
@@ -146,7 +146,7 @@ def test_login_cli_wrong_password(
 def test_logout(delete_user: MagicMock, load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
-    result = run(cli.logout, "frank@foo.social")
+    result = run(cli.auth.logout, "frank@foo.social")
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Account frank@foo.social logged out"
     delete_user.assert_called_once_with(User("foo.social", "frank", "123"))
@@ -156,7 +156,7 @@ def test_logout(delete_user: MagicMock, load_config: MagicMock, run: Run):
 def test_logout_not_logged_in(load_config: MagicMock, run: Run):
     load_config.return_value = EMPTY_CONFIG
 
-    result = run(cli.logout)
+    result = run(cli.auth.logout)
     assert result.exit_code == 1
     assert result.stderr.strip() == "Error: You're not logged into any accounts"
 
@@ -165,7 +165,7 @@ def test_logout_not_logged_in(load_config: MagicMock, run: Run):
 def test_logout_account_not_specified(load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
-    result = run(cli.logout)
+    result = run(cli.auth.logout)
     assert result.exit_code == 1
     assert result.stderr.startswith("Error: Specify account to log out")
 
@@ -174,7 +174,7 @@ def test_logout_account_not_specified(load_config: MagicMock, run: Run):
 def test_logout_account_does_not_exist(load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
-    result = run(cli.logout, "banana")
+    result = run(cli.auth.logout, "banana")
     assert result.exit_code == 1
     assert result.stderr.startswith("Error: Account not found")
 
@@ -184,7 +184,7 @@ def test_logout_account_does_not_exist(load_config: MagicMock, run: Run):
 def test_activate(activate_user: MagicMock, load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
-    result = run(cli.activate, "frank@foo.social")
+    result = run(cli.auth.activate, "frank@foo.social")
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Account frank@foo.social activated"
     activate_user.assert_called_once_with(User("foo.social", "frank", "123"))
@@ -194,7 +194,7 @@ def test_activate(activate_user: MagicMock, load_config: MagicMock, run: Run):
 def test_activate_not_logged_in(load_config: MagicMock, run: Run):
     load_config.return_value = EMPTY_CONFIG
 
-    result = run(cli.activate)
+    result = run(cli.auth.activate)
     assert result.exit_code == 1
     assert result.stderr.strip() == "Error: You're not logged into any accounts"
 
@@ -203,7 +203,7 @@ def test_activate_not_logged_in(load_config: MagicMock, run: Run):
 def test_activate_account_not_given(load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
-    result = run(cli.activate)
+    result = run(cli.auth.activate)
     assert result.exit_code == 1
     assert result.stderr.startswith("Error: Specify account to activate")
 
@@ -212,6 +212,6 @@ def test_activate_account_not_given(load_config: MagicMock, run: Run):
 def test_activate_invalid_Account(load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
-    result = run(cli.activate, "banana")
+    result = run(cli.auth.activate, "banana")
     assert result.exit_code == 1
     assert result.stderr.startswith("Error: Account not found")
