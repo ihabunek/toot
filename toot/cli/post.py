@@ -7,8 +7,8 @@ from time import sleep, time
 from typing import BinaryIO, Optional, Tuple
 
 from toot import api
-from toot.cli.base import cli, json_option, pass_context, Context
-from toot.cli.base import DURATION_EXAMPLES, VISIBILITY_CHOICES
+from toot.cli import cli, json_option, pass_context, Context
+from toot.cli import DURATION_EXAMPLES, VISIBILITY_CHOICES
 from toot.cli.validators import validate_duration, validate_language
 from toot.entities import MediaAttachment, from_dict
 from toot.utils import EOF_KEY, delete_tmp_status_file, editor_input, multiline_input

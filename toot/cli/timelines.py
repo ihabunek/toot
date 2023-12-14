@@ -2,7 +2,7 @@ import sys
 import click
 
 from toot import api
-from toot.cli.base import cli, pass_context, Context
+from toot.cli import cli, pass_context, Context
 from typing import Optional
 from toot.cli.validators import validate_instance
 

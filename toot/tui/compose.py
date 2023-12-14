@@ -1,7 +1,7 @@
 import urwid
 import logging
 
-from toot.cli.base import get_default_visibility
+from toot.cli import get_default_visibility
 
 from .constants import VISIBILITY_OPTIONS
 from .widgets import Button, EditBox

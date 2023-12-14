@@ -7,7 +7,7 @@ from typing import NamedTuple, Optional
 
 from toot import api, config, __version__, settings
 from toot import App, User
-from toot.cli.base import get_default_visibility
+from toot.cli import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer

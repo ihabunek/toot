@@ -1,7 +1,7 @@
 import click
 
 from toot import api, config
-from toot.cli.base import Context, cli, pass_context
+from toot.cli import Context, cli, pass_context
 from toot.output import print_list_accounts, print_lists, print_warning
 
 

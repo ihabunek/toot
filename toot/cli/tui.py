@@ -1,7 +1,7 @@
 import click
 
 from typing import Optional
-from toot.cli.base import TUI_COLORS, Context, cli, pass_context
+from toot.cli import TUI_COLORS, Context, cli, pass_context
 from toot.cli.validators import validate_tui_colors
 from toot.tui.app import TUI, TuiOptions
 

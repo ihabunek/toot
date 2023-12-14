@@ -9,7 +9,7 @@ from toot.cli.validators import validate_instance
 from toot.entities import Instance, Status, from_dict, Account
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_account, print_instance, print_search_results, print_status, print_timeline
-from toot.cli.base import cli, json_option, pass_context, Context
+from toot.cli import cli, json_option, pass_context, Context
 
 
 @cli.command()

@@ -8,7 +8,7 @@ from click.types import StringParamType
 
 from toot import api, config, __version__
 from toot.auth import get_or_create_app, login_auth_code, login_username_password
-from toot.cli.base import cli
+from toot.cli import cli
 from toot.cli.validators import validate_instance
 
 

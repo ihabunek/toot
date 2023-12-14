@@ -4,7 +4,7 @@ import re
 from click import Context
 from typing import Optional
 
-from toot.cli.base import TUI_COLORS
+from toot.cli import TUI_COLORS
 
 
 def validate_language(ctx: Context, param: str, value: Optional[str]):

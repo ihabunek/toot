@@ -2,7 +2,7 @@ import click
 import json as pyjson
 
 from toot import api
-from toot.cli.base import cli, pass_context, json_option, Context
+from toot.cli import cli, pass_context, json_option, Context
 from toot.entities import Tag, from_dict
 from toot.output import print_tag_list, print_warning
 

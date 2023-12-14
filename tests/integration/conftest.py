@@ -23,8 +23,7 @@ import uuid
 from click.testing import CliRunner, Result
 from pathlib import Path
 from toot import api, App, User
-from toot.cli import Context
-from toot.cli.base import TootObj
+from toot.cli import Context, TootObj
 
 
 def pytest_configure(config):
