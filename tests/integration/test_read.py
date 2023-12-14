@@ -46,7 +46,7 @@ def test_instance_anon(app, run_anon, base_url):
     # Need to specify the instance name when running anon
     result = run_anon(cli.read.instance)
     assert result.exit_code == 1
-    assert result.stderr == "Error: Please specify an instance.\n"
+    assert result.stderr.strip() == "Error: INSTANCE argument not given and not logged in"
 
 
 def test_whoami(user, run):

@@ -9,7 +9,7 @@ from toot.cli.validators import validate_instance
 from toot.entities import Instance, Status, from_dict, Account
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_account, print_instance, print_search_results, print_status, print_timeline
-from toot.cli import cli, json_option, pass_context, Context
+from toot.cli import cli, get_context, json_option, pass_context, Context
 
 
 @cli.command()
@@ -43,30 +43,33 @@ def whois(ctx: Context, account: str, json: bool):
 
 
 @cli.command()
-@click.argument("instance_url", required=False, callback=validate_instance)
+@click.argument("instance", callback=validate_instance, required=False)
 @json_option
-@pass_context
-def instance(ctx: Context, instance_url: Optional[str], json: bool):
-    """Display instance details"""
-    default_url = ctx.app.base_url if ctx.app else None
-    base_url = instance_url or default_url
+def instance(instance: Optional[str], json: bool):
+    """Display instance details
 
-    if not base_url:
-        raise ConsoleError("Please specify an instance.")
+    INSTANCE can be a domain or base URL of the instance to display.
+    e.g. 'mastodon.social' or 'https://mastodon.social'. If not
+    given will display details for the currently logged in instance.
+    """
+    if not instance:
+        context = get_context()
+        if not context.app:
+            raise click.ClickException("INSTANCE argument not given and not logged in")
+        instance = context.app.base_url
 
     try:
-        response = api.get_instance(base_url)
+        response = api.get_instance(instance)
     except ApiError:
         raise ConsoleError(
-            f"Instance not found at {base_url}.\n" +
+            f"Instance not found at {instance}.\n" +
             "The given domain probably does not host a Mastodon instance."
         )
 
     if json:
         click.echo(response.text)
     else:
-        instance = from_dict(Instance, response.json())
-        print_instance(instance)
+        print_instance(from_dict(Instance, response.json()))
 
 
 @cli.command()

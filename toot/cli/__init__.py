@@ -85,12 +85,12 @@ def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[
     """Pass the toot Context as first argument."""
     @wraps(f)
     def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> R:
-        return f(_get_context(), *args, **kwargs)
+        return f(get_context(), *args, **kwargs)
 
     return wrapped
 
 
-def _get_context() -> Context:
+def get_context() -> Context:
     click_context = click.get_current_context()
     obj: TootObj = click_context.obj
 
