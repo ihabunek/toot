@@ -35,6 +35,7 @@ docs-serve:
 docs-deploy: docs
 	rsync --archive --compress --delete --stats book/ bezdomni:web/toot
 
+.PHONY: bundle
 bundle:
 	mkdir bundle
 	cp toot/__main__.py bundle
