@@ -79,7 +79,7 @@ class Timeline(urwid.Columns):
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
-        item = StatusListItem(status, self.tui.args.relative_datetimes)
+        item = StatusListItem(status, self.tui.options.relative_datetimes)
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
@@ -95,7 +95,7 @@ class Timeline(urwid.Columns):
             return None
 
         poll = status.original.data.get("poll")
-        show_media = status.original.data["media_attachments"] and self.tui.media_viewer
+        show_media = status.original.data["media_attachments"] and self.tui.options.media_viewer
 
         options = [
             "[A]ccount" if not status.is_mine else "",
@@ -107,7 +107,6 @@ class Timeline(urwid.Columns):
             "[T]hread" if not self.is_thread else "",
             "L[i]nks",
             "[M]edia" if show_media else "",
-            self.tui.media_viewer,
             "[R]eply",
             "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",

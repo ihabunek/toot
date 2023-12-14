@@ -3,10 +3,10 @@ import os
 
 from functools import wraps
 from os.path import dirname, join
+from typing import Optional
 
 from toot import User, App, get_config_dir
 from toot.exceptions import ConsoleError
-from toot.output import print_out
 
 
 TOOT_CONFIG_FILE_NAME = "config.json"
@@ -29,8 +29,6 @@ def make_config(path):
         "active_user": None,
     }
 
-    print_out("Creating config file at <blue>{}</blue>".format(path))
-
     # Ensure dir exists
     os.makedirs(dirname(path), exist_ok=True)
 
@@ -41,6 +39,10 @@ def make_config(path):
 
 
 def load_config():
+    # Just to prevent accidentally running tests on production
+    if os.environ.get("TOOT_TESTING"):
+        raise Exception("Tests should not access the config file!")
+
     path = get_config_file_path()
 
     if not os.path.exists(path):
@@ -85,7 +87,7 @@ def get_user_app(user_id):
     return extract_user_app(load_config(), user_id)
 
 
-def load_app(instance):
+def load_app(instance: str) -> Optional[App]:
     config = load_config()
     if instance in config['apps']:
         return App(**config['apps'][instance])

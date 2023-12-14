@@ -1,3 +1,3 @@
-from .console import main
+from toot.cli import cli
 
-main()
+cli()

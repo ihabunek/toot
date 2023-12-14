@@ -3,9 +3,11 @@ import subprocess
 import urwid
 
 from concurrent.futures import ThreadPoolExecutor
+from typing import NamedTuple, Optional
 
 from toot import api, config, __version__, settings
-from toot.console import get_default_visibility
+from toot import App, User
+from toot.cli import get_default_visibility
 from toot.exceptions import ApiError
 
 from .compose import StatusComposer
@@ -23,6 +25,12 @@ urwid.set_encoding('UTF-8')
 
 
 DEFAULT_MAX_TOOT_CHARS = 500
+
+
+class TuiOptions(NamedTuple):
+    colors: int
+    media_viewer: Optional[str]
+    relative_datetimes: bool
 
 
 class Header(urwid.WidgetWrap):
@@ -80,9 +88,11 @@ class TUI(urwid.Frame):
     screen: urwid.BaseScreen
 
     @staticmethod
-    def create(app, user, args):
+    def create(app: App, user: User, args: TuiOptions):
         """Factory method, sets up TUI and an event loop."""
-        screen = TUI.create_screen(args)
+        screen = urwid.raw_display.Screen()
+        screen.set_terminal_properties(args.colors)
+
         tui = TUI(app, user, screen, args)
 
         palette = PALETTE.copy()
@@ -101,23 +111,11 @@ class TUI(urwid.Frame):
 
         return tui
 
-    @staticmethod
-    def create_screen(args):
-        screen = urwid.raw_display.Screen()
-
-        # Determine how many colors to use
-        default_colors = 1 if args.no_color else 16
-        colors = settings.get_setting("tui.colors", int, default_colors)
-        logger.debug(f"Setting colors to {colors}")
-        screen.set_terminal_properties(colors)
-
-        return screen
-
-    def __init__(self, app, user, screen, args):
+    def __init__(self, app, user, screen, options: TuiOptions):
         self.app = app
         self.user = user
-        self.args = args
         self.config = config.load_config()
+        self.options = options
 
         self.loop = None  # late init, set in `create`
         self.screen = screen
@@ -139,7 +137,6 @@ class TUI(urwid.Frame):
         self.can_translate = False
         self.account = None
         self.followed_accounts = []
-        self.media_viewer = settings.get_setting("tui.media_viewer", str)
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -503,8 +500,15 @@ class TUI(urwid.Frame):
         if not urls:
             return
 
-        if self.media_viewer:
-            subprocess.run([self.media_viewer] + urls)
+        media_viewer = self.options.media_viewer
+        if media_viewer:
+            try:
+                subprocess.run([media_viewer] + urls)
+            except FileNotFoundError:
+                self.footer.set_error_message(f"Media viewer not found: '{media_viewer}'")
+            except Exception as ex:
+                self.exception = ex
+                self.footer.set_error_message("Failed invoking media viewer. Press X to see exception.")
         else:
             self.footer.set_error_message("Media viewer not configured")
 

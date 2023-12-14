@@ -5,15 +5,17 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from os import path
 from tests.integration.conftest import ASSETS_DIR, posted_status_id
-from toot import CLIENT_NAME, CLIENT_WEBSITE, api
+from toot import CLIENT_NAME, CLIENT_WEBSITE, api, cli
 from toot.utils import get_text
 from unittest import mock
 
 
 def test_post(app, user, run):
     text = "i wish i was a #lumberjack"
-    out = run("post", text)
-    status_id = posted_status_id(out)
+    result = run(cli.post.post, text)
+    assert result.exit_code == 0
+
+    status_id = posted_status_id(result.stdout)
 
     status = api.fetch_status(app, user, status_id).json()
     assert text == get_text(status["content"])
@@ -28,11 +30,18 @@ def test_post(app, user, run):
         assert status["application"]["website"] == CLIENT_WEBSITE
 
 
+def test_post_no_text(run):
+    result = run(cli.post.post)
+    assert result.exit_code == 1
+    assert result.stderr.strip() == "Error: You must specify either text or media to post."
+
+
 def test_post_json(run):
     content = "i wish i was a #lumberjack"
-    out = run("post", content, "--json")
-    status = json.loads(out)
+    result = run(cli.post.post, content, "--json")
+    assert result.exit_code == 0
 
+    status = json.loads(result.stdout)
     assert get_text(status["content"]) == content
     assert status["visibility"] == "public"
     assert status["sensitive"] is False
@@ -42,8 +51,10 @@ def test_post_json(run):
 
 def test_post_visibility(app, user, run):
     for visibility in ["public", "unlisted", "private", "direct"]:
-        out = run("post", "foo", "--visibility", visibility)
-        status_id = posted_status_id(out)
+        result = run(cli.post.post, "foo", "--visibility", visibility)
+        assert result.exit_code == 0
+
+        status_id = posted_status_id(result.stdout)
         status = api.fetch_status(app, user, status_id).json()
         assert status["visibility"] == visibility
 
@@ -52,12 +63,21 @@ def test_post_scheduled_at(app, user, run):
     text = str(uuid.uuid4())
     scheduled_at = datetime.now(timezone.utc).replace(microsecond=0) + timedelta(minutes=10)
 
-    out = run("post", text, "--scheduled-at", scheduled_at.isoformat())
-    assert "Toot scheduled for" in out
+    result = run(cli.post.post, text, "--scheduled-at", scheduled_at.isoformat())
+    assert result.exit_code == 0
+
+    assert "Toot scheduled for" in result.stdout
 
     statuses = api.scheduled_statuses(app, user)
     [status] = [s for s in statuses if s["params"]["text"] == text]
     assert datetime.strptime(status["scheduled_at"], "%Y-%m-%dT%H:%M:%S.%f%z") == scheduled_at
+
+
+def test_post_scheduled_at_error(run):
+    result = run(cli.post.post, "foo", "--scheduled-at", "banana")
+    assert result.exit_code == 1
+    # Stupid error returned by mastodon
+    assert result.stderr.strip() == "Error: Record invalid"
 
 
 def test_post_scheduled_in(app, user, run):
@@ -76,9 +96,11 @@ def test_post_scheduled_in(app, user, run):
 
     datetimes = []
     for scheduled_in, delta in variants:
-        out = run("post", text, "--scheduled-in", scheduled_in)
+        result = run(cli.post.post, text, "--scheduled-in", scheduled_in)
+        assert result.exit_code == 0
+
         dttm = datetime.utcnow() + delta
-        assert out.startswith(f"Toot scheduled for: {str(dttm)[:16]}")
+        assert result.stdout.startswith(f"Toot scheduled for: {str(dttm)[:16]}")
         datetimes.append(dttm)
 
     scheduled = api.scheduled_statuses(app, user)
@@ -92,18 +114,31 @@ def test_post_scheduled_in(app, user, run):
         assert delta.total_seconds() < 5
 
 
+def test_post_scheduled_in_invalid_duration(run):
+    result = run(cli.post.post, "foo", "--scheduled-in", "banana")
+    assert result.exit_code == 2
+    assert "Invalid duration: banana" in result.stderr
+
+
+def test_post_scheduled_in_empty_duration(run):
+    result = run(cli.post.post, "foo", "--scheduled-in", "0m")
+    assert result.exit_code == 2
+    assert "Empty duration" in result.stderr
+
+
 def test_post_poll(app, user, run):
     text = str(uuid.uuid4())
 
-    out = run(
-        "post", text,
+    result = run(
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-option", "baz",
         "--poll-option", "qux",
     )
 
-    status_id = posted_status_id(out)
+    assert result.exit_code == 0
+    status_id = posted_status_id(result.stdout)
 
     status = api.fetch_status(app, user, status_id).json()
     assert status["poll"]["expired"] is False
@@ -125,15 +160,15 @@ def test_post_poll(app, user, run):
 def test_post_poll_multiple(app, user, run):
     text = str(uuid.uuid4())
 
-    out = run(
-        "post", text,
+    result = run(
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-multiple"
     )
+    assert result.exit_code == 0
 
-    status_id = posted_status_id(out)
-
+    status_id = posted_status_id(result.stdout)
     status = api.fetch_status(app, user, status_id).json()
     assert status["poll"]["multiple"] is True
 
@@ -141,14 +176,15 @@ def test_post_poll_multiple(app, user, run):
 def test_post_poll_expires_in(app, user, run):
     text = str(uuid.uuid4())
 
-    out = run(
-        "post", text,
+    result = run(
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-expires-in", "8h",
     )
+    assert result.exit_code == 0
 
-    status_id = posted_status_id(out)
+    status_id = posted_status_id(result.stdout)
 
     status = api.fetch_status(app, user, status_id).json()
     actual = datetime.strptime(status["poll"]["expires_at"], "%Y-%m-%dT%H:%M:%S.%f%z")
@@ -160,14 +196,15 @@ def test_post_poll_expires_in(app, user, run):
 def test_post_poll_hide_totals(app, user, run):
     text = str(uuid.uuid4())
 
-    out = run(
-        "post", text,
+    result = run(
+        cli.post.post, text,
         "--poll-option", "foo",
         "--poll-option", "bar",
         "--poll-hide-totals"
     )
+    assert result.exit_code == 0
 
-    status_id = posted_status_id(out)
+    status_id = posted_status_id(result.stdout)
 
     status = api.fetch_status(app, user, status_id).json()
 
@@ -179,30 +216,41 @@ def test_post_poll_hide_totals(app, user, run):
 
 
 def test_post_language(app, user, run):
-    out = run("post", "test", "--language", "hr")
-    status_id = posted_status_id(out)
+    result = run(cli.post.post, "test", "--language", "hr")
+    assert result.exit_code == 0
+
+    status_id = posted_status_id(result.stdout)
     status = api.fetch_status(app, user, status_id).json()
     assert status["language"] == "hr"
 
-    out = run("post", "test", "--language", "zh")
-    status_id = posted_status_id(out)
+    result = run(cli.post.post, "test", "--language", "zh")
+    assert result.exit_code == 0
+
+    status_id = posted_status_id(result.stdout)
     status = api.fetch_status(app, user, status_id).json()
     assert status["language"] == "zh"
+
+
+def test_post_language_error(run):
+    result = run(cli.post.post, "test", "--language", "banana")
+    assert result.exit_code == 2
+    assert "Language should be a two letter abbreviation." in result.stderr
 
 
 def test_media_thumbnail(app, user, run):
     video_path = path.join(ASSETS_DIR, "small.webm")
     thumbnail_path = path.join(ASSETS_DIR, "test1.png")
 
-    out = run(
-        "post",
+    result = run(
+        cli.post.post,
         "--media", video_path,
         "--thumbnail", thumbnail_path,
         "--description", "foo",
         "some text"
     )
+    assert result.exit_code == 0
 
-    status_id = posted_status_id(out)
+    status_id = posted_status_id(result.stdout)
     status = api.fetch_status(app, user, status_id).json()
     [media] = status["media_attachments"]
 
@@ -227,8 +275,8 @@ def test_media_attachments(app, user, run):
     path3 = path.join(ASSETS_DIR, "test3.png")
     path4 = path.join(ASSETS_DIR, "test4.png")
 
-    out = run(
-        "post",
+    result = run(
+        cli.post.post,
         "--media", path1,
         "--media", path2,
         "--media", path3,
@@ -239,8 +287,9 @@ def test_media_attachments(app, user, run):
         "--description", "Test 4",
         "some text"
     )
+    assert result.exit_code == 0
 
-    status_id = posted_status_id(out)
+    status_id = posted_status_id(result.stdout)
     status = api.fetch_status(app, user, status_id).json()
 
     [a1, a2, a3, a4] = status["media_attachments"]
@@ -258,6 +307,13 @@ def test_media_attachments(app, user, run):
     assert a4["description"] == "Test 4"
 
 
+def test_too_many_media(run):
+    m = path.join(ASSETS_DIR, "test1.png")
+    result = run(cli.post.post, "-m", m, "-m", m, "-m", m, "-m", m, "-m", m)
+    assert result.exit_code == 1
+    assert result.stderr.strip() == "Error: Cannot attach more than 4 files."
+
+
 @mock.patch("toot.utils.multiline_input")
 @mock.patch("sys.stdin.read")
 def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
@@ -267,8 +323,10 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
 
     media_path = path.join(ASSETS_DIR, "test1.png")
 
-    out = run("post", "--media", media_path)
-    status_id = posted_status_id(out)
+    result = run(cli.post.post, "--media", media_path)
+    assert result.exit_code == 0
+
+    status_id = posted_status_id(result.stdout)
 
     status = api.fetch_status(app, user, status_id).json()
     assert status["content"] == ""
@@ -284,14 +342,18 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
 def test_reply_thread(app, user, friend, run):
     status = api.post_status(app, friend, "This is the status").json()
 
-    out = run("post", "--reply-to", status["id"], "This is the reply")
-    status_id = posted_status_id(out)
+    result = run(cli.post.post, "--reply-to", status["id"], "This is the reply")
+    assert result.exit_code == 0
+
+    status_id = posted_status_id(result.stdout)
     reply = api.fetch_status(app, user, status_id).json()
 
     assert reply["in_reply_to_id"] == status["id"]
 
-    out = run("thread", status["id"])
-    [s1, s2] = [s.strip() for s in re.split(r"─+", out) if s.strip()]
+    result = run(cli.read.thread, status["id"])
+    assert result.exit_code == 0
+
+    [s1, s2] = [s.strip() for s in re.split(r"─+", result.stdout) if s.strip()]
 
     assert "This is the status" in s1
     assert "This is the reply" in s2

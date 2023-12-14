@@ -20,11 +20,10 @@ import psycopg2
 import pytest
 import uuid
 
+from click.testing import CliRunner, Result
 from pathlib import Path
 from toot import api, App, User
-from toot.console import run_command
-from toot.exceptions import ApiError, ConsoleError
-from toot.output import print_out
+from toot.cli import Context, TootObj
 
 
 def pytest_configure(config):
@@ -34,6 +33,7 @@ def pytest_configure(config):
 
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
+TOOT_TEST_BASE_URL = os.getenv("TOOT_TEST_BASE_URL")
 
 # Toot logo used for testing image upload
 TRUMPET = str(Path(__file__).parent.parent.parent / "trumpet.png")
@@ -72,12 +72,10 @@ def confirm_user(email):
 # DO NOT USE PUBLIC INSTANCES!!!
 @pytest.fixture(scope="session")
 def base_url():
-    base_url = os.getenv("TOOT_TEST_BASE_URL")
-
-    if not base_url:
+    if not TOOT_TEST_BASE_URL:
         pytest.skip("Skipping integration tests, TOOT_TEST_BASE_URL not set")
 
-    return base_url
+    return TOOT_TEST_BASE_URL
 
 
 @pytest.fixture(scope="session")
@@ -105,49 +103,53 @@ def friend_id(app, user, friend):
     return api.find_account(app, user, friend.username)["id"]
 
 
-@pytest.fixture
-def run(app, user, capsys):
-    def _run(command, *params, as_user=None):
-        # The try/catch duplicates logic from console.main to convert exceptions
-        # to printed error messages. TODO: could be deduped
-        try:
-            run_command(app, as_user or user, command, params or [])
-        except (ConsoleError, ApiError) as e:
-            print_out(str(e))
+@pytest.fixture(scope="session", autouse=True)
+def testing_env():
+    os.environ["TOOT_TESTING"] = "true"
 
-        out, err = capsys.readouterr()
-        assert err == ""
-        return strip_ansi(out)
+
+@pytest.fixture(scope="session")
+def runner():
+    return CliRunner(mix_stderr=False)
+
+
+@pytest.fixture
+def run(app, user, runner):
+    def _run(command, *params, input=None) -> Result:
+        obj = TootObj(test_ctx=Context(app, user))
+        return runner.invoke(command, params, obj=obj, input=input)
     return _run
 
 
 @pytest.fixture
-def run_json(run):
+def run_as(app, runner):
+    def _run_as(user, command, *params, input=None) -> Result:
+        obj = TootObj(test_ctx=Context(app, user))
+        return runner.invoke(command, params, obj=obj, input=input)
+    return _run_as
+
+
+@pytest.fixture
+def run_json(app, user, runner):
     def _run_json(command, *params):
-        out = run(command, *params)
-        return json.loads(out)
+        obj = TootObj(test_ctx=Context(app, user))
+        result = runner.invoke(command, params, obj=obj)
+        assert result.exit_code == 0
+        return json.loads(result.stdout)
     return _run_json
 
 
 @pytest.fixture
-def run_anon(capsys):
-    def _run(command, *params):
-        run_command(None, None, command, params or [])
-        out, err = capsys.readouterr()
-        assert err == ""
-        return strip_ansi(out)
+def run_anon(runner):
+    def _run(command, *params) -> Result:
+        obj = TootObj(test_ctx=Context(None, None))
+        return runner.invoke(command, params, obj=obj)
     return _run
 
 
 # ------------------------------------------------------------------------------
 # Utils
 # ------------------------------------------------------------------------------
-
-strip_ansi_pattern = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-
-
-def strip_ansi(string):
-    return strip_ansi_pattern.sub("", string).strip()
 
 
 def posted_status_id(out):
