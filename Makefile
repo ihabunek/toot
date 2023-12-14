@@ -1,3 +1,7 @@
+prefix = /usr/local
+bindir = $(prefix)/bin
+PIPX_HOME = /opt/pipx
+
 .PHONY: clean publish test docs
 
 dist :
@@ -46,3 +50,13 @@ bundle:
 		--output toot-`git describe`.pyz bundle \
 		--compress
 	echo "Bundle created: toot-`git describe`.pyz"
+
+install:
+	@test -w $(bindir) || { echo "No write access to $(bindir), use sudo ?" >&2; false; }
+	@test -w $(PIPX_HOME) || { echo "No write access to $(PIPX_HOME), use sudo ?" >&2; false; }
+	PIPX_HOME=$(PIPX_HOME) PIPX_BIN_DIR=$(bindir) pipx install --force .
+
+uninstall:
+	@test -w $(bindir) || { echo "No write access to $(bindir), use sudo ?" >&2; false; }
+	@test -w $(PIPX_HOME) || { echo "No write access to $(PIPX_HOME), use sudo ?" >&2; false; }
+	PIPX_HOME=$(PIPX_HOME) PIPX_BIN_DIR=$(bindir) pipx uninstall toot
