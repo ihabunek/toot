@@ -1,4 +1,3 @@
-# flake8: noqa
 import click
 import logging
 import os
@@ -130,12 +129,13 @@ def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, quiet: boo
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-from toot.cli import accounts
-from toot.cli import auth
-from toot.cli import lists
-from toot.cli import post
-from toot.cli import read
-from toot.cli import statuses
-from toot.cli import tags
-from toot.cli import timelines
-from toot.cli import tui
+
+from toot.cli import accounts  # noqa
+from toot.cli import auth  # noqa
+from toot.cli import lists  # noqa
+from toot.cli import post  # noqa
+from toot.cli import read  # noqa
+from toot.cli import statuses  # noqa
+from toot.cli import tags  # noqa
+from toot.cli import timelines  # noqa
+from toot.cli import tui  # noqa
