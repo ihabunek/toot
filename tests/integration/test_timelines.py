@@ -30,7 +30,7 @@ def friend_user(app, user):
 @pytest.fixture(scope="module")
 def friend_list(app, user, friend_user):
     friend_account = api.find_account(app, user, friend_user.username)
-    list = api.create_list(app, user, str(uuid4()))
+    list = api.create_list(app, user, str(uuid4())).json()
     api.add_accounts_to_list(app, user, list["id"], account_ids=[friend_account["id"]])
     return list
 

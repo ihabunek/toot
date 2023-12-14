@@ -639,7 +639,7 @@ def create_list(app, user, title, replies_policy="none"):
     json = {'title': title}
     if replies_policy:
         json['replies_policy'] = replies_policy
-    return http.post(app, user, url, json=json).json()
+    return http.post(app, user, url, json=json)
 
 
 def delete_list(app, user, id):
@@ -649,7 +649,7 @@ def delete_list(app, user, id):
 def add_accounts_to_list(app, user, list_id, account_ids):
     url = f"/api/v1/lists/{list_id}/accounts"
     json = {'account_ids': account_ids}
-    return http.post(app, user, url, json=json).json()
+    return http.post(app, user, url, json=json)
 
 
 def remove_accounts_from_list(app, user, list_id, account_ids):

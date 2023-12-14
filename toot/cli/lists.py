@@ -1,7 +1,8 @@
 import click
+import json as pyjson
 
 from toot import api, config
-from toot.cli import Context, cli, pass_context
+from toot.cli import Context, cli, pass_context, json_option
 from toot.output import print_list_accounts, print_lists, print_warning
 
 
@@ -24,26 +25,35 @@ def lists(ctx: click.Context):
 
 
 @lists.command()
+@json_option
 @pass_context
-def list(ctx: Context):
+def list(ctx: Context, json: bool):
     """List all your lists"""
     lists = api.get_lists(ctx.app, ctx.user)
 
-    if lists:
-        print_lists(lists)
+    if json:
+        click.echo(pyjson.dumps(lists))
     else:
-        click.echo("You have no lists defined.")
+        if lists:
+            print_lists(lists)
+        else:
+            click.echo("You have no lists defined.")
 
 
 @lists.command()
 @click.argument("title", required=False)
 @click.option("--id", help="List ID if not title is given")
+@json_option
 @pass_context
-def accounts(ctx: Context, title: str, id: str):
+def accounts(ctx: Context, title: str, id: str, json: bool):
     """List the accounts in a list"""
     list_id = _get_list_id(ctx, title, id)
     response = api.get_list_accounts(ctx.app, ctx.user, list_id)
-    print_list_accounts(response)
+
+    if json:
+        click.echo(pyjson.dumps(response))
+    else:
+        print_list_accounts(response)
 
 
 @lists.command()
@@ -54,36 +64,49 @@ def accounts(ctx: Context, title: str, id: str):
     default="none",
     help="Replies policy"
 )
+@json_option
 @pass_context
-def create(ctx: Context, title: str, replies_policy: str):
+def create(ctx: Context, title: str, replies_policy: str, json: bool):
     """Create a list"""
-    api.create_list(ctx.app, ctx.user, title=title, replies_policy=replies_policy)
-    click.secho(f"✓ List \"{title}\" created.", fg="green")
+    response = api.create_list(ctx.app, ctx.user, title=title, replies_policy=replies_policy)
+    if json:
+        print(response.text)
+    else:
+        click.secho(f"✓ List \"{title}\" created.", fg="green")
 
 
 @lists.command()
 @click.argument("title", required=False)
 @click.option("--id", help="List ID if not title is given")
+@json_option
 @pass_context
-def delete(ctx: Context, title: str, id: str):
+def delete(ctx: Context, title: str, id: str, json: bool):
     """Delete a list"""
     list_id = _get_list_id(ctx, title, id)
-    api.delete_list(ctx.app, ctx.user, list_id)
-    click.secho(f"✓ List \"{title if title else id}\" deleted.", fg="green")
+    response = api.delete_list(ctx.app, ctx.user, list_id)
+    if json:
+        click.echo(response.text)
+    else:
+        click.secho(f"✓ List \"{title if title else id}\" deleted.", fg="green")
 
 
 @lists.command()
 @click.argument("title", required=False)
 @click.argument("account")
 @click.option("--id", help="List ID if not title is given")
+@json_option
 @pass_context
-def add(ctx: Context, title: str, account: str, id: str):
+def add(ctx: Context, title: str, account: str, id: str, json: bool):
     """Add an account to a list"""
     list_id = _get_list_id(ctx, title, id)
     found_account = api.find_account(ctx.app, ctx.user, account)
 
     try:
-        api.add_accounts_to_list(ctx.app, ctx.user, list_id, [found_account["id"]])
+        response = api.add_accounts_to_list(ctx.app, ctx.user, list_id, [found_account["id"]])
+        if json:
+            click.echo(response.text)
+        else:
+            click.secho(f"✓ Added account \"{account}\"", fg="green")
     except Exception:
         # TODO: this is slow, improve
         # if we failed to add the account, try to give a
@@ -99,20 +122,25 @@ def add(ctx: Context, title: str, account: str, id: str):
             raise click.ClickException(f"You must follow @{account} before adding this account to a list.")
         raise
 
-    click.secho(f"✓ Added account \"{account}\"", fg="green")
-
 
 @lists.command()
 @click.argument("title", required=False)
 @click.argument("account")
 @click.option("--id", help="List ID if not title is given")
+@json_option
 @pass_context
-def remove(ctx: Context, title: str, account: str, id: str):
+def remove(ctx: Context, title: str, account: str, id: str, json: bool):
     """Remove an account from a list"""
     list_id = _get_list_id(ctx, title, id)
     found_account = api.find_account(ctx.app, ctx.user, account)
-    api.remove_accounts_from_list(ctx.app, ctx.user, list_id, [found_account["id"]])
-    click.secho(f"✓ Removed account \"{account}\"", fg="green")
+    response = api.remove_accounts_from_list(ctx.app, ctx.user, list_id, [found_account["id"]])
+    if json:
+        click.echo(response.text)
+    else:
+        click.secho(f"✓ Removed account \"{account}\"", fg="green")
+
+
+# -- Deprecated commands -------------------------------------------------------
 
 
 @cli.command(name="list_accounts", hidden=True)

@@ -19,7 +19,6 @@ noted below please report any issues.
 * Enable passing params via environment variables, see:
   https://toot.bezdomni.net/environment_variables.html
 * Add shell completion, see: https://toot.bezdomni.net/shell_completion.html
-* Add `--json` option to tag commands
 * Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature`
   commands
 * Add `tags followed`, `tags follow`, and `tags unfollow` sub-commands,
@@ -27,6 +26,8 @@ noted below please report any issues.
 * Add `lists accounts`, `lists add`, `lists create`, `lists delete`, `lists
   list`, `lists remove` subcommands, deprecate `lists`, `lists_accounts`,
   `lists_add`, `lists_create`, `lists_delete`, `lists_remove` commands.
+* Add `--json` option to tags commands
+* Add `--json` option to lists commands
 * Add `toot --width` option for setting your prefered terminal width
 * Add `--media-viewer` and `--colors` options to `toot tui`. These were
   previously accessible only via settings.
