@@ -1,6 +1,6 @@
 import click
 
-from toot import api
+from toot import api, config
 from toot.cli.base import Context, cli, pass_context
 from toot.output import print_list_accounts, print_lists, print_warning
 
@@ -11,8 +11,12 @@ def lists(ctx: click.Context):
     """Display and manage lists"""
     if ctx.invoked_subcommand is None:
         print_warning("`toot lists` is deprecated in favour of `toot lists list`")
-        lists = api.get_lists(ctx.obj.app, ctx.obj.user)
 
+        user, app = config.get_active_user_app()
+        if not user or not app:
+            raise click.ClickException("This command requires you to be logged in.")
+
+        lists = api.get_lists(app, user)
         if lists:
             print_lists(lists)
         else:
@@ -20,10 +24,10 @@ def lists(ctx: click.Context):
 
 
 @lists.command()
-@click.pass_context
-def list(ctx: click.Context):
+@pass_context
+def list(ctx: Context):
     """List all your lists"""
-    lists = api.get_lists(ctx.obj.app, ctx.obj.user)
+    lists = api.get_lists(ctx.app, ctx.user)
 
     if lists:
         print_lists(lists)

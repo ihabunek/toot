@@ -64,7 +64,6 @@ CONTEXT = dict(
 )
 
 
-# Data object to add to Click context
 class Context(t.NamedTuple):
     app: t.Optional[App]
     user: t.Optional[User] = None
@@ -73,14 +72,37 @@ class Context(t.NamedTuple):
     quiet: bool = False
 
 
+class TootObj(t.NamedTuple):
+    """Data to add to Click context"""
+    color: bool = True
+    debug: bool = False
+    quiet: bool = False
+    # Pass a context for testing purposes
+    test_ctx: t.Optional[Context] = None
+
+
 def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[P, R]":
-    """Pass `obj` from click context as first argument."""
+    """Pass the toot Context as first argument."""
     @wraps(f)
     def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> R:
-        ctx = click.get_current_context()
-        return f(ctx.obj, *args, **kwargs)
+        return f(_get_context(), *args, **kwargs)
 
     return wrapped
+
+
+def _get_context() -> Context:
+    click_context = click.get_current_context()
+    obj: TootObj = click_context.obj
+
+    # This is used to pass a context for testing, not used in normal usage
+    if obj.test_ctx:
+        return obj.test_ctx
+
+    user, app = config.get_active_user_app()
+    if not user or not app:
+        raise click.ClickException("This command requires you to be logged in.")
+
+    return Context(app, user, obj.color, obj.debug, obj.quiet)
 
 
 json_option = click.option(
@@ -98,18 +120,9 @@ json_option = click.option(
 @click.option("--quiet/--no-quiet", default=False, help="Don't print anything to stdout")
 @click.version_option(__version__, message="%(prog)s v%(version)s")
 @click.pass_context
-def cli(
-    ctx: click.Context,
-    max_width: int,
-    color: bool,
-    debug: bool,
-    quiet: bool,
-    app: t.Optional[App] = None,
-    user: t.Optional[User] = None,
-):
+def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, quiet: bool):
     """Toot is a Mastodon CLI"""
-    user, app = config.get_active_user_app()
-    ctx.obj = Context(app, user, color, debug, quiet)
+    ctx.obj = TootObj(color, debug, quiet)
     ctx.color = color
     ctx.max_content_width = max_width
 

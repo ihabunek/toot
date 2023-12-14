@@ -24,6 +24,7 @@ from click.testing import CliRunner, Result
 from pathlib import Path
 from toot import api, App, User
 from toot.cli import Context
+from toot.cli.base import TootObj
 
 
 def pytest_configure(config):
@@ -116,24 +117,24 @@ def runner():
 @pytest.fixture
 def run(app, user, runner):
     def _run(command, *params, input=None) -> Result:
-        ctx = Context(app, user)
-        return runner.invoke(command, params, obj=ctx, input=input)
+        obj = TootObj(test_ctx=Context(app, user))
+        return runner.invoke(command, params, obj=obj, input=input)
     return _run
 
 
 @pytest.fixture
 def run_as(app, runner):
     def _run_as(user, command, *params, input=None) -> Result:
-        ctx = Context(app, user)
-        return runner.invoke(command, params, obj=ctx, input=input)
+        obj = TootObj(test_ctx=Context(app, user))
+        return runner.invoke(command, params, obj=obj, input=input)
     return _run_as
 
 
 @pytest.fixture
 def run_json(app, user, runner):
     def _run_json(command, *params):
-        ctx = Context(app, user)
-        result = runner.invoke(command, params, obj=ctx)
+        obj = TootObj(test_ctx=Context(app, user))
+        result = runner.invoke(command, params, obj=obj)
         assert result.exit_code == 0
         return json.loads(result.stdout)
     return _run_json
@@ -142,8 +143,8 @@ def run_json(app, user, runner):
 @pytest.fixture
 def run_anon(runner):
     def _run(command, *params) -> Result:
-        ctx = Context(None, None)
-        return runner.invoke(command, params, obj=ctx)
+        obj = TootObj(test_ctx=Context(None, None))
+        return runner.invoke(command, params, obj=obj)
     return _run
 
 
