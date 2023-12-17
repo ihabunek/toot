@@ -303,24 +303,17 @@ def reblogged_by(app, user, status_id) -> Response:
 def get_timeline_generator(
     app: Optional[App],
     user: Optional[User],
-    base_url: Optional[str] = None,
     account: Optional[str] = None,
     list_id: Optional[str] = None,
     tag: Optional[str] = None,
     local: bool = False,
     public: bool = False,
-    limit=20,  # TODO
+    limit: int = 20,  # TODO
 ):
     if public:
-        if base_url:
-            return anon_public_timeline_generator(base_url, local=local, limit=limit)
-        else:
-            return public_timeline_generator(app, user, local=local, limit=limit)
+        return public_timeline_generator(app, user, local=local, limit=limit)
     elif tag:
-        if base_url:
-            return anon_tag_timeline_generator(base_url, tag, limit=limit)
-        else:
-            return tag_timeline_generator(app, user, tag, local=local, limit=limit)
+        return tag_timeline_generator(app, user, tag, local=local, limit=limit)
     elif account:
         return account_timeline_generator(app, user, account, limit=limit)
     elif list_id:

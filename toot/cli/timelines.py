@@ -2,7 +2,7 @@ import sys
 import click
 
 from toot import api
-from toot.cli import cli, pass_context, Context
+from toot.cli import cli, get_context, pass_context, Context
 from typing import Optional
 from toot.cli.validators import validate_instance
 
@@ -37,9 +37,7 @@ from toot.output import print_notifications, print_timeline
     "--count", "-c", type=int, default=10,
     help="Number of posts per page (max 20)"
 )
-@pass_context
 def timeline(
-    ctx: Context,
     instance: Optional[str],
     account: Optional[str],
     list: Optional[str],
@@ -63,20 +61,25 @@ def timeline(
     if instance and not (public or tag):
         raise click.ClickException("The --instance option is only valid alongside --public or --tag.")
 
-    list_id = _get_list_id(ctx, list)
+    if public and instance:
+        generator = api.anon_public_timeline_generator(instance, local, count)
+    elif tag and instance:
+        generator = api.anon_tag_timeline_generator(instance, tag, local, count)
+    else:
+        ctx = get_context()
+        list_id = _get_list_id(ctx, list)
 
-    """Show recent statuses in a timeline"""
-    generator = api.get_timeline_generator(
-        ctx.app,
-        ctx.user,
-        base_url=instance,
-        account=account,
-        list_id=list_id,
-        tag=tag,
-        public=public,
-        local=local,
-        limit=count,
-    )
+        """Show recent statuses in a timeline"""
+        generator = api.get_timeline_generator(
+            ctx.app,
+            ctx.user,
+            account=account,
+            list_id=list_id,
+            tag=tag,
+            public=public,
+            local=local,
+            limit=count,
+        )
 
     _show_timeline(generator, reverse, once)
 
