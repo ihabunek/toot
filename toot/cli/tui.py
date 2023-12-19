@@ -2,7 +2,7 @@ import click
 
 from typing import Optional
 from toot.cli import TUI_COLORS, Context, cli, pass_context
-from toot.cli.validators import validate_tui_colors
+from toot.cli.validators import validate_tui_colors, validate_cache_size
 from toot.tui.app import TUI, TuiOptions
 
 COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
@@ -24,12 +24,20 @@ COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
     help=f"""Number of colors to use, one of {COLOR_OPTIONS}, defaults to 16 if
              using --color, and 1 if using --no-color."""
 )
+@click.option(
+    "-s", "--cache-size",
+    callback=validate_cache_size,
+    help=f"""Specify the image cache maximum size in megabytes. Default: 10MB.
+      Minimum: 1MB."""
+)
+
 @pass_context
 def tui(
     ctx: Context,
     colors: Optional[int],
     media_viewer: Optional[str],
     relative_datetimes: bool,
+    cache_size: Optional[int],
 ):
     """Launches the toot terminal user interface"""
     if colors is None:
@@ -39,6 +47,7 @@ def tui(
         colors=colors,
         media_viewer=media_viewer,
         relative_datetimes=relative_datetimes,
+        cache_size=cache_size,
     )
     tui = TUI.create(ctx.app, ctx.user, options)
     tui.run()
