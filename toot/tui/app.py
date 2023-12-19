@@ -20,7 +20,7 @@ from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusL
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, show_media, copy_to_clipboard, ImageCache
+from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard, ImageCache
 from PIL import Image
 
 
@@ -36,6 +36,7 @@ class TuiOptions(NamedTuple):
     colors: int
     media_viewer: Optional[str]
     relative_datetimes: bool
+    cache_size: int
 
 
 class Header(urwid.WidgetWrap):
@@ -95,7 +96,7 @@ class TUI(urwid.Frame):
     @staticmethod
     def create(app: App, user: User, args: TuiOptions):
         """Factory method, sets up TUI and an event loop."""
-        screen = urwid.raw_display.Screen()
+        screen = TuiScreen()
         screen.set_terminal_properties(args.colors)
 
         tui = TUI(app, user, screen, args)
@@ -143,8 +144,8 @@ class TUI(urwid.Frame):
         self.account = None
         self.followed_accounts = []
 
-        if self.args.cache_size:
-            self.cache_max = 1024 * 1024 * self.args.cache_size
+        if self.options.cache_size:
+            self.cache_max = 1024 * 1024 * self.options.cache_size
         else:
             self.cache_max = 1024 * 1024 * 10  # default 10MB
 
