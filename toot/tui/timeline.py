@@ -414,18 +414,15 @@ class StatusDetails(urwid.Pile):
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
 
-        account_color = (
-            "highlight"
-            if self.status.original.author.account in self.timeline.tui.followed_accounts
-            else "account"
-        )
+        account_color = ("highlight" if self.status.original.author.account in
+                        self.timeline.tui.followed_accounts else "account")
 
         atxt = urwid.Pile([("pack",
                             urwid.AttrMap(
-                                EmojiText(self.status.original.author.display_name,
-                                        self.status.original.data["account"]["emojis"]),
-                                "account")),
-                           ("pack", urwid.Text((account_color, self.status.original.author.account)))])
+                                EmojiText(self.status.author.display_name,
+                                        self.status.data["account"]["emojis"]),
+                                "bold")),
+                           ("pack", urwid.Text((account_color, self.status.author.account)))])
 
         columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
         return columns
@@ -443,12 +440,6 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         yield self.author_header(reblogged_by)
-
-        if status.author.display_name:
-            yield ("pack", urwid.Text(("bold", status.author.display_name)))
-
-        account_color = "highlight" if status.author.account in self.followed_accounts else "account"
-        yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
