@@ -27,10 +27,9 @@ COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
 @click.option(
     "-s", "--cache-size",
     callback=validate_cache_size,
-    help=f"""Specify the image cache maximum size in megabytes. Default: 10MB.
+    help="""Specify the image cache maximum size in megabytes. Default: 10MB.
       Minimum: 1MB."""
 )
-
 @pass_context
 def tui(
     ctx: Context,

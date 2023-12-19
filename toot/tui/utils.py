@@ -1,7 +1,5 @@
 import base64
 import re
-import shutil
-import subprocess
 import sys
 import urwid
 import math

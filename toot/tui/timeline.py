@@ -1,6 +1,5 @@
 import logging
 import math
-import sys
 import urwid
 import webbrowser
 
@@ -8,7 +7,6 @@ from typing import List, Optional
 
 from toot.tui import app
 
-from toot.utils import format_content
 from toot.tui.utils import can_render_pixels, add_corners
 from toot.tui.richtext import html_to_widgets, url_to_widget
 from toot.utils.datetime import parse_datetime, time_ago

@@ -1,5 +1,6 @@
 import click
 import pytest
+import sys
 
 from toot.cli.validators import validate_duration
 from toot.wcstring import wc_wrap, trunc, pad, fit_text

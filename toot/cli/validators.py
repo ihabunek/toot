@@ -85,7 +85,7 @@ def validate_cache_size(ctx: click.Context, param: str, value: Optional[str]) ->
             size = int(value)
         else:
             raise click.BadParameter("Cache size must be numeric.")
-    
+
     if size > 1024:
         raise click.BadParameter("Cache size too large: 1024MB maximum.")
     elif size < 1:
