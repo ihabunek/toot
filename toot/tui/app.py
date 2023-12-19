@@ -183,8 +183,8 @@ class TUI(urwid.Frame):
 
         return urwid.Filler(intro)
 
-    def run_in_thread(self, fn, args=[], kwargs={}, done_callback=None, error_callback=None):
-        """Runs `fn(*args, **kwargs)` asynchronously in a separate thread.
+    def run_in_thread(self, fn, done_callback=None, error_callback=None):
+        """Runs `fn` asynchronously in a separate thread.
 
         On completion calls `done_callback` if `fn` exited cleanly, or
         `error_callback` if an exception was caught. Callback methods are
@@ -208,7 +208,10 @@ class TUI(urwid.Frame):
                 logger.exception(exception)
                 self.loop.set_alarm_in(0, lambda *args: _error_callback(exception))
 
-        future = self.executor.submit(fn, *args, **kwargs)
+        # TODO: replace by `self.loop.event_loop.run_in_executor` at some point
+        # Added in https://github.com/urwid/urwid/issues/575
+        # Not yet released at the time of this comment
+        future = self.loop.event_loop._loop.run_in_executor(self.executor, fn)
         future.add_done_callback(_done)
         return future
 
