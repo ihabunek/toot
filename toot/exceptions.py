@@ -1,4 +1,7 @@
-class ApiError(Exception):
+from click import ClickException
+
+
+class ApiError(ClickException):
     """Raised when an API request fails for whatever reason."""
 
 
@@ -10,5 +13,5 @@ class AuthenticationError(ApiError):
     """Raised when login fails."""
 
 
-class ConsoleError(Exception):
+class ConsoleError(ClickException):
     """Raised when an error occurs which needs to be show to the user."""

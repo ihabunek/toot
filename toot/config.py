@@ -1,12 +1,12 @@
 import json
 import os
 
-from functools import wraps
+from contextlib import contextmanager
 from os.path import dirname, join
+from typing import Optional
 
 from toot import User, App, get_config_dir
 from toot.exceptions import ConsoleError
-from toot.output import print_out
 
 
 TOOT_CONFIG_FILE_NAME = "config.json"
@@ -29,8 +29,6 @@ def make_config(path):
         "active_user": None,
     }
 
-    print_out("Creating config file at <blue>{}</blue>".format(path))
-
     # Ensure dir exists
     os.makedirs(dirname(path), exist_ok=True)
 
@@ -41,6 +39,10 @@ def make_config(path):
 
 
 def load_config():
+    # Just to prevent accidentally running tests on production
+    if os.environ.get("TOOT_TESTING"):
+        raise Exception("Tests should not access the config file!")
+
     path = get_config_file_path()
 
     if not os.path.exists(path):
@@ -85,7 +87,7 @@ def get_user_app(user_id):
     return extract_user_app(load_config(), user_id)
 
 
-def load_app(instance):
+def load_app(instance: str) -> Optional[App]:
     config = load_config()
     if instance in config['apps']:
         return App(**config['apps'][instance])
@@ -106,63 +108,39 @@ def get_user_list():
     return config['users']
 
 
-def modify_config(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        config = load_config()
-        config = f(config, *args, **kwargs)
-        save_config(config)
-        return config
-
-    return wrapper
+@contextmanager
+def edit_config():
+    config = load_config()
+    yield config
+    save_config(config)
 
 
-@modify_config
-def save_app(config, app):
-    assert isinstance(app, App)
-
-    config['apps'][app.instance] = app._asdict()
-
-    return config
+def save_app(app: App):
+    with edit_config() as config:
+        config['apps'][app.instance] = app._asdict()
 
 
-@modify_config
 def delete_app(config, app):
-    assert isinstance(app, App)
-
-    config['apps'].pop(app.instance, None)
-
-    return config
+    with edit_config() as config:
+        config['apps'].pop(app.instance, None)
 
 
-@modify_config
-def save_user(config, user, activate=True):
-    assert isinstance(user, User)
+def save_user(user: User, activate=True):
+    with edit_config() as config:
+        config['users'][user_id(user)] = user._asdict()
 
-    config['users'][user_id(user)] = user._asdict()
+        if activate:
+            config['active_user'] = user_id(user)
 
-    if activate:
+
+def delete_user(user: User):
+    with edit_config() as config:
+        config['users'].pop(user_id(user), None)
+
+        if config['active_user'] == user_id(user):
+            config['active_user'] = None
+
+
+def activate_user(user: User):
+    with edit_config() as config:
         config['active_user'] = user_id(user)
-
-    return config
-
-
-@modify_config
-def delete_user(config, user):
-    assert isinstance(user, User)
-
-    config['users'].pop(user_id(user), None)
-
-    if config['active_user'] == user_id(user):
-        config['active_user'] = None
-
-    return config
-
-
-@modify_config
-def activate_user(config, user):
-    assert isinstance(user, User)
-
-    config['active_user'] = user_id(user)
-
-    return config

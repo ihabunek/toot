@@ -8,7 +8,7 @@ from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError, ConsoleError
+from toot.exceptions import ConsoleError
 from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 
@@ -48,9 +48,9 @@ def _status_action(app, user, status_id, action, data=None) -> Response:
     return http.post(app, user, url, data=data)
 
 
-def _tag_action(app, user, tag_name, action):
+def _tag_action(app, user, tag_name, action) -> Response:
     url = f"/api/v1/tags/{tag_name}/{action}"
-    return http.post(app, user, url).json()
+    return http.post(app, user, url)
 
 
 def create_app(base_url):
@@ -140,7 +140,7 @@ def fetch_app_token(app):
     return http.anon_post(f"{app.base_url}/oauth/token", json=json).json()
 
 
-def login(app, username, password):
+def login(app: App, username: str, password: str):
     url = app.base_url + '/oauth/token'
 
     data = {
@@ -152,16 +152,10 @@ def login(app, username, password):
         'scope': SCOPES,
     }
 
-    response = http.anon_post(url, data=data, allow_redirects=False)
-
-    # If auth fails, it redirects to the login page
-    if response.is_redirect:
-        raise AuthenticationError()
-
-    return response.json()
+    return http.anon_post(url, data=data).json()
 
 
-def get_browser_login_url(app):
+def get_browser_login_url(app: App) -> str:
     """Returns the URL for manual log in via browser"""
     return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
         "response_type": "code",
@@ -171,7 +165,7 @@ def get_browser_login_url(app):
     }))
 
 
-def request_access_token(app, authorization_code):
+def request_access_token(app: App, authorization_code: str):
     url = app.base_url + '/oauth/token'
 
     data = {
@@ -306,6 +300,28 @@ def reblogged_by(app, user, status_id) -> Response:
     return http.get(app, user, url)
 
 
+def get_timeline_generator(
+    app: Optional[App],
+    user: Optional[User],
+    account: Optional[str] = None,
+    list_id: Optional[str] = None,
+    tag: Optional[str] = None,
+    local: bool = False,
+    public: bool = False,
+    limit: int = 20,  # TODO
+):
+    if public:
+        return public_timeline_generator(app, user, local=local, limit=limit)
+    elif tag:
+        return tag_timeline_generator(app, user, tag, local=local, limit=limit)
+    elif account:
+        return account_timeline_generator(app, user, account, limit=limit)
+    elif list_id:
+        return timeline_list_generator(app, user, list_id, limit=limit)
+    else:
+        return home_timeline_generator(app, user, limit=limit)
+
+
 def _get_next_path(headers):
     """Given timeline response headers, returns the path to the next batch"""
     links = headers.get('Link', '')
@@ -313,6 +329,14 @@ def _get_next_path(headers):
     if matches:
         parsed = urlparse(matches.group(1))
         return "?".join([parsed.path, parsed.query])
+
+
+def _get_next_url(headers) -> Optional[str]:
+    """Given timeline response headers, returns the url to the next batch"""
+    links = headers.get('Link', '')
+    match = re.match('<([^>]+)>; rel="next"', links)
+    if match:
+        return match.group(1)
 
 
 def _timeline_generator(app, user, path, params=None):
@@ -375,7 +399,7 @@ def conversation_timeline_generator(app, user, limit=20):
     return _conversation_timeline_generator(app, user, path, params)
 
 
-def account_timeline_generator(app: App, user: User, account_name: str, replies=False, reblogs=False, limit=20):
+def account_timeline_generator(app, user, account_name: str, replies=False, reblogs=False, limit=20):
     account = find_account(app, user, account_name)
     path = f"/api/v1/accounts/{account['id']}/statuses"
     params = {"limit": limit, "exclude_replies": not replies, "exclude_reblogs": not reblogs}
@@ -387,24 +411,23 @@ def timeline_list_generator(app, user, list_id, limit=20):
     return _timeline_generator(app, user, path, {'limit': limit})
 
 
-def _anon_timeline_generator(instance, path, params=None):
-    while path:
-        url = f"https://{instance}{path}"
+def _anon_timeline_generator(url, params=None):
+    while url:
         response = http.anon_get(url, params)
         yield response.json()
-        path = _get_next_path(response.headers)
+        url = _get_next_url(response.headers)
 
 
-def anon_public_timeline_generator(instance, local=False, limit=20):
-    path = '/api/v1/timelines/public'
-    params = {'local': str_bool(local), 'limit': limit}
-    return _anon_timeline_generator(instance, path, params)
+def anon_public_timeline_generator(base_url, local=False, limit=20):
+    query = urlencode({"local": str_bool(local), "limit": limit})
+    url = f"{base_url}/api/v1/timelines/public?{query}"
+    return _anon_timeline_generator(url)
 
 
-def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
-    path = f"/api/v1/timelines/tag/{quote(hashtag)}"
-    params = {'local': str_bool(local), 'limit': limit}
-    return _anon_timeline_generator(instance, path, params)
+def anon_tag_timeline_generator(base_url, hashtag, local=False, limit=20):
+    query = urlencode({"local": str_bool(local), "limit": limit})
+    url = f"{base_url}/api/v1/timelines/tag/{quote(hashtag)}?{query}"
+    return _anon_timeline_generator(url)
 
 
 def get_media(app: App, user: User, id: str):
@@ -427,7 +450,7 @@ def upload_media(
         "thumbnail": _add_mime_type(thumbnail)
     })
 
-    return http.post(app, user, "/api/v2/media", data=data, files=files).json()
+    return http.post(app, user, "/api/v2/media", data=data, files=files)
 
 
 def _add_mime_type(file):
@@ -469,11 +492,11 @@ def unfollow(app, user, account):
     return _account_action(app, user, account, 'unfollow')
 
 
-def follow_tag(app, user, tag_name):
+def follow_tag(app, user, tag_name) -> Response:
     return _tag_action(app, user, tag_name, 'follow')
 
 
-def unfollow_tag(app, user, tag_name):
+def unfollow_tag(app, user, tag_name) -> Response:
     return _tag_action(app, user, tag_name, 'unfollow')
 
 
@@ -499,6 +522,43 @@ def followers(app, user, account):
 def followed_tags(app, user):
     path = '/api/v1/followed_tags'
     return _get_response_list(app, user, path)
+
+
+def featured_tags(app, user):
+    return http.get(app, user, "/api/v1/featured_tags")
+
+
+def feature_tag(app, user, tag: str) -> Response:
+    return http.post(app, user, "/api/v1/featured_tags", data={"name": tag})
+
+
+def unfeature_tag(app, user, tag_id: str) -> Response:
+    return http.delete(app, user, f"/api/v1/featured_tags/{tag_id}")
+
+
+def find_tag(app, user, tag) -> Optional[dict]:
+    """Find a hashtag by tag name or ID"""
+    tag = tag.lstrip("#")
+    results = search(app, user, tag, type="hashtags").json()
+
+    return next(
+        (
+            t for t in results["hashtags"]
+            if t["name"].lower() == tag.lstrip("#").lower() or t["id"] == tag
+        ),
+        None
+    )
+
+
+def find_featured_tag(app, user, tag) -> Optional[dict]:
+    """Find a featured tag by tag name or ID"""
+    return next(
+        (
+            t for t in featured_tags(app, user).json()
+            if t["name"].lower() == tag.lstrip("#").lower() or t["id"] == tag
+        ),
+        None
+    )
 
 
 def whois(app, user, account):
@@ -544,8 +604,8 @@ def verify_credentials(app, user) -> Response:
     return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
-def get_notifications(app, user, exclude_types=[], limit=20):
-    params = {"exclude_types[]": exclude_types, "limit": limit}
+def get_notifications(app, user, types=[], exclude_types=[], limit=20):
+    params = {"types[]": types, "exclude_types[]": exclude_types, "limit": limit}
     return http.get(app, user, '/api/v1/notifications', params).json()
 
 
@@ -559,16 +619,7 @@ def get_instance(base_url: str) -> Response:
 
 
 def get_lists(app, user):
-    path = "/api/v1/lists"
-    return _get_response_list(app, user, path)
-
-
-def find_list_id(app, user, title):
-    lists = get_lists(app, user)
-    for list_item in lists:
-        if list_item["title"] == title:
-            return list_item["id"]
-    return None
+    return http.get(app, user, "/api/v1/lists").json()
 
 
 def get_list_accounts(app, user, list_id):
@@ -576,12 +627,12 @@ def get_list_accounts(app, user, list_id):
     return _get_response_list(app, user, path)
 
 
-def create_list(app, user, title, replies_policy):
+def create_list(app, user, title, replies_policy="none"):
     url = "/api/v1/lists"
     json = {'title': title}
     if replies_policy:
         json['replies_policy'] = replies_policy
-    return http.post(app, user, url, json=json).json()
+    return http.post(app, user, url, json=json)
 
 
 def delete_list(app, user, id):
@@ -591,7 +642,7 @@ def delete_list(app, user, id):
 def add_accounts_to_list(app, user, list_id, account_ids):
     url = f"/api/v1/lists/{list_id}/accounts"
     json = {'account_ids': account_ids}
-    return http.post(app, user, url, json=json).json()
+    return http.post(app, user, url, json=json)
 
 
 def remove_accounts_from_list(app, user, list_id, account_ids):
