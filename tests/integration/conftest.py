@@ -14,10 +14,11 @@ export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 """
 
 import json
-import re
 import os
 import psycopg2
 import pytest
+import re
+import typing as t
 import uuid
 
 from click.testing import CliRunner, Result
@@ -30,6 +31,9 @@ def pytest_configure(config):
     import toot.settings
     toot.settings.DISABLE_SETTINGS = True
 
+
+# Type alias for run commands
+Run = t.Callable[..., Result]
 
 # Mastodon database name, used to confirm user registration without having to click the link
 DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")

@@ -39,10 +39,6 @@ DURATION_EXAMPLES = """e.g. "1 day", "2 hours 30 minutes", "5 minutes 30
 seconds" or any combination of above. Shorthand: "1d", "2h30m", "5m30s\""""
 
 
-# Type alias for run commands
-Run = t.Callable[..., Result]
-
-
 def get_default_visibility() -> str:
     return os.getenv("TOOT_POST_VISIBILITY", "public")
 
