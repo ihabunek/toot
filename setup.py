@@ -38,7 +38,7 @@ setup(
         "requests>=2.13,<3.0",
         "beautifulsoup4>=4.5.0,<5.0",
         "wcwidth>=0.1.7",
-        "urwid>=2.0.0,<3.0",
+        "urwid>=2.1.0,<3.0",
         "tomlkit>=0.10.0,<1.0"
     ],
     extras_require={
