@@ -5,18 +5,17 @@ Changelog
 
 **0.40.0 (TBA)**
 
-This release includes a major rewrite to use
-[Click](https://click.palletsprojects.com/) for creating the command line
-interface. This allows for some new features like nested commands, setting
-parameters via environment variables, and shell completion. See docs for
-details. Backward compatibility should be mostly preserved, except for cases
-noted below please report any issues.
+This release includes a rather extensive change to use the Click library
+(https://click.palletsprojects.com/) for creating the command line interface.
+This allows for some new features like nested commands, setting parameters via
+environment variables, and shell completion. Backward compatibility should be
+mostly preserved, except for cases noted below. Please report any issues.
 
 * BREAKING: Remove deprecated `--disable-https` option for `login` and
   `login_cli`, pass the base URL instead
 * BREAKING: Options `--debug`, `--color`, `--quiet` must be specified after
   `toot` but before the command
-* Enable passing params via environment variables, see:
+* Add passing parameters via environment variables, see:
   https://toot.bezdomni.net/environment_variables.html
 * Add shell completion, see: https://toot.bezdomni.net/shell_completion.html
 * Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature`
@@ -26,11 +25,11 @@ noted below please report any issues.
 * Add `lists accounts`, `lists add`, `lists create`, `lists delete`, `lists
   list`, `lists remove` subcommands, deprecate `lists`, `lists_accounts`,
   `lists_add`, `lists_create`, `lists_delete`, `lists_remove` commands.
-* Add `--json` option to tags commands
-* Add `--json` option to lists commands
+* Add `--json` option to tags and lists commands
 * Add `toot --width` option for setting your prefered terminal width
 * Add `--media-viewer` and `--colors` options to `toot tui`. These were
   previously accessible only via settings.
+* TUI: Fix issue where UI did not render until first input (thanks Urwid devs)
 
 **0.39.0 (2023-11-23)**
 
