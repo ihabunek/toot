@@ -274,8 +274,9 @@ def print_notification(notification: Notification):
 
 def print_notifications(notifications: List[Notification]):
     for notification in notifications:
-        print_divider()
-        print_notification(notification)
+        if notification.type not in ['pleroma:emoji_reaction']:
+            print_divider()
+            print_notification(notification)
     print_divider()
 
 
