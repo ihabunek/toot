@@ -9,7 +9,8 @@
     Please report any issues.
   changes:
     - "BREAKING: Remove deprecated `--disable-https` option for `login` and `login_cli`, pass the base URL instead"
-    - "BREAKING: Options `--debug`, `--color`, `--quiet` must be specified after `toot` but before the command"
+    - "BREAKING: Options `--debug` and `--color` must be specified after `toot` but before the command"
+    - "BREAKING: Option `--quiet` has been removed. Redirect output instead."
     - "Add passing parameters via environment variables, see: https://toot.bezdomni.net/environment_variables.html"
     - "Add shell completion, see: https://toot.bezdomni.net/shell_completion.html"
     - "Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature` commands"

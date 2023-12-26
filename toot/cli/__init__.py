@@ -78,14 +78,12 @@ class Context(t.NamedTuple):
     user: t.Optional[User] = None
     color: bool = False
     debug: bool = False
-    quiet: bool = False
 
 
 class TootObj(t.NamedTuple):
     """Data to add to Click context"""
     color: bool = True
     debug: bool = False
-    quiet: bool = False
     # Pass a context for testing purposes
     test_ctx: t.Optional[Context] = None
 
@@ -111,7 +109,7 @@ def get_context() -> Context:
     if not user or not app:
         raise click.ClickException("This command requires you to be logged in.")
 
-    return Context(app, user, obj.color, obj.debug, obj.quiet)
+    return Context(app, user, obj.color, obj.debug)
 
 
 json_option = click.option(
@@ -126,12 +124,11 @@ json_option = click.option(
 @click.option("-w", "--max-width", type=int, default=80, help="Maximum width for content rendered by toot")
 @click.option("--debug/--no-debug", default=False, help="Log debug info to stderr")
 @click.option("--color/--no-color", default=sys.stdout.isatty(), help="Use ANSI color in output")
-@click.option("--quiet/--no-quiet", default=False, help="Don't print anything to stdout")
 @click.version_option(__version__, message="%(prog)s v%(version)s")
 @click.pass_context
-def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, quiet: bool):
+def cli(ctx: click.Context, max_width: int, color: bool, debug: bool):
     """Toot is a Mastodon CLI"""
-    ctx.obj = TootObj(color, debug, quiet)
+    ctx.obj = TootObj(color, debug)
     ctx.color = color
     ctx.max_content_width = max_width
 
