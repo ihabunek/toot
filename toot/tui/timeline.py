@@ -93,7 +93,7 @@ class Timeline(urwid.Columns):
         return urwid.AttrMap(item, None, focus_map={
             "status_list_account": "status_list_selected",
             "status_list_timestamp": "status_list_selected",
-            "highligh": "status_list_selected",
+            "highlight": "status_list_selected",
             "dim": "status_list_selected",
             None: "status_list_selected",
         })
