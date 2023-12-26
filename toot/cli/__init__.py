@@ -8,6 +8,7 @@ from click.testing import Result
 from functools import wraps
 from toot import App, User, config, __version__
 from toot.settings import get_settings
+from toot.output import print_warning
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -47,6 +48,14 @@ def get_default_map():
     settings = get_settings()
     common = settings.get("common", {})
     commands = settings.get("commands", {})
+
+    # TODO: remove in version 1.0
+    tui_old = settings.get("tui", {})
+    if tui_old:
+        print_warning("Settings section [tui] has been deprecated in favour of [commands.tui].")
+        tui_new = commands.get("tui", {})
+        commands["tui"] = {**tui_old, **tui_new}
+
     return {**common, **commands}
 
 
