@@ -51,6 +51,11 @@ def get_default_map():
 
     # TODO: remove in version 1.0
     tui_old = settings.get("tui", {})
+
+    # Remove palette to avoid triggering warning for still valid [tui.palette] section
+    if "palette" in tui_old:
+        del tui_old["palette"]
+
     if tui_old:
         print_warning("Settings section [tui] has been deprecated in favour of [commands.tui].")
         tui_new = commands.get("tui", {})
