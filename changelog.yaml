@@ -1,5 +1,5 @@
 0.40.0:
-  date: SOON
+  date: 2023-12-27
   description: |
     This release includes a rather extensive change to use the Click library
     (https://click.palletsprojects.com/) for creating the command line
