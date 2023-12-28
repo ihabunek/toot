@@ -1,3 +1,8 @@
+0.40.1:
+  date: 2023-12-28
+  changes:
+    - "Add `toot --as` option to replace `toot post --using`. This now works for all commands."
+
 0.40.0:
   date: 2023-12-27
   description: |
@@ -11,6 +16,7 @@
     - "BREAKING: Remove deprecated `--disable-https` option for `login` and `login_cli`, pass the base URL instead"
     - "BREAKING: Options `--debug` and `--color` must be specified after `toot` but before the command"
     - "BREAKING: Option `--quiet` has been removed. Redirect output instead."
+    - "BREAKING: Removed `toot post --using` option. Use `toot --as <account> post` instead."
     - "Add passing parameters via environment variables, see: https://toot.bezdomni.net/environment_variables.html"
     - "Add shell completion, see: https://toot.bezdomni.net/shell_completion.html"
     - "Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature` commands"
