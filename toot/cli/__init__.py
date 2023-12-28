@@ -110,6 +110,20 @@ class AccountParamType(StringParamType):
         ]
 
 
+class InstanceParamType(StringParamType):
+    """Custom type to add shell completion for instance domains"""
+    name = "instance"
+
+    def shell_complete(self, ctx, param, incomplete: str):
+        apps = config.load_config()["apps"]
+
+        return [
+            CompletionItem(i)
+            for i in apps.keys()
+            if i.lower().startswith(incomplete.lower())
+        ]
+
+
 def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[P, R]":
     """Pass the toot Context as first argument."""
     @wraps(f)

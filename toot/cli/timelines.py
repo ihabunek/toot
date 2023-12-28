@@ -2,7 +2,7 @@ import sys
 import click
 
 from toot import api
-from toot.cli import cli, get_context, pass_context, Context
+from toot.cli import InstanceParamType, cli, get_context, pass_context, Context
 from typing import Optional
 from toot.cli.validators import validate_instance
 
@@ -13,6 +13,7 @@ from toot.output import print_notifications, print_timeline
 @cli.command()
 @click.option(
     "--instance", "-i",
+    type=InstanceParamType(),
     callback=validate_instance,
     help="""Domain or base URL of the instance from which to read,
             e.g. 'mastodon.social' or 'https://mastodon.social'""",
