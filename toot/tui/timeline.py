@@ -313,6 +313,7 @@ class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
         self.followed_accounts = timeline.tui.followed_accounts
+        self.options = timeline.tui.options
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
@@ -337,7 +338,7 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Divider())
 
         # Show content warning
-        if status.data["spoiler_text"] and not status.show_sensitive:
+        if status.data["spoiler_text"] and not status.show_sensitive and not self.options.always_show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
             if status.data["spoiler_text"]:
