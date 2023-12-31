@@ -618,6 +618,10 @@ def get_instance(base_url: str) -> Response:
     return http.anon_get(url)
 
 
+def get_preferences(app, user) -> Response:
+    return http.get(app, user, '/api/v1/preferences')
+
+
 def get_lists(app, user):
     return http.get(app, user, "/api/v1/lists").json()
 
