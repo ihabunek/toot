@@ -38,7 +38,7 @@ def _get_error_message(response):
     except Exception:
         pass
 
-    return "Unknown error"
+    return f"Unknown error: {response.status_code} {response.reason}"
 
 
 def process_response(response):
@@ -79,6 +79,22 @@ def post(app, user, path, headers=None, files=None, data=None, json=None, allow_
     headers["Authorization"] = f"Bearer {user.access_token}"
 
     return anon_post(url, headers=headers, files=files, data=data, json=json, allow_redirects=allow_redirects)
+
+
+def anon_put(url, headers=None, files=None, data=None, json=None, allow_redirects=True):
+    request = Request(method="PUT", url=url, headers=headers, files=files, data=data, json=json)
+    response = send_request(request, allow_redirects)
+
+    return process_response(response)
+
+
+def put(app, user, path, headers=None, files=None, data=None, json=None, allow_redirects=True):
+    url = app.base_url + path
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
+
+    return anon_put(url, headers=headers, files=files, data=data, json=json, allow_redirects=allow_redirects)
 
 
 def patch(app, user, path, headers=None, files=None, data=None, json=None):

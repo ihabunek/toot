@@ -5,7 +5,6 @@ import sys
 import typing as t
 
 from click.shell_completion import CompletionItem
-from click.testing import Result
 from click.types import StringParamType
 from functools import wraps
 

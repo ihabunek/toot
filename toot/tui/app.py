@@ -4,11 +4,13 @@ import urwid
 
 from concurrent.futures import ThreadPoolExecutor
 from typing import NamedTuple, Optional
+from datetime import datetime, timezone
 
 from toot import api, config, __version__, settings
 from toot import App, User
 from toot.cli import get_default_visibility
 from toot.exceptions import ApiError
+from toot.utils.datetime import parse_datetime
 
 from .compose import StatusComposer
 from .constants import PALETTE
@@ -18,6 +20,7 @@ from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
 from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard
+from .widgets import ModalBox
 
 logger = logging.getLogger(__name__)
 
@@ -429,6 +432,32 @@ class TUI(urwid.Frame):
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")
 
+    def async_edit(self, status):
+        def _fetch_source():
+            return api.fetch_status_source(self.app, self.user, status.id).json()
+
+        def _done(source):
+            self.close_overlay()
+            self.show_edit(status, source)
+
+        please_wait = ModalBox("Loading status...")
+        self.open_overlay(please_wait)
+
+        self.run_in_thread(_fetch_source, done_callback=_done)
+
+    def show_edit(self, status, source):
+        def _close(*args):
+            self.close_overlay()
+
+        def _edit(timeline, *args):
+            self.edit_status(status, *args)
+
+        composer = StatusComposer(self.max_toot_chars, self.user.username,
+                                  visibility=None, edit=status, source=source)
+        urwid.connect_signal(composer, "close", _close)
+        urwid.connect_signal(composer, "post", _edit)
+        self.open_overlay(composer, title="Edit status")
+
     def show_goto_menu(self):
         user_timelines = self.config.get("timelines", {})
         user_lists = api.get_lists(self.app, self.user) or []
@@ -575,6 +604,42 @@ class TUI(urwid.Frame):
 
         self.footer.set_message("Status posted {} \\o/".format(status.id))
         self.close_overlay()
+
+    def edit_status(self, status, content, warning, visibility, in_reply_to_id):
+        # We don't support editing polls (yet), so to avoid losing the poll
+        # data from the original toot, copy it to the edit request.
+        poll_args = {}
+        poll = status.original.data.get('poll', None)
+
+        if poll is not None:
+            poll_args['poll_options'] = [o['title'] for o in poll['options']]
+            poll_args['poll_multiple'] = poll['multiple']
+
+            # Convert absolute expiry time into seconds from now.
+            expires_at = parse_datetime(poll['expires_at'])
+            expires_in = int((expires_at - datetime.now(timezone.utc)).total_seconds())
+            poll_args['poll_expires_in'] = expires_in
+
+            if 'hide_totals' in poll:
+                poll_args['poll_hide_totals'] = poll['hide_totals']
+
+        data = api.edit_status(
+            self.app,
+            self.user,
+            status.id,
+            content,
+            spoiler_text=warning,
+            visibility=visibility,
+            **poll_args
+        ).json()
+
+        new_status = self.make_status(data)
+
+        self.footer.set_message("Status edited {} \\o/".format(status.id))
+        self.close_overlay()
+
+        if self.timeline is not None:
+            self.timeline.update_status(new_status)
 
     def show_account(self, account_id):
         account = api.whois(self.app, self.user, account_id)

@@ -101,6 +101,7 @@ class Timeline(urwid.Columns):
             "[A]ccount" if not status.is_mine else "",
             "[B]oost",
             "[D]elete" if status.is_mine else "",
+            "[E]dit" if status.is_mine else "",
             "B[o]okmark",
             "[F]avourite",
             "[V]iew",
@@ -187,6 +188,11 @@ class Timeline(urwid.Columns):
         if key in ("d", "D"):
             if status.is_mine:
                 self.tui.show_delete_confirmation(status)
+            return
+
+        if key in ("e", "E"):
+            if status.is_mine:
+                self.tui.async_edit(status)
             return
 
         if key in ("f", "F"):
