@@ -456,7 +456,7 @@ class StatusListItem(SelectableColumns):
         favourited = ("highlight", "★") if status.original.favourited else " "
         reblogged = ("highlight", "♺") if status.original.reblogged else " "
         is_reblog = ("dim", "♺") if status.reblog else " "
-        is_reply = ("dim", "⤶") if status.original.in_reply_to else " "
+        is_reply = ("dim", "⤶ ") if status.original.in_reply_to else "  "
 
         return super().__init__([
             ("pack", SelectableText(("status_list_timestamp", created_at), wrap="clip")),
