@@ -388,6 +388,8 @@ class StatusDetails(urwid.Pile):
 
         yield ("pack", urwid.Text([
             ("status_detail_timestamp", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("status_detail_timestamp",
+             f"(edited {status.edited_at.strftime('%Y-%m-%d %H:%M')}) " if status.edited_at else ""),
             ("status_detail_bookmarked" if status.bookmarked else "dim", "b "),
             ("dim", f"⤶ {status.data['replies_count']} "),
             ("highlight" if status.reblogged else "dim", f"♺ {status.data['reblogs_count']} "),
@@ -442,7 +444,7 @@ class StatusDetails(urwid.Pile):
 
 class StatusListItem(SelectableColumns):
     def __init__(self, status, relative_datetimes):
-        edited_at = status.data.get("edited_at")
+        edited_at = status.original.edited_at
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
