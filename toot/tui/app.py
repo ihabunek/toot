@@ -31,6 +31,7 @@ class TuiOptions(NamedTuple):
     colors: int
     media_viewer: Optional[str]
     relative_datetimes: bool
+    default_visibility: Optional[bool]
 
 
 class Header(urwid.WidgetWrap):
@@ -137,11 +138,13 @@ class TUI(urwid.Frame):
         self.can_translate = False
         self.account = None
         self.followed_accounts = []
+        self.preferences = {}
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_preferences())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
         self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
@@ -326,6 +329,19 @@ class TUI(urwid.Frame):
 
         return self.run_in_thread(_load_instance, done_callback=_done)
 
+    def async_load_preferences(self):
+        """
+        Attempt to update user preferences from instance.
+        https://docs.joinmastodon.org/methods/preferences/
+        """
+        def _load_preferences():
+            return api.get_preferences(self.app, self.user).json()
+
+        def _done(preferences):
+            self.preferences = preferences
+
+        return self.run_in_thread(_load_preferences, done_callback=_done)
+
     def async_load_followed_accounts(self):
         def _load_accounts():
             try:
@@ -400,7 +416,15 @@ class TUI(urwid.Frame):
         def _post(timeline, *args):
             self.post_status(*args)
 
-        composer = StatusComposer(self.max_toot_chars, self.user.username, in_reply_to)
+        # If the user specified --default-visibility, use that; otherwise,
+        # try to use the server-side default visibility.  If that fails, fall
+        # back to get_default_visibility().
+        visibility = (self.options.default_visibility or
+                      self.preferences.get('posting:default:visibility',
+                                           get_default_visibility()))
+
+        composer = StatusComposer(self.max_toot_chars, self.user.username,
+                                  visibility, in_reply_to)
         urwid.connect_signal(composer, "close", _close)
         urwid.connect_signal(composer, "post", _post)
         self.open_overlay(composer, title="Compose status")

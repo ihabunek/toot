@@ -1,8 +1,6 @@
 import urwid
 import logging
 
-from toot.cli import get_default_visibility
-
 from .constants import VISIBILITY_OPTIONS
 from .widgets import Button, EditBox
 
@@ -15,7 +13,7 @@ class StatusComposer(urwid.Frame):
     """
     signals = ["close", "post"]
 
-    def __init__(self, max_chars, username, in_reply_to=None):
+    def __init__(self, max_chars, username, visibility, in_reply_to=None):
         self.in_reply_to = in_reply_to
         self.max_chars = max_chars
         self.username = username
@@ -34,7 +32,7 @@ class StatusComposer(urwid.Frame):
             on_press=self.remove_content_warning)
 
         self.visibility = (
-            in_reply_to.visibility if in_reply_to else get_default_visibility()
+            in_reply_to.visibility if in_reply_to else visibility
         )
         self.visibility_button = Button("Visibility: {}".format(self.visibility),
             on_press=self.choose_visibility)
