@@ -340,6 +340,9 @@ class StatusDetails(urwid.Pile):
         if status.data["spoiler_text"] and not status.show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
+            if status.data["spoiler_text"]:
+                yield ("pack", urwid.Text(("content_warning", "Marked as sensitive.")))
+
             content = status.original.translation if status.original.show_translation else status.data["content"]
             widgetlist = html_to_widgets(content)
 
