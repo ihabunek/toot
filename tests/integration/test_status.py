@@ -1,8 +1,7 @@
 import json
-import time
 import pytest
-from tests.utils import run_with_retries
 
+from tests.utils import run_with_retries
 from toot import api, cli
 from toot.exceptions import NotFoundError
 
