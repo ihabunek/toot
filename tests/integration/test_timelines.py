@@ -1,6 +1,5 @@
 import pytest
 
-from time import sleep
 from uuid import uuid4
 from tests.utils import run_with_retries
 
@@ -165,13 +164,14 @@ def test_notifications(app, user, other_user, run):
 
     text = f"Paging doctor @{user.username}"
     status = _post_status(app, other_user, text)
-    sleep(0.5)  # grr
 
-    result = run(cli.timelines.notifications)
-    assert result.exit_code == 0
-    assert f"@{other_user.username} mentioned you" in result.stdout
-    assert status.id in result.stdout
-    assert text in result.stdout
+    def test_notifications():
+        result = run(cli.timelines.notifications)
+        assert result.exit_code == 0
+        assert f"@{other_user.username} mentioned you" in result.stdout
+        assert status.id in result.stdout
+        assert text in result.stdout
+    run_with_retries(test_notifications)
 
     result = run(cli.timelines.notifications, "--mentions")
     assert result.exit_code == 0
@@ -184,7 +184,6 @@ def test_notifications_follow(app, user, friend_user, run_as):
     result = run_as(friend_user, cli.timelines.notifications)
     assert result.exit_code == 0
     assert f"@{user.username} now follows you" in result.stdout
-
 
     result = run_as(friend_user, cli.timelines.notifications, "--mentions")
     assert result.exit_code == 0

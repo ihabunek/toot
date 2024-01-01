@@ -1,6 +1,7 @@
 import json
 import time
 import pytest
+from tests.utils import run_with_retries
 
 from toot import api, cli
 from toot.exceptions import NotFoundError
@@ -46,11 +47,11 @@ def test_favourite(app, user, run):
     assert result.exit_code == 0
     assert result.stdout.strip() == "✓ Status unfavourited"
 
-    # A short delay is required before the server returns new data
-    time.sleep(0.2)
-
-    status = api.fetch_status(app, user, status["id"]).json()
-    assert not status["favourited"]
+    def test_favourited():
+        nonlocal status
+        status = api.fetch_status(app, user, status["id"]).json()
+        assert not status["favourited"]
+    run_with_retries(test_favourited)
 
 
 def test_favourite_json(app, user, run):
