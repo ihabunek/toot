@@ -48,8 +48,8 @@ def get_default_map():
     commands = settings.get("commands", {})
 
     # TODO: remove in version 1.0
-    tui_old = settings.get("tui", {})
-
+    tui_old = settings.get("tui", {}).copy()
+    del tui_old["palette"]
     if tui_old:
         # TODO: don't show the warning for [toot.palette]
         print_warning("Settings section [tui] has been deprecated in favour of [commands.tui].")
