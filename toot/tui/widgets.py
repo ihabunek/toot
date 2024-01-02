@@ -67,3 +67,11 @@ class RadioButton(urwid.AttrWrap):
         button = urwid.RadioButton(*args, **kwargs)
         padding = urwid.Padding(button, width=len(args[1]) + 4)
         return super().__init__(padding, "button", "button_focused")
+
+
+class ModalBox(urwid.Frame):
+    def __init__(self, message):
+        text = urwid.Text(message)
+        filler = urwid.Filler(text, valign='top', top=1, bottom=1)
+        padding = urwid.Padding(filler, left=1, right=1)
+        return super().__init__(padding)

@@ -9,21 +9,22 @@ logger = logging.getLogger(__name__)
 
 class StatusComposer(urwid.Frame):
     """
-    UI for compose and posting a status message.
+    UI for composing or editing a status message.
+
+    To edit a status, provide the original status in 'edit', and optionally
+    provide the status source (from the /status/:id/source API endpoint) in
+    'source'; this should have at least a 'text' member, and optionally
+    'spoiler_text'.  If source is not provided, the formatted HTML will be
+    presented to the user for editing.
     """
     signals = ["close", "post"]
 
-    def __init__(self, max_chars, username, visibility, in_reply_to=None):
+    def __init__(self, max_chars, username, visibility, in_reply_to=None,
+                 edit=None, source=None):
         self.in_reply_to = in_reply_to
         self.max_chars = max_chars
         self.username = username
-
-        text = self.get_initial_text(in_reply_to)
-        self.content_edit = EditBox(
-            edit_text=text, edit_pos=len(text), multiline=True, allow_tab=True)
-        urwid.connect_signal(self.content_edit.edit, "change", self.text_changed)
-
-        self.char_count = urwid.Text(["0/{}".format(max_chars)])
+        self.edit = edit
 
         self.cw_edit = None
         self.cw_add_button = Button("Add content warning",
@@ -31,13 +32,34 @@ class StatusComposer(urwid.Frame):
         self.cw_remove_button = Button("Remove content warning",
             on_press=self.remove_content_warning)
 
-        self.visibility = (
-            in_reply_to.visibility if in_reply_to else visibility
-        )
+        if edit:
+            if source is None:
+                text = edit.data["content"]
+            else:
+                text = source.get("text", edit.data["content"])
+
+                if 'spoiler_text' in source:
+                    self.cw_edit = EditBox(multiline=True, allow_tab=True,
+                                           edit_text=source['spoiler_text'])
+
+            self.visibility = edit.data["visibility"]
+
+        else:   # not edit
+            text = self.get_initial_text(in_reply_to)
+            self.visibility = (
+                in_reply_to.visibility if in_reply_to else visibility
+            )
+
+        self.content_edit = EditBox(
+            edit_text=text, edit_pos=len(text), multiline=True, allow_tab=True)
+        urwid.connect_signal(self.content_edit.edit, "change", self.text_changed)
+
+        self.char_count = urwid.Text(["0/{}".format(max_chars)])
+
         self.visibility_button = Button("Visibility: {}".format(self.visibility),
             on_press=self.choose_visibility)
 
-        self.post_button = Button("Post", on_press=self.post)
+        self.post_button = Button("Edit" if edit else "Post", on_press=self.post)
         self.cancel_button = Button("Cancel", on_press=self.close)
 
         contents = list(self.generate_list_items())
