@@ -183,7 +183,7 @@ def post_status(
     app,
     user,
     status,
-    visibility='public',
+    visibility=None,
     media_ids=None,
     sensitive=False,
     spoiler_text=None,

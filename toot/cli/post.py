@@ -40,7 +40,6 @@ from toot.utils.datetime import parse_datetime
     "--visibility", "-v",
     help="Post visibility",
     type=click.Choice(VISIBILITY_CHOICES),
-    default="public",
 )
 @click.option(
     "--sensitive", "-s",
@@ -119,7 +118,7 @@ def post(
     media: Tuple[str],
     descriptions: Tuple[str],
     thumbnails: Tuple[str],
-    visibility: str,
+    visibility: Optional[str],
     sensitive: bool,
     spoiler_text: Optional[str],
     reply_to: Optional[str],
