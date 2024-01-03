@@ -73,19 +73,6 @@ def format_content(content):
         first = False
 
 
-def domain_exists(name):
-    try:
-        socket.gethostbyname(name)
-        return True
-    except OSError:
-        return False
-
-
-def assert_domain_exists(domain):
-    if not domain_exists(domain):
-        raise ConsoleError("Domain {} not found".format(domain))
-
-
 EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"
 
 
