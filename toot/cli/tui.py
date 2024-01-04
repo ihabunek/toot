@@ -29,11 +29,17 @@ COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
     type=click.Choice(VISIBILITY_CHOICES),
     help="Default visibility when posting new toots; overrides the server-side preference"
 )
+@click.option(
+    "-S", "--always-show-sensitive",
+    is_flag=True,
+    help="Expand toots with content warnings automatically"
+)
 @pass_context
 def tui(
     ctx: Context,
     colors: Optional[int],
     media_viewer: Optional[str],
+    always_show_sensitive: bool,
     relative_datetimes: bool,
     default_visibility: Optional[str]
 ):
@@ -45,7 +51,8 @@ def tui(
         colors=colors,
         media_viewer=media_viewer,
         relative_datetimes=relative_datetimes,
-        default_visibility=default_visibility
+        default_visibility=default_visibility,
+        always_show_sensitive=always_show_sensitive,
     )
     tui = TUI.create(ctx.app, ctx.user, options)
     tui.run()

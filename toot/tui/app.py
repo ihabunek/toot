@@ -33,6 +33,7 @@ DEFAULT_MAX_TOOT_CHARS = 500
 class TuiOptions(NamedTuple):
     colors: int
     media_viewer: Optional[str]
+    always_show_sensitive: bool
     relative_datetimes: bool
     default_visibility: Optional[bool]
 
