@@ -183,7 +183,7 @@ def post_status(
     app,
     user,
     status,
-    visibility='public',
+    visibility=None,
     media_ids=None,
     sensitive=False,
     spoiler_text=None,
@@ -230,12 +230,67 @@ def post_status(
     return http.post(app, user, '/api/v1/statuses', json=data, headers=headers)
 
 
+def edit_status(
+    app,
+    user,
+    id,
+    status,
+    visibility='public',
+    media_ids=None,
+    sensitive=False,
+    spoiler_text=None,
+    in_reply_to_id=None,
+    language=None,
+    content_type=None,
+    poll_options=None,
+    poll_expires_in=None,
+    poll_multiple=None,
+    poll_hide_totals=None,
+) -> Response:
+    """
+    Edit an existing status
+    https://docs.joinmastodon.org/methods/statuses/#edit
+    """
+
+    # Strip keys for which value is None
+    # Sending null values doesn't bother Mastodon, but it breaks Pleroma
+    data = drop_empty_values({
+        'status': status,
+        'media_ids': media_ids,
+        'visibility': visibility,
+        'sensitive': sensitive,
+        'in_reply_to_id': in_reply_to_id,
+        'language': language,
+        'content_type': content_type,
+        'spoiler_text': spoiler_text,
+    })
+
+    if poll_options:
+        data["poll"] = {
+            "options": poll_options,
+            "expires_in": poll_expires_in,
+            "multiple": poll_multiple,
+            "hide_totals": poll_hide_totals,
+        }
+
+    return http.put(app, user, f"/api/v1/statuses/{id}", json=data)
+
+
 def fetch_status(app, user, id):
     """
     Fetch a single status
     https://docs.joinmastodon.org/methods/statuses/#get
     """
     return http.get(app, user, f"/api/v1/statuses/{id}")
+
+
+def fetch_status_source(app, user, id):
+    """
+    Fetch the source (original text) for a single status.
+    This only works on local toots.
+    https://docs.joinmastodon.org/methods/statuses/#source
+    """
+    return http.get(app, user, f"/api/v1/statuses/{id}/source")
 
 
 def scheduled_statuses(app, user):
@@ -616,6 +671,10 @@ def clear_notifications(app, user):
 def get_instance(base_url: str) -> Response:
     url = f"{base_url}/api/v1/instance"
     return http.anon_get(url)
+
+
+def get_preferences(app, user) -> Response:
+    return http.get(app, user, '/api/v1/preferences')
 
 
 def get_lists(app, user):

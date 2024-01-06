@@ -9,15 +9,14 @@ your test server and database:
 
 ```
 export TOOT_TEST_BASE_URL="localhost:3000"
-export TOOT_TEST_DATABASE_DSN="dbname=mastodon_development"
 ```
 """
 
 import json
-import re
 import os
-import psycopg2
 import pytest
+import re
+import typing as t
 import uuid
 
 from click.testing import CliRunner, Result
@@ -31,8 +30,10 @@ def pytest_configure(config):
     toot.settings.DISABLE_SETTINGS = True
 
 
+# Type alias for run commands
+Run = t.Callable[..., Result]
+
 # Mastodon database name, used to confirm user registration without having to click the link
-DATABASE_DSN = os.getenv("TOOT_TEST_DATABASE_DSN")
 TOOT_TEST_BASE_URL = os.getenv("TOOT_TEST_BASE_URL")
 
 # Toot logo used for testing image upload
@@ -52,15 +53,7 @@ def register_account(app: App):
     email = f"{username}@example.com"
 
     response = api.register_account(app, username, email, "password", "en")
-    confirm_user(email)
     return User(app.instance, username, response["access_token"])
-
-
-def confirm_user(email):
-    conn = psycopg2.connect(DATABASE_DSN)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET confirmed_at = now() WHERE email = %s;", (email,))
-    conn.commit()
 
 
 # ------------------------------------------------------------------------------

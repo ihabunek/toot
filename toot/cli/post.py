@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, timezone
 from time import sleep, time
 from typing import BinaryIO, Optional, Tuple
 
-from toot import api
-from toot.cli import cli, json_option, pass_context, Context
+from toot import api, config
+from toot.cli import AccountParamType, cli, json_option, pass_context, Context
 from toot.cli import DURATION_EXAMPLES, VISIBILITY_CHOICES
 from toot.cli.validators import validate_duration, validate_language
 from toot.entities import MediaAttachment, from_dict
@@ -40,7 +40,6 @@ from toot.utils.datetime import parse_datetime
     "--visibility", "-v",
     help="Post visibility",
     type=click.Choice(VISIBILITY_CHOICES),
-    default="public",
 )
 @click.option(
     "--sensitive", "-s",
@@ -106,6 +105,11 @@ from toot.utils.datetime import parse_datetime
     is_flag=True,
     default=False,
 )
+@click.option(
+    "-u", "--using",
+    type=AccountParamType(),
+    help="The account to use, overrides the active account.",
+)
 @json_option
 @pass_context
 def post(
@@ -114,7 +118,7 @@ def post(
     media: Tuple[str],
     descriptions: Tuple[str],
     thumbnails: Tuple[str],
-    visibility: str,
+    visibility: Optional[str],
     sensitive: bool,
     spoiler_text: Optional[str],
     reply_to: Optional[str],
@@ -127,11 +131,19 @@ def post(
     poll_expires_in: int,
     poll_multiple: bool,
     poll_hide_totals: bool,
-    json: bool
+    json: bool,
+    using: str
 ):
     """Post a new status"""
     if len(media) > 4:
         raise click.ClickException("Cannot attach more than 4 files.")
+
+    if using:
+        user, app = config.get_user_app(using)
+        if not user or not app:
+            raise click.ClickException(f"Account '{using}' not found. Run `toot auth` to see available accounts.")
+    else:
+        user, app = ctx.user, ctx.app
 
     media_ids = _upload_media(ctx.app, ctx.user, media, descriptions, thumbnails)
     status_text = _get_status_text(text, editor, media)
@@ -141,8 +153,8 @@ def post(
         raise click.ClickException("You must specify either text or media to post.")
 
     response = api.post_status(
-        ctx.app,
-        ctx.user,
+        app,
+        user,
         status_text,
         visibility=visibility,
         media_ids=media_ids,

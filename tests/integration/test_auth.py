@@ -3,7 +3,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from toot import User, cli
-from toot.cli import Run
+from tests.integration.conftest import Run
 
 # TODO: figure out how to test login
 

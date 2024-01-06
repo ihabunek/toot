@@ -109,6 +109,7 @@ class Timeline(urwid.Columns):
             "[A]ccount" if not status.is_mine else "",
             "[B]oost",
             "[D]elete" if status.is_mine else "",
+            "[E]dit" if status.is_mine else "",
             "B[o]okmark",
             "[F]avourite",
             "[V]iew",
@@ -196,6 +197,11 @@ class Timeline(urwid.Columns):
         if key in ("d", "D"):
             if status.is_mine:
                 self.tui.show_delete_confirmation(status)
+            return
+
+        if key in ("e", "E"):
+            if status.is_mine:
+                self.tui.async_edit(status)
             return
 
         if key in ("f", "F"):
@@ -349,6 +355,7 @@ class StatusDetails(urwid.Pile):
         if self.status:
             self.status.placeholders = []
         self.followed_accounts = timeline.tui.followed_accounts
+        self.options = timeline.tui.options
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
@@ -447,9 +454,12 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Divider())
 
         # Show content warning
-        if status.data["spoiler_text"] and not status.show_sensitive:
+        if status.data["spoiler_text"] and not status.show_sensitive and not self.options.always_show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
+            if status.data["spoiler_text"]:
+                yield ("pack", urwid.Text(("content_warning", "Marked as sensitive.")))
+
             content = status.original.translation if status.original.show_translation else status.data["content"]
             widgetlist = html_to_widgets(content)
 
@@ -516,6 +526,8 @@ class StatusDetails(urwid.Pile):
 
         yield ("pack", urwid.Text([
             ("status_detail_timestamp", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("status_detail_timestamp",
+             f"(edited {status.edited_at.strftime('%Y-%m-%d %H:%M')}) " if status.edited_at else ""),
             ("status_detail_bookmarked" if status.bookmarked else "dim", "b "),
             ("dim", f"⤶ {status.data['replies_count']} "),
             ("highlight" if status.reblogged else "dim", f"♺ {status.data['reblogs_count']} "),
@@ -579,7 +591,7 @@ class StatusDetails(urwid.Pile):
 
 class StatusListItem(SelectableColumns):
     def __init__(self, status, relative_datetimes):
-        edited_at = status.data.get("edited_at")
+        edited_at = status.original.edited_at
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull reuqests, refactor when merged.
@@ -593,7 +605,7 @@ class StatusListItem(SelectableColumns):
         favourited = ("highlight", "★") if status.original.favourited else " "
         reblogged = ("highlight", "♺") if status.original.reblogged else " "
         is_reblog = ("dim", "♺") if status.reblog else " "
-        is_reply = ("dim", "⤶") if status.original.in_reply_to else " "
+        is_reply = ("dim", "⤶ ") if status.original.in_reply_to else "  "
 
         return super().__init__([
             ("pack", SelectableText(("status_list_timestamp", created_at), wrap="clip")),

@@ -11,7 +11,8 @@ from toot.output import print_list_accounts, print_lists, print_warning
 def lists(ctx: click.Context):
     """Display and manage lists"""
     if ctx.invoked_subcommand is None:
-        print_warning("`toot lists` is deprecated in favour of `toot lists list`")
+        print_warning("`toot lists` is deprecated in favour of `toot lists list`.\n" +
+                      "Run `toot lists -h` to see other list-related commands.")
 
         user, app = config.get_active_user_app()
         if not user or not app:

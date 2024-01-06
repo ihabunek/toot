@@ -1,7 +1,7 @@
 import pytest
 
-from time import sleep
 from uuid import uuid4
+from tests.utils import run_with_retries
 
 from toot import api, cli
 from toot.entities import from_dict, Status
@@ -40,16 +40,14 @@ def test_timelines(app, user, other_user, friend_user, friend_list, run):
     status2 = _post_status(app, other_user, "#bar")
     status3 = _post_status(app, friend_user, "#foo #bar")
 
-    # Give mastodon time to process things :/
-    # Tests fail if this is removed, required delay depends on server speed
-    sleep(1)
-
     # Home timeline
-    result = run(cli.timelines.timeline)
-    assert result.exit_code == 0
-    assert status1.id in result.stdout
-    assert status2.id not in result.stdout
-    assert status3.id in result.stdout
+    def test_home():
+        result = run(cli.timelines.timeline)
+        assert result.exit_code == 0
+        assert status1.id in result.stdout
+        assert status2.id not in result.stdout
+        assert status3.id in result.stdout
+    run_with_retries(test_home)
 
     # Public timeline
     result = run(cli.timelines.timeline, "--public")
@@ -166,13 +164,14 @@ def test_notifications(app, user, other_user, run):
 
     text = f"Paging doctor @{user.username}"
     status = _post_status(app, other_user, text)
-    sleep(0.5)  # grr
 
-    result = run(cli.timelines.notifications)
-    assert result.exit_code == 0
-    assert f"@{other_user.username} mentioned you" in result.stdout
-    assert status.id in result.stdout
-    assert text in result.stdout
+    def test_notifications():
+        result = run(cli.timelines.notifications)
+        assert result.exit_code == 0
+        assert f"@{other_user.username} mentioned you" in result.stdout
+        assert status.id in result.stdout
+        assert text in result.stdout
+    run_with_retries(test_notifications)
 
     result = run(cli.timelines.notifications, "--mentions")
     assert result.exit_code == 0
@@ -185,7 +184,6 @@ def test_notifications_follow(app, user, friend_user, run_as):
     result = run_as(friend_user, cli.timelines.notifications)
     assert result.exit_code == 0
     assert f"@{user.username} now follows you" in result.stdout
-
 
     result = run_as(friend_user, cli.timelines.notifications, "--mentions")
     assert result.exit_code == 0

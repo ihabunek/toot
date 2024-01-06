@@ -2,13 +2,10 @@ import click
 import platform
 import sys
 import webbrowser
-from click.shell_completion import CompletionItem
-
-from click.types import StringParamType
 
 from toot import api, config, __version__
 from toot.auth import get_or_create_app, login_auth_code, login_username_password
-from toot.cli import cli
+from toot.cli import AccountParamType, cli
 from toot.cli.validators import validate_instance
 
 
@@ -20,18 +17,6 @@ instance_option = click.option(
     help="""Domain or base URL of the instance to log into,
             e.g. 'mastodon.social' or 'https://mastodon.social'""",
 )
-
-
-class AccountParamType(StringParamType):
-    """Custom type to add shell completion for account names"""
-
-    def shell_complete(self, ctx, param, incomplete: str):
-        accounts = config.load_config()["users"].keys()
-        return [
-            CompletionItem(a)
-            for a in accounts
-            if a.lower().startswith(incomplete.lower())
-        ]
 
 
 @cli.command()
