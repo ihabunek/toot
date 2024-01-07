@@ -12,7 +12,7 @@ Changelog
 * Honour user's default visibility set in Mastodon preferences instead of always
   defaulting to public visibility (thanks Lexi Winter)
 * TUI: Add editing toots (thanks Lexi Winter)
-* TUI: Fix a bug which made pallette config in settings not work
+* TUI: Fix a bug which made palette config in settings not work
 * TUI: Show edit datetime in status detail (thanks Lexi Winter)
 
 **0.40.2 (2023-12-28)**
@@ -49,7 +49,7 @@ mostly preserved, except for cases noted below. Please report any issues.
   list`, `lists remove` subcommands, deprecate `lists`, `lists_accounts`,
   `lists_add`, `lists_create`, `lists_delete`, `lists_remove` commands.
 * Add `--json` option to tags and lists commands
-* Add `toot --width` option for setting your prefered terminal width
+* Add `toot --width` option for setting your preferred terminal width
 * Add `--media-viewer` and `--colors` options to `toot tui`. These were
   previously accessible only via settings.
 * TUI: Fix issue where UI did not render until first input (thanks Urwid devs)
@@ -144,7 +144,7 @@ mostly preserved, except for cases noted below. Please report any issues.
 * TUI: Hide polls, cards and media attachments for sensitive posts (thanks
   Daniel Schwarz)
 * TUI: Add bookmarking and bookmark timeline (thanks Daniel Schwarz)
-* TUI: Show status visiblity (thanks Lim Ding Wen)
+* TUI: Show status visibility (thanks Lim Ding Wen)
 * TUI: Reply to original account instead of boosting account (thanks Lim Ding
   Wen)
 * TUI: Refresh screen after exiting browser, required for text browsers (thanks
@@ -172,7 +172,7 @@ mostly preserved, except for cases noted below. Please report any issues.
 
 **0.30.1 (2022-11-30)**
 
-* Remove usage of depreacted `text_url` status field. Fixes posting media
+* Remove usage of deprecated `text_url` status field. Fixes posting media
   without text.
 
 **0.30.0 (2022-11-29)**
@@ -225,7 +225,7 @@ mostly preserved, except for cases noted below. Please report any issues.
   (#168)
 * Add `--reverse` option to `toot notifications` (#151)
 * Fix `toot timeline` to respect `--instance` option
-* TUI: Add opton to pin/save tag timelines (#163, thanks @dlax)
+* TUI: Add option to pin/save tag timelines (#163, thanks @dlax)
 * TUI: Fixed crash on empty timeline (#138, thanks ecs)
 
 **0.26.0 (2020-04-15)**
