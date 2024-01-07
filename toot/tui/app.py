@@ -25,7 +25,6 @@ from .timeline import Timeline
 from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard, ImageCache
 from PIL import Image
 from .widgets import ModalBox
->>>>>>> master
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,7 @@ class TuiOptions(NamedTuple):
     relative_datetimes: bool
     cache_size: int
     default_visibility: Optional[bool]
+
 
 class Header(urwid.WidgetWrap):
     def __init__(self, app, user):

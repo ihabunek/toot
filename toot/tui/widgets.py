@@ -160,6 +160,7 @@ class EmojiText(urwid.Padding):
         column_widget = urwid.Columns(columns, dividechars=1, min_width=2)
         super().__init__(column_widget)
 
+
 class ModalBox(urwid.Frame):
     def __init__(self, message):
         text = urwid.Text(message)
