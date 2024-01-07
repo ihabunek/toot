@@ -8,7 +8,7 @@ from toot.entities import from_dict, Status
 from tests.integration.conftest import TOOT_TEST_BASE_URL, register_account
 
 
-# TODO: If fixture is not overriden here, tests fail, not sure why, figure it out
+# TODO: If fixture is not overridden here, tests fail, not sure why, figure it out
 @pytest.fixture(scope="module")
 def user(app):
     return register_account(app)

@@ -46,7 +46,7 @@ PALETTE = [
     ('shortcut_highlight', 'white,bold', '', 'bold'),
     ('warning', 'light red', ''),
 
-    # Visiblity
+    # Visibility
     ('visibility_public', 'dark gray', ''),
     ('visibility_unlisted', 'white', ''),
     ('visibility_private', 'dark cyan', ''),

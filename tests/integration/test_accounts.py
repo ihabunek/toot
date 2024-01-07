@@ -36,7 +36,7 @@ def test_whois(app: App, friend: User, run):
 
 
 def test_following(app: App, user: User, friend: User, friend_id, run):
-    # Make sure we're not initally following friend
+    # Make sure we're not initially following friend
     api.unfollow(app, user, friend_id)
 
     result = run(cli.accounts.following, user.username)
@@ -85,7 +85,7 @@ def test_following_not_found(run):
 
 
 def test_following_json(app: App, user: User, friend: User, user_id, friend_id, run_json):
-    # Make sure we're not initally following friend
+    # Make sure we're not initially following friend
     api.unfollow(app, user, friend_id)
 
     result = run_json(cli.accounts.following, user.username, "--json")

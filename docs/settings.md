@@ -11,7 +11,7 @@ Toot will look for the settings file at:
 * `~/.config/toot/settings.toml` (Linux & co.)
 * `%APPDATA%\toot\settings.toml` (Windows)
 
-Toot will respect the `XDG_CONFIG_HOME` environement variable if it's set and
+Toot will respect the `XDG_CONFIG_HOME` environment variable if it's set and
 look for the settings file in `$XDG_CONFIG_HOME/toot` instead of
 `~/.config/toot`.
 
@@ -82,7 +82,7 @@ By default, TUI operates in 16-color mode which can be changed by setting the
 * `16777216` (24 bit)
 
 TUI defines a list of colors which can be customized, currently they can be seen
-[in the source code](https://github.com/ihabunek/toot/blob/master/toot/tui/constants.py). They can be overriden in the `[tui.palette]` section.
+[in the source code](https://github.com/ihabunek/toot/blob/master/toot/tui/constants.py). They can be overridden in the `[tui.palette]` section.
 
 Each color is defined as a list of upto 5 values:
 
