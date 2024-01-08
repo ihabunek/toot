@@ -111,7 +111,7 @@ these rules for you.
 
 #### Run tests before submitting
 
-You can run code and sytle tests by running:
+You can run code and style tests by running:
 
 ```
 make test

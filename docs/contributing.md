@@ -80,9 +80,7 @@ source _env/bin/activate
 # On Windows
 _env\bin\activate.bat
 
-pip install --editable .
-pip install -r requirements-dev.txt
-pip install -r requirements-test.txt
+pip install --editable ".[dev,test]"
 ```
 
 While the virtual env is active, running `toot` will execute the one you checked
@@ -118,7 +116,7 @@ these rules for you.
 
 #### Run tests before submitting
 
-You can run code and sytle tests by running:
+You can run code and style tests by running:
 
 ```
 make test

@@ -594,7 +594,7 @@ class StatusListItem(SelectableColumns):
         edited_at = status.original.edited_at
 
         # TODO: hacky implementation to avoid creating conflicts for existing
-        # pull reuqests, refactor when merged.
+        # pull requests, refactor when merged.
         created_at = (
             time_ago(status.created_at).ljust(3, " ")
             if relative_datetimes
