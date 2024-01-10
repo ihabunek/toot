@@ -3,7 +3,7 @@ import urwid
 from toot import api
 from toot.exceptions import ApiError
 from toot.utils.datetime import parse_datetime
-from .widgets import Button, CheckBox, RadioButton
+from .widgets import Button, CheckBox, RadioButton, RoundedLineBox
 from .richtext import html_to_widgets
 
 
@@ -27,7 +27,7 @@ class Poll(urwid.ListBox):
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
         contents = urwid.Padding(contents, left=1, right=1)
-        return urwid.LineBox(contents)
+        return RoundedLineBox(contents)
 
     def vote(self, button_widget):
         poll = self.status.original.data.get("poll")

@@ -12,7 +12,7 @@ from toot.utils.language import language_name
 from toot.entities import Status
 from toot.tui.scroll import Scrollable, ScrollBar
 from toot.tui.utils import highlight_keys
-from toot.tui.widgets import SelectableText, SelectableColumns
+from toot.tui.widgets import SelectableText, SelectableColumns, RoundedLineBox
 
 logger = logging.getLogger("toot")
 
@@ -415,7 +415,7 @@ class StatusDetails(urwid.Pile):
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
         contents = urwid.Padding(contents, left=1, right=1)
-        return urwid.LineBox(contents)
+        return RoundedLineBox(contents)
 
     def card_generator(self, card):
         yield urwid.Text(("card_title", card["title"].strip()))
