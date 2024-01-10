@@ -20,7 +20,7 @@ from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
 from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard
-from .widgets import ModalBox
+from .widgets import ModalBox, RoundedLineBox
 
 logger = logging.getLogger(__name__)
 
@@ -769,7 +769,7 @@ class TUI(urwid.Frame):
     )
 
     def open_overlay(self, widget, options={}, title=""):
-        top_widget = urwid.LineBox(widget, title=title)
+        top_widget = RoundedLineBox(widget, title=title)
         bottom_widget = self.body
 
         _options = self.default_overlay_options.copy()
