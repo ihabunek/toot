@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 from typing import List
 
 from PIL import Image, ImageDraw
-from term_image.image import auto_image_class, GraphicsImage
+from term_image.image import BaseImage, KittyImage, ITerm2Image, BlockImage
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
@@ -107,9 +107,19 @@ def add_corners(img, rad):
     return img
 
 
-def can_render_pixels():
-    # subclasses of GraphicsImage render to pixels
-    return issubclass(auto_image_class(), GraphicsImage)
+def can_render_pixels(image_format: str):
+    return image_format in ['kitty', 'iterm']
+
+
+def get_base_image(image, image_format: str) -> BaseImage:
+    # we don't autodetect kitty, iterm, we force based on option switches
+    BaseImage.forced_support = True
+    if image_format == 'kitty':
+        return KittyImage(image)
+    elif image_format == 'iterm':
+        return ITerm2Image(image)
+    else:
+        return BlockImage(image)
 
 
 def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):

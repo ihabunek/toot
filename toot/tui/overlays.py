@@ -7,11 +7,10 @@ import webbrowser
 from toot import __version__
 from toot import api
 
-from toot.tui.utils import highlight_keys, add_corners
-from toot.tui.widgets import Button, EditBox, SelectableText, EmojiText
+from toot.tui.utils import highlight_keys, add_corners, get_base_image
+from toot.tui.widgets import Button, EditBox, SelectableText
 from toot.tui.richtext import html_to_widgets
 from PIL import Image
-from term_image.image import AutoImage
 from term_image.widget import UrwidImage
 
 
@@ -247,11 +246,12 @@ class Help(urwid.Padding):
 
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
-    def __init__(self, app, user, account, relationship):
+    def __init__(self, app, user, account, relationship, options):
         self.app = app
         self.user = user
         self.account = account
         self.relationship = relationship
+        self.options = options
         self.last_action = None
         self.setup_listbox()
 
@@ -268,8 +268,8 @@ class Account(urwid.ListBox):
                 img = img.convert("RGBA")
             aimg = urwid.BoxAdapter(
                 UrwidImage(
-                    AutoImage(
-                        add_corners(img, 10)), upscale=True),
+                    get_base_image(
+                        add_corners(img, 10), self.options.image_format), upscale=True),
                 10)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
@@ -279,20 +279,13 @@ class Account(urwid.ListBox):
 
             if img.format == 'PNG' and img.mode != 'RGBA':
                 img = img.convert("RGBA")
-            himg = (urwid.BoxAdapter(
-                    UrwidImage(
-                        AutoImage(
-                            add_corners(img, 10)
-                        ), upscale=True),
-                    10)
-                    )
+            himg = (urwid.BoxAdapter(UrwidImage(get_base_image(
+                add_corners(img, 10), self.options.image_format), upscale=True), 10))
         else:
             himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
         atxt = urwid.Pile([urwid.Divider(),
-                        urwid.AttrMap(
-                            EmojiText(account["display_name"], account["emojis"]),
-                            "account"),
+                           (urwid.Text(("account", account["display_name"]))),
                 (urwid.Text(("highlight", "@" + self.account['acct'])))])
         columns = urwid.Columns([aimg, ("weight", 9999, himg)], dividechars=2, min_width=20)
 

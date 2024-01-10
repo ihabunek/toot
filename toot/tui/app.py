@@ -41,6 +41,7 @@ class TuiOptions(NamedTuple):
     relative_datetimes: bool
     cache_size: int
     default_visibility: Optional[bool]
+    image_format: Optional[str]
 
 
 class Header(urwid.WidgetWrap):
@@ -656,7 +657,7 @@ class TUI(urwid.Frame):
         account = api.whois(self.app, self.user, account_id)
         relationship = api.get_relationship(self.app, self.user, account_id)
         self.open_overlay(
-            widget=Account(self.app, self.user, account, relationship),
+            widget=Account(self.app, self.user, account, relationship, self.options),
             title="Account",
         )
 

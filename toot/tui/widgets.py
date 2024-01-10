@@ -1,11 +1,4 @@
-from typing import List
 import urwid
-import re
-import requests
-from PIL import Image, ImageOps
-from term_image.image import AutoImage
-from term_image.widget import UrwidImage
-from .utils import can_render_pixels
 from wcwidth import wcswidth
 
 
@@ -74,91 +67,6 @@ class RadioButton(urwid.AttrWrap):
         button = urwid.RadioButton(*args, **kwargs)
         padding = urwid.Padding(button, width=len(args[1]) + 4)
         return super().__init__(padding, "button", "button_focused")
-
-
-class EmojiText(urwid.Padding):
-    """Widget to render text with embedded custom emojis
-
-    Note, these are Mastodon custom server emojis
-    which are indicated by :shortcode: in the text
-    and rendered as images on supporting clients.
-
-    For clients that do not support pixel rendering,
-    they are rendered as plain text :shortcode:
-
-    This widget was designed for use with displaynames
-    but could be used with any string of text.
-    However, due to the internal use of columns,
-    this widget will not wrap multi-line text
-    correctly.
-
-    Note, you can embed this widget in AttrWrap to style
-    the text as desired.
-
-    Parameters:
-
-    text -- text string (with or without embedded shortcodes)
-    emojis -- list of emojis with nested lists of associated
-    shortcodes and URLs
-    make_gray -- if True, convert emojis to grayscale
-    """
-    image_cache = {}
-
-    def __init__(self, text: str, emojis: List, make_gray=False):
-        columns = []
-
-        if not can_render_pixels():
-            return self.plain(text, columns)
-
-        # build a regex to find all available shortcodes
-        regex = '|'.join(f':{emoji["shortcode"]}:' for emoji in emojis)
-
-        if 0 == len(regex):
-            # if no shortcodes, just output plain Text
-            return self.plain(text, columns)
-
-        regex = f"({regex})"
-
-        for word in re.split(regex, text):
-            if word.startswith(":") and word.endswith(":"):
-                shortcode = word[1:-1]
-                found = False
-                for emoji in emojis:
-                    if emoji["shortcode"] == shortcode:
-                        try:
-                            img = EmojiText.image_cache.get(str(hash(emoji["url"])))
-                            if not img:
-                                # TODO: consider asynchronous loading in future
-                                img = Image.open(requests.get(emoji["url"], stream=True).raw)
-                                EmojiText.image_cache[str(hash(emoji["url"]))] = img
-
-                            if make_gray:
-                                img = ImageOps.grayscale(img)
-
-                            image_widget = urwid.BoxAdapter(UrwidImage(AutoImage(img), upscale=True), 1)
-
-                            columns.append(image_widget)
-                        except Exception:
-                            columns.append(("pack", urwid.Text(word)))
-                        finally:
-                            found = True
-                            break
-                if found is False:
-                    columns.append(("pack", urwid.Text(word)))
-            else:
-                columns.append(("pack", urwid.Text(word)))
-
-        columns.append(("weight", 9999, urwid.Text("")))
-
-        column_widget = urwid.Columns(columns, dividechars=0, min_width=2)
-        super().__init__(column_widget)
-
-    def plain(self, text, columns):
-        # if can't render pixels, just output plain Text
-        columns.append(("pack", urwid.Text(text)))
-        columns.append(("weight", 9999, urwid.Text("")))
-        column_widget = urwid.Columns(columns, dividechars=1, min_width=2)
-        super().__init__(column_widget)
 
 
 class ModalBox(urwid.Frame):

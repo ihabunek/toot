@@ -7,16 +7,15 @@ from typing import List, Optional
 
 from toot.tui import app
 
-from toot.tui.utils import can_render_pixels, add_corners
+from toot.tui.utils import add_corners
 from toot.tui.richtext import html_to_widgets, url_to_widget
 from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
 
 from toot.entities import Status
 from toot.tui.scroll import Scrollable, ScrollBar
-from toot.tui.utils import highlight_keys
-from toot.tui.widgets import SelectableText, SelectableColumns, EmojiText
-from term_image.image import AutoImage
+from toot.tui.utils import highlight_keys, get_base_image, can_render_pixels
+from toot.tui.widgets import SelectableText, SelectableColumns
 from term_image.widget import UrwidImage
 
 logger = logging.getLogger("toot")
@@ -48,7 +47,7 @@ class Timeline(urwid.Columns):
         self.is_thread = is_thread
         self.statuses = statuses
         self.status_list = self.build_status_list(statuses, focus=focus)
-        self.can_render_pixels = can_render_pixels()
+        self.can_render_pixels = can_render_pixels(self.tui.options.image_format)
 
         try:
             focused_status = statuses[focus]
@@ -330,11 +329,11 @@ class Timeline(urwid.Columns):
         if img:
             try:
                 render_img = add_corners(img, 10) if self.can_render_pixels else img
+
                 status.placeholders[placeholder_index]._set_original_widget(
-                    UrwidImage(
-                        AutoImage(render_img),
-                        "<", upscale=True),
-                )  # "<" means left-justify the image
+                    UrwidImage(get_base_image(render_img, self.tui.options.image_format), '<', upscale=True))
+                # "<" means left-justify the image
+
             except IndexError:
                 # ignore IndexErrors.
                 pass
@@ -403,9 +402,7 @@ class StatusDetails(urwid.Pile):
         if img:
             render_img = add_corners(img, 10) if self.timeline.can_render_pixels else img
             return (urwid.BoxAdapter(
-                UrwidImage(
-                    AutoImage(render_img),
-                    "<", upscale=True),
+                UrwidImage(get_base_image(render_img, self.timeline.tui.options.image_format), "<", upscale=True),
                 rows))
         else:
             placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
@@ -424,11 +421,7 @@ class StatusDetails(urwid.Pile):
         account_color = ("highlight" if self.status.original.author.account in
                         self.timeline.tui.followed_accounts else "account")
 
-        atxt = urwid.Pile([("pack",
-                            urwid.AttrMap(
-                                EmojiText(self.status.author.display_name,
-                                        self.status.data["account"]["emojis"]),
-                                "bold")),
+        atxt = urwid.Pile([("pack", urwid.Text(("bold", self.status.author.display_name))),
                            ("pack", urwid.Text((account_color, self.status.author.account)))])
 
         columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
@@ -440,10 +433,7 @@ class StatusDetails(urwid.Pile):
                               if reblogged_by.display_name
                               else reblogged_by.username)
             text = f"♺ {reblogger_name} boosted"
-            yield urwid.AttrMap(
-                EmojiText(text, status.data["account"]["emojis"], make_gray=True),
-                "dim"
-            )
+            yield urwid.Text(("dim", text))
             yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         yield self.author_header(reblogged_by)
