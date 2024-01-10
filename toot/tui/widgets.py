@@ -75,3 +75,33 @@ class ModalBox(urwid.Frame):
         filler = urwid.Filler(text, valign='top', top=1, bottom=1)
         padding = urwid.Padding(filler, left=1, right=1)
         return super().__init__(padding)
+
+
+class RoundedLineBox(urwid.LineBox):
+    """LineBox that defaults to rounded corners."""
+    def __init__(self,
+                 original_widget,
+                 title="",
+                 title_align="center",
+                 title_attr=None,
+                 tlcorner="\u256d",
+                 tline="─",
+                 lline="│",
+                 trcorner="\u256e",
+                 blcorner="\u2570",
+                 rline="│",
+                 bline="─",
+                 brcorner="\u256f",
+                 ) -> None:
+        return super().__init__(original_widget,
+                            title,
+                            title_align,
+                            title_attr,
+                            tlcorner,
+                            tline,
+                            lline,
+                            trcorner,
+                            blcorner,
+                            rline,
+                            bline,
+                            brcorner)
