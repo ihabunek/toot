@@ -17,11 +17,11 @@ def get_config_file_path():
     return join(get_config_dir(), TOOT_CONFIG_FILE_NAME)
 
 
-def user_id(user):
+def user_id(user: User):
     return "{}@{}".format(user.username, user.instance)
 
 
-def make_config(path):
+def make_config(path: str):
     """Creates an empty toot configuration file."""
     config = {
         "apps": {},
@@ -58,7 +58,7 @@ def save_config(config):
         return json.dump(config, f, indent=True, sort_keys=True)
 
 
-def extract_user_app(config, user_id):
+def extract_user_app(config, user_id: str):
     if user_id not in config['users']:
         return None, None
 
@@ -82,7 +82,7 @@ def get_active_user_app():
     return None, None
 
 
-def get_user_app(user_id):
+def get_user_app(user_id: str):
     """Returns (User, App) for given user ID or (None, None) if user is not logged in."""
     return extract_user_app(load_config(), user_id)
 
@@ -93,7 +93,7 @@ def load_app(instance: str) -> Optional[App]:
         return App(**config['apps'][instance])
 
 
-def load_user(user_id, throw=False):
+def load_user(user_id: str, throw=False):
     config = load_config()
 
     if user_id in config['users']:
@@ -120,7 +120,7 @@ def save_app(app: App):
         config['apps'][app.instance] = app._asdict()
 
 
-def delete_app(config, app):
+def delete_app(config, app: App):
     with edit_config() as config:
         config['apps'].pop(app.instance, None)
 

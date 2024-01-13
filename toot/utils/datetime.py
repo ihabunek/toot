@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timezone
 
 
-def parse_datetime(value):
+def parse_datetime(value: str) -> datetime:
     """Returns an aware datetime in local timezone"""
     dttm = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
 

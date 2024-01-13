@@ -1,26 +1,22 @@
+import click
 import os
 import re
-import socket
 import subprocess
 import tempfile
 import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
-from typing import Any, Dict, List
-
-import click
-
-from toot.exceptions import ConsoleError
+from typing import Any, Dict, Generator, List, Optional
 from urllib.parse import urlparse, urlencode, quote, unquote
 
 
-def str_bool(b):
+def str_bool(b: bool) -> str:
     """Convert boolean to string, in the way expected by the API."""
     return "true" if b else "false"
 
 
-def str_bool_nullable(b):
+def str_bool_nullable(b: Optional[bool]) -> Optional[str]:
     """Similar to str_bool, but leave None as None"""
     return None if b is None else str_bool(b)
 
@@ -34,7 +30,7 @@ def parse_html(html: str) -> BeautifulSoup:
         return BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
 
 
-def get_text(html):
+def get_text(html: str) -> str:
     """Converts html to text, strips all tags."""
     text = parse_html(html).get_text()
     return unicodedata.normalize("NFKC", text)
@@ -53,7 +49,7 @@ def html_to_paragraphs(html: str) -> List[List[str]]:
     return [[get_text(line) for line in p] for p in paragraphs]
 
 
-def format_content(content):
+def format_content(content: str) -> Generator[str, None, None]:
     """Given a Status contents in HTML, converts it into lines of plain text.
 
     Returns a generator yielding lines of content.
@@ -76,9 +72,9 @@ def format_content(content):
 EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"
 
 
-def multiline_input():
+def multiline_input() -> str:
     """Lets user input multiple lines of text, terminated by EOF."""
-    lines = []
+    lines: List[str] = []
     while True:
         try:
             lines.append(input())
