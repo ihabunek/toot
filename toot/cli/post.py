@@ -145,7 +145,7 @@ def post(
     else:
         user, app = ctx.user, ctx.app
 
-    media_ids = _upload_media(ctx.app, ctx.user, media, descriptions, thumbnails)
+    media_ids = _upload_media(app, user, media, descriptions, thumbnails)
     status_text = _get_status_text(text, editor, media)
     scheduled_at = _get_scheduled_at(scheduled_at, scheduled_in)
 
