@@ -1,8 +1,3 @@
-# scroll.py
-#
-# Copied from the stig project by rndusr@github
-# https://github.com/rndusr/stig
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -36,12 +31,12 @@ class Scrollable(urwid.WidgetDecoration):
     def selectable(self):
         return True
 
-    def __init__(self, widget):
+    def __init__(self, widget, force_forward_keypress = False):
         """Box widget that makes a fixed or flow widget vertically scrollable
 
         TODO: Focusable widgets are handled, including switching focus, but
         possibly not intuitively, depending on the arrangement of widgets.  When
-        switching focus to a widget that is outside of the visible part of the
+        switching focus to a widget that is ouside of the visible part of the
         original widget, the canvas scrolls up/down to the focused widget.  It
         would be better to scroll until the next focusable widget is in sight
         first.  But for that to work we must somehow obtain a list of focusable
@@ -54,6 +49,7 @@ class Scrollable(urwid.WidgetDecoration):
         self._forward_keypress = None
         self._old_cursor_coords = None
         self._rows_max_cached = 0
+        self.force_forward_keypress = force_forward_keypress
         self.__super.__init__(widget)
 
     def render(self, size, focus=False):
@@ -111,6 +107,51 @@ class Scrollable(urwid.WidgetDecoration):
             if canv_full.cursor is not None:
                 # Full canvas contains the cursor, but scrolled out of view
                 self._forward_keypress = False
+
+                # Reset cursor position on page/up down scrolling
+                try:
+                    if hasattr(ow, "automove_cursor_on_scroll") and ow.automove_cursor_on_scroll:
+                        pwi = 0
+                        ch = 0
+                        last_hidden = False
+                        first_visible = False
+                        for w,o in ow.contents:
+                            wcanv = w.render((maxcol,))
+                            wh = wcanv.rows()
+                            if wh:
+                                ch += wh
+
+                            if not last_hidden and ch >= self._trim_top:
+                                last_hidden = True
+
+                            elif last_hidden:
+                                if not first_visible:
+                                    first_visible = True
+
+                                if w.selectable():
+                                    ow.focus_item = pwi
+
+                                    st = None
+                                    nf = ow.get_focus()
+                                    if hasattr(nf, "key_timeout"):
+                                        st = nf
+                                    elif hasattr(nf, "original_widget"):
+                                        no = nf.original_widget
+                                        if hasattr(no, "original_widget"):
+                                            st = no.original_widget
+                                        else:
+                                            if hasattr(no, "key_timeout"):
+                                                st = no
+
+                                    if st and hasattr(st, "key_timeout") and hasattr(st, "keypress") and callable(st.keypress):
+                                        st.keypress(None, None)
+
+                                    break
+
+                            pwi += 1
+                except Exception as e:
+                    pass
+
             else:
                 # Original widget does not have a cursor, but may be selectable
 
@@ -132,7 +173,7 @@ class Scrollable(urwid.WidgetDecoration):
 
     def keypress(self, size, key):
         # Maybe offer key to original widget
-        if self._forward_keypress:
+        if self._forward_keypress or self.force_forward_keypress:
             ow = self._original_widget
             ow_size = self._get_original_widget_size(size)
 
@@ -216,7 +257,7 @@ class Scrollable(urwid.WidgetDecoration):
         # If the cursor was moved by the most recent keypress, adjust trim_top
         # so that the new cursor position is within the displayed canvas part.
         # But don't do this if the cursor is at the top/bottom edge so we can still scroll out
-        if self._old_cursor_coords is not None and self._old_cursor_coords != canv.cursor:
+        if self._old_cursor_coords is not None and self._old_cursor_coords != canv.cursor and canv.cursor != None:
             self._old_cursor_coords = None
             curscol, cursrow = canv.cursor
             if cursrow < self._trim_top:
@@ -227,10 +268,10 @@ class Scrollable(urwid.WidgetDecoration):
     def _get_original_widget_size(self, size):
         ow = self._original_widget
         sizing = ow.sizing()
-        if FIXED in sizing:
-            return ()
-        elif FLOW in sizing:
+        if FLOW in sizing:
             return (size[0],)
+        elif FIXED in sizing:
+            return ()
 
     def get_scrollpos(self, size=None, focus=False):
         """Current scrolling position
@@ -416,7 +457,10 @@ class ScrollBar(urwid.WidgetDecoration):
         if not handled and hasattr(ow, 'set_scrollpos'):
             if button == 4:    # scroll wheel up
                 pos = ow.get_scrollpos(ow_size)
-                ow.set_scrollpos(pos - 1)
+                newpos = pos - 1
+                if newpos < 0:
+                    newpos = 0
+                ow.set_scrollpos(newpos)
                 return True
             elif button == 5:  # scroll wheel down
                 pos = ow.get_scrollpos(ow_size)
