@@ -7,7 +7,6 @@ from typing import List, Optional
 
 from toot.tui import app
 
-from toot.tui.utils import add_corners
 from toot.tui.richtext import html_to_widgets, url_to_widget
 from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
@@ -15,9 +14,9 @@ from toot.utils.language import language_name
 from toot.entities import Status
 from toot.tui.scroll import Scrollable, ScrollBar
 
-from toot.tui.utils import highlight_keys, get_base_image, can_render_pixels
+from toot.tui.utils import highlight_keys
+from toot.tui.images import image_support_enabled, graphics_widget, can_render_pixels
 from toot.tui.widgets import SelectableText, SelectableColumns, RoundedLineBox
-from term_image.widget import UrwidImage
 
 
 logger = logging.getLogger("toot")
@@ -150,7 +149,16 @@ class Timeline(urwid.Columns):
     def modified(self):
         """Called when the list focus switches to a new status"""
         status, index, count = self.get_focused_status_with_counts()
-        self.tui.screen.clear_images()
+
+        if image_support_enabled:
+            clear_op = getattr(self.tui.screen, "clear_images", None)
+            # term-image's screen implementation has clear_images(),
+            # urwid's implementation does not.
+            # TODO: it would be nice not to check this each time thru
+
+            if callable(clear_op):
+                self.tui.screen.clear_images()
+
         self.draw_status_details(status)
         self._emit("focus")
 
@@ -330,11 +338,8 @@ class Timeline(urwid.Columns):
                 pass
         if img:
             try:
-                render_img = add_corners(img, 10) if self.can_render_pixels else img
-
                 status.placeholders[placeholder_index]._set_original_widget(
-                    UrwidImage(get_base_image(render_img, self.tui.options.image_format), '<', upscale=True))
-                # "<" means left-justify the image
+                    graphics_widget(img, image_format=self.tui.options.image_format, corner_radius=10))
 
             except IndexError:
                 # ignore IndexErrors.
@@ -402,20 +407,19 @@ class StatusDetails(urwid.Pile):
             except KeyError:
                 pass
         if img:
-            render_img = add_corners(img, 10) if self.timeline.can_render_pixels else img
             return (urwid.BoxAdapter(
-                UrwidImage(get_base_image(render_img, self.timeline.tui.options.image_format), "<", upscale=True),
-                rows))
+                graphics_widget(img, image_format=self.timeline.tui.options.image_format, corner_radius=10), rows))
         else:
             placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
             self.status.placeholders.append(placeholder)
-            self.timeline.tui.async_load_image(self.timeline, self.status, path, len(self.status.placeholders) - 1)
+            if image_support_enabled():
+                self.timeline.tui.async_load_image(self.timeline, self.status, path, len(self.status.placeholders) - 1)
             return placeholder
 
     def author_header(self, reblogged_by):
         avatar_url = self.status.original.data["account"]["avatar"]
 
-        if avatar_url:
+        if avatar_url and image_support_enabled():
             aimg = self.image_widget(avatar_url, 2)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
@@ -472,7 +476,8 @@ class StatusDetails(urwid.Pile):
                                 aspect = float(m["meta"]["original"]["aspect"])
                             except Exception:
                                 aspect = None
-                            yield self.image_widget(m["url"], aspect=aspect)
+                            if image_support_enabled():
+                                yield self.image_widget(m["url"], aspect=aspect)
                             yield urwid.Divider()
                         # video media may include a preview URL, show that as a fallback
                         elif m["preview_url"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
@@ -481,7 +486,8 @@ class StatusDetails(urwid.Pile):
                                 aspect = float(m["meta"]["small"]["aspect"])
                             except Exception:
                                 aspect = None
-                            yield self.image_widget(m["preview_url"], aspect=aspect)
+                            if image_support_enabled():
+                                yield self.image_widget(m["preview_url"], aspect=aspect)
                             yield urwid.Divider()
                         yield ("pack", url_to_widget(m["url"]))
 
@@ -547,7 +553,7 @@ class StatusDetails(urwid.Pile):
             yield urwid.Text("")
         yield url_to_widget(card["url"])
 
-        if card["image"]:
+        if card["image"] and image_support_enabled():
             if card["image"].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp')):
                 yield urwid.Text("")
                 try:

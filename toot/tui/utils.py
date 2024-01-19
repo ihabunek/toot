@@ -2,14 +2,10 @@ import base64
 import re
 import sys
 import urwid
-import math
 from collections import OrderedDict
 from functools import reduce
 from html.parser import HTMLParser
 from typing import List
-
-from PIL import Image, ImageDraw
-from term_image.image import BaseImage, KittyImage, ITerm2Image, BlockImage
 
 HASHTAG_PATTERN = re.compile(r'(?<!\w)(#\w+)\b')
 
@@ -76,52 +72,6 @@ def parse_content_links(content):
     return parser.links[:]
 
 
-def resize_image(basewidth: int, baseheight: int, img: Image.Image) -> Image.Image:
-    if baseheight and not basewidth:
-        hpercent = baseheight / float(img.size[1])
-        width = math.ceil(img.size[0] * hpercent)
-        img = img.resize((width, baseheight), Image.Resampling.LANCZOS)
-    elif basewidth and not baseheight:
-        wpercent = (basewidth / float(img.size[0]))
-        hsize = int((float(img.size[1]) * float(wpercent)))
-        img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
-    else:
-        img = img.resize((basewidth, baseheight), Image.Resampling.LANCZOS)
-
-    if img.mode != 'P':
-        img = img.convert('RGB')
-    return img
-
-
-def add_corners(img, rad):
-    circle = Image.new('L', (rad * 2, rad * 2), 0)
-    draw = ImageDraw.Draw(circle)
-    draw.ellipse((0, 0, rad * 2, rad * 2), fill=255)
-    alpha = Image.new('L', img.size, "white")
-    w, h = img.size
-    alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
-    alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
-    alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
-    alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
-    img.putalpha(alpha)
-    return img
-
-
-def can_render_pixels(image_format: str):
-    return image_format in ['kitty', 'iterm']
-
-
-def get_base_image(image, image_format: str) -> BaseImage:
-    # we don't autodetect kitty, iterm, we force based on option switches
-    BaseImage.forced_support = True
-    if image_format == 'kitty':
-        return KittyImage(image)
-    elif image_format == 'iterm':
-        return ITerm2Image(image)
-    else:
-        return BlockImage(image)
-
-
 def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):
     """ copy text to clipboard using OSC 52
     This escape sequence is documented
@@ -162,7 +112,7 @@ def deep_get(adict: dict, path: List[str], default=None):
     )
 
 
-class ImageCache(OrderedDict):
+class LRUCache(OrderedDict):
     """Dict with a limited size, ejecting LRUs as needed.
         Default max size = 10Mb"""
 
@@ -173,7 +123,7 @@ class ImageCache(OrderedDict):
 
         super().__init__(*args, **kwargs)
 
-    def __setitem__(self, key: str, value: Image.Image):
+    def __setitem__(self, key: str, value):
         if key in self:
             self.total_value_size -= sys.getsizeof(super().__getitem__(key).tobytes())
         self.total_value_size += sys.getsizeof(value.tobytes())

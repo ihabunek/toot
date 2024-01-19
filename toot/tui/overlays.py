@@ -1,5 +1,4 @@
 import json
-import requests
 import traceback
 import urwid
 import webbrowser
@@ -7,11 +6,10 @@ import webbrowser
 from toot import __version__
 from toot import api
 
-from toot.tui.utils import highlight_keys, add_corners, get_base_image
+from toot.tui.utils import highlight_keys
+from toot.tui.images import image_support_enabled, load_image, graphics_widget
 from toot.tui.widgets import Button, EditBox, SelectableText
 from toot.tui.richtext import html_to_widgets
-from PIL import Image
-from term_image.widget import UrwidImage
 
 
 class StatusSource(urwid.Padding):
@@ -261,26 +259,18 @@ class Account(urwid.ListBox):
         super().__init__(walker)
 
     def account_header(self, account):
-        if account['avatar'] and not account["avatar"].endswith("missing.png"):
-            img = Image.open(requests.get(account['avatar'], stream=True).raw)
-
-            if img.format == 'PNG' and img.mode != 'RGBA':
-                img = img.convert("RGBA")
+        if image_support_enabled() and account['avatar'] and not account["avatar"].endswith("missing.png"):
+            img = load_image(account['avatar'])
             aimg = urwid.BoxAdapter(
-                UrwidImage(
-                    get_base_image(
-                        add_corners(img, 10), self.options.image_format), upscale=True),
-                10)
+                graphics_widget(img, image_format=self.options.image_format, corner_radius=10), 10)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
-        if account['header'] and not account["header"].endswith("missing.png"):
-            img = Image.open(requests.get(account['header'], stream=True).raw)
+        if image_support_enabled() and account['header'] and not account["header"].endswith("missing.png"):
+            img = load_image(account['header'])
 
-            if img.format == 'PNG' and img.mode != 'RGBA':
-                img = img.convert("RGBA")
-            himg = (urwid.BoxAdapter(UrwidImage(get_base_image(
-                add_corners(img, 10), self.options.image_format), upscale=True), 10))
+            himg = (urwid.BoxAdapter(
+                graphics_widget(img, image_format=self.options.image_format, corner_radius=10), 10))
         else:
             himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 

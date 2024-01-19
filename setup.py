@@ -40,10 +40,13 @@ setup(
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
         "tomlkit>=0.10.0,<1.0",
-        "pillow>=9.5.0",
-        "term-image==0.7.0",
     ],
     extras_require={
+        # Required to display images in the TUI
+        "images": [
+            "pillow>=9.5.0",
+            "term-image==0.7.0",
+        ],
         # Required to display rich text in the TUI
         "richtext": [
             "urwidgets>=0.1,<0.2"
@@ -62,6 +65,7 @@ setup(
             "setuptools",
             "vermin",
             "typing-extensions",
+            "pillow>=9.5.0",
         ],
     },
     entry_points={

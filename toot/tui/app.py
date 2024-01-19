@@ -1,8 +1,7 @@
 import logging
 import subprocess
 import urwid
-import requests
-import warnings
+
 
 from concurrent.futures import ThreadPoolExecutor
 from typing import NamedTuple, Optional
@@ -17,13 +16,12 @@ from toot.utils.datetime import parse_datetime
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
-from .images import TuiScreen
+from .images import TuiScreen, load_image
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard, ImageCache
-from PIL import Image
+from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard, LRUCache
 from .widgets import ModalBox, RoundedLineBox
 
 logger = logging.getLogger(__name__)
@@ -773,16 +771,11 @@ class TUI(urwid.Frame):
                 return
 
             if not hasattr(timeline, "images"):
-                timeline.images = ImageCache(cache_max_bytes=self.cache_max)
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")  # suppress "corrupt exif" output from PIL
-                try:
-                    img = Image.open(requests.get(path, stream=True).raw)
-                    if img.format == 'PNG' and img.mode != 'RGBA':
-                        img = img.convert("RGBA")
-                    timeline.images[str(hash(path))] = img
-                except Exception:
-                    pass  # ignore errors; if we can't load an image, just show blank
+                timeline.images = LRUCache(cache_max_bytes=self.cache_max)
+
+            img = load_image(path)
+            if img:
+                timeline.images[str(hash(path))] = img
 
         def _done(loop):
             # don't bother loading images for statuses we are not viewing now

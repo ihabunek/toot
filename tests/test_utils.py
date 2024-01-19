@@ -4,7 +4,7 @@ import sys
 
 from toot.cli.validators import validate_duration
 from toot.wcstring import wc_wrap, trunc, pad, fit_text
-from toot.tui.utils import ImageCache
+from toot.tui.utils import LRUCache
 from PIL import Image
 from collections import namedtuple
 from toot.utils import urlencode_url
@@ -213,7 +213,7 @@ def test_duration():
 
 def test_cache_null():
     """Null dict is null."""
-    cache = ImageCache(cache_max_bytes=1024)
+    cache = LRUCache(cache_max_bytes=1024)
     assert cache.__len__() == 0
 
 
@@ -236,9 +236,9 @@ img_size = sys.getsizeof(img.tobytes())
 def test_cache_init(case, method):
     """Check that the # of elements is right, given # given and cache_len."""
     if method == "init":
-        cache = ImageCache(case.init, cache_max_bytes=img_size * case.cache_len)
+        cache = LRUCache(case.init, cache_max_bytes=img_size * case.cache_len)
     elif method == "assign":
-        cache = ImageCache(cache_max_bytes=img_size * case.cache_len)
+        cache = LRUCache(cache_max_bytes=img_size * case.cache_len)
         for (key, val) in case.init:
             cache[key] = val
     else:
@@ -258,9 +258,9 @@ def test_cache_init(case, method):
 def test_cache_overflow_default(method):
     """Test default overflow logic."""
     if method == "init":
-        cache = ImageCache([("one", img), ("two", img), ("three", img)], cache_max_bytes=img_size * 2)
+        cache = LRUCache([("one", img), ("two", img), ("three", img)], cache_max_bytes=img_size * 2)
     elif method == "assign":
-        cache = ImageCache(cache_max_bytes=img_size * 2)
+        cache = LRUCache(cache_max_bytes=img_size * 2)
         cache["one"] = img
         cache["two"] = img
         cache["three"] = img
@@ -279,7 +279,7 @@ def test_cache_lru_overflow(mode, add_third):
 
     """Test that key access resets LRU logic."""
 
-    cache = ImageCache([("one", img), ("two", img)], cache_max_bytes=img_size * 2)
+    cache = LRUCache([("one", img), ("two", img)], cache_max_bytes=img_size * 2)
 
     if mode == "get":
         dummy = cache["one"]
@@ -301,13 +301,13 @@ def test_cache_lru_overflow(mode, add_third):
 
 
 def test_cache_keyerror():
-    cache = ImageCache()
+    cache = LRUCache()
     with pytest.raises(KeyError):
         cache["foo"]
 
 
 def test_cache_miss_doesnt_eject():
-    cache = ImageCache([("one", img), ("two", img)], cache_max_bytes=img_size * 3)
+    cache = LRUCache([("one", img), ("two", img)], cache_max_bytes=img_size * 3)
     with pytest.raises(KeyError):
         cache["foo"]
 
