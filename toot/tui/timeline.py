@@ -427,8 +427,8 @@ class StatusDetails(urwid.Pile):
         account_color = ("highlight" if self.status.original.author.account in
                         self.timeline.tui.followed_accounts else "account")
 
-        atxt = urwid.Pile([("pack", urwid.Text(("bold", self.status.author.display_name))),
-                           ("pack", urwid.Text((account_color, self.status.author.account)))])
+        atxt = urwid.Pile([("pack", urwid.Text(("bold", self.status.original.author.display_name))),
+                           ("pack", urwid.Text((account_color, self.status.original.author.account)))])
 
         columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
         return columns
