@@ -421,8 +421,6 @@ class StatusDetails(urwid.Pile):
 
         if avatar_url and image_support_enabled():
             aimg = self.image_widget(avatar_url, 2)
-        else:
-            aimg = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), 2)
 
         account_color = ("highlight" if self.status.original.author.account in
                         self.timeline.tui.followed_accounts else "account")
@@ -430,7 +428,11 @@ class StatusDetails(urwid.Pile):
         atxt = urwid.Pile([("pack", urwid.Text(("bold", self.status.original.author.display_name))),
                            ("pack", urwid.Text((account_color, self.status.original.author.account)))])
 
-        columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        if image_support_enabled():
+            columns = urwid.Columns([aimg, ("weight", 9999, atxt)], dividechars=1, min_width=5)
+        else:
+            columns = urwid.Columns([("weight", 9999, atxt)], dividechars=1, min_width=5)
+
         return columns
 
     def content_generator(self, status, reblogged_by):
