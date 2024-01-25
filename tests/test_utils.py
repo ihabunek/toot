@@ -1,8 +1,12 @@
 import click
 import pytest
+import sys
 
 from toot.cli.validators import validate_duration
 from toot.wcstring import wc_wrap, trunc, pad, fit_text
+from toot.tui.utils import LRUCache
+from PIL import Image
+from collections import namedtuple
 from toot.utils import urlencode_url
 
 
@@ -207,6 +211,111 @@ def test_duration():
         duration("banana")
 
 
+def test_cache_null():
+    """Null dict is null."""
+    cache = LRUCache(cache_max_bytes=1024)
+    assert cache.__len__() == 0
+
+
+Case = namedtuple("Case", ["cache_len", "len", "init"])
+
+img = Image.new('RGB', (100, 100))
+img_size = sys.getsizeof(img.tobytes())
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        Case(9, 0, []),
+        Case(9, 1, [("one", img)]),
+        Case(9, 2, [("one", img), ("two", img)]),
+        Case(2, 2, [("one", img), ("two", img)]),
+        Case(1, 1, [("one", img), ("two", img)]),
+    ],
+)
+@pytest.mark.parametrize("method", ["assign", "init"])
+def test_cache_init(case, method):
+    """Check that the # of elements is right, given # given and cache_len."""
+    if method == "init":
+        cache = LRUCache(case.init, cache_max_bytes=img_size * case.cache_len)
+    elif method == "assign":
+        cache = LRUCache(cache_max_bytes=img_size * case.cache_len)
+        for (key, val) in case.init:
+            cache[key] = val
+    else:
+        assert False
+
+    # length is max(#entries, cache_len)
+    assert cache.__len__() == case.len
+
+    # make sure the first entry is the one ejected
+    if case.cache_len > 1 and case.init:
+        assert "one" in cache.keys()
+    else:
+        assert "one" not in cache.keys()
+
+
+@pytest.mark.parametrize("method", ["init", "assign"])
+def test_cache_overflow_default(method):
+    """Test default overflow logic."""
+    if method == "init":
+        cache = LRUCache([("one", img), ("two", img), ("three", img)], cache_max_bytes=img_size * 2)
+    elif method == "assign":
+        cache = LRUCache(cache_max_bytes=img_size * 2)
+        cache["one"] = img
+        cache["two"] = img
+        cache["three"] = img
+    else:
+        assert False
+
+    assert "one" not in cache.keys()
+    assert "two" in cache.keys()
+    assert "three" in cache.keys()
+
+@pytest.mark.parametrize("mode", ["get", "set"])
+@pytest.mark.parametrize("add_third", [False, True])
+def test_cache_lru_overflow(mode, add_third):
+    img = Image.new('RGB', (100, 100))
+    img_size = sys.getsizeof(img.tobytes())
+
+    """Test that key access resets LRU logic."""
+
+    cache = LRUCache([("one", img), ("two", img)], cache_max_bytes=img_size * 2)
+
+    if mode == "get":
+        dummy = cache["one"]
+    elif mode == "set":
+        cache["one"] = img
+    else:
+        assert False
+
+    if add_third:
+        cache["three"] = img
+
+        assert "one" in cache.keys()
+        assert "two" not in cache.keys()
+        assert "three" in cache.keys()
+    else:
+        assert "one" in cache.keys()
+        assert "two" in cache.keys()
+        assert "three" not in cache.keys()
+
+
+def test_cache_keyerror():
+    cache = LRUCache()
+    with pytest.raises(KeyError):
+        cache["foo"]
+
+
+def test_cache_miss_doesnt_eject():
+    cache = LRUCache([("one", img), ("two", img)], cache_max_bytes=img_size * 3)
+    with pytest.raises(KeyError):
+        cache["foo"]
+
+    assert len(cache) == 2
+    assert "one" in cache.keys()
+    assert "two" in cache.keys()
+
 def test_urlencode_url():
     assert urlencode_url("https://www.example.com") == "https://www.example.com"
     assert urlencode_url("https://www.example.com/url%20with%20spaces") == "https://www.example.com/url%20with%20spaces"
+
