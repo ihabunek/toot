@@ -162,6 +162,10 @@ class StatusComposer(urwid.Frame):
             self.set_error_message("Cannot post an empty message")
             return
 
+        if len(content) > self.max_chars:
+            self.set_error_message(f"Message exceeds maximum length of {self.max_chars} characters")
+            return
+
         in_reply_to_id = self.in_reply_to.id if self.in_reply_to else None
         self._emit("post", content, warning, self.visibility, in_reply_to_id)
 
