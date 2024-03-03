@@ -39,7 +39,8 @@ setup(
         "beautifulsoup4>=4.5.0,<5.0",
         "wcwidth>=0.1.7",
         "urwid>=2.0.0,<3.0",
-        "tomlkit>=0.10.0,<1.0"
+        "tomlkit>=0.10.0,<1.0",
+        "urwid_readline>=0.14"
     ],
     extras_require={
         # Required to display rich text in the TUI
