@@ -8,7 +8,7 @@ from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import AuthenticationError, ApiError, ConsoleError
+from toot.exceptions import ApiError, ConsoleError
 from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 
@@ -75,10 +75,6 @@ def _status_toggle_action(app, user, status_id, action, data=None):
 
 def create_app(domain, scheme='https'):
     url = f"{scheme}://{domain}/api/v1/apps"
-
-#def create_app(base_url):
-#    url = f"{base_url}/api/v1/apps"
-
 
     json = {
         'client_name': CLIENT_NAME,
