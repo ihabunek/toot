@@ -1,9 +1,9 @@
 name: Run tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
+  test:
     # Older Ubuntu required for testing on Python 3.6 which is not available in
     # later versions. Remove once support for 3.6 is dropped.
     runs-on: ubuntu-20.04
@@ -28,3 +28,6 @@ jobs:
       - name: Validate minimum required version
         run: |
           vermin --target=3.6 --no-tips .
+      - name: Check style
+        run: |
+          flake8

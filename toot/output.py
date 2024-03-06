@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 import sys
 import textwrap
 
-from textwrap import wrap
 from toot.tui.utils import parse_datetime
 from wcwidth import wcswidth
 
@@ -169,11 +166,9 @@ def print_instance(instance):
 def print_account(account):
     print_out(f"<green>@{account['acct']}</green> {account['display_name']}")
 
-    note = get_text(account['note'])
-
-    if note:
+    if account["note"]:
         print_out("")
-        print_out("\n".join(wrap(note)))
+        print_html(account["note"])
 
     print_out("")
     print_out(f"ID: <green>{account['id']}</green>")
@@ -182,6 +177,15 @@ def print_account(account):
     print_out(f"Followers: <yellow>{account['followers_count']}</yellow>")
     print_out(f"Following: <yellow>{account['following_count']}</yellow>")
     print_out(f"Statuses: <yellow>{account['statuses_count']}</yellow>")
+
+    if account["fields"]:
+        for field in account["fields"]:
+            name = field["name"].title()
+            print_out(f'\n<yellow>{name}</yellow>:')
+            print_html(field["value"])
+            if field["verified_at"]:
+                print_out("<green>✓ Verified</green>")
+
     print_out("")
     print_out(account["url"])
 
@@ -196,6 +200,14 @@ def highlight_hashtags(line):
 def print_acct_list(accounts):
     for account in accounts:
         print_out(f"* <green>@{account['acct']}</green> {account['display_name']}")
+
+
+def print_tag_list(tags):
+    if tags:
+        for tag in tags:
+            print_out(f"* <green>#{tag['name']}\t</green>{tag['url']}")
+    else:
+        print_out("You're not following any hashtags.")
 
 
 def print_search_results(results):
@@ -238,11 +250,8 @@ def print_status(status, width):
         f"<yellow>{time}</yellow>",
     )
 
-    for paragraph in parse_html(content):
-        print_out("")
-        for line in paragraph:
-            for subline in wc_wrap(line, width):
-                print_out(highlight_hashtags(subline))
+    print_out("")
+    print_html(content, width)
 
     if media_attachments:
         print_out("\nMedia:")
@@ -260,6 +269,17 @@ def print_status(status, width):
         f"↲ In reply to <yellow>{in_reply_to}</yellow> " if in_reply_to else "",
         f"↻ Reblogged <blue>@{reblog['account']['acct']}</blue> " if reblog else "",
     )
+
+
+def print_html(text, width=80):
+    first = True
+    for paragraph in parse_html(text):
+        if not first:
+            print_out("")
+        for line in paragraph:
+            for subline in wc_wrap(line, width):
+                print_out(highlight_hashtags(subline))
+        first = False
 
 
 def print_poll(poll):

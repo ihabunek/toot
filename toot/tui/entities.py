@@ -56,10 +56,12 @@ class Status:
         self.author = self._get_author()
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
+        self.bookmarked = data.get("bookmarked", False)
         self.in_reply_to = data.get("in_reply_to_id")
         self.url = data.get("url")
         self.mentions = data.get("mentions")
         self.reblog = self._get_reblog()
+        self.visibility = data.get("visibility")
 
     @property
     def original(self):

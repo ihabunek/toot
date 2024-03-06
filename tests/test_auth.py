@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from toot import App, User, api, config, auth
 from tests.utils import retval
 

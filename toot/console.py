@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import os
 import re
@@ -8,11 +6,17 @@ import sys
 
 from argparse import ArgumentParser, FileType, ArgumentTypeError
 from collections import namedtuple
+from itertools import chain
 from toot import config, commands, CLIENT_NAME, CLIENT_WEBSITE, __version__
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_out, print_err
 
 VISIBILITY_CHOICES = ['public', 'unlisted', 'private', 'direct']
+VISIBILITY_CHOICES_STR = ", ".join(f"'{v}'" for v in VISIBILITY_CHOICES)
+
+
+def get_default_visibility():
+    return os.getenv("TOOT_POST_VISIBILITY", "public")
 
 
 def language(value):
@@ -112,6 +116,11 @@ common_args = [
         "action": 'store_true',
         "default": False,
     }),
+    (["--verbose"], {
+        "help": "show extra detail in debug log; used with --debug",
+        "action": 'store_true',
+        "default": False,
+    }),
 ]
 
 # Arguments added to commands which require authentication
@@ -148,6 +157,19 @@ status_id_arg = (["status_id"], {
     "type": str,
 })
 
+visibility_arg = (["-v", "--visibility"], {
+    "type": visibility,
+    "default": get_default_visibility(),
+    "help": f"Post visibility. One of: {VISIBILITY_CHOICES_STR}. Defaults to "
+            f"'{get_default_visibility()}' which can be overridden by setting "
+            "the TOOT_POST_VISIBILITY environment variable",
+})
+
+tag_arg = (["tag_name"], {
+    "type": str,
+    "help": "tag name, e.g. Caturday, or \"#Caturday\"",
+})
+
 # Arguments for selecting a timeline (see `toot.commands.get_timeline_generator`)
 common_timeline_args = [
     (["-p", "--public"], {
@@ -174,7 +196,7 @@ common_timeline_args = [
     }),
 ]
 
-timeline_args = common_timeline_args + [
+timeline_and_bookmark_args = [
     (["-c", "--count"], {
         "type": timeline_count,
         "help": "number of toots to show per page (1-20, default 10).",
@@ -191,6 +213,8 @@ timeline_args = common_timeline_args + [
         "help": "Only show the first <count> toots, do not prompt to continue.",
     }),
 ]
+
+timeline_args = common_timeline_args + timeline_and_bookmark_args
 
 AUTH_COMMANDS = [
     Command(
@@ -223,13 +247,25 @@ AUTH_COMMANDS = [
         arguments=[],
         require_auth=False,
     ),
+    Command(
+        name="env",
+        description="Print environment information for inclusion in bug reports.",
+        arguments=[],
+        require_auth=False,
+    ),
 ]
 
 TUI_COMMANDS = [
     Command(
         name="tui",
         description="Launches the toot terminal user interface",
-        arguments=[],
+        arguments=[
+            (["--relative-datetimes"], {
+                "action": "store_true",
+                "default": False,
+                "help": "Show relative datetimes in status list.",
+            }),
+        ],
         require_auth=True,
     ),
 ]
@@ -317,6 +353,12 @@ READ_COMMANDS = [
         arguments=timeline_args,
         require_auth=True,
     ),
+    Command(
+        name="bookmarks",
+        description="Show bookmarked posts",
+        arguments=timeline_and_bookmark_args,
+        require_auth=True,
+    ),
 ]
 
 POST_COMMANDS = [
@@ -340,11 +382,7 @@ POST_COMMANDS = [
                 "help": "plain-text description of the media for accessibility "
                         "purposes, one per attached media"
             }),
-            (["-v", "--visibility"], {
-                "type": visibility,
-                "default": "public",
-                "help": 'post visibility, one of: %s' % ", ".join(VISIBILITY_CHOICES),
-            }),
+            visibility_arg,
             (["-s", "--sensitive"], {
                 "action": 'store_true',
                 "default": False,
@@ -428,7 +466,7 @@ STATUS_COMMANDS = [
     Command(
         name="reblog",
         description="Reblog a status",
-        arguments=[status_id_arg],
+        arguments=[status_id_arg, visibility_arg],
         require_auth=True,
     ),
     Command(
@@ -536,25 +574,47 @@ ACCOUNTS_COMMANDS = [
     ),
 ]
 
-COMMANDS = AUTH_COMMANDS + READ_COMMANDS + TUI_COMMANDS + POST_COMMANDS + STATUS_COMMANDS + ACCOUNTS_COMMANDS
+TAG_COMMANDS = [
+    Command(
+        name="tags_followed",
+        description="List hashtags you follow",
+        arguments=[],
+        require_auth=True,
+    ),
+    Command(
+        name="tags_follow",
+        description="Follow a hashtag",
+        arguments=[tag_arg],
+        require_auth=True,
+    ),
+    Command(
+        name="tags_unfollow",
+        description="Unfollow a hashtag",
+        arguments=[tag_arg],
+        require_auth=True,
+    ),
+]
+
+COMMAND_GROUPS = [
+    ("Authentication", AUTH_COMMANDS),
+    ("TUI", TUI_COMMANDS),
+    ("Read", READ_COMMANDS),
+    ("Post", POST_COMMANDS),
+    ("Status", STATUS_COMMANDS),
+    ("Accounts", ACCOUNTS_COMMANDS),
+    ("Hashtags", TAG_COMMANDS),
+]
+
+COMMANDS = list(chain(*[commands for _, commands in COMMAND_GROUPS]))
 
 
 def print_usage():
-    max_name_len = max(len(command.name) for command in COMMANDS)
-
-    groups = [
-        ("Authentication", AUTH_COMMANDS),
-        ("TUI", TUI_COMMANDS),
-        ("Read", READ_COMMANDS),
-        ("Post", POST_COMMANDS),
-        ("Status", STATUS_COMMANDS),
-        ("Accounts", ACCOUNTS_COMMANDS),
-    ]
+    max_name_len = max(len(name) for name, _ in COMMAND_GROUPS)
 
     print_out("<green>{}</green>".format(CLIENT_NAME))
     print_out("<blue>v{}</blue>".format(__version__))
 
-    for name, cmds in groups:
+    for name, cmds in COMMAND_GROUPS:
         print_out("")
         print_out(name + ":")
 
@@ -564,7 +624,7 @@ def print_usage():
 
     print_out("")
     print_out("To get help for each command run:")
-    print_out("  <yellow>toot <command> --help</yellow>")
+    print_out("  <yellow>toot \\<command> --help</yellow>")
     print_out("")
     print_out("<green>{}</green>".format(CLIENT_WEBSITE))
 
@@ -589,8 +649,8 @@ def run_command(app, user, name, args):
     command = next((c for c in COMMANDS if c.name == name), None)
 
     if not command:
-        print_err("Unknown command '{}'\n".format(name))
-        print_usage()
+        print_err(f"Unknown command '{name}'")
+        print_out("Run <yellow>toot --help</yellow> to show a list of available commands.")
         return
 
     parser = get_argument_parser(name, command)
@@ -624,7 +684,7 @@ def main():
     command_name = sys.argv[1] if len(sys.argv) > 1 else None
     args = sys.argv[2:]
 
-    if not command_name:
+    if not command_name or command_name == "--help":
         return print_usage()
 
     user, app = config.get_active_user_app()

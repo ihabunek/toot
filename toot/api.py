@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import re
 import uuid
 
@@ -13,15 +11,24 @@ SCOPES = 'read write follow'
 
 
 def _account_action(app, user, account, action):
-    url = '/api/v1/accounts/{}/{}'.format(account, action)
-
+    url = f"/api/v1/accounts/{account}/{action}"
     return http.post(app, user, url).json()
 
 
-def _status_action(app, user, status_id, action):
+def _status_action(app, user, status_id, action, data=None):
+    url = f"/api/v1/statuses/{status_id}/{action}"
+    return http.post(app, user, url, data=data).json()
+
+
+def _tag_action(app, user, tag_name, action):
+    url = f"/api/v1/tags/{tag_name}/{action}"
+    return http.post(app, user, url).json()
+
+
+def _status_toggle_action(app, user, status_id, action, data=None):
     url = '/api/v1/statuses/{}/{}'.format(status_id, action)
+    return http.post(app, user, url, data=data).json()
 
-    return http.post(app, user, url).json()
 
 def _status_toggle_action(app, user, status_id, action):
     url = '/api/v1/statuses/{}/{}'.format(status_id, action)
@@ -42,8 +49,9 @@ def _status_toggle_action(app, user, status_id, action):
     finally:
         return response
 
+    
 def create_app(domain, scheme='https'):
-    url = '{}://{}/api/v1/apps'.format(scheme, domain)
+    url = f"{scheme}://{domain}/api/v1/apps"
 
     json = {
         'client_name': CLIENT_NAME,
@@ -53,6 +61,14 @@ def create_app(domain, scheme='https'):
     }
 
     return http.anon_post(url, json=json).json()
+
+
+def get_muted_accounts(app, user):
+    return http.get(app, user, "/api/v1/mutes").json()
+
+
+def get_blocked_accounts(app, user):
+    return http.get(app, user, "/api/v1/blocks").json()
 
 
 def register_account(app, username, email, password, locale="en", agreement=True):
@@ -194,7 +210,7 @@ def delete_status(app, user, status_id):
     Deletes a status with given ID.
     https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#deleting-a-status
     """
-    return http.delete(app, user, '/api/v1/statuses/{}'.format(status_id))
+    return http.delete(app, user, f"/api/v1/statuses/{status_id}")
 
 
 def favourite(app, user, status_id):
@@ -205,8 +221,8 @@ def unfavourite(app, user, status_id):
     return _status_toggle_action(app, user, status_id, 'unfavourite')
 
 
-def reblog(app, user, status_id):
-    return _status_toggle_action(app, user, status_id, 'reblog')
+def reblog(app, user, status_id, visibility="public"):
+    return _status_toggle_action(app, user, status_id, 'reblog', data={"visibility": visibility})
 
 
 def unreblog(app, user, status_id):
@@ -236,14 +252,12 @@ def translate(app, user, status_id):
 
 
 def context(app, user, status_id):
-    url = '/api/v1/statuses/{}/context'.format(status_id)
-
+    url = f"/api/v1/statuses/{status_id}/context"
     return http.get(app, user, url).json()
 
 
 def reblogged_by(app, user, status_id):
-    url = '/api/v1/statuses/{}/reblogged_by'.format(status_id)
-
+    url = f"/api/v1/statuses/{status_id}/reblogged_by"
     return http.get(app, user, url).json()
 
 
@@ -264,7 +278,7 @@ def _timeline_generator(app, user, path, params=None):
 
 
 def home_timeline_generator(app, user, limit=20):
-    path = '/api/v1/timelines/home?limit={}'.format(limit)
+    path = f"/api/v1/timelines/home?limit={limit}"
     return _timeline_generator(app, user, path)
 
 
@@ -275,19 +289,25 @@ def public_timeline_generator(app, user, local=False, limit=20):
 
 
 def tag_timeline_generator(app, user, hashtag, local=False, limit=20):
-    path = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
+    path = f"/api/v1/timelines/tag/{quote(hashtag)}"
     params = {'local': str_bool(local), 'limit': limit}
     return _timeline_generator(app, user, path, params)
 
 
+def bookmark_timeline_generator(app, user, limit=20):
+    path = '/api/v1/bookmarks'
+    params = {'limit': limit}
+    return _timeline_generator(app, user, path, params)
+
+
 def timeline_list_generator(app, user, list_id, limit=20):
-    path = '/api/v1/timelines/list/{}'.format(list_id)
+    path = f"/api/v1/timelines/list/{list_id}"
     return _timeline_generator(app, user, path, {'limit': limit})
 
 
 def _anon_timeline_generator(instance, path, params=None):
     while path:
-        url = "https://{}{}".format(instance, path)
+        url = f"https://{instance}{path}"
         response = http.anon_get(url, params)
         yield response.json()
         path = _get_next_path(response.headers)
@@ -300,7 +320,7 @@ def anon_public_timeline_generator(instance, local=False, limit=20):
 
 
 def anon_tag_timeline_generator(instance, hashtag, local=False, limit=20):
-    path = '/api/v1/timelines/tag/{}'.format(quote(hashtag))
+    path = f"/api/v1/timelines/tag/{quote(hashtag)}"
     params = {'local': str_bool(local), 'limit': limit}
     return _anon_timeline_generator(instance, path, params)
 
@@ -332,23 +352,36 @@ def unfollow(app, user, account):
     return _account_action(app, user, account, 'unfollow')
 
 
-def _get_account_list(app, user, path):
-    accounts = []
+def follow_tag(app, user, tag_name):
+    return _tag_action(app, user, tag_name, 'follow')
+
+
+def unfollow_tag(app, user, tag_name):
+    return _tag_action(app, user, tag_name, 'unfollow')
+
+
+def _get_response_list(app, user, path):
+    items = []
     while path:
         response = http.get(app, user, path)
-        accounts += response.json()
+        items += response.json()
         path = _get_next_path(response.headers)
-    return accounts
+    return items
 
 
 def following(app, user, account):
-    path = '/api/v1/accounts/{}/{}'.format(account, 'following')
-    return _get_account_list(app, user, path)
+    path = f"/api/v1/accounts/{account}/following"
+    return _get_response_list(app, user, path)
 
 
 def followers(app, user, account):
-    path = '/api/v1/accounts/{}/{}'.format(account, 'followers')
-    return _get_account_list(app, user, path)
+    path = f"/api/v1/accounts/{account}/followers"
+    return _get_response_list(app, user, path)
+
+
+def followed_tags(app, user):
+    path = '/api/v1/followed_tags'
+    return _get_response_list(app, user, path)
 
 
 def mute(app, user, account):
@@ -372,8 +405,7 @@ def verify_credentials(app, user):
 
 
 def single_status(app, user, status_id):
-    url = '/api/v1/statuses/{}'.format(status_id)
-
+    url = f"/api/v1/statuses/{status_id}"
     return http.get(app, user, url).json()
 
 
@@ -387,5 +419,5 @@ def clear_notifications(app, user):
 
 
 def get_instance(domain, scheme="https"):
-    url = "{}://{}/api/v1/instance".format(scheme, domain)
+    url = f"{scheme}://{domain}/api/v1/instance"
     return http.anon_get(url).json()

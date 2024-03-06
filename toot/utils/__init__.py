@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import re
 import socket
@@ -41,7 +39,7 @@ def parse_html(html):
     paragraphs = [re.split("<br */?>", p) for p in paragraphs if p]
 
     # Convert each line in each paragraph to plain text:
-    return [[get_text(l) for l in p] for p in paragraphs]
+    return [[get_text(line) for line in p] for p in paragraphs]
 
 
 def format_content(content):
