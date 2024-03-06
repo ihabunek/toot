@@ -27,11 +27,6 @@ def _tag_action(app, user, tag_name, action):
 
 def _status_toggle_action(app, user, status_id, action, data=None):
     url = '/api/v1/statuses/{}/{}'.format(status_id, action)
-    return http.post(app, user, url, data=data).json()
-
-
-def _status_toggle_action(app, user, status_id, action):
-    url = '/api/v1/statuses/{}/{}'.format(status_id, action)
 
     try:
         response = http.post(app, user, url).json()
@@ -49,7 +44,7 @@ def _status_toggle_action(app, user, status_id, action):
     finally:
         return response
 
-    
+
 def create_app(domain, scheme='https'):
     url = f"{scheme}://{domain}/api/v1/apps"
 
