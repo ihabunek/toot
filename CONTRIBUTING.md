@@ -5,7 +5,7 @@ Firstly, thank you for contributing to toot!
 
 Relevant links which will be referenced below:
 
-* [toot documentation](https://toot.readthedocs.io/)
+* [toot documentation](https://toot.bezdomni.net/)
 * [toot-discuss mailing list](https://lists.sr.ht/~ihabunek/toot-discuss)
   used for discussion as well as accepting patches
 * [toot project on github](https://github.com/ihabunek/toot)
@@ -77,8 +77,9 @@ pip install -r requirements-dev.txt
 pip install -r requirements-test.txt
 ```
 
-While the virtual env is active, running `toot` will execute the one you checked
-out. This allows you to make changes and test them.
+While the virtual env is active, you can run `./_env/bin/toot` to
+execute the one you checked out. This allows you to make changes and
+test them.
 
 #### Crafting good commits
 
@@ -110,7 +111,7 @@ these rules for you.
 
 #### Run tests before submitting
 
-You can run code and sytle tests by running:
+You can run code and style tests by running:
 
 ```
 make test

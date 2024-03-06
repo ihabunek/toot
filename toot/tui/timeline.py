@@ -1,17 +1,18 @@
 import logging
-import sys
 import urwid
 import webbrowser
 
-from typing import Optional
+from typing import List, Optional
 
-from .entities import Status
-from .scroll import Scrollable, ScrollBar
-from .utils import highlight_hashtags, parse_datetime, highlight_keys
-from .widgets import SelectableText, SelectableColumns
-from toot.utils import format_content
+from toot.tui import app
+from toot.tui.richtext import html_to_widgets, url_to_widget
+from toot.utils.datetime import parse_datetime, time_ago
 from toot.utils.language import language_name
-from toot.tui.utils import time_ago
+
+from toot.entities import Status
+from toot.tui.scroll import Scrollable, ScrollBar
+from toot.tui.utils import highlight_keys
+from toot.tui.widgets import SelectableText, SelectableColumns, RoundedLineBox
 
 logger = logging.getLogger("toot")
 
@@ -21,33 +22,25 @@ class Timeline(urwid.Columns):
     Displays a list of statuses to the left, and status details on the right.
     """
     signals = [
-        "close",         # Close thread
-        "compose",       # Compose a new toot
-        "delete",        # Delete own status
-        "favourite",     # Favourite status
-        "focus",         # Focus changed
-        "bookmark",      # Bookmark status
-        "media",         # Display media attachments
-        "menu",          # Show a context menu
-        "next",          # Fetch more statuses
-        "reblog",        # Reblog status
-        "reply",         # Compose a reply to a status
-        "source",        # Show status source
-        "links",         # Show status links
-        "thread",        # Show thread for status
-        "translate",     # Translate status
-        "save",          # Save current timeline
-        "zoom",          # Open status in scrollable popup window
-        "clear-screen",  # Clear the screen (used internally)
+        "close",  # Close thread
+        "focus",  # Focus changed
+        "next",   # Fetch more statuses
+        "save",   # Save current timeline
     ]
 
-    def __init__(self, name, statuses, can_translate, followed_tags=[], focus=0, is_thread=False):
+    def __init__(
+        self,
+        tui: "app.TUI",
+        name: str,
+        statuses: List[Status],
+        focus: int = 0,
+        is_thread: bool = False
+    ):
+        self.tui = tui
         self.name = name
         self.is_thread = is_thread
         self.statuses = statuses
-        self.can_translate = can_translate
         self.status_list = self.build_status_list(statuses, focus=focus)
-        self.followed_tags = followed_tags
 
         try:
             focused_status = statuses[focus]
@@ -59,16 +52,17 @@ class Timeline(urwid.Columns):
 
         super().__init__([
             ("weight", 40, self.status_list),
-            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "blue_selected")),
+            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "columns_divider")),
             ("weight", 60, status_widget),
         ])
 
     def wrap_status_details(self, status_details: "StatusDetails") -> urwid.Widget:
-        """Wrap StatusDetails widget with a scollbar and footer."""
+        """Wrap StatusDetails widget with a scrollbar and footer."""
+        self.status_detail_scrollable = Scrollable(urwid.Padding(status_details, right=1))
         return urwid.Padding(
             urwid.Frame(
                 body=ScrollBar(
-                    Scrollable(urwid.Padding(status_details, right=1)),
+                    self.status_detail_scrollable,
                     thumb_char="\u2588",
                     trough_char="\u2591",
                 ),
@@ -85,38 +79,45 @@ class Timeline(urwid.Columns):
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
-        item = StatusListItem(status)
+        item = StatusListItem(status, self.tui.options.relative_datetimes)
         urwid.connect_signal(item, "click", lambda *args:
-            self._emit("menu", status))
+            self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
-            "blue": "green_selected",
-            "green": "green_selected",
-            "yellow": "green_selected",
-            "cyan": "green_selected",
-            "red": "green_selected",
-            None: "green_selected",
+            "status_list_account": "status_list_selected",
+            "status_list_timestamp": "status_list_selected",
+            "highlight": "status_list_selected",
+            "dim": "status_list_selected",
+            None: "status_list_selected",
         })
 
     def get_option_text(self, status: Optional[Status]) -> Optional[urwid.Text]:
         if not status:
             return None
 
+        poll = status.original.data.get("poll")
+        show_media = status.original.data["media_attachments"] and self.tui.options.media_viewer
+
         options = [
+            "[A]ccount" if not status.is_mine else "",
             "[B]oost",
             "[D]elete" if status.is_mine else "",
+            "[E]dit" if status.is_mine else "",
             "B[o]okmark",
             "[F]avourite",
             "[V]iew",
             "[T]hread" if not self.is_thread else "",
-            "[L]inks",
+            "L[i]nks",
+            "[M]edia" if show_media else "",
             "[R]eply",
+            "[P]oll" if poll and not poll["expired"] else "",
             "So[u]rce",
             "[Z]oom",
-            "Tra[n]slate" if self.can_translate else "",
-            "[H]elp",
+            "Tra[n]slate" if self.tui.can_translate else "",
+            "Cop[y]",
+            "Help([?])",
         ]
         options = "\n" + " ".join(o for o in options if o)
-        options = highlight_keys(options, "white_bold", "cyan")
+        options = highlight_keys(options, "shortcut_highlight", "shortcut")
         return urwid.Text(options)
 
     def get_focused_status(self):
@@ -146,7 +147,9 @@ class Timeline(urwid.Columns):
     def refresh_status_details(self):
         """Redraws the details of the focused status."""
         status = self.get_focused_status()
+        pos = self.status_detail_scrollable.get_scrollpos()
         self.draw_status_details(status)
+        self.status_detail_scrollable.set_scrollpos(pos)
 
     def draw_status_details(self, status):
         self.status_details = StatusDetails(self, status)
@@ -169,24 +172,35 @@ class Timeline(urwid.Columns):
             if index >= count:
                 self._emit("next")
 
+        if key in ("a", "A"):
+            account_id = status.original.data["account"]["id"]
+            self.tui.show_account(account_id)
+            return
+
         if key in ("b", "B"):
-            self._emit("reblog", status)
+            self.tui.async_toggle_reblog(self, status)
             return
 
         if key in ("c", "C"):
-            self._emit("compose")
+            self.tui.show_compose()
             return
 
         if key in ("d", "D"):
-            self._emit("delete", status)
+            if status.is_mine:
+                self.tui.show_delete_confirmation(status)
+            return
+
+        if key in ("e", "E"):
+            if status.is_mine:
+                self.tui.async_edit(status)
             return
 
         if key in ("f", "F"):
-            self._emit("favourite", status)
+            self.tui.async_toggle_favourite(self, status)
             return
 
         if key in ("m", "M"):
-            self._emit("media", status)
+            self.tui.show_media(status)
             return
 
         if key in ("q", "Q"):
@@ -198,7 +212,7 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("r", "R"):
-            self._emit("reply", status)
+            self.tui.show_compose(status)
             return
 
         if key in ("s", "S"):
@@ -207,39 +221,49 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("o", "O"):
-            self._emit("bookmark", status)
+            self.tui.async_toggle_bookmark(self, status)
             return
 
-        if key in ("l", "L"):
-            self._emit("links", status)
+        if key in ("i", "I"):
+            self.tui.show_links(status)
             return
 
         if key in ("n", "N"):
-            if self.can_translate:
-                self._emit("translate", status)
+            if self.tui.can_translate:
+                self.tui.async_translate(self, status)
             return
 
         if key in ("t", "T"):
-            self._emit("thread", status)
+            self.tui.show_thread(status)
             return
 
         if key in ("u", "U"):
-            self._emit("source", status)
+            self.tui.show_status_source(status)
             return
 
         if key in ("v", "V"):
             if status.original.url:
                 webbrowser.open(status.original.url)
                 # force a screen refresh; necessary with console browsers
-                self._emit("clear-screen")
+                self.tui.clear_screen()
             return
 
-        if key in ("p", "P"):
+        if key in ("e", "E"):
             self._emit("save", status)
             return
 
         if key in ("z", "Z"):
-            self._emit("zoom", self.status_details)
+            self.tui.show_status_zoom(self.status_details)
+            return
+
+        if key in ("p", "P"):
+            poll = status.original.data.get("poll")
+            if poll and not poll["expired"]:
+                self.tui.show_poll(status)
+            return
+
+        if key in ("y", "Y"):
+            self.tui.copy_status(status)
             return
 
         return super().keypress(size, key)
@@ -294,7 +318,8 @@ class Timeline(urwid.Columns):
 class StatusDetails(urwid.Pile):
     def __init__(self, timeline: Timeline, status: Optional[Status]):
         self.status = status
-        self.followed_tags = timeline.followed_tags
+        self.followed_accounts = timeline.tui.followed_accounts
+        self.options = timeline.tui.options
 
         reblogged_by = status.author if status and status.reblog else None
         widget_list = list(self.content_generator(status.original, reblogged_by)
@@ -304,13 +329,14 @@ class StatusDetails(urwid.Pile):
     def content_generator(self, status, reblogged_by):
         if reblogged_by:
             text = "♺ {} boosted".format(reblogged_by.display_name or reblogged_by.username)
-            yield ("pack", urwid.Text(("gray", text)))
-            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+            yield ("pack", urwid.Text(("dim", text)))
+            yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         if status.author.display_name:
-            yield ("pack", urwid.Text(("green", status.author.display_name)))
+            yield ("pack", urwid.Text(("bold", status.author.display_name)))
 
-        yield ("pack", urwid.Text(("yellow", status.author.account)))
+        account_color = "highlight" if status.author.account in self.followed_accounts else "account"
+        yield ("pack", urwid.Text((account_color, status.author.account)))
         yield ("pack", urwid.Divider())
 
         if status.data["spoiler_text"]:
@@ -318,23 +344,28 @@ class StatusDetails(urwid.Pile):
             yield ("pack", urwid.Divider())
 
         # Show content warning
-        if status.data["spoiler_text"] and not status.show_sensitive:
+        if status.data["spoiler_text"] and not status.show_sensitive and not self.options.always_show_sensitive:
             yield ("pack", urwid.Text(("content_warning", "Marked as sensitive. Press S to view.")))
         else:
-            content = status.translation if status.show_translation else status.data["content"]
-            for line in format_content(content):
-                yield ("pack", urwid.Text(highlight_hashtags(line, self.followed_tags)))
+            if status.data["spoiler_text"]:
+                yield ("pack", urwid.Text(("content_warning", "Marked as sensitive.")))
+
+            content = status.original.translation if status.original.show_translation else status.data["content"]
+            widgetlist = html_to_widgets(content)
+
+            for line in widgetlist:
+                yield (line)
 
             media = status.data["media_attachments"]
             if media:
                 for m in media:
-                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "gray"))
+                    yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
                     yield ("pack", urwid.Text([("bold", "Media attachment"), " (", m["type"], ")"]))
                     if m["description"]:
                         yield ("pack", urwid.Text(m["description"]))
-                    yield ("pack", urwid.Text(("link", m["url"])))
+                    yield ("pack", url_to_widget(m["url"]))
 
-            poll = status.data.get("poll")
+            poll = status.original.data.get("poll")
             if poll:
                 yield ("pack", urwid.Divider())
                 yield ("pack", self.build_linebox(self.poll_generator(poll)))
@@ -347,33 +378,35 @@ class StatusDetails(urwid.Pile):
         application = status.data.get("application") or {}
         application = application.get("name")
 
-        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "gray"))
+        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "dim"))
 
         translated_from = (
-            language_name(status.translated_from)
-            if status.show_translation and status.translated_from
+            language_name(status.original.translated_from)
+            if status.original.show_translation and status.original.translated_from
             else None
         )
 
         visibility_colors = {
-            "public": "gray",
-            "unlisted": "white",
-            "private": "cyan",
-            "direct": "yellow"
+            "public": "visibility_public",
+            "unlisted": "visibility_unlisted",
+            "private": "visibility_private",
+            "direct": "visibility_direct"
         }
 
         visibility = status.visibility.title()
-        visibility_color = visibility_colors.get(status.visibility, "gray")
+        visibility_color = visibility_colors.get(status.visibility, "dim")
 
         yield ("pack", urwid.Text([
-            ("blue", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
-            ("red" if status.bookmarked else "gray", "🠷 "),
-            ("gray", f"⤶ {status.data['replies_count']} "),
-            ("yellow" if status.reblogged else "gray", f"♺ {status.data['reblogs_count']} "),
-            ("yellow" if status.favourited else "gray", f"★ {status.data['favourites_count']}"),
+            ("status_detail_timestamp", f"{status.created_at.strftime('%Y-%m-%d %H:%M')} "),
+            ("status_detail_timestamp",
+             f"(edited {status.edited_at.strftime('%Y-%m-%d %H:%M')}) " if status.edited_at else ""),
+            ("status_detail_bookmarked" if status.bookmarked else "dim", "b "),
+            ("dim", f"⤶ {status.data['replies_count']} "),
+            ("highlight" if status.reblogged else "dim", f"♺ {status.data['reblogs_count']} "),
+            ("highlight" if status.favourited else "dim", f"★ {status.data['favourites_count']}"),
             (visibility_color, f" · {visibility}"),
-            ("yellow", f" · Translated from {translated_from} " if translated_from else ""),
-            ("gray", f" · {application}" if application else ""),
+            ("highlight", f" · Translated from {translated_from} " if translated_from else ""),
+            ("dim", f" · {application}" if application else ""),
         ]))
 
         # Push things to bottom
@@ -382,17 +415,17 @@ class StatusDetails(urwid.Pile):
     def build_linebox(self, contents):
         contents = urwid.Pile(list(contents))
         contents = urwid.Padding(contents, left=1, right=1)
-        return urwid.LineBox(contents)
+        return RoundedLineBox(contents)
 
     def card_generator(self, card):
-        yield urwid.Text(("green", card["title"].strip()))
+        yield urwid.Text(("card_title", card["title"].strip()))
         if card.get("author_name"):
-            yield urwid.Text(["by ", ("yellow", card["author_name"].strip())])
+            yield urwid.Text(["by ", ("card_author", card["author_name"].strip())])
         yield urwid.Text("")
         if card["description"]:
             yield urwid.Text(card["description"].strip())
             yield urwid.Text("")
-        yield urwid.Text(("link", card["url"]))
+        yield url_to_widget(card["url"])
 
     def poll_generator(self, poll):
         for idx, option in enumerate(poll["options"]):
@@ -416,36 +449,36 @@ class StatusDetails(urwid.Pile):
             expires_at = parse_datetime(poll["expires_at"]).strftime("%Y-%m-%d %H:%M")
             status += " · Closes on {}".format(expires_at)
 
-        yield urwid.Text(("gray", status))
+        yield urwid.Text(("dim", status))
 
 
 class StatusListItem(SelectableColumns):
-    def __init__(self, status):
-        edited = status.data["edited_at"]
+    def __init__(self, status, relative_datetimes):
+        edited_at = status.original.edited_at
 
         # TODO: hacky implementation to avoid creating conflicts for existing
-        # pull reuqests, refactor when merged.
+        # pull requests, refactor when merged.
         created_at = (
             time_ago(status.created_at).ljust(3, " ")
-            if "--relative-datetimes" in sys.argv
+            if relative_datetimes
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 
-        edited_flag = "*" if edited else " "
-        favourited = ("yellow", "★") if status.original.favourited else " "
-        reblogged = ("yellow", "♺") if status.original.reblogged else " "
-        is_reblog = ("cyan", "♺") if status.reblog else " "
-        is_reply = ("cyan", "⤶") if status.original.in_reply_to else " "
+        edited_flag = "*" if edited_at else " "
+        favourited = ("highlight", "★") if status.original.favourited else " "
+        reblogged = ("highlight", "♺") if status.original.reblogged else " "
+        is_reblog = ("dim", "♺") if status.reblog else " "
+        is_reply = ("dim", "⤶ ") if status.original.in_reply_to else "  "
 
         return super().__init__([
-            ("pack", SelectableText(("blue", created_at), wrap="clip")),
-            ("pack", urwid.Text(("blue", edited_flag))),
+            ("pack", SelectableText(("status_list_timestamp", created_at), wrap="clip")),
+            ("pack", urwid.Text(("status_list_timestamp", edited_flag))),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(favourited)),
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
-            urwid.Text(("green", status.original.account), wrap="clip"),
+            urwid.Text(("status_list_account", status.original.account), wrap="clip"),
             ("pack", urwid.Text(is_reply)),
             ("pack", urwid.Text(is_reblog)),
             ("pack", urwid.Text(" ")),

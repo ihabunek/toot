@@ -6,8 +6,6 @@ Toot - a Mastodon CLI client
 
 Toot is a CLI and TUI tool for interacting with Mastodon instances from the command line.
 
-.. image:: https://img.shields.io/travis/ihabunek/toot.svg?maxAge=3600&style=flat-square
-   :target: https://travis-ci.org/ihabunek/toot
 .. image:: https://img.shields.io/badge/author-%40ihabunek-blue.svg?maxAge=3600&style=flat-square
    :target: https://mastodon.social/@ihabunek
 .. image:: https://img.shields.io/github/license/ihabunek/toot.svg?maxAge=3600&style=flat-square
@@ -20,7 +18,7 @@ Resources
 
 * Homepage: https://github.com/ihabunek/toot
 * Issues: https://github.com/ihabunek/toot/issues
-* Documentation: https://toot.readthedocs.io/en/latest/
+* Documentation: https://toot.bezdomni.net/
 * Mailing list for discussion, support and patches:
   https://lists.sr.ht/~ihabunek/toot-discuss
 * Informal discussion: #toot IRC channel on `libera.chat <https://libera.chat/>`_
@@ -39,9 +37,9 @@ Terminal User Interface
 
 toot includes a terminal user interface (TUI). Run it with ``toot tui``.
 
-.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_list.png
+.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_list.png
 
-.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/_static/tui_compose.png
+.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_compose.png
 
 
 License

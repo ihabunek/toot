@@ -21,6 +21,13 @@ for version in data.keys():
     changes = data[version]["changes"]
     print(f"**{version} ({date})**")
     print()
+
+    if "description" in data[version]:
+        description = data[version]["description"].strip()
+        for line in textwrap.wrap(description, 80):
+            print(line)
+        print()
+
     for c in changes:
         lines = textwrap.wrap(c, 78)
         initial = True

@@ -1,3 +1,122 @@
+0.41.1:
+  date: 2024-01-02
+  changes:
+    - "Fix a crash in settings parsing code"
+
+0.41.0:
+  date: 2024-01-02
+  changes:
+    - "Honour user's default visibility set in Mastodon preferences instead of always defaulting to public visibility (thanks Lexi Winter)"
+    - "TUI: Add editing toots (thanks Lexi Winter)"
+    - "TUI: Fix a bug which made palette config in settings not work"
+    - "TUI: Show edit datetime in status detail (thanks Lexi Winter)"
+
+0.40.2:
+  date: 2023-12-28
+  changes:
+    - "Reinstate `toot post --using` option."
+    - "Add shell completion for instances."
+
+0.40.1:
+  date: 2023-12-28
+  changes:
+    - "Add `toot --as` option to replace `toot post --using`. This now works for all commands."
+
+0.40.0:
+  date: 2023-12-27
+  description: |
+    This release includes a rather extensive change to use the Click library
+    (https://click.palletsprojects.com/) for creating the command line
+    interface. This allows for some new features like nested commands, setting
+    parameters via environment variables, and shell completion. Backward
+    compatibility should be mostly preserved, except for cases noted below.
+    Please report any issues.
+  changes:
+    - "BREAKING: Remove deprecated `--disable-https` option for `login` and `login_cli`, pass the base URL instead"
+    - "BREAKING: Options `--debug` and `--color` must be specified after `toot` but before the command"
+    - "BREAKING: Option `--quiet` has been removed. Redirect output instead."
+    - "Add passing parameters via environment variables, see: https://toot.bezdomni.net/environment_variables.html"
+    - "Add shell completion, see: https://toot.bezdomni.net/shell_completion.html"
+    - "Add `tags info`, `tags featured`, `tags feature`, and `tags unfeature` commands"
+    - "Add `tags followed`, `tags follow`, and `tags unfollow` sub-commands, deprecate `tags_followed`, `tags_follow`, and `tags tags_unfollow`"
+    - "Add `lists accounts`, `lists add`, `lists create`, `lists delete`, `lists list`, `lists remove` subcommands, deprecate `lists`, `lists_accounts`, `lists_add`, `lists_create`, `lists_delete`, `lists_remove` commands."
+    - "Add `--json` option to tags and lists commands"
+    - "Add `toot --width` option for setting your preferred terminal width"
+    - "Add `--media-viewer` and `--colors` options to `toot tui`. These were previously accessible only via settings."
+    - "TUI: Fix issue where UI did not render until first input (thanks Urwid devs)"
+
+0.39.0:
+  date: 2023-11-23
+  changes:
+    - "Add `--json` option to many commands, this makes them print the JSON data returned by the server instead of human-readable data. Useful for scripting."
+    - "TUI: Make media viewer configurable in settings, see: https://toot.bezdomni.net/settings.html#tui-view-images"
+    - "TUI: Add rich text rendering (thanks Dan Schwarz)"
+
+0.38.2:
+  date: 2023-11-16
+  changes:
+    - "Fix compatibility with Pleroma (#399, thanks Sandra Snan)"
+    - "Fix language documentation (thanks Sandra Snan)"
+
+0.38.1:
+  date: 2023-07-25
+  changes:
+    - "Fix relative datetimes option in TUI"
+
+0.38.0:
+  date: 2023-07-25
+  changes:
+    - "Add `toot muted` and `toot blocked` commands (thanks Florian Obser)"
+    - "Add settings file, allows setting common options, defining defaults for command arguments, and the TUI palette"
+    - "TUI: Remap shortcuts so they don't override HJKL used for navigation (thanks Dan Schwarz)"
+
+0.37.0:
+  date: 2023-06-28
+  changes:
+    - "**BREAKING:** Require Python 3.7+"
+    - "Add `timeline --account` option to show the account timeline (thanks Dan Schwarz)"
+    - "Add `toot status` command to show a single status"
+    - "TUI: Add personal timeline (thanks Dan Schwarz)"
+    - "TUI: Highlight followed accounts in status details (thanks Dan Schwarz)"
+    - "TUI: Restructured goto menu (thanks Dan Schwarz)"
+    - "TUI: Fix boosting boosted statuses (thanks Dan Schwarz)"
+    - "TUI: Add support for list timelines (thanks Dan Schwarz)"
+
+0.36.0:
+  date: 2023-03-09
+  changes:
+    - "Move docs from toot.readthedocs.io to toot.bezdomni.net"
+    - "Add specifying media thumbnails to `toot post` (#301)"
+    - "Add creating polls to `toot post`"
+    - "Handle custom instance domains (e.g. when server is located at `social.vivaldi.net`, but uses the `vivaldi.net` mastodon domain. (#217)"
+    - "TUI: Inherit post visibility when replying (thanks @rogarb)"
+    - "TUI: Add conversations timeline (thanks @rogarb)"
+    - "TUI: Add shortcut to copy toot contents (thanks Dan Schwarz)"
+
+0.35.0:
+  date: 2023-03-01
+  changes:
+    - "Save toot contents when using --editor so it's recoverable if posting fails (#311)"
+    - "TUI: Add voting on polls (thanks Dan Schwarz)"
+    - "TUI: Add following/blocking/muting accounts (thanks Dan Schwarz)"
+    - "TUI: Add notifications timeline (thanks Dan Schwarz)"
+
+0.34.1:
+  date: 2023-02-20
+  changes:
+    - "TUI: Fix bug where TUI would break on older Mastodon instances (#309)"
+
+0.34.0:
+  date: 2023-02-03
+  changes:
+    - "Fix Python version detection which would fail in some cases (thanks K)"
+    - "Fix toot --help not working (thanks Norman Walsh)"
+    - "TUI: Add option to save status JSON data from source window (thanks Dan Schwarz)"
+    - "TUI: Add `--relative-datetimes` option to show relative datetimes (thanks Dan Schwarz)"
+    - "TUI: Don't focus newly created post (#188, thanks Dan Schwarz)"
+    - "TUI: Add ability to scroll long status messages (#166, thanks Dan Schwarz)"
+    - "TUI: Add action to view account details (thanks Dan Schwarz)"
+
 0.33.1:
   date: 2023-01-03
   changes:
@@ -14,7 +133,7 @@
     - "TUI: Show an error if attemptint to boost a private status (thanks Lim Ding Wen)"
     - "TUI: Hide polls, cards and media attachments for sensitive posts (thanks Daniel Schwarz)"
     - "TUI: Add bookmarking and bookmark timeline (thanks Daniel Schwarz)"
-    - "TUI: Show status visiblity (thanks Lim Ding Wen)"
+    - "TUI: Show status visibility (thanks Lim Ding Wen)"
     - "TUI: Reply to original account instead of boosting account (thanks Lim Ding Wen)"
     - "TUI: Refresh screen after exiting browser, required for text browsers (thanks Daniel Schwarz)"
     - "TUI: Highlight followed tags (thanks Daniel Schwarz)"
@@ -42,7 +161,7 @@
 0.30.1:
   date: 2022-11-30
   changes:
-    - "Remove usage of depreacted `text_url` status field. Fixes posting media without text."
+    - "Remove usage of deprecated `text_url` status field. Fixes posting media without text."
 
 0.30.0:
   date: 2022-11-29
@@ -89,7 +208,7 @@
     - "TUI: Fix access to public and tag timelines when on private mastodon instances (#168)"
     - "Add `--reverse` option to `toot notifications` (#151)"
     - "Fix `toot timeline` to respect `--instance` option"
-    - "TUI: Add opton to pin/save tag timelines (#163, thanks @dlax)"
+    - "TUI: Add option to pin/save tag timelines (#163, thanks @dlax)"
     - "TUI: Fixed crash on empty timeline (#138, thanks ecs)"
 
 0.26.0:
@@ -98,7 +217,7 @@
     - "Fix datetime parsing on Python 3.5 (#162)"
     - "TUI: Display status links and open them (#154, thanks @dlax)"
     - "TUI: Fix visibility descriptions (#153, thanks @finnoleary)"
-    - "**IMPORTANT:** Starting from this release, new releases will not be uploaded to the APT package repository at `bezdomni.net`. Please use the official Debian or Ubuntu repos or choose another [installation option](https://toot.readthedocs.io/en/latest/install.html)."
+    - "**IMPORTANT:** Starting from this release, new releases will not be uploaded to the APT package repository at `bezdomni.net`. Please use the official Debian or Ubuntu repos or choose another [installation option](https://toot.bezdomni.net/installation.html)."
 
 0.25.2:
   date: 2020-01-23

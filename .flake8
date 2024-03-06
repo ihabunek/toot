@@ -1,4 +1,4 @@
 [flake8]
 exclude=build,tests,tmp,venv,toot/tui/scroll.py
-ignore=E128
+ignore=E128,W503,W504
 max-line-length=120

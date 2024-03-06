@@ -1,8 +1,9 @@
-from argparse import ArgumentTypeError
+import click
 import pytest
 
-from toot.console import duration
+from toot.cli.validators import validate_duration
 from toot.wcstring import wc_wrap, trunc, pad, fit_text
+from toot.utils import urlencode_url
 
 
 def test_pad():
@@ -162,6 +163,9 @@ def test_wc_wrap_indented():
 
 
 def test_duration():
+    def duration(value):
+        return validate_duration(None, None, value)
+
     # Long hand
     assert duration("1 second") == 1
     assert duration("1 seconds") == 1
@@ -189,15 +193,20 @@ def test_duration():
     assert duration("5d 10h 3m 1s") == 5 * 86400 + 10 * 3600 + 3 * 60 + 1
     assert duration("5d10h3m1s") == 5 * 86400 + 10 * 3600 + 3 * 60 + 1
 
-    with pytest.raises(ArgumentTypeError):
+    with pytest.raises(click.BadParameter):
         duration("")
 
-    with pytest.raises(ArgumentTypeError):
+    with pytest.raises(click.BadParameter):
         duration("100")
 
     # Wrong order
-    with pytest.raises(ArgumentTypeError):
+    with pytest.raises(click.BadParameter):
         duration("1m1d")
 
-    with pytest.raises(ArgumentTypeError):
+    with pytest.raises(click.BadParameter):
         duration("banana")
+
+
+def test_urlencode_url():
+    assert urlencode_url("https://www.example.com") == "https://www.example.com"
+    assert urlencode_url("https://www.example.com/url%20with%20spaces") == "https://www.example.com/url%20with%20spaces"

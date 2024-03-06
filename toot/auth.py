@@ -1,112 +1,74 @@
-import sys
-import webbrowser
-
-from builtins import input
-from getpass import getpass
-
-from toot import api, config, DEFAULT_INSTANCE, User, App
+from toot import api, config, User, App
+from toot.entities import from_dict, Instance
 from toot.exceptions import ApiError, ConsoleError
-from toot.output import print_out
+from urllib.parse import urlparse
 
 
-def register_app(domain, scheme='https'):
-    print_out("Looking up instance info...")
-    instance = api.get_instance(domain, scheme)
-
-    print_out("Found instance <blue>{}</blue> running Mastodon version <yellow>{}</yellow>".format(
-        instance['title'], instance['version']))
-
+def find_instance(base_url: str) -> Instance:
     try:
-        print_out("Registering application...")
-        response = api.create_app(domain, scheme)
+        instance = api.get_instance(base_url).json()
+        return from_dict(Instance, instance)
+    except Exception:
+        raise ConsoleError(f"Instance not found at {base_url}")
+
+
+def register_app(domain: str, base_url: str) -> App:
+    try:
+        response = api.create_app(base_url)
     except ApiError:
         raise ConsoleError("Registration failed.")
-
-    base_url = scheme + '://' + domain
 
     app = App(domain, base_url, response['client_id'], response['client_secret'])
     config.save_app(app)
 
-    print_out("Application tokens saved.")
-
     return app
 
 
-def create_app_interactive(instance=None, scheme='https'):
-    if not instance:
-        print_out("Choose an instance [<green>{}</green>]: ".format(DEFAULT_INSTANCE), end="")
-        instance = input()
-        if not instance:
-            instance = DEFAULT_INSTANCE
-
-    return config.load_app(instance) or register_app(instance, scheme)
+def get_or_create_app(base_url: str) -> App:
+    instance = find_instance(base_url)
+    domain = _get_instance_domain(instance)
+    return config.load_app(domain) or register_app(domain, base_url)
 
 
-def create_user(app, access_token):
+def create_user(app: App, access_token: str) -> User:
     # Username is not yet known at this point, so fetch it from Mastodon
     user = User(app.instance, None, access_token)
-    creds = api.verify_credentials(app, user)
+    creds = api.verify_credentials(app, user).json()
 
-    user = User(app.instance, creds['username'], access_token)
+    user = User(app.instance, creds["username"], access_token)
     config.save_user(user, activate=True)
-
-    print_out("Access token saved to config at: <green>{}</green>".format(
-        config.get_config_file_path()))
 
     return user
 
 
-def login_interactive(app, email=None):
-    print_out("Log in to <green>{}</green>".format(app.instance))
-
-    if email:
-        print_out("Email: <green>{}</green>".format(email))
-
-    while not email:
-        email = input('Email: ')
-
-    # Accept password piped from stdin, useful for testing purposes but not
-    # documented so people won't get ideas. Otherwise prompt for password.
-    if sys.stdin.isatty():
-        password = getpass('Password: ')
-    else:
-        password = sys.stdin.read().strip()
-        print_out("Password: <green>read from stdin</green>")
-
+def login_username_password(app: App, email: str, password: str) -> User:
     try:
-        print_out("Authenticating...")
         response = api.login(app, email, password)
-    except ApiError:
+    except Exception:
         raise ConsoleError("Login failed")
 
-    return create_user(app, response['access_token'])
+    return create_user(app, response["access_token"])
 
 
-BROWSER_LOGIN_EXPLANATION = """
-This authentication method requires you to log into your Mastodon instance
-in your browser, where you will be asked to authorize <yellow>toot</yellow> to access
-your account. When you do, you will be given an <yellow>authorization code</yellow>
-which you need to paste here.
-"""
+def login_auth_code(app: App, authorization_code: str) -> User:
+    try:
+        response = api.request_access_token(app, authorization_code)
+    except Exception:
+        raise ConsoleError("Login failed")
+
+    return create_user(app, response["access_token"])
 
 
-def login_browser_interactive(app):
-    url = api.get_browser_login_url(app)
-    print_out(BROWSER_LOGIN_EXPLANATION)
+def _get_instance_domain(instance: Instance) -> str:
+    """Extracts the instance domain name.
 
-    print_out("This is the login URL:")
-    print_out(url)
-    print_out("")
+    Pleroma and its forks return an actual URI here, rather than a domain name
+    like Mastodon. This is contrary to the spec.¯ in that case, parse out the
+    domain and return it.
 
-    yesno = input("Open link in default browser? [Y/n]")
-    if not yesno or yesno.lower() == 'y':
-        webbrowser.open(url)
-
-    authorization_code = ""
-    while not authorization_code:
-        authorization_code = input("Authorization code: ")
-
-    print_out("\nRequesting access token...")
-    response = api.request_access_token(app, authorization_code)
-
-    return create_user(app, response['access_token'])
+    TODO: when updating to v2 instance endpoint, this field has been renamed to
+    `domain`
+    """
+    if instance.uri.startswith("http"):
+        return urlparse(instance.uri).netloc
+    return instance.uri

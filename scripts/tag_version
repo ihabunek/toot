@@ -43,6 +43,7 @@ if dist_version != version:
     sys.exit(1)
 
 release_date = changelog_item["date"]
+description = changelog_item.get("description")
 changes = changelog_item["changes"]
 
 if not isinstance(release_date, date):
@@ -50,6 +51,11 @@ if not isinstance(release_date, date):
     sys.exit(1)
 
 commit_message = f"toot {version}\n\n"
+
+if description:
+    lines = textwrap.wrap(description.strip(), 72)
+    commit_message += "\n".join(lines) + "\n\n"
+
 for c in changes:
     lines = textwrap.wrap(c, 70)
     initial = True

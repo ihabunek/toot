@@ -3,7 +3,7 @@ from requests.exceptions import RequestException
 
 from toot import __version__
 from toot.exceptions import NotFoundError, ApiError
-from toot.logging import log_request, log_response
+from toot.logging import log_request, log_request_exception, log_response
 
 
 def send_request(request, allow_redirects=True):
@@ -19,6 +19,7 @@ def send_request(request, allow_redirects=True):
             settings = session.merge_environment_settings(prepared.url, {}, None, None, None)
             response = session.send(prepared, allow_redirects=allow_redirects, **settings)
     except RequestException as ex:
+        log_request_exception(request, ex)
         raise ApiError(f"Request failed: {str(ex)}")
 
     log_response(response)
@@ -37,7 +38,7 @@ def _get_error_message(response):
     except Exception:
         pass
 
-    return "Unknown error"
+    return f"Unknown error: {response.status_code} {response.reason}"
 
 
 def process_response(response):
@@ -80,13 +81,41 @@ def post(app, user, path, headers=None, files=None, data=None, json=None, allow_
     return anon_post(url, headers=headers, files=files, data=data, json=json, allow_redirects=allow_redirects)
 
 
-def delete(app, user, path, data=None, headers=None):
+def anon_put(url, headers=None, files=None, data=None, json=None, allow_redirects=True):
+    request = Request(method="PUT", url=url, headers=headers, files=files, data=data, json=json)
+    response = send_request(request, allow_redirects)
+
+    return process_response(response)
+
+
+def put(app, user, path, headers=None, files=None, data=None, json=None, allow_redirects=True):
     url = app.base_url + path
 
     headers = headers or {}
     headers["Authorization"] = f"Bearer {user.access_token}"
 
-    request = Request('DELETE', url, headers=headers, json=data)
+    return anon_put(url, headers=headers, files=files, data=data, json=json, allow_redirects=allow_redirects)
+
+
+def patch(app, user, path, headers=None, files=None, data=None, json=None):
+    url = app.base_url + path
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
+
+    request = Request('PATCH', url, headers=headers, files=files, data=data, json=json)
+    response = send_request(request)
+
+    return process_response(response)
+
+
+def delete(app, user, path, data=None, json=None, headers=None):
+    url = app.base_url + path
+
+    headers = headers or {}
+    headers["Authorization"] = f"Bearer {user.access_token}"
+
+    request = Request('DELETE', url, headers=headers, data=data, json=json)
     response = send_request(request)
 
     return process_response(response)

@@ -1,8 +1,0 @@
-coverage
-keyring
-pyxdg
-pyyaml
-sphinx
-sphinx-autobuild
-twine
-wheel

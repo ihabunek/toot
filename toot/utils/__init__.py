@@ -7,8 +7,12 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
+from typing import Any, Dict, List
+
+import click
 
 from toot.exceptions import ConsoleError
+from urllib.parse import urlparse, urlencode, quote, unquote
 
 
 def str_bool(b):
@@ -16,20 +20,27 @@ def str_bool(b):
     return "true" if b else "false"
 
 
-def get_text(html):
-    """Converts html to text, strips all tags."""
+def str_bool_nullable(b):
+    """Similar to str_bool, but leave None as None"""
+    return None if b is None else str_bool(b)
 
+
+def parse_html(html: str) -> BeautifulSoup:
     # Ignore warnings made by BeautifulSoup, if passed something that looks like
     # a file (e.g. a dot which matches current dict), it will warn that the file
     # should be opened instead of passing a filename.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        text = BeautifulSoup(html.replace('&apos;', "'"), "html.parser").get_text()
-
-    return unicodedata.normalize('NFKC', text)
+        return BeautifulSoup(html.replace("&apos;", "'"), "html.parser")
 
 
-def parse_html(html):
+def get_text(html):
+    """Converts html to text, strips all tags."""
+    text = parse_html(html).get_text()
+    return unicodedata.normalize("NFKC", text)
+
+
+def html_to_paragraphs(html: str) -> List[List[str]]:
     """Attempt to convert html to plain text while keeping line breaks.
     Returns a list of paragraphs, each being a list of lines.
     """
@@ -48,7 +59,7 @@ def format_content(content):
     Returns a generator yielding lines of content.
     """
 
-    paragraphs = parse_html(content)
+    paragraphs = html_to_paragraphs(content)
 
     first = True
 
@@ -100,17 +111,56 @@ Everything below it will be ignored.
 """
 
 
-def editor_input(editor, initial_text):
+def editor_input(editor: str, initial_text: str) -> str:
     """Lets user input text using an editor."""
+    tmp_path = _tmp_status_path()
     initial_text = (initial_text or "") + EDITOR_INPUT_INSTRUCTIONS
 
-    with tempfile.NamedTemporaryFile(suffix='.toot') as f:
-        f.write(initial_text.encode())
-        f.flush()
+    if not _use_existing_tmp_file(tmp_path):
+        with open(tmp_path, "w") as f:
+            f.write(initial_text)
+            f.flush()
 
-        subprocess.run([editor, f.name])
+    subprocess.run([editor, tmp_path])
 
-        f.seek(0)
-        text = f.read().decode()
+    with open(tmp_path) as f:
+        return f.read().split(EDITOR_DIVIDER)[0].strip()
 
-    return text.split(EDITOR_DIVIDER)[0].strip()
+
+def delete_tmp_status_file() -> None:
+    try:
+        os.unlink(_tmp_status_path())
+    except FileNotFoundError:
+        pass
+
+
+def _tmp_status_path() -> str:
+    tmp_dir = tempfile.gettempdir()
+    return f"{tmp_dir}/.status.toot"
+
+
+def _use_existing_tmp_file(tmp_path: str) -> bool:
+    if os.path.exists(tmp_path):
+        click.echo(f"Found draft status at: {tmp_path}")
+
+        choice = click.Choice(["O", "D"], case_sensitive=False)
+        char = click.prompt("Open or Delete?", type=choice, default="O")
+        return char == "O"
+
+    return False
+
+
+def drop_empty_values(data: Dict[Any, Any]) -> Dict[Any, Any]:
+    """Remove keys whose values are null"""
+    return {k: v for k, v in data.items() if v is not None}
+
+
+def urlencode_url(url: str) -> str:
+    parsed_url = urlparse(url)
+
+    # unencode before encoding, to prevent double-urlencoding
+    encoded_path = quote(unquote(parsed_url.path), safe="-._~()'!*:@,;+&=/")
+    encoded_query = urlencode({k: quote(unquote(v), safe="-._~()'!*:@,;?/") for k, v in parsed_url.params})
+    encoded_url = parsed_url._replace(path=encoded_path, params=encoded_query).geturl()
+
+    return encoded_url

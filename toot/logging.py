@@ -2,22 +2,12 @@ import json
 import sys
 
 from logging import getLogger
+from requests import Request, RequestException, Response
+from urllib.parse import urlencode
 
-logger = getLogger('toot')
+logger = getLogger("toot")
 
 VERBOSE = "--verbose" in sys.argv
-COLOR = "--no-color" not in sys.argv
-
-if COLOR:
-    ANSI_RED = "\033[31m"
-    ANSI_GREEN = "\033[32m"
-    ANSI_YELLOW = "\033[33m"
-    ANSI_END_COLOR = "\033[0m"
-else:
-    ANSI_RED = ""
-    ANSI_GREEN = ""
-    ANSI_YELLOW = ""
-    ANSI_END_COLOR = ""
 
 
 def censor_secrets(headers):
@@ -36,40 +26,42 @@ def truncate(line):
     return line
 
 
-def log_request(request):
+def log_request(request: Request):
+    logger.debug(f" --> {request.method} {_url(request)}")
 
-    logger.debug(f">>> {ANSI_GREEN}{request.method} {request.url}{ANSI_END_COLOR}")
-
-    if request.headers:
+    if VERBOSE and request.headers:
         headers = censor_secrets(request.headers)
-        logger.debug(f">>> HEADERS: {ANSI_GREEN}{headers}{ANSI_END_COLOR}")
+        logger.debug(f" --> HEADERS: {headers}")
 
-    if request.data:
+    if VERBOSE and request.data:
         data = truncate(request.data)
-        logger.debug(f">>> DATA:    {ANSI_GREEN}{data}{ANSI_END_COLOR}")
+        logger.debug(f" --> DATA:    {data}")
 
-    if request.json:
+    if VERBOSE and request.json:
         data = truncate(json.dumps(request.json))
-        logger.debug(f">>> JSON:    {ANSI_GREEN}{data}{ANSI_END_COLOR}")
+        logger.debug(f" --> JSON:    {data}")
 
-    if request.files:
-        logger.debug(f">>> FILES:   {ANSI_GREEN}{request.files}{ANSI_END_COLOR}")
+    if VERBOSE and request.files:
+        logger.debug(f" --> FILES:   {request.files}")
 
+
+def log_response(response: Response):
+    method = response.request.method
+    url = response.request.url
+    elapsed = response.elapsed.microseconds // 1000
+    logger.debug(f" <-- {method} {url} HTTP {response.status_code} {elapsed}ms")
+
+    if VERBOSE and response.content:
+        content = truncate(response.content.decode())
+        logger.debug(f" <-- {content}")
+
+
+def log_request_exception(request: Request, ex: RequestException):
+    logger.debug(f" <-- {request.method} {_url(request)} Exception: {ex}")
+
+
+def _url(request):
+    url = request.url
     if request.params:
-        logger.debug(f">>> PARAMS:  {ANSI_GREEN}{request.params}{ANSI_END_COLOR}")
-
-
-def log_response(response):
-
-    content = truncate(response.content.decode())
-
-    if response.ok:
-        logger.debug(f"<<< {ANSI_GREEN}{response}{ANSI_END_COLOR}")
-        logger.debug(f"<<< {ANSI_YELLOW}{content}{ANSI_END_COLOR}")
-    else:
-        logger.debug(f"<<< {ANSI_RED}{response}{ANSI_END_COLOR}")
-        logger.debug(f"<<< {ANSI_RED}{content}{ANSI_END_COLOR}")
-
-
-def log_debug(*msgs):
-    logger.debug(" ".join(str(m) for m in msgs))
+        url += f"?{urlencode(request.params)}"
+    return url
