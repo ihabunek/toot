@@ -35,7 +35,7 @@ class TuiOptions(NamedTuple):
     media_viewer: Optional[str]
     always_show_sensitive: bool
     relative_datetimes: bool
-    default_visibility: Optional[bool]
+    default_visibility: Optional[str]
 
 
 class Header(urwid.WidgetWrap):
