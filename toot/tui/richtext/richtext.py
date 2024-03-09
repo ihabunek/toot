@@ -60,7 +60,10 @@ def html_to_widgets(html, recovery_attempt=False) -> List[urwid.Widget]:
 
 
 def url_to_widget(url: str):
-    widget = len(url), urwid.Filler(Hyperlink(url, "link", url))
+    try:
+        widget = len(url), urwid.Filler(Hyperlink(url, "link", url))
+    except ValueError:
+        widget = len(url), urwid.Filler(urwid.Text(url))  # don't style as link
     return TextEmbed(widget)
 
 
@@ -98,10 +101,16 @@ def text_to_widget(attr, markup) -> urwid.Widget:
             if match:
                 label, url = match.groups()
                 anchor_attr = get_best_anchor_attr(attr_list)
-                markup_list.append((
-                    len(label),
-                    urwid.Filler(Hyperlink(url, anchor_attr, label)),
-                ))
+                try:
+                    markup_list.append((
+                        len(label),
+                        urwid.Filler(Hyperlink(url, anchor_attr, label)),
+                    ))
+                except ValueError:
+                    markup_list.append((
+                        len(label),
+                        urwid.Filler(urwid.Text(url)),  # don't style as link
+                    ))
             else:
                 markup_list.append(run)
         else:
