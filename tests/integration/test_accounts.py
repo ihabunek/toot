@@ -1,4 +1,5 @@
 import json
+from tests.integration.conftest import register_account
 
 from toot import App, User, api, cli
 from toot.entities import Account, Relationship, from_dict
@@ -35,9 +36,8 @@ def test_whois(app: App, friend: User, run):
         assert f"@{friend.username}" in result.stdout
 
 
-def test_following(app: App, user: User, friend: User, friend_id, run):
-    # Make sure we're not initially following friend
-    api.unfollow(app, user, friend_id)
+def test_following(app: App, user: User, run):
+    friend = register_account(app)
 
     result = run(cli.accounts.following, user.username)
     assert result.exit_code == 0
@@ -84,9 +84,8 @@ def test_following_not_found(run):
     assert result.stderr.strip() == "Error: Account not found"
 
 
-def test_following_json(app: App, user: User, friend: User, user_id, friend_id, run_json):
-    # Make sure we're not initially following friend
-    api.unfollow(app, user, friend_id)
+def test_following_json(app: App, user: User, user_id, run_json):
+    friend = register_account(app)
 
     result = run_json(cli.accounts.following, user.username, "--json")
     assert result == []
@@ -200,9 +199,8 @@ def test_mute_json(app: App, user: User, friend: User, run_json, friend_id):
     assert result == []
 
 
-def test_block(app, user, friend, friend_id, run):
-    # Make sure we're not initially blocking friend
-    api.unblock(app, user, friend_id)
+def test_block(app, user, run):
+    friend = register_account(app)
 
     result = run(cli.accounts.blocked)
     assert result.exit_code == 0
