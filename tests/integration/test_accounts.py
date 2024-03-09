@@ -95,24 +95,26 @@ def test_following_json(app: App, user: User, user_id, run_json):
 
     result = run_json(cli.accounts.follow, friend.username, "--json")
     relationship = from_dict(Relationship, result)
-    assert relationship.id == friend_id
     assert relationship.following is True
 
     [result] = run_json(cli.accounts.following, user.username, "--json")
-    relationship = from_dict(Relationship, result)
-    assert relationship.id == friend_id
+    account = from_dict(Account, result)
+    assert account.acct == friend.username
 
     # If no account is given defaults to logged in user
-    [result] = run_json(cli.accounts.following, user.username, "--json")
-    relationship = from_dict(Relationship, result)
-    assert relationship.id == friend_id
+    [result] = run_json(cli.accounts.following, "--json")
+    account = from_dict(Account, result)
+    assert account.acct == friend.username
+
+    assert relationship.following is True
 
     [result] = run_json(cli.accounts.followers, friend.username, "--json")
-    assert result["id"] == user_id
+    account = from_dict(Account, result)
+    assert account.acct == user.username
 
     result = run_json(cli.accounts.unfollow, friend.username, "--json")
-    assert result["id"] == friend_id
-    assert result["following"] is False
+    relationship = from_dict(Relationship, result)
+    assert relationship.following is False
 
     result = run_json(cli.accounts.following, user.username, "--json")
     assert result == []
