@@ -4,7 +4,7 @@ import shutil
 import textwrap
 import typing as t
 
-from toot.entities import Account, Instance, Notification, Poll, Status
+from toot.entities import Account, Instance, Notification, Poll, Status, List
 from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
 from wcwidth import wcswidth
@@ -119,9 +119,9 @@ def print_tag_list(tags):
         click.echo(f"* {format_tag_name(tag)}\t{tag['url']}")
 
 
-def print_lists(lists):
+def print_lists(lists: t.List[List]):
     headers = ["ID", "Title", "Replies"]
-    data = [[lst["id"], lst["title"], lst["replies_policy"]] for lst in lists]
+    data = [[lst.id, lst.title, lst.replies_policy or ""] for lst in lists]
     print_table(headers, data)
 
 

@@ -3,6 +3,7 @@ import json as pyjson
 
 from toot import api, config
 from toot.cli import Context, cli, pass_context, json_option
+from toot.entities import from_dict_list, List
 from toot.output import print_list_accounts, print_lists, print_warning
 
 
@@ -18,7 +19,8 @@ def lists(ctx: click.Context):
         if not user or not app:
             raise click.ClickException("This command requires you to be logged in.")
 
-        lists = api.get_lists(app, user)
+        data = api.get_lists(app, user)
+        lists = from_dict_list(List, data)
         if lists:
             print_lists(lists)
         else:
@@ -30,12 +32,13 @@ def lists(ctx: click.Context):
 @pass_context
 def list(ctx: Context, json: bool):
     """List all your lists"""
-    lists = api.get_lists(ctx.app, ctx.user)
+    data = api.get_lists(ctx.app, ctx.user)
 
     if json:
-        click.echo(pyjson.dumps(lists))
+        click.echo(pyjson.dumps(data))
     else:
-        if lists:
+        if data:
+            lists = from_dict_list(List, data)
             print_lists(lists)
         else:
             click.echo("You have no lists defined.")
