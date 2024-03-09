@@ -9,11 +9,12 @@ different versions of the Mastodon API.
 """
 
 import dataclasses
+import typing as t
 
 from dataclasses import dataclass, is_dataclass
 from datetime import date, datetime
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
 from typing import get_type_hints
 
 from toot.typing_compat import get_args, get_origin
@@ -59,8 +60,8 @@ class Account:
     header: str
     header_static: str
     locked: bool
-    fields: List[AccountField]
-    emojis: List[CustomEmoji]
+    fields: t.List[AccountField]
+    emojis: t.List[CustomEmoji]
     bot: bool
     group: bool
     discoverable: Optional[bool]
@@ -154,10 +155,10 @@ class Poll:
     multiple: bool
     votes_count: int
     voters_count: Optional[int]
-    options: List[PollOption]
-    emojis: List[CustomEmoji]
+    options: t.List[PollOption]
+    emojis: t.List[CustomEmoji]
     voted: Optional[bool]
-    own_votes: Optional[List[int]]
+    own_votes: Optional[t.List[int]]
 
 
 @dataclass
@@ -207,11 +208,11 @@ class Filter:
     """
     id: str
     title: str
-    context: List[str]
+    context: t.List[str]
     expires_at: Optional[datetime]
     filter_action: str
-    keywords: List[FilterKeyword]
-    statuses: List[FilterStatus]
+    keywords: t.List[FilterKeyword]
+    statuses: t.List[FilterStatus]
 
 
 @dataclass
@@ -220,7 +221,7 @@ class FilterResult:
     https://docs.joinmastodon.org/entities/FilterResult/
     """
     filter: Filter
-    keyword_matches: Optional[List[str]]
+    keyword_matches: Optional[t.List[str]]
     status_matches: Optional[str]
 
 
@@ -237,11 +238,11 @@ class Status:
     visibility: str
     sensitive: bool
     spoiler_text: str
-    media_attachments: List[MediaAttachment]
+    media_attachments: t.List[MediaAttachment]
     application: Optional[Application]
-    mentions: List[StatusMention]
-    tags: List[StatusTag]
-    emojis: List[CustomEmoji]
+    mentions: t.List[StatusMention]
+    tags: t.List[StatusTag]
+    emojis: t.List[CustomEmoji]
     reblogs_count: int
     favourites_count: int
     replies_count: int
@@ -259,7 +260,7 @@ class Status:
     muted: Optional[bool]
     bookmarked: Optional[bool]
     pinned: Optional[bool]
-    filtered: Optional[List[FilterResult]]
+    filtered: Optional[t.List[FilterResult]]
 
     @property
     def original(self) -> "Status":
@@ -289,8 +290,8 @@ class Report:
     comment: str
     forwarded: bool
     created_at: datetime
-    status_ids: Optional[List[str]]
-    rule_ids: Optional[List[str]]
+    status_ids: Optional[t.List[str]]
+    rule_ids: Optional[t.List[str]]
     target_account: Account
 
 
@@ -328,7 +329,7 @@ class InstanceConfigurationStatuses:
 
 @dataclass
 class InstanceConfigurationMediaAttachments:
-    supported_mime_types: List[str]
+    supported_mime_types: t.List[str]
     image_size_limit: int
     image_matrix_limit: int
     video_size_limit: int
@@ -377,13 +378,13 @@ class Instance:
     urls: InstanceUrls
     stats: InstanceStats
     thumbnail: Optional[str]
-    languages: List[str]
+    languages: t.List[str]
     registrations: bool
     approval_required: bool
     invites_enabled: bool
     configuration: InstanceConfiguration
     contact_account: Optional[Account]
-    rules: List[Rule]
+    rules: t.List[Rule]
 
 
 @dataclass
@@ -397,7 +398,7 @@ class Relationship:
     following: bool
     showing_reblogs: bool
     notifying: bool
-    languages: List[str]
+    languages: t.List[str]
     followed_by: bool
     blocking: bool
     blocked_by: bool
@@ -428,7 +429,7 @@ class Tag:
     """
     name: str
     url: str
-    history: List[TagHistory]
+    history: t.List[TagHistory]
     following: Optional[bool]
 
 
@@ -443,6 +444,19 @@ class FeaturedTag:
     url: str
     statuses_count: int
     last_status_at: datetime
+
+
+@dataclass
+class List:
+    """
+    Represents a list of some users that the authenticated user follows.
+    https://docs.joinmastodon.org/entities/List/
+    """
+    id: str
+    title: str
+    # This is a required field on Mastodon, but not supported on Pleroma/Akkoma
+    # see: https://git.pleroma.social/pleroma/pleroma/-/issues/2918
+    replies_policy: Optional[str]
 
 
 # Generic data class instance
@@ -481,7 +495,7 @@ def from_dict(cls: Type[T], data: Dict) -> T:
 
 
 @lru_cache(maxsize=100)
-def get_fields(cls: Type) -> List[Tuple[str, Type, Any]]:
+def get_fields(cls: Type) -> t.List[Tuple[str, Type, Any]]:
     hints = get_type_hints(cls)
     return [
         (
@@ -493,7 +507,7 @@ def get_fields(cls: Type) -> List[Tuple[str, Type, Any]]:
     ]
 
 
-def from_dict_list(cls: Type[T], data: List[Dict]) -> List[T]:
+def from_dict_list(cls: Type[T], data: t.List[Dict]) -> t.List[T]:
     return [from_dict(cls, x) for x in data]
 
 
