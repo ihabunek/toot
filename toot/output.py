@@ -1,12 +1,12 @@
 import click
 import re
-import textwrap
 import shutil
+import textwrap
+import typing as t
 
 from toot.entities import Account, Instance, Notification, Poll, Status
 from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
-from typing import Any, Generator, Iterable, List
 from wcwidth import wcswidth
 
 
@@ -38,7 +38,7 @@ def instance_to_text(instance: Instance, width: int) -> str:
     return "\n".join(instance_lines(instance, width))
 
 
-def instance_lines(instance: Instance, width: int) -> Generator[str, None, None]:
+def instance_lines(instance: Instance, width: int) -> t.Generator[str, None, None]:
     yield f"{green(instance.title)}"
     yield f"{blue(instance.uri)}"
     yield f"running Mastodon {instance.version}"
@@ -78,7 +78,7 @@ def account_to_text(account: Account, width: int) -> str:
     return "\n".join(account_lines(account, width))
 
 
-def account_lines(account: Account, width: int) -> Generator[str, None, None]:
+def account_lines(account: Account, width: int) -> t.Generator[str, None, None]:
     acct = f"@{account.acct}"
     since = account.created_at.strftime("%Y-%m-%d")
 
@@ -125,7 +125,7 @@ def print_lists(lists):
     print_table(headers, data)
 
 
-def print_table(headers: List[str], data: List[List[str]]):
+def print_table(headers: t.List[str], data: t.List[t.List[str]]):
     widths = [[len(cell) for cell in row] for row in data + [headers]]
     widths = [max(width) for width in zip(*widths)]
 
@@ -178,7 +178,7 @@ def status_to_text(status: Status, width: int) -> str:
     return "\n".join(status_lines(status))
 
 
-def status_lines(status: Status) -> Generator[str, None, None]:
+def status_lines(status: Status) -> t.Generator[str, None, None]:
     width = get_width()
     status_id = status.id
     in_reply_to_id = status.in_reply_to_id
@@ -222,7 +222,7 @@ def status_lines(status: Status) -> Generator[str, None, None]:
     yield f"ID {yellow(status_id)} {reply} {boost}"
 
 
-def html_lines(html: str, width: int) -> Generator[str, None, None]:
+def html_lines(html: str, width: int) -> t.Generator[str, None, None]:
     first = True
     for paragraph in html_to_paragraphs(html):
         if not first:
@@ -233,7 +233,7 @@ def html_lines(html: str, width: int) -> Generator[str, None, None]:
         first = False
 
 
-def poll_lines(poll: Poll) -> Generator[str, None, None]:
+def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
     for idx, option in enumerate(poll.options):
         perc = (round(100 * option.votes_count / poll.votes_count)
             if poll.votes_count and option.votes_count is not None else 0)
@@ -258,7 +258,7 @@ def poll_lines(poll: Poll) -> Generator[str, None, None]:
     yield poll_footer
 
 
-def print_timeline(items: Iterable[Status]):
+def print_timeline(items: t.Iterable[Status]):
     print_divider()
     for item in items:
         print_status(item)
@@ -272,7 +272,7 @@ def print_notification(notification: Notification):
         print_status(notification.status)
 
 
-def print_notifications(notifications: List[Notification]):
+def print_notifications(notifications: t.List[Notification]):
     for notification in notifications:
         if notification.type not in ['pleroma:emoji_reaction']:
             print_divider()
@@ -316,25 +316,25 @@ def format_account_name(account: Account) -> str:
 
 # Shorthand functions for coloring output
 
-def blue(text: Any) -> str:
+def blue(text: t.Any) -> str:
     return click.style(text, fg="blue")
 
 
-def bold(text: Any) -> str:
+def bold(text: t.Any) -> str:
     return click.style(text, bold=True)
 
 
-def cyan(text: Any) -> str:
+def cyan(text: t.Any) -> str:
     return click.style(text, fg="cyan")
 
 
-def dim(text: Any) -> str:
+def dim(text: t.Any) -> str:
     return click.style(text, dim=True)
 
 
-def green(text: Any) -> str:
+def green(text: t.Any) -> str:
     return click.style(text, fg="green")
 
 
-def yellow(text: Any) -> str:
+def yellow(text: t.Any) -> str:
     return click.style(text, fg="yellow")
