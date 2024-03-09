@@ -1,3 +1,11 @@
+0.42.0:
+  date: 2024-03-09
+  changes:
+    - "TUI: Add `toot tui --always-show-sensitive` option (thanks Lexi Winter)"
+    - "TUI: Document missing shortcuts (thanks Denis Laxalde)"
+    - "TUI: Use rounded boxes for nicer visuals (thanks Dan Schwarz)"
+    - "TUI: Don't break if edited_at status field does not exist"
+
 0.41.1:
   date: 2024-01-02
   changes:
