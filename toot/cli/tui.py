@@ -30,7 +30,7 @@ COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
     help="Default visibility when posting new toots; overrides the server-side preference"
 )
 @click.option(
-    "-S", "--always-show-sensitive",
+    "-s", "--always-show-sensitive",
     is_flag=True,
     help="Expand toots with content warnings automatically"
 )
