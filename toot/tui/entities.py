@@ -53,10 +53,7 @@ class Status:
         self.id = self.data["id"]
         self.account = self._get_account()
         self.created_at = parse_datetime(data["created_at"])
-        if data.get("edited_at"):
-            self.edited_at = parse_datetime(data["edited_at"])
-        else:
-            self.edited_at = None
+        self.edited_at = parse_datetime(data.get("edited_at")) if data.get("edited_at") else None
         self.author = self._get_author()
         self.favourited = data.get("favourited", False)
         self.reblogged = data.get("reblogged", False)
