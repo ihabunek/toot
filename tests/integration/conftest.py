@@ -41,6 +41,8 @@ TRUMPET = str(Path(__file__).parent.parent.parent / "trumpet.png")
 
 ASSETS_DIR = str(Path(__file__).parent.parent / "assets")
 
+PASSWORD = "83dU29170rjKilKQQwuWhJv3PKnSW59bWx0perjP6i7Nu4rkeh4mRfYuvVLYM3fM"
+
 
 def create_app(base_url):
     instance = api.get_instance(base_url).json()
@@ -52,7 +54,7 @@ def register_account(app: App):
     username = str(uuid.uuid4())[-10:]
     email = f"{username}@example.com"
 
-    response = api.register_account(app, username, email, "password", "en")
+    response = api.register_account(app, username, email, PASSWORD, "en")
     return User(app.instance, username, response["access_token"])
 
 

@@ -3,7 +3,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from toot import User, cli
-from tests.integration.conftest import Run
+from tests.integration.conftest import PASSWORD, Run
 
 # TODO: figure out how to test login
 
@@ -89,7 +89,7 @@ def test_login_cli(
         cli.auth.login_cli,
         "--instance", "http://localhost:3000",
         "--email", f"{user.username}@example.com",
-        "--password", "password",
+        "--password", PASSWORD,
     )
     assert result.exit_code == 0
     assert "✓ Successfully logged in." in result.stdout
