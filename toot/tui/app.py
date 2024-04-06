@@ -327,8 +327,10 @@ class TUI(urwid.Frame):
                 # get the major version number of the server
                 # this works for Mastodon and Pleroma version strings
                 # Mastodon versions < 4 do not have translation service
+                # If the version is missing, assume 0 as a fallback
                 # Revisit this logic if Pleroma implements translation
-                ch = instance["version"][0]
+                version = instance["version"]
+                ch = "0" if not version else version[0]
                 self.can_translate = int(ch) > 3 if ch.isnumeric() else False
 
         return self.run_in_thread(_load_instance, done_callback=_done)
