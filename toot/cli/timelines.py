@@ -111,7 +111,10 @@ def bookmarks(
 
 
 @cli.command()
-@click.option("--clear", help="Dismiss all notifications and exit")
+@click.option(
+    "--clear", is_flag=True,
+    help="Dismiss all notifications and exit"
+)
 @click.option(
     "--reverse", "-r", is_flag=True,
     help="Reverse the order of the shown notifications (newest on top)"
