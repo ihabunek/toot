@@ -3,7 +3,10 @@ Helpers for testing.
 """
 
 import time
-from typing import Any, Callable
+from typing import Callable, TypeVar
+
+
+T = TypeVar("T")
 
 
 class MockResponse:
@@ -24,7 +27,7 @@ def retval(val):
     return lambda *args, **kwargs: val
 
 
-def run_with_retries(fn: Callable[..., Any]):
+def run_with_retries(fn: Callable[..., T]) -> T:
     """
     Run the the given function repeatedly until it finishes without raising an
     AssertionError. Sleep a bit between attempts. If the function doesn't
@@ -41,4 +44,4 @@ def run_with_retries(fn: Callable[..., Any]):
         except AssertionError:
             time.sleep(delay)
 
-    fn()
+    return fn()
