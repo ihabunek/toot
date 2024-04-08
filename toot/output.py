@@ -219,7 +219,7 @@ def status_lines(status: Status) -> t.Generator[str, None, None]:
 
     reply = f"↲ In reply to {yellow(in_reply_to_id)} " if in_reply_to_id else ""
     boost = f"↻ {blue(reblogged_by_acct)} boosted " if reblogged_by else ""
-    yield f"ID {yellow(status_id)}  visibility: {status.visibility}  {reply} {boost}"
+    yield f"ID {yellow(status_id)}  Visibility: {status.visibility}  {reply} {boost}"
 
 
 def html_lines(html: str, width: int) -> t.Generator[str, None, None]:
