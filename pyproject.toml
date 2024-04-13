@@ -83,3 +83,4 @@ packages=[
 [tool.pyright]
 include = ["toot"]
 typeCheckingMode = "strict"
+pythonVersion = "3.8"
