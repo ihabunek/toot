@@ -1,3 +1,8 @@
+0.44.0:
+  date: TBA
+  changes:
+    - "**BREAKING:** Require Python 3.8+"
+
 0.43.0:
   date: 2024-04-13
   changes:
