@@ -5,13 +5,11 @@ This document is a checklist for creating a toot release.
 
 Currently the process is pretty manual and would benefit from automatization.
 
-Bump & tag version
-------------------
+Make docs and tag version
+-------------------------
 
-* Update the version number in `setup.py`
-* Update the version number in `toot/__init__.py`
 * Update `changelog.yaml` with the release notes & date
-* Run `make changelog` to generate a human readable changelog
+* Run `make docs` to generate changelog and update docs
 * Commit the changes
 * Run `./scripts/tag_version <version>` to tag a release in git
 * Run `git push --follow-tags` to upload changes and tag to GitHub
