@@ -1,8 +1,7 @@
 .PHONY: clean publish test docs
 
-dist :
-	python setup.py sdist --formats=gztar,zip
-	python setup.py bdist_wheel --python-tag=py3
+dist:
+	python -m build
 
 publish :
 	twine upload dist/*.tar.gz dist/*.whl
