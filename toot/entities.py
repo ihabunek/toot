@@ -15,9 +15,8 @@ from dataclasses import dataclass, is_dataclass
 from datetime import date, datetime
 from functools import lru_cache
 from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
-from typing import get_type_hints
+from typing import get_args, get_origin, get_type_hints
 
-from toot.typing_compat import get_args, get_origin
 from toot.utils import get_text
 from toot.utils.datetime import parse_datetime
 
