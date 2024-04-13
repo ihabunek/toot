@@ -5,7 +5,9 @@ import webbrowser
 
 from toot import __version__
 from toot import api
+
 from toot.tui.utils import highlight_keys
+from toot.tui.images import image_support_enabled, load_image, graphics_widget
 from toot.tui.widgets import Button, EditBox, SelectableText
 from toot.tui.richtext import html_to_widgets
 
@@ -242,11 +244,12 @@ class Help(urwid.Padding):
 
 class Account(urwid.ListBox):
     """Shows account data and provides various actions"""
-    def __init__(self, app, user, account, relationship):
+    def __init__(self, app, user, account, relationship, options):
         self.app = app
         self.user = user
         self.account = account
         self.relationship = relationship
+        self.options = options
         self.last_action = None
         self.setup_listbox()
 
@@ -254,6 +257,30 @@ class Account(urwid.ListBox):
         actions = list(self.generate_contents(self.account, self.relationship, self.last_action))
         walker = urwid.SimpleListWalker(actions)
         super().__init__(walker)
+
+    def account_header(self, account):
+        if image_support_enabled() and account['avatar'] and not account["avatar"].endswith("missing.png"):
+            img = load_image(account['avatar'])
+            aimg = urwid.BoxAdapter(
+                graphics_widget(img, image_format=self.options.image_format, corner_radius=10), 10)
+        else:
+            aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
+
+        if image_support_enabled() and account['header'] and not account["header"].endswith("missing.png"):
+            img = load_image(account['header'])
+
+            himg = (urwid.BoxAdapter(
+                graphics_widget(img, image_format=self.options.image_format, corner_radius=10), 10))
+        else:
+            himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
+
+        atxt = urwid.Pile([urwid.Divider(),
+                           (urwid.Text(("account", account["display_name"]))),
+                (urwid.Text(("highlight", "@" + self.account['acct'])))])
+        columns = urwid.Columns([aimg, ("weight", 9999, himg)], dividechars=2, min_width=20)
+
+        header = urwid.Pile([columns, urwid.Divider(), atxt])
+        return header
 
     def generate_contents(self, account, relationship=None, last_action=None):
         if self.last_action and not self.last_action.startswith("Confirm"):
@@ -276,11 +303,11 @@ class Account(urwid.ListBox):
 
         yield urwid.Divider("─")
         yield urwid.Divider()
-        yield urwid.Text([("account", f"@{account['acct']}"), f"  {account['display_name']}"])
+
+        yield self.account_header(account)
 
         if account["note"]:
             yield urwid.Divider()
-
             widgetlist = html_to_widgets(account["note"])
             for line in widgetlist:
                 yield (line)

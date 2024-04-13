@@ -73,3 +73,21 @@ def validate_tui_colors(ctx, param, value) -> Optional[int]:
         return TUI_COLORS[value]
 
     raise click.BadParameter(f"Invalid value: {value}. Expected one of: {', '.join(TUI_COLORS)}")
+
+
+def validate_cache_size(ctx: click.Context, param: str, value: Optional[str]) -> Optional[int]:
+    """validates the cache size parameter"""
+
+    if value is None:
+        return 1024 * 1024 * 10  # default 10MB
+    else:
+        if value.isdigit():
+            size = int(value)
+        else:
+            raise click.BadParameter("Cache size must be numeric.")
+
+    if size > 1024:
+        raise click.BadParameter("Cache size too large: 1024MB maximum.")
+    elif size < 1:
+        raise click.BadParameter("Cache size too small: 1MB minimum.")
+    return size

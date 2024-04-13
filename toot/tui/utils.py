@@ -1,7 +1,8 @@
 import base64
 import re
+import sys
 import urwid
-
+from collections import OrderedDict
 from functools import reduce
 from html.parser import HTMLParser
 from typing import List
@@ -109,3 +110,33 @@ def deep_get(adict: dict, path: List[str], default=None):
         path,
         adict
     )
+
+
+class LRUCache(OrderedDict):
+    """Dict with a limited size, ejecting LRUs as needed.
+        Default max size = 10Mb"""
+
+    def __init__(self, *args, cache_max_bytes: int = 1024 * 1024 * 10, **kwargs):
+        assert cache_max_bytes > 0
+        self.total_value_size = 0
+        self.cache_max_bytes = cache_max_bytes
+
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, key: str, value):
+        if key in self:
+            self.total_value_size -= sys.getsizeof(super().__getitem__(key).tobytes())
+        self.total_value_size += sys.getsizeof(value.tobytes())
+        super().__setitem__(key, value)
+        super().move_to_end(key)
+
+        while self.total_value_size > self.cache_max_bytes:
+            old_key, value = next(iter(self.items()))
+            sz = sys.getsizeof(value.tobytes())
+            super().__delitem__(old_key)
+            self.total_value_size -= sz
+
+    def __getitem__(self, key: str):
+        val = super().__getitem__(key)
+        super().move_to_end(key)
+        return val

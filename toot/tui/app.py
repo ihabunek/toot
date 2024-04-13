@@ -2,6 +2,7 @@ import logging
 import subprocess
 import urwid
 
+
 from concurrent.futures import ThreadPoolExecutor
 from typing import NamedTuple, Optional
 from datetime import datetime, timezone
@@ -15,11 +16,12 @@ from toot.utils.datetime import parse_datetime
 from .compose import StatusComposer
 from .constants import PALETTE
 from .entities import Status
+from .images import TuiScreen, load_image
 from .overlays import ExceptionStackTrace, GotoMenu, Help, StatusSource, StatusLinks, StatusZoom
 from .overlays import StatusDeleteConfirmation, Account
 from .poll import Poll
 from .timeline import Timeline
-from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard
+from .utils import get_max_toot_chars, parse_content_links, copy_to_clipboard, LRUCache
 from .widgets import ModalBox, RoundedLineBox
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,9 @@ class TuiOptions(NamedTuple):
     media_viewer: Optional[str]
     always_show_sensitive: bool
     relative_datetimes: bool
+    cache_size: int
     default_visibility: Optional[str]
+    image_format: Optional[str]
 
 
 class Header(urwid.WidgetWrap):
@@ -95,7 +99,7 @@ class TUI(urwid.Frame):
     @staticmethod
     def create(app: App, user: User, args: TuiOptions):
         """Factory method, sets up TUI and an event loop."""
-        screen = urwid.raw_display.Screen()
+        screen = TuiScreen()
         screen.set_terminal_properties(args.colors)
 
         tui = TUI(app, user, screen, args)
@@ -143,6 +147,11 @@ class TUI(urwid.Frame):
         self.account = None
         self.followed_accounts = []
         self.preferences = {}
+
+        if self.options.cache_size:
+            self.cache_max = 1024 * 1024 * self.options.cache_size
+        else:
+            self.cache_max = 1024 * 1024 * 10  # default 10MB
 
         super().__init__(self.body, header=self.header, footer=self.footer)
 
@@ -648,7 +657,7 @@ class TUI(urwid.Frame):
         account = api.whois(self.app, self.user, account_id)
         relationship = api.get_relationship(self.app, self.user, account_id)
         self.open_overlay(
-            widget=Account(self.app, self.user, account, relationship),
+            widget=Account(self.app, self.user, account, relationship, self.options),
             title="Account",
         )
 
@@ -756,6 +765,27 @@ class TUI(urwid.Frame):
             timeline.remove_status(status)
 
         return self.run_in_thread(_delete, done_callback=_done)
+
+    def async_load_image(self, timeline, status, path, placeholder_index):
+        def _load():
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+
+            if not hasattr(timeline, "images"):
+                timeline.images = LRUCache(cache_max_bytes=self.cache_max)
+
+            img = load_image(path)
+            if img:
+                timeline.images[str(hash(path))] = img
+
+        def _done(loop):
+            # don't bother loading images for statuses we are not viewing now
+            if timeline.get_focused_status().id != status.id:
+                return
+            timeline.update_status_image(status, path, placeholder_index)
+
+        return self.run_in_thread(_load, done_callback=_done)
 
     def copy_status(self, status):
         # TODO: copy a better version of status content
