@@ -3,8 +3,13 @@ import sys
 
 from os.path import join, expanduser
 from typing import NamedTuple
+from importlib import metadata
 
-__version__ = '0.42.0'
+
+try:
+    __version__ = metadata.version("toot")
+except metadata.PackageNotFoundError:
+    __version__ = "0.0.0"
 
 
 class App(NamedTuple):
