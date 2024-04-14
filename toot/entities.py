@@ -514,7 +514,7 @@ def from_dict_list(cls: Type[T], data: t.List[Data]) -> t.List[T]:
     return [from_dict(cls, x) for x in data]
 
 
-def _get_default_value(field: dataclasses.Field[Any]):
+def _get_default_value(field: dataclasses.Field):
     if field.default is not dataclasses.MISSING:
         return field.default
 

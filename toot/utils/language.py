@@ -173,5 +173,5 @@ LANGUAGES = {
 }
 
 
-def language_name(code):
+def language_name(code: str) -> str:
     return LANGUAGES.get(code, code)
