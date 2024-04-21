@@ -155,3 +155,8 @@ def posted_status_id(out):
     _, _, status_id = match.groups()
 
     return status_id
+
+
+def assert_ok(result: Result):
+    if result.exit_code != 0:
+        raise AssertionError(f"Command failed with exit code {result.exit_code}\nStderr: {result.stderr}")
