@@ -1,3 +1,5 @@
+import asyncio
+import aiohttp
 import click
 import logging
 import os
@@ -126,6 +128,22 @@ def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[
     return wrapped
 
 
+def pass_session(f: "t.Callable[te.Concatenate[aiohttp.ClientSession, P], t.Awaitable[R]]") -> "t.Callable[P, t.Awaitable[R]]":
+    """Pass the toot Context as first argument."""
+    from toot.ahttp import make_session
+
+    @wraps(f)
+    async def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> R:
+        context = get_context()
+        session = await make_session(context)
+        try:
+            return await f(session, *args, **kwargs)
+        finally:
+            await session.close()
+
+    return wrapped
+
+
 def get_context() -> Context:
     click_context = click.get_current_context()
     obj: TootObj = click_context.obj
@@ -145,6 +163,15 @@ def get_context() -> Context:
 
     return Context(app, user, obj.color, obj.debug)
 
+
+def async_command(f: "t.Callable[P, t.Awaitable[R]]") -> "t.Callable[P, R]":
+    # Integrating click with asyncio:
+    # https://github.com/pallets/click/issues/85#issuecomment-503464628
+    @wraps(f)
+    def wrapper(*args: "P.args", **kwargs: "P.kwargs") -> R:
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
 
 json_option = click.option(
     "--json",

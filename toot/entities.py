@@ -17,6 +17,8 @@ from functools import lru_cache
 from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar, Union
 from typing import get_args, get_origin, get_type_hints
 
+from aiohttp import ClientResponse
+
 from toot.utils import get_text
 from toot.utils.datetime import parse_datetime
 
@@ -495,6 +497,10 @@ def from_dict(cls: Type[T], data: Data) -> T:
             yield field.name, converted
 
     return cls(**dict(_fields()))
+
+
+async def from_response(cls: Type[T], response: ClientResponse) -> T:
+    return from_dict(cls, await response.json())
 
 
 @lru_cache

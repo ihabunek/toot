@@ -1,28 +1,30 @@
+from aiohttp import ClientSession
 import click
 import json as pyjson
 
 from itertools import chain
 from typing import Optional
 
-from toot import api
+from toot import api, ahttp
 from toot.cli.validators import validate_instance
-from toot.entities import Instance, Status, from_dict, Account
+from toot.entities import Instance, Status, from_dict, Account, from_response
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_account, print_instance, print_search_results, print_status, print_timeline
-from toot.cli import InstanceParamType, cli, get_context, json_option, pass_context, Context
+from toot.cli import InstanceParamType, async_command, cli, get_context, json_option, pass_context, Context, pass_session
 
 
 @cli.command()
 @json_option
-@pass_context
-def whoami(ctx: Context, json: bool):
+@async_command
+@pass_session
+async def whoami(session: ClientSession, json: bool):
     """Display logged in user details"""
-    response = api.verify_credentials(ctx.app, ctx.user)
+    response = await ahttp.verify_credentials(session)
 
     if json:
-        click.echo(response.text)
+        click.echo(await response.text())
     else:
-        account = from_dict(Account, response.json())
+        account = await from_response(Account, response)
         print_account(account)
 
 
