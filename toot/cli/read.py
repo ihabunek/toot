@@ -20,6 +20,7 @@ from toot.cli import InstanceParamType, async_command, cli, get_context, json_op
 async def whoami(session: ClientSession, json: bool):
     """Display logged in user details"""
     response = await ahttp.verify_credentials(session)
+    response.raise_for_status()
 
     if json:
         click.echo(await response.text())
@@ -31,10 +32,11 @@ async def whoami(session: ClientSession, json: bool):
 @cli.command()
 @click.argument("account")
 @json_option
-@pass_context
-def whois(ctx: Context, account: str, json: bool):
+@async_command
+@pass_session
+async def whois(session: ClientSession, account: str, json: bool):
     """Display account details"""
-    account_dict = api.find_account(ctx.app, ctx.user, account)
+    account_dict = ahttp.find_account(ctx.app, ctx.user, account)
 
     # Here it's not possible to avoid parsing json since it's needed to find the account.
     if json:
@@ -91,14 +93,17 @@ def search(ctx: Context, query: str, resolve: bool, json: bool):
 @cli.command()
 @click.argument("status_id")
 @json_option
-@pass_context
-def status(ctx: Context, status_id: str, json: bool):
+@async_command
+@pass_session
+async def status(session: ClientSession, status_id: str, json: bool):
     """Show a single status"""
-    response = api.fetch_status(ctx.app, ctx.user, status_id)
+    response = await ahttp.fetch_status(session, status_id)
+    response.raise_for_status()
+
     if json:
-        click.echo(response.text)
+        click.echo(await response.text())
     else:
-        status = from_dict(Status, response.json())
+        status = from_dict(Status, await response.json())
         print_status(status)
 
 

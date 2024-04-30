@@ -138,6 +138,11 @@ def pass_session(f: "t.Callable[te.Concatenate[aiohttp.ClientSession, P], t.Awai
         session = await make_session(context)
         try:
             return await f(session, *args, **kwargs)
+        except aiohttp.ClientResponseError as ex:
+            print(type(ex))
+            from pprint import pp
+            pp(ex.__dict__)
+            raise click.ClickException("foo")
         finally:
             await session.close()
 

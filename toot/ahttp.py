@@ -74,3 +74,11 @@ def logger_trace_config() -> TraceConfig:
 
 async def verify_credentials(session: ClientSession) -> ClientResponse:
     return await session.get("/api/v1/accounts/verify_credentials")
+
+
+async def fetch_status(session: ClientSession, status_id: str) -> ClientResponse:
+    """
+    Fetch a single status
+    https://docs.joinmastodon.org/methods/statuses/#get
+    """
+    return await session.get(f"/api/v1/statuses/{status_id}")
