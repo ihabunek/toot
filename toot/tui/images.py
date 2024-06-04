@@ -28,7 +28,6 @@ try:
         global _ImageCls
 
         if not _ImageCls:
-            BaseImage.forced_support = True
             _ImageCls = (
                 KittyImage
                 if image_format == 'kitty'
@@ -36,6 +35,7 @@ try:
                 if image_format == 'iterm'
                 else BlockImage
             )
+            _ImageCls.forced_support = True
 
         return _ImageCls(image)
 
