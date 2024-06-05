@@ -10,6 +10,9 @@ try:
     from term_image import disable_queries  # prevent phantom keystrokes
     from PIL import Image, ImageDraw
 
+    _IMAGE_PIXEL_FORMATS = frozenset({'kitty', 'iterm'})
+    _ImageCls = None
+
     TuiScreen = UrwidImageScreen
     disable_queries()
 
@@ -17,17 +20,24 @@ try:
         return True
 
     def can_render_pixels(image_format):
-        return image_format in ['kitty', 'iterm']
+        return image_format in _IMAGE_PIXEL_FORMATS
 
     def get_base_image(image, image_format) -> BaseImage:
         # we don't autodetect kitty, iterm; we choose based on option switches
-        BaseImage.forced_support = True
-        if image_format == 'kitty':
-            return KittyImage(image)
-        elif image_format == 'iterm':
-            return ITerm2Image(image)
-        else:
-            return BlockImage(image)
+
+        global _ImageCls
+
+        if not _ImageCls:
+            _ImageCls = (
+                KittyImage
+                if image_format == 'kitty'
+                else ITerm2Image
+                if image_format == 'iterm'
+                else BlockImage
+            )
+            _ImageCls.forced_support = True
+
+        return _ImageCls(image)
 
     def resize_image(basewidth: int, baseheight: int, img: Image.Image) -> Image.Image:
         if baseheight and not basewidth:
