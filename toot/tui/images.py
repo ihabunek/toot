@@ -22,7 +22,7 @@ try:
     def can_render_pixels(image_format):
         return image_format in _IMAGE_PIXEL_FORMATS
 
-    def get_base_image(image, image_format) -> BaseImage:
+    def get_base_image(image, image_format, colors) -> BaseImage:
         # we don't autodetect kitty, iterm; we choose based on option switches
 
         global _ImageCls
@@ -36,6 +36,8 @@ try:
                 else BlockImage
             )
             _ImageCls.forced_support = True
+            if colors == 256 and not can_render_pixels(image_format):
+                _ImageCls.set_render_method("INDEXED")
 
         return _ImageCls(image)
 
@@ -79,7 +81,7 @@ try:
             except Exception:
                 return None
 
-    def graphics_widget(img, image_format="block", corner_radius=0) -> urwid.Widget:
+    def graphics_widget(img, image_format="block", corner_radius=0, colors=16777216) -> urwid.Widget:
         if not img:
             return urwid.SolidFill(fill_char=" ")
 
@@ -88,7 +90,7 @@ try:
         else:
             render_img = img
 
-        return UrwidImage(get_base_image(render_img, image_format), '<', upscale=True)
+        return UrwidImage(get_base_image(render_img, image_format, colors), '<', upscale=True)
         # "<" means left-justify the image
 
 except ImportError:

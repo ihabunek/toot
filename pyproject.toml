@@ -32,7 +32,7 @@ dependencies = [
 # Required to display images in the TUI
 images = [
     "pillow>=9.5.0",
-    "term-image==0.7.0",
+    "term-image>=0.7.2",
 ]
 
 # Required to display rich text in the TUI
