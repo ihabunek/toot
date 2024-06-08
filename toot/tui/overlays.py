@@ -262,7 +262,8 @@ class Account(urwid.ListBox):
         if image_support_enabled() and account['avatar'] and not account["avatar"].endswith("missing.png"):
             img = load_image(account['avatar'])
             aimg = urwid.BoxAdapter(
-                graphics_widget(img, image_format=self.options.image_format, corner_radius=10), 10)
+                graphics_widget(img, image_format=self.options.image_format, corner_radius=10,
+                                colors=self.options.colors), 10)
         else:
             aimg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 
@@ -270,7 +271,8 @@ class Account(urwid.ListBox):
             img = load_image(account['header'])
 
             himg = (urwid.BoxAdapter(
-                graphics_widget(img, image_format=self.options.image_format, corner_radius=10), 10))
+                graphics_widget(img, image_format=self.options.image_format, corner_radius=10,
+                                colors=self.options.colors), 10))
         else:
             himg = urwid.BoxAdapter(urwid.SolidFill(" "), 10)
 

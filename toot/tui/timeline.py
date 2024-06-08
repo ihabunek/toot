@@ -339,7 +339,8 @@ class Timeline(urwid.Columns):
         if img:
             try:
                 status.placeholders[placeholder_index]._set_original_widget(
-                    graphics_widget(img, image_format=self.tui.options.image_format, corner_radius=10))
+                    graphics_widget(img, image_format=self.tui.options.image_format, corner_radius=10,
+                                    colors=self.tui.options.colors))
 
             except IndexError:
                 # ignore IndexErrors.
@@ -408,7 +409,8 @@ class StatusDetails(urwid.Pile):
                 pass
         if img:
             return (urwid.BoxAdapter(
-                graphics_widget(img, image_format=self.timeline.tui.options.image_format, corner_radius=10), rows))
+                graphics_widget(img, image_format=self.timeline.tui.options.image_format, corner_radius=10,
+                                colors=self.timeline.tui.options.colors), rows))
         else:
             placeholder = urwid.BoxAdapter(urwid.SolidFill(fill_char=" "), rows)
             self.status.placeholders.append(placeholder)
