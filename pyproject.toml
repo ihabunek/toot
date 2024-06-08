@@ -37,7 +37,7 @@ images = [
 
 # Required to display rich text in the TUI
 richtext = [
-    "urwidgets>=0.1,<0.2"
+    "urwidgets>=0.2,<0.3"
 ]
 
 test = [
