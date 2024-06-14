@@ -173,6 +173,7 @@ def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, as_user: s
 
 from toot.cli import accounts  # noqa
 from toot.cli import auth  # noqa
+from toot.cli import diag  # noqa
 from toot.cli import lists  # noqa
 from toot.cli import post  # noqa
 from toot.cli import read  # noqa

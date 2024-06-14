@@ -314,6 +314,41 @@ def format_account_name(account: Account) -> str:
         return acct
 
 
+def print_diags():
+    from importlib.metadata import version
+
+    click.echo(f'{green(f"Diagnostic Information")}')
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
+
+    import platform
+    click.echo(f'{green(f"Platform:")} {platform.platform()}')
+
+# Uncomment this when we move to minimum Python version 3.10
+#    try:
+#        name = platform.freedesktop_os_release()['PRETTY_NAME']
+#        click.echo(f'{green(f"Distro:")} {name}')
+#    except:  # noqa
+#        pass
+
+    click.echo(f'{green(f"Python version:")} {platform.python_version()}')
+    click.echo(green("Dependency versions:"))
+
+    deps = ['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
+            'pillow', 'term-image', 'urwidgets', 'flake8', 'pytest', 'setuptools',
+            'vermin', 'typing-extensions']
+
+    for dep in deps:
+        try:
+            ver = version(dep)
+        except:  # noqa
+            ver = yellow("not installed")
+
+        click.echo(f"\t{dep}: {ver}")
+
+
 # Shorthand functions for coloring output
 
 def blue(text: t.Any) -> str:
