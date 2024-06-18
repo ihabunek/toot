@@ -314,7 +314,7 @@ def format_account_name(account: Account) -> str:
         return acct
 
 
-def print_diags():
+def print_diags(include_files: bool):
     from importlib.metadata import version
 
     click.echo(f'{green(f"Diagnostic Information")}')
@@ -325,30 +325,6 @@ def print_diags():
 
     from toot import __version__, config, settings
     click.echo(f'{green(f"Toot version:")} {__version__}')
-
-    click.echo(f'{green(f"Settings path:")} {settings.get_settings_path()}')
-    click.echo(f'{green(f"Settings file contents:")}')
-    try:
-        with open(settings.get_settings_path(), 'r') as f:
-            print(f.read())
-    except:  # noqa
-        click.echo(f'{yellow(f"Could not open settings file")}')
-
-    click.echo('')
-
-    click.echo(f'{green(f"Config path:")} {config.get_config_file_path()}')
-    click.echo(f'{green(f"Config file contents:")}')
-    try:
-        with open(config.get_config_file_path(), 'r') as f:
-            for line in f:
-                if "client_" not in line and "token" not in line:
-                    click.echo(line, nl=False)
-                else:
-                    click.echo(f'{yellow("***LINE REDACTED***")}')
-    except:  # noqa
-        click.echo(f'{yellow(f"Could not open config file")}')
-
-    click.echo('')
 
     import platform
     click.echo(f'{green(f"Platform:")} {platform.platform()}')
@@ -374,6 +350,34 @@ def print_diags():
             ver = yellow("not installed")
 
         click.echo(f"\t{dep}: {ver}")
+
+    click.echo(f'{green(f"Settings file path:")} {settings.get_settings_path()}')
+    click.echo(f'{green(f"Config file path:")} {config.get_config_file_path()}')
+
+    if include_files:
+        click.echo(f'{green(f"Settings file contents:")}')
+        try:
+            with open(settings.get_settings_path(), 'r') as f:
+                print(f.read())
+        except:  # noqa
+            click.echo(f'{yellow(f"Could not open settings file")}')
+
+            click.echo('')
+
+        click.echo(f'{green(f"Config file contents:")}')
+        try:
+            with open(config.get_config_file_path(), 'r') as f:
+                for line in f:
+                    # Do not output client secret or access token lines
+                    if "client_" in line or "token" in line:
+                        click.echo(f'{yellow("***CONTENTS REDACTED***")}')
+                    else:
+                        click.echo(line, nl=False)
+
+        except:  # noqa
+            click.echo(f'{yellow(f"Could not open config file")}')
+
+        click.echo('')
 
 
 # Shorthand functions for coloring output
