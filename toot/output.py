@@ -323,6 +323,9 @@ def print_diags():
     now = datetime.now(timezone.utc)
     click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
 
+    from toot import __version__, config, settings
+    click.echo(f'{green(f"Toot version:")} {__version__}')
+        
     import platform
     click.echo(f'{green(f"Platform:")} {platform.platform()}')
 
