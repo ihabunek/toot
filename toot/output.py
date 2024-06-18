@@ -329,12 +329,14 @@ def print_diags(include_files: bool):
     import platform
     click.echo(f'{green(f"Platform:")} {platform.platform()}')
 
-# Uncomment this when we move to minimum Python version 3.10
-#    try:
-#        name = platform.freedesktop_os_release()['PRETTY_NAME']
-#        click.echo(f'{green(f"Distro:")} {name}')
-#    except:  # noqa
-#        pass
+    # print distro - only call if available (python 3.10+)
+    fd_os_release = getattr(platform, "freedesktop_os_release", None)  # novermin
+    if callable(fd_os_release):  # novermin
+        try:
+            name = platform.freedesktop_os_release()['PRETTY_NAME']
+            click.echo(f'{green(f"Distro:")} {name}')
+        except:  # noqa
+            pass
 
     click.echo(f'{green(f"Python version:")} {platform.python_version()}')
     click.echo(green("Dependency versions:"))
