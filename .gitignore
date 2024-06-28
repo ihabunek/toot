@@ -4,6 +4,7 @@
 /.cache/
 /.coverage
 /.env
+/_env/
 /.envrc
 /.pytest_cache/
 /book
