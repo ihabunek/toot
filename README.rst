@@ -49,8 +49,6 @@ TUI Features:
 
 .. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_compose.png
 
-.. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_poll.png
-
 License
 -------
 
