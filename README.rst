@@ -37,10 +37,17 @@ Terminal User Interface
 
 toot includes a terminal user interface (TUI). Run it with ``toot tui``.
 
+TUI Features:
+-------------
+
+* Block graphic image display (requires optional libraries `pillow <https://pypi.org/project/pillow/>`, `term-image <https://pypi.org/project/term-image/>`, and `urwidgets <https://pypi.org/project/urwidgets/>`)
+* Bitmapped image display in `kitty <https://sw.kovidgoyal.net/kitty/>` terminal ``toot tui -f kitty``
+* Bitmapped image display in `iTerm2 <https://iterm2.com/>`, or `WezTerm <https://wezfurlong.org/wezterm/index.html>` terminal ``toot tui -f iterm``
+
+
 .. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_list.png
 
 .. image :: https://raw.githubusercontent.com/ihabunek/toot/master/docs/images/tui_compose.png
-
 
 License
 -------
