@@ -341,9 +341,9 @@ def print_diags(include_files: bool):
     click.echo(f'{green(f"Python version:")} {platform.python_version()}')
     click.echo(green("Dependency versions:"))
 
-    deps = ['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
+    deps = sorted(['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
             'pillow', 'term-image', 'urwidgets', 'flake8', 'pytest', 'setuptools',
-            'vermin', 'typing-extensions']
+            'vermin', 'typing-extensions'])
 
     for dep in deps:
         try:
