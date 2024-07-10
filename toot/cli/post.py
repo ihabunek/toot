@@ -9,6 +9,8 @@ from typing import BinaryIO, Optional, Tuple
 from toot import api, config
 from toot.cli import AccountParamType, cli, json_option, pass_context, Context
 from toot.cli import DURATION_EXAMPLES, VISIBILITY_CHOICES
+from toot.tui.constants import VISIBILITY_OPTIONS  # move to top-level ?
+
 from toot.cli.validators import validate_duration, validate_language
 from toot.entities import MediaAttachment, from_dict
 from toot.utils import EOF_KEY, delete_tmp_status_file, editor_input, multiline_input
@@ -38,7 +40,10 @@ from toot.utils.datetime import parse_datetime
 )
 @click.option(
     "--visibility", "-v",
-    help="Post visibility",
+    help="Post visibility: " + "; "
+      .join("{} = {}".format(visibility, description)
+      for visibility, caption, description in VISIBILITY_OPTIONS),
+    default=VISIBILITY_CHOICES[0],
     type=click.Choice(VISIBILITY_CHOICES),
 )
 @click.option(
