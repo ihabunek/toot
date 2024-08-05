@@ -314,7 +314,7 @@ def format_account_name(account: Account) -> str:
         return acct
 
 
-def print_diags(include_files: bool):
+def print_diags(instance_dict: t.Dict, include_files: bool):
     from importlib.metadata import version
 
     click.echo(f'{green(f"Diagnostic Information")}')
@@ -355,6 +355,16 @@ def print_diags(include_files: bool):
 
     click.echo(f'{green(f"Settings file path:")} {settings.get_settings_path()}')
     click.echo(f'{green(f"Config file path:")} {config.get_config_file_path()}')
+
+    if instance_dict:
+        try:
+            click.echo(f'{green(f"Server URI:")} {instance_dict["uri"]}')
+        except:  # noqa E722
+            pass
+        try:
+            click.echo(f'{green(f"Server version:")} {instance_dict["version"]}')
+        except:  # noqa E722
+            pass
 
     if include_files:
         click.echo(f'{green(f"Settings file contents:")}')
