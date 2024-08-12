@@ -1,13 +1,18 @@
 import click
+import platform
 import re
 import shutil
 import textwrap
 import typing as t
 
+from datetime import datetime, timezone
+from importlib.metadata import version
+from wcwidth import wcswidth
+
+from toot import __version__, config, settings
 from toot.entities import Account, Data, Instance, Notification, Poll, Status, List
 from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
-from wcwidth import wcswidth
 
 
 DEFAULT_WIDTH = 80
@@ -315,18 +320,12 @@ def format_account_name(account: Account) -> str:
 
 
 def print_diags(instance_dict: t.Optional[Data], include_files: bool):
-    from importlib.metadata import version
-
     click.echo(f'{green("Diagnostic Information")}')
-    from datetime import datetime, timezone
 
     now = datetime.now(timezone.utc)
     click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
 
-    from toot import __version__, config, settings
     click.echo(f'{green("Toot version:")} {__version__}')
-
-    import platform
     click.echo(f'{green("Platform:")} {platform.platform()}')
 
     # print distro - only call if available (python 3.10+)
