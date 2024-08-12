@@ -320,7 +320,8 @@ def format_account_name(account: Account) -> str:
 
 
 def print_diags(instance_dict: t.Optional[Data], include_files: bool):
-    click.echo(f'{green("Diagnostic Information")}')
+    click.echo(f'{green("## Toot Diagnostics")}')
+    click.echo()
 
     now = datetime.now(timezone.utc)
     click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
@@ -338,6 +339,8 @@ def print_diags(instance_dict: t.Optional[Data], include_files: bool):
             pass
 
     click.echo(f'{green("Python version:")} {platform.python_version()}')
+    click.echo()
+
     click.echo(green("Dependency versions:"))
 
     deps = sorted(['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
@@ -350,7 +353,8 @@ def print_diags(instance_dict: t.Optional[Data], include_files: bool):
         except:  # noqa
             ver = yellow("not installed")
 
-        click.echo(f"\t{dep}: {ver}")
+        click.echo(f" * {dep}: {ver}")
+    click.echo()
 
     click.echo(f'{green("Settings file path:")} {settings.get_settings_path()}')
     click.echo(f'{green("Config file path:")} {config.get_config_file_path()}')
@@ -369,13 +373,15 @@ def print_diags(instance_dict: t.Optional[Data], include_files: bool):
         click.echo(f'{green("Settings file contents:")}')
         try:
             with open(settings.get_settings_path(), 'r') as f:
+                print("```toml")
                 print(f.read())
+                print("```")
         except:  # noqa
             click.echo(f'{yellow("Could not open settings file")}')
-
-            click.echo('')
+            click.echo()
 
         click.echo(f'{green("Config file contents:")}')
+        click.echo("```json")
         try:
             with open(config.get_config_file_path(), 'r') as f:
                 for line in f:
@@ -384,11 +390,11 @@ def print_diags(instance_dict: t.Optional[Data], include_files: bool):
                         click.echo(f'{yellow("***CONTENTS REDACTED***")}')
                     else:
                         click.echo(line, nl=False)
+                click.echo()
 
         except:  # noqa
             click.echo(f'{yellow("Could not open config file")}')
-
-        click.echo('')
+        click.echo("```")
 
 
 # Shorthand functions for coloring output
