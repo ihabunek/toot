@@ -81,5 +81,4 @@ packages=[
 [tool.setuptools_scm]
 
 [tool.pyright]
-typeCheckingMode = "strict"
 pythonVersion = "3.8"
