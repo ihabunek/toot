@@ -72,9 +72,7 @@ git clone git@github.com:ihabunek/toot.git
 cd toot
 python3 -m venv _env
 source _env/bin/activate
-pip install --editable .
-pip install -r requirements-dev.txt
-pip install -r requirements-test.txt
+pip install --editable ".[dev,test]"
 ```
 
 While the virtual env is active, you can run `./_env/bin/toot` to
