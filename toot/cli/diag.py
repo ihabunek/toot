@@ -1,11 +1,9 @@
+from typing import Optional
 import click
-from toot import api
+from toot import api, config
+from toot.entities import Data
 from toot.output import print_diags
-from toot.cli import (
-    cli,
-    pass_context,
-    Context,
-)
+from toot.cli import cli
 
 
 @cli.command()
@@ -21,9 +19,12 @@ from toot.cli import (
     is_flag=True,
     help="Print information about the curren server in diagnostic output",
 )
-@pass_context
-def diag(ctx: Context, files: bool, server: bool):
+def diag(files: bool, server: bool):
     """Display useful information for diagnosing problems"""
+    instance_dict: Optional[Data] = None
+    if server:
+        _, app = config.get_active_user_app()
+        if app:
+            instance_dict = api.get_instance(app.base_url).json()
 
-    instance_dict = api.get_instance(ctx.app.base_url).json() if server else None
     print_diags(instance_dict, files)

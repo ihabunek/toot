@@ -4,7 +4,7 @@ import shutil
 import textwrap
 import typing as t
 
-from toot.entities import Account, Instance, Notification, Poll, Status, List
+from toot.entities import Account, Data, Instance, Notification, Poll, Status, List
 from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
 from wcwidth import wcswidth
@@ -314,7 +314,7 @@ def format_account_name(account: Account) -> str:
         return acct
 
 
-def print_diags(instance_dict: t.Dict, include_files: bool):
+def print_diags(instance_dict: t.Optional[Data], include_files: bool):
     from importlib.metadata import version
 
     click.echo(f'{green(f"Diagnostic Information")}')
