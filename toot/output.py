@@ -1,13 +1,18 @@
 import click
+import platform
 import re
 import shutil
 import textwrap
 import typing as t
 
-from toot.entities import Account, Instance, Notification, Poll, Status, List
+from datetime import datetime, timezone
+from importlib.metadata import version
+from wcwidth import wcswidth
+
+from toot import __version__, config, settings
+from toot.entities import Account, Data, Instance, Notification, Poll, Status, List
 from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
-from wcwidth import wcswidth
 
 
 DEFAULT_WIDTH = 80
@@ -154,8 +159,9 @@ def print_list_accounts(accounts):
 
 
 def print_search_results(results):
-    accounts = results["accounts"]
-    hashtags = results["hashtags"]
+    accounts = results.get("accounts")
+    hashtags = results.get("hashtags")
+    statuses = results.get("statuses")
 
     if accounts:
         click.echo("\nAccounts:")
@@ -165,7 +171,12 @@ def print_search_results(results):
         click.echo("\nHashtags:")
         click.echo(", ".join([format_tag_name(tag) for tag in hashtags]))
 
-    if not accounts and not hashtags:
+    if statuses:
+        click.echo("\nStatuses:")
+        for status in statuses:
+            click.echo(f" * {green(status['id'])} {status['url']}")
+
+    if not accounts and not hashtags and not statuses:
         click.echo("Nothing found")
 
 
@@ -312,6 +323,78 @@ def format_account_name(account: Account) -> str:
         return f"{green(account.display_name)} {acct}"
     else:
         return acct
+
+
+def print_diags(instance_dict: t.Optional[Data], include_files: bool):
+    click.echo(f'{green("## Toot Diagnostics")}')
+    click.echo()
+
+    now = datetime.now(timezone.utc)
+    click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
+
+    click.echo(f'{green("Toot version:")} {__version__}')
+    click.echo(f'{green("Platform:")} {platform.platform()}')
+
+    # print distro - only call if available (python 3.10+)
+    fd_os_release = getattr(platform, "freedesktop_os_release", None)  # novermin
+    if callable(fd_os_release):  # novermin
+        try:
+            name = platform.freedesktop_os_release()['PRETTY_NAME']
+            click.echo(f'{green("Distro:")} {name}')
+        except:  # noqa
+            pass
+
+    click.echo(f'{green("Python version:")} {platform.python_version()}')
+    click.echo()
+
+    click.echo(green("Dependency versions:"))
+
+    deps = sorted(['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
+            'pillow', 'term-image', 'urwidgets', 'flake8', 'pytest', 'setuptools',
+            'vermin', 'typing-extensions'])
+
+    for dep in deps:
+        try:
+            ver = version(dep)
+        except:  # noqa
+            ver = yellow("not installed")
+
+        click.echo(f" * {dep}: {ver}")
+    click.echo()
+
+    click.echo(f'{green("Settings file path:")} {settings.get_settings_path()}')
+    click.echo(f'{green("Config file path:")} {config.get_config_file_path()}')
+
+    if instance_dict:
+        click.echo(f'{green("Server URI:")} {instance_dict.get("uri")}')
+        click.echo(f'{green("Server version:")} {instance_dict.get("version")}')
+
+    if include_files:
+        click.echo(f'{green("Settings file contents:")}')
+        try:
+            with open(settings.get_settings_path(), 'r') as f:
+                print("```toml")
+                print(f.read())
+                print("```")
+        except:  # noqa
+            click.echo(f'{yellow("Could not open settings file")}')
+            click.echo()
+
+        click.echo(f'{green("Config file contents:")}')
+        click.echo("```json")
+        try:
+            with open(config.get_config_file_path(), 'r') as f:
+                for line in f:
+                    # Do not output client secret or access token lines
+                    if "client_" in line or "token" in line:
+                        click.echo(f'{yellow("***CONTENTS REDACTED***")}')
+                    else:
+                        click.echo(line, nl=False)
+                click.echo()
+
+        except:  # noqa
+            click.echo(f'{yellow("Could not open config file")}')
+        click.echo("```")
 
 
 # Shorthand functions for coloring output

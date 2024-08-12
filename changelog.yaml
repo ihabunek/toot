@@ -1,7 +1,17 @@
+0.44.1:
+  date: 2024-08-12
+  changes:
+    - "Make it possible to pass status URL as status_id, experimental (thanks @nemobis)"
+    - "Show statuses in search results (thanks @nemobis)"
+
 0.44.0:
-  date: TBA
+  date: 2024-08-12
   changes:
     - "**BREAKING:** Require Python 3.8+"
+    - "Add `toot diag` for displaying diagnostic info (thanks Dan Schwarz)"
+    - "TUI: Improve image support (thanks @AnonymouX47)"
+    - "TUI: Add support for indexed color image rendering (#483) (thanks Dan Schwarz)"
+    - "TUI: Fix crash bug (#483) (thanks Dan Schwarz)"
 
 0.43.0:
   date: 2024-04-13

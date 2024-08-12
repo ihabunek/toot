@@ -44,8 +44,32 @@ def _account_action(app, user, account, action) -> Response:
 
 
 def _status_action(app, user, status_id, action, data=None) -> Response:
+    status_id = _resolve_status_id(app, user, status_id)
     url = f"/api/v1/statuses/{status_id}/{action}"
     return http.post(app, user, url, data=data)
+
+
+def _resolve_status_id(app, user, id_or_url) -> str:
+    """
+    If given an URL instead of status ID, attempt to resolve the status ID.
+
+    TODO: Not 100% sure this is the correct way of doing this, but it seems to
+    work for all test cases I've thrown at it. So leaving it undocumented until
+    we're happy it works.
+    """
+    if re.match(r"^https?://", id_or_url):
+        response = search(app, user, id_or_url, resolve=True, type="statuses")
+        statuses = response.json().get("statuses")
+
+        if not statuses:
+            raise ConsoleError(f"Cannot find status matching URL {id_or_url}")
+
+        if len(statuses) > 1:
+            raise ConsoleError(f"Found multiple statuses mathcing URL {id_or_url}")
+
+        return statuses[0]["id"]
+
+    return id_or_url
 
 
 def _tag_action(app, user, tag_name, action) -> Response:
