@@ -159,8 +159,9 @@ def print_list_accounts(accounts):
 
 
 def print_search_results(results):
-    accounts = results["accounts"]
-    hashtags = results["hashtags"]
+    accounts = results.get("accounts")
+    hashtags = results.get("hashtags")
+    statuses = results.get("statuses")
 
     if accounts:
         click.echo("\nAccounts:")
@@ -170,7 +171,12 @@ def print_search_results(results):
         click.echo("\nHashtags:")
         click.echo(", ".join([format_tag_name(tag) for tag in hashtags]))
 
-    if not accounts and not hashtags:
+    if statuses:
+        click.echo("\nStatuses:")
+        for status in statuses:
+            click.echo(f" * {green(status['id'])} {status['url']}")
+
+    if not accounts and not hashtags and not statuses:
         click.echo("Nothing found")
 
 
