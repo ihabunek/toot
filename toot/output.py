@@ -360,14 +360,8 @@ def print_diags(instance_dict: t.Optional[Data], include_files: bool):
     click.echo(f'{green("Config file path:")} {config.get_config_file_path()}')
 
     if instance_dict:
-        try:
-            click.echo(f'{green("Server URI:")} {instance_dict["uri"]}')
-        except:  # noqa E722
-            pass
-        try:
-            click.echo(f'{green("Server version:")} {instance_dict["version"]}')
-        except:  # noqa E722
-            pass
+        click.echo(f'{green("Server URI:")} {instance_dict.get("uri")}')
+        click.echo(f'{green("Server version:")} {instance_dict.get("version")}')
 
     if include_files:
         click.echo(f'{green("Settings file contents:")}')
