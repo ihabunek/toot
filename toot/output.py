@@ -314,6 +314,84 @@ def format_account_name(account: Account) -> str:
         return acct
 
 
+def print_diags(instance_dict: t.Dict, include_files: bool):
+    from importlib.metadata import version
+
+    click.echo(f'{green(f"Diagnostic Information")}')
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
+
+    from toot import __version__, config, settings
+    click.echo(f'{green(f"Toot version:")} {__version__}')
+
+    import platform
+    click.echo(f'{green(f"Platform:")} {platform.platform()}')
+
+    # print distro - only call if available (python 3.10+)
+    fd_os_release = getattr(platform, "freedesktop_os_release", None)  # novermin
+    if callable(fd_os_release):  # novermin
+        try:
+            name = platform.freedesktop_os_release()['PRETTY_NAME']
+            click.echo(f'{green(f"Distro:")} {name}')
+        except:  # noqa
+            pass
+
+    click.echo(f'{green(f"Python version:")} {platform.python_version()}')
+    click.echo(green("Dependency versions:"))
+
+    deps = sorted(['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
+            'pillow', 'term-image', 'urwidgets', 'flake8', 'pytest', 'setuptools',
+            'vermin', 'typing-extensions'])
+
+    for dep in deps:
+        try:
+            ver = version(dep)
+        except:  # noqa
+            ver = yellow("not installed")
+
+        click.echo(f"\t{dep}: {ver}")
+
+    click.echo(f'{green(f"Settings file path:")} {settings.get_settings_path()}')
+    click.echo(f'{green(f"Config file path:")} {config.get_config_file_path()}')
+
+    if instance_dict:
+        try:
+            click.echo(f'{green(f"Server URI:")} {instance_dict["uri"]}')
+        except:  # noqa E722
+            pass
+        try:
+            click.echo(f'{green(f"Server version:")} {instance_dict["version"]}')
+        except:  # noqa E722
+            pass
+
+    if include_files:
+        click.echo(f'{green(f"Settings file contents:")}')
+        try:
+            with open(settings.get_settings_path(), 'r') as f:
+                print(f.read())
+        except:  # noqa
+            click.echo(f'{yellow(f"Could not open settings file")}')
+
+            click.echo('')
+
+        click.echo(f'{green(f"Config file contents:")}')
+        try:
+            with open(config.get_config_file_path(), 'r') as f:
+                for line in f:
+                    # Do not output client secret or access token lines
+                    if "client_" in line or "token" in line:
+                        click.echo(f'{yellow("***CONTENTS REDACTED***")}')
+                    else:
+                        click.echo(line, nl=False)
+
+        except:  # noqa
+            click.echo(f'{yellow(f"Could not open config file")}')
+
+        click.echo('')
+
+
 # Shorthand functions for coloring output
 
 def blue(text: t.Any) -> str:
