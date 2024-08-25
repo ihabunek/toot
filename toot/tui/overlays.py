@@ -230,7 +230,7 @@ class Help(urwid.Padding):
         yield urwid.Text(h("  [S] - Show text marked as sensitive"))
         yield urwid.Text(h("  [M] - Show status media"))
         yield urwid.Text(h("  [T] - Show status thread (replies)"))
-        yield urwid.Text(h("  [L] - Show the status links"))
+        yield urwid.Text(h("  [I] - Show the status links"))
         yield urwid.Text(h("  [U] - Show the status data in JSON as received from the server"))
         yield urwid.Text(h("  [V] - Open status in default browser"))
         yield urwid.Text(h("  [Y] - Copy status to clipboard"))
