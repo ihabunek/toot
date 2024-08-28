@@ -41,7 +41,7 @@ To report a bug open an
 [issue on Github](https://github.com/ihabunek/toot/issues) or send an
 email to the [mailing list](https://lists.sr.ht/~ihabunek/toot-discuss).
 
-* Run `toot env` and include its contents in the bug report.
+* Run `toot diag` and include its contents in the bug report.
 * Explain the behavior you would expect and the actual behavior.
 * Please provide as much context as possible and describe the reproduction steps
   that someone else can follow to recreate the issue on their own.
