@@ -3,7 +3,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from toot import User, cli
-from tests.integration.conftest import PASSWORD, Run
+from tests.integration.conftest import PASSWORD, Run, assert_ok
 
 # TODO: figure out how to test login
 
@@ -47,7 +47,7 @@ SAMPLE_CONFIG = {
 
 def test_env(run: Run):
     result = run(cli.auth.env)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert "toot" in result.stdout
     assert "Python" in result.stdout
 
@@ -56,7 +56,7 @@ def test_env(run: Run):
 def test_auth_empty(load_config: MagicMock, run: Run):
     load_config.return_value = EMPTY_CONFIG
     result = run(cli.auth.auth)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "You are not logged in to any accounts"
 
 
@@ -64,7 +64,7 @@ def test_auth_empty(load_config: MagicMock, run: Run):
 def test_auth_full(load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
     result = run(cli.auth.auth)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip().startswith("Authenticated accounts:")
     assert "frank@foo.social" in result.stdout
     assert "frank@bar.social" in result.stdout
@@ -91,7 +91,7 @@ def test_login_cli(
         "--email", f"{user.username}@example.com",
         "--password", PASSWORD,
     )
-    assert result.exit_code == 0
+    assert_ok(result)
     assert "✓ Successfully logged in." in result.stdout
 
     save_app.assert_called_once()
@@ -147,7 +147,7 @@ def test_logout(delete_user: MagicMock, load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
     result = run(cli.auth.logout, "frank@foo.social")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account frank@foo.social logged out"
     delete_user.assert_called_once_with(User("foo.social", "frank", "123"))
 
@@ -185,7 +185,7 @@ def test_activate(activate_user: MagicMock, load_config: MagicMock, run: Run):
     load_config.return_value = SAMPLE_CONFIG
 
     result = run(cli.auth.activate, "frank@foo.social")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account frank@foo.social activated"
     activate_user.assert_called_once_with(User("foo.social", "frank", "123"))
 

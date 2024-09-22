@@ -1,5 +1,5 @@
 from uuid import uuid4
-from tests.integration.conftest import TRUMPET
+from tests.integration.conftest import TRUMPET, assert_ok
 from toot import api, cli
 from toot.entities import Account, from_dict
 from toot.utils import get_text
@@ -15,7 +15,7 @@ def test_update_account_display_name(run, app, user):
     name = str(uuid4())[:10]
 
     result = run(cli.accounts.update_account, "--display-name", name)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -35,7 +35,7 @@ def test_update_account_note(run, app, user):
            "of cigarettes, it's dark... and we're wearing sunglasses.")
 
     result = run(cli.accounts.update_account, "--note", note)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -44,7 +44,7 @@ def test_update_account_note(run, app, user):
 
 def test_update_account_language(run, app, user):
     result = run(cli.accounts.update_account, "--language", "hr")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -53,7 +53,7 @@ def test_update_account_language(run, app, user):
 
 def test_update_account_privacy(run, app, user):
     result = run(cli.accounts.update_account, "--privacy", "private")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -65,7 +65,7 @@ def test_update_account_avatar(run, app, user):
     old_value = account["avatar"]
 
     result = run(cli.accounts.update_account, "--avatar", TRUMPET)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -77,7 +77,7 @@ def test_update_account_header(run, app, user):
     old_value = account["header"]
 
     result = run(cli.accounts.update_account, "--header", TRUMPET)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -86,14 +86,14 @@ def test_update_account_header(run, app, user):
 
 def test_update_account_locked(run, app, user):
     result = run(cli.accounts.update_account, "--locked")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
     assert account["locked"] is True
 
     result = run(cli.accounts.update_account, "--no-locked")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -103,14 +103,14 @@ def test_update_account_locked(run, app, user):
 def test_update_account_bot(run, app, user):
     result = run(cli.accounts.update_account, "--bot")
 
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
     assert account["bot"] is True
 
     result = run(cli.accounts.update_account, "--no-bot")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -119,14 +119,14 @@ def test_update_account_bot(run, app, user):
 
 def test_update_account_discoverable(run, app, user):
     result = run(cli.accounts.update_account, "--discoverable")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
     assert account["discoverable"] is True
 
     result = run(cli.accounts.update_account, "--no-discoverable")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
@@ -135,14 +135,14 @@ def test_update_account_discoverable(run, app, user):
 
 def test_update_account_sensitive(run, app, user):
     result = run(cli.accounts.update_account, "--sensitive")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()
     assert account["source"]["sensitive"] is True
 
     result = run(cli.accounts.update_account, "--no-sensitive")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "✓ Account updated"
 
     account = api.verify_credentials(app, user).json()

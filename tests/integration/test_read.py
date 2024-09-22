@@ -1,7 +1,7 @@
 import json
 import re
 
-from tests.integration.conftest import TOOT_TEST_BASE_URL
+from tests.integration.conftest import TOOT_TEST_BASE_URL, assert_ok
 from toot import api, cli
 from toot.entities import Account, Status, from_dict, from_dict_list
 from uuid import uuid4
@@ -9,7 +9,7 @@ from uuid import uuid4
 
 def test_instance_default(app, run):
     result = run(cli.read.instance)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     assert "Mastodon" in result.stdout
     assert app.instance in result.stdout
@@ -18,7 +18,7 @@ def test_instance_default(app, run):
 
 def test_instance_with_url(app, run):
     result = run(cli.read.instance, TOOT_TEST_BASE_URL)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     assert "Mastodon" in result.stdout
     assert app.instance in result.stdout
@@ -27,7 +27,7 @@ def test_instance_with_url(app, run):
 
 def test_instance_json(app, run):
     result = run(cli.read.instance, "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     data = json.loads(result.stdout)
     assert data["title"] is not None
@@ -37,7 +37,7 @@ def test_instance_json(app, run):
 
 def test_instance_anon(app, run_anon, base_url):
     result = run_anon(cli.read.instance, base_url)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     assert "Mastodon" in result.stdout
     assert app.instance in result.stdout
@@ -51,13 +51,13 @@ def test_instance_anon(app, run_anon, base_url):
 
 def test_whoami(user, run):
     result = run(cli.read.whoami)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert f"@{user.username}" in result.stdout
 
 
 def test_whoami_json(user, run):
     result = run(cli.read.whoami, "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     data = json.loads(result.stdout)
     account = from_dict(Account, data)
@@ -75,13 +75,13 @@ def test_whois(app, friend, run):
 
     for username in variants:
         result = run(cli.read.whois, username)
-        assert result.exit_code == 0
+        assert_ok(result)
         assert f"@{friend.username}" in result.stdout
 
 
 def test_whois_json(app, friend, run):
     result = run(cli.read.whois, friend.username, "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     data = json.loads(result.stdout)
     account = from_dict(Account, data)
@@ -91,13 +91,13 @@ def test_whois_json(app, friend, run):
 
 def test_search_account(friend, run):
     result = run(cli.read.search, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == f"Accounts:\n* @{friend.username}"
 
 
 def test_search_account_json(friend, run):
     result = run(cli.read.search, friend.username, "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     data = json.loads(result.stdout)
     [account] = from_dict_list(Account, data["accounts"])
@@ -110,7 +110,7 @@ def test_search_hashtag(app, user, run):
     api.post_status(app, user, "#hashtag_z")
 
     result = run(cli.read.search, "#hashtag")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "Hashtags:\n#hashtag_x, #hashtag_y, #hashtag_z"
 
 
@@ -120,7 +120,7 @@ def test_search_hashtag_json(app, user, run):
     api.post_status(app, user, "#hashtag_z")
 
     result = run(cli.read.search, "#hashtag", "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     data = json.loads(result.stdout)
     [h1, h2, h3] = sorted(data["hashtags"], key=lambda h: h["name"])
@@ -135,7 +135,7 @@ def test_status(app, user, run):
     status_id = api.post_status(app, user, uuid).json()["id"]
 
     result = run(cli.read.status, status_id)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert uuid in out
@@ -148,7 +148,7 @@ def test_status_json(app, user, run):
     status_id = api.post_status(app, user, uuid).json()["id"]
 
     result = run(cli.read.status, status_id, "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     status = from_dict(Status, json.loads(result.stdout))
     assert status.id == status_id
@@ -167,7 +167,7 @@ def test_thread(app, user, run):
 
     for status in [s1, s2, s3]:
         result = run(cli.read.thread, status["id"])
-        assert result.exit_code == 0
+        assert_ok(result)
 
         bits = re.split(r"─+", result.stdout.strip())
         bits = [b for b in bits if b]
@@ -193,7 +193,7 @@ def test_thread_json(app, user, run):
     s3 = api.post_status(app, user, uuid3, in_reply_to_id=s2["id"]).json()
 
     result = run(cli.read.thread, s2["id"], "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     result = json.loads(result.stdout)
     [ancestor] = [from_dict(Status, s) for s in result["ancestors"]]

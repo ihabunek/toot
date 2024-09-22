@@ -5,7 +5,7 @@ from tests.utils import run_with_retries
 
 from toot import api, cli
 from toot.entities import from_dict, Status
-from tests.integration.conftest import TOOT_TEST_BASE_URL, register_account
+from tests.integration.conftest import TOOT_TEST_BASE_URL, assert_ok, register_account
 
 
 # TODO: If fixture is not overridden here, tests fail, not sure why, figure it out
@@ -43,7 +43,7 @@ def test_timelines(app, user, other_user, friend_user, friend_list, run):
     # Home timeline
     def test_home():
         result = run(cli.timelines.timeline)
-        assert result.exit_code == 0
+        assert_ok(result)
         assert status1.id in result.stdout
         assert status2.id not in result.stdout
         assert status3.id in result.stdout
@@ -51,61 +51,61 @@ def test_timelines(app, user, other_user, friend_user, friend_list, run):
 
     # Public timeline
     result = run(cli.timelines.timeline, "--public")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
     # Anon public timeline
     result = run(cli.timelines.timeline, "--instance", TOOT_TEST_BASE_URL, "--public")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
     # Tag timeline
     result = run(cli.timelines.timeline, "--tag", "foo")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     result = run(cli.timelines.timeline, "--tag", "bar")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
     # Anon tag timeline
     result = run(cli.timelines.timeline, "--instance", TOOT_TEST_BASE_URL, "--tag", "foo")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     # List timeline (by list name)
     result = run(cli.timelines.timeline, "--list", friend_list["title"])
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     # List timeline (by list ID)
     result = run(cli.timelines.timeline, "--list", friend_list["id"])
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     # Account timeline
     result = run(cli.timelines.timeline, "--account", friend_user.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     result = run(cli.timelines.timeline, "--account", other_user.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id in result.stdout
     assert status3.id not in result.stdout
@@ -114,7 +114,7 @@ def test_timelines(app, user, other_user, friend_user, friend_list, run):
 def test_empty_timeline(app, run_as):
     user = register_account(app)
     result = run_as(user, cli.timelines.timeline)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "─" * 80
 
 
@@ -144,14 +144,14 @@ def test_bookmarks(app, user, run):
     api.bookmark(app, user, status2.id)
 
     result = run(cli.timelines.bookmarks)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert result.stdout.find(status1.id) > result.stdout.find(status2.id)
 
 
     result = run(cli.timelines.bookmarks, "--reverse")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert result.stdout.find(status1.id) < result.stdout.find(status2.id)
@@ -159,7 +159,7 @@ def test_bookmarks(app, user, run):
 
 def test_notifications(app, user, other_user, run):
     result = run(cli.timelines.notifications)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == "You have no notifications"
 
     text = f"Paging doctor @{user.username}"
@@ -167,14 +167,14 @@ def test_notifications(app, user, other_user, run):
 
     def test_notifications():
         result = run(cli.timelines.notifications)
-        assert result.exit_code == 0
+        assert_ok(result)
         assert f"@{other_user.username} mentioned you" in result.stdout
         assert status.id in result.stdout
         assert text in result.stdout
     run_with_retries(test_notifications)
 
     result = run(cli.timelines.notifications, "--mentions")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert f"@{other_user.username} mentioned you" in result.stdout
     assert status.id in result.stdout
     assert text in result.stdout
@@ -182,11 +182,11 @@ def test_notifications(app, user, other_user, run):
 
 def test_notifications_follow(app, user, friend_user, run_as):
     result = run_as(friend_user, cli.timelines.notifications)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert f"@{user.username} now follows you" in result.stdout
 
     result = run_as(friend_user, cli.timelines.notifications, "--mentions")
-    assert result.exit_code == 0
+    assert_ok(result)
     assert "now follows you" not in result.stdout
 
 

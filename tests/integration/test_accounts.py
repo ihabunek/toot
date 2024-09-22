@@ -1,5 +1,5 @@
 import json
-from tests.integration.conftest import register_account
+from tests.integration.conftest import assert_ok, register_account
 
 from toot import App, User, api, cli
 from toot.entities import Account, Relationship, from_dict
@@ -7,7 +7,7 @@ from toot.entities import Account, Relationship, from_dict
 
 def test_whoami(user: User, run):
     result = run(cli.read.whoami)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     # TODO: test other fields once updating account is supported
     out = result.stdout.strip()
@@ -16,7 +16,7 @@ def test_whoami(user: User, run):
 
 def test_whoami_json(user: User, run):
     result = run(cli.read.whoami, "--json")
-    assert result.exit_code == 0
+    assert_ok(result)
 
     account = from_dict(Account, json.loads(result.stdout))
     assert account.username == user.username
@@ -32,7 +32,7 @@ def test_whois(app: App, friend: User, run):
 
     for username in variants:
         result = run(cli.read.whois, username)
-        assert result.exit_code == 0
+        assert_ok(result)
         assert f"@{friend.username}" in result.stdout
 
 
@@ -40,35 +40,35 @@ def test_following(app: App, user: User, run):
     friend = register_account(app)
 
     result = run(cli.accounts.following, user.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == ""
 
     result = run(cli.accounts.follow, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == f"✓ You are now following {friend.username}"
 
     result = run(cli.accounts.following, user.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert friend.username in result.stdout.strip()
 
     # If no account is given defaults to logged in user
     result = run(cli.accounts.following)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert friend.username in result.stdout.strip()
 
     result = run(cli.accounts.unfollow, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == f"✓ You are no longer following {friend.username}"
 
     result = run(cli.accounts.following, user.username)
-    assert result.exit_code == 0
+    assert_ok(result)
     assert result.stdout.strip() == ""
 
 
 def test_following_case_insensitive(user: User, friend: User, run):
     assert friend.username != friend.username.upper()
     result = run(cli.accounts.follow, friend.username.upper())
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ You are now following {friend.username.upper()}"
@@ -128,31 +128,31 @@ def test_mute(app, user, friend, friend_id, run):
     api.unmute(app, user, friend_id)
 
     result = run(cli.accounts.muted)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == "No accounts muted"
 
     result = run(cli.accounts.mute, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ You have muted {friend.username}"
 
     result = run(cli.accounts.muted)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert friend.username in out
 
     result = run(cli.accounts.unmute, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ {friend.username} is no longer muted"
 
     result = run(cli.accounts.muted)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == "No accounts muted"
@@ -160,7 +160,7 @@ def test_mute(app, user, friend, friend_id, run):
 
 def test_mute_case_insensitive(friend: User, run):
     result = run(cli.accounts.mute, friend.username.upper())
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ You have muted {friend.username.upper()}"
@@ -205,31 +205,31 @@ def test_block(app, user, run):
     friend = register_account(app)
 
     result = run(cli.accounts.blocked)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == "No accounts blocked"
 
     result = run(cli.accounts.block, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ You are now blocking {friend.username}"
 
     result = run(cli.accounts.blocked)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert friend.username in out
 
     result = run(cli.accounts.unblock, friend.username)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ {friend.username} is no longer blocked"
 
     result = run(cli.accounts.blocked)
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == "No accounts blocked"
@@ -237,7 +237,7 @@ def test_block(app, user, run):
 
 def test_block_case_insensitive(friend: User, run):
     result = run(cli.accounts.block, friend.username.upper())
-    assert result.exit_code == 0
+    assert_ok(result)
 
     out = result.stdout.strip()
     assert out == f"✓ You are now blocking {friend.username.upper()}"

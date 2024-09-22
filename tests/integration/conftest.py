@@ -129,7 +129,7 @@ def run_json(app, user, runner):
     def _run_json(command, *params):
         obj = TootObj(test_ctx=Context(app, user))
         result = runner.invoke(command, params, obj=obj)
-        assert result.exit_code == 0
+        assert_ok(result)
         return json.loads(result.stdout)
     return _run_json
 
