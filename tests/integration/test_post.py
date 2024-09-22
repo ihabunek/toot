@@ -7,6 +7,7 @@ from os import path
 
 from tests.integration.conftest import ASSETS_DIR, Run, assert_ok, posted_status_id
 from toot import CLIENT_NAME, CLIENT_WEBSITE, api, cli
+from toot.cache import clear_last_post_id, get_last_post_id
 from toot.utils import get_text
 from unittest import mock
 
@@ -340,7 +341,7 @@ def test_media_attachment_without_text(mock_read, mock_ml, app, user, run):
         assert attachment["meta"]["original"]["size"] == "50x50"
 
 
-def test_reply_thread(app, user, friend, run):
+def test_reply_to(app, user, friend, run):
     status = api.post_status(app, friend, "This is the status").json()
 
     result = run(cli.post.post, "--reply-to", status["id"], "This is the reply")
@@ -362,3 +363,38 @@ def test_reply_thread(app, user, friend, run):
     assert user.username in s2
     assert status["id"] in s1
     assert reply["id"] in s2
+
+
+def test_reply_last(app, user, run):
+    result_1 = run(cli.post.post, "one")
+    status_id_1 = posted_status_id(result_1.stdout)
+    assert get_last_post_id(app, user) == status_id_1
+
+    result_2 = run(cli.post.post, "two", "--reply-last")
+    status_id_2 = posted_status_id(result_2.stdout)
+    assert get_last_post_id(app, user) == status_id_2
+
+    result_3 = run(cli.post.post, "two", "--reply-last")
+    status_id_3 = posted_status_id(result_3.stdout)
+    assert get_last_post_id(app, user) == status_id_3
+
+    status_1 = api.fetch_status(app, user, status_id_1).json()
+    status_2 = api.fetch_status(app, user, status_id_2).json()
+    status_3 = api.fetch_status(app, user, status_id_3).json()
+
+    assert status_1["in_reply_to_id"] is None
+    assert status_2["in_reply_to_id"] == status_id_1
+    assert status_3["in_reply_to_id"] == status_id_2
+
+
+def test_reply_last_fails_if_no_last_id(app, user, run: Run):
+    clear_last_post_id(app, user)
+    result = run(cli.post.post, "one", "--reply-last")
+    assert result.exit_code == 1
+    assert result.stderr.strip() == f"Error: Cannot reply-last, no previous post ID found for {user.username}@{app.instance}"
+
+
+def test_reply_last_and_reply_to_are_exclusive(app, user, run: Run):
+    result = run(cli.post.post, "one", "--reply-last", "--reply-to", "123")
+    assert result.exit_code == 1
+    assert result.stderr.strip() == f"Error: --reply-last and --reply-to are mutually exclusive"

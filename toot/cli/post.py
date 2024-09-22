@@ -7,6 +7,7 @@ from time import sleep, time
 from typing import BinaryIO, Optional, Tuple
 
 from toot import api, config
+from toot.cache import get_last_post_id, save_last_post_id
 from toot.cli import AccountParamType, cli, json_option, pass_context, Context
 from toot.cli import DURATION_EXAMPLES, VISIBILITY_CHOICES
 from toot.tui.constants import VISIBILITY_OPTIONS  # move to top-level ?
@@ -59,6 +60,12 @@ from toot.utils.datetime import parse_datetime
 @click.option(
     "--reply-to", "-r",
     help="ID of the status being replied to, if status is a reply.",
+)
+@click.option(
+    "--reply-last", "-R",
+    help="Reply to the last posted status to continue the thread.",
+    is_flag=True,
+    default=False,
 )
 @click.option(
     "--language", "-l",
@@ -137,7 +144,8 @@ def post(
     poll_multiple: bool,
     poll_hide_totals: bool,
     json: bool,
-    using: str
+    using: str,
+    reply_last: bool,
 ):
     """Post a new status"""
     if len(media) > 4:
@@ -153,6 +161,7 @@ def post(
     media_ids = _upload_media(app, user, media, descriptions, thumbnails)
     status_text = _get_status_text(text, editor, media)
     scheduled_at = _get_scheduled_at(scheduled_at, scheduled_in)
+    reply_to = _get_reply_to(app, user, reply_to, reply_last)
 
     if not status_text and not media_ids:
         raise click.ClickException("You must specify either text or media to post.")
@@ -185,6 +194,8 @@ def post(
             click.echo(f"Toot scheduled for: {scheduled_at}")
         else:
             click.echo(f"Toot posted: {status['url']}")
+
+        save_last_post_id(app, user, status["id"])
 
     delete_tmp_status_file()
 
@@ -243,6 +254,20 @@ def _get_scheduled_at(scheduled_at, scheduled_in):
         return scheduled_at.replace(microsecond=0).isoformat()
 
     return None
+
+
+def _get_reply_to(app, user, reply_to, reply_last):
+    if reply_last and reply_to:
+        raise click.ClickException("--reply-last and --reply-to are mutually exclusive")
+
+    if reply_last:
+        last_id = get_last_post_id(app, user)
+        if last_id:
+            return last_id
+        else:
+            raise click.ClickException(f"Cannot reply-last, no previous post ID found for {user.username}@{app.instance}")
+
+    return reply_to
 
 
 def _upload_media(app, user, media, descriptions, thumbnails):
