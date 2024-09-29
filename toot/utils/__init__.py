@@ -154,7 +154,7 @@ def urlencode_url(url: str) -> str:
 def get_distro_name() -> Optional[str]:
     """Attempt to get linux distro name from platform (requires python 3.10+)"""
     try:
-        return platform.freedesktop_os_release()["PRETTY_NAME"]  # type: ignore
+        return platform.freedesktop_os_release()["PRETTY_NAME"]  # type: ignore  # novermin
     except Exception:
         pass
 
