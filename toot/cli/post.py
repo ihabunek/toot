@@ -265,7 +265,8 @@ def _get_reply_to(app, user, reply_to, reply_last):
         if last_id:
             return last_id
         else:
-            raise click.ClickException(f"Cannot reply-last, no previous post ID found for {user.username}@{app.instance}")
+            user = f"{user.username}@{app.instance}"
+            raise click.ClickException(f"Cannot reply-last, no previous post ID found for {user}")
 
     return reply_to
 
