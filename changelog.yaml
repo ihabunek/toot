@@ -1,3 +1,9 @@
+0.45.0:
+  date: 2024-09-29
+  changes:
+    - "Add `post --reply-last` for replying to last posted toot, for creating threads"
+    - "Deprecate `env` command in favour of `diag`"
+
 0.44.1:
   date: 2024-08-12
   changes:
