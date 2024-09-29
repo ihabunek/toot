@@ -41,6 +41,10 @@ DIAG_DEPENDENCIES = [
 )
 def diag(files: bool, server: bool):
     """Display useful information for diagnosing problems"""
+    print_diag(files, server)
+
+
+def print_diag(files: bool, server: bool):
     instance: Optional[Instance] = None
     if server:
         _, app = config.get_active_user_app()

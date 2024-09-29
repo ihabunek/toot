@@ -1,13 +1,13 @@
-import click
-import platform
-import sys
 import webbrowser
 
-from toot import api, config, __version__
+import click
+
+from toot import api, config
 from toot.auth import get_or_create_app, login_auth_code, login_username_password
 from toot.cli import AccountParamType, cli
+from toot.cli.diag import print_diag
 from toot.cli.validators import validate_instance
-
+from toot.output import print_warning
 
 instance_option = click.option(
     "--instance", "-i", "base_url",
@@ -42,12 +42,12 @@ def auth():
     click.echo(f"\nAuth tokens are stored in: {path}")
 
 
-@cli.command()
+@cli.command(hidden=True)
 def env():
-    """Print environment information for inclusion in bug reports."""
-    click.echo(f"toot {__version__}")
-    click.echo(f"Python {sys.version}")
-    click.echo(platform.platform())
+    """Deprecated in favour of 'diag'"""
+    print_warning("`toot env` is deprecated in favour of `toot diag`")
+    click.echo()
+    print_diag(False, False)
 
 
 @cli.command(name="login_cli")
