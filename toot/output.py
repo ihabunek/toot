@@ -104,7 +104,7 @@ def account_lines(account: Account, width: int) -> t.Generator[str, None, None]:
     if account.fields:
         for field in account.fields:
             name = field.name.title()
-            yield f'\n{yellow(name)}:'
+            yield f"\n{yellow(name)}:"
             yield from html_lines(field.value, width)
             if field.verified_at:
                 yield green("✓ Verified")
@@ -196,7 +196,7 @@ def status_lines(status: Status) -> t.Generator[str, None, None]:
     reblogged_by = status.account if status.reblog else None
     status = status.original
 
-    time = status.created_at.strftime('%Y-%m-%d %H:%M %Z')
+    time = status.created_at.strftime("%Y-%m-%d %H:%M %Z")
     username = "@" + status.account.acct
     spacing = width - wcswidth(username) - wcswidth(time) - 2
 
@@ -246,8 +246,11 @@ def html_lines(html: str, width: int) -> t.Generator[str, None, None]:
 
 def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
     for idx, option in enumerate(poll.options):
-        perc = (round(100 * option.votes_count / poll.votes_count)
-            if poll.votes_count and option.votes_count is not None else 0)
+        perc = (
+            round(100 * option.votes_count / poll.votes_count)
+            if poll.votes_count and option.votes_count is not None
+            else 0
+        )
 
         if poll.voted and poll.own_votes and idx in poll.own_votes:
             voted_for = yellow(" ✓")
@@ -256,7 +259,7 @@ def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
 
         yield f"{option.title} - {perc}% {voted_for}"
 
-    poll_footer = f'Poll · {poll.votes_count} votes'
+    poll_footer = f"Poll · {poll.votes_count} votes"
 
     if poll.expired:
         poll_footer += " · Closed"
@@ -285,7 +288,7 @@ def print_notification(notification: Notification):
 
 def print_notifications(notifications: t.List[Notification]):
     for notification in notifications:
-        if notification.type not in ['pleroma:emoji_reaction']:
+        if notification.type not in ["pleroma:emoji_reaction"]:
             print_divider()
             print_notification(notification)
     print_divider()
@@ -294,18 +297,20 @@ def print_notifications(notifications: t.List[Notification]):
 def print_notification_header(notification: Notification):
     account_name = format_account_name(notification.account)
 
-    if (notification.type == "follow"):
+    if notification.type == "follow":
         click.echo(f"{account_name} now follows you")
-    elif (notification.type == "mention"):
+    elif notification.type == "mention":
         click.echo(f"{account_name} mentioned you")
-    elif (notification.type == "reblog"):
+    elif notification.type == "reblog":
         click.echo(f"{account_name} reblogged your status")
-    elif (notification.type == "favourite"):
+    elif notification.type == "favourite":
         click.echo(f"{account_name} favourited your status")
-    elif (notification.type == "update"):
+    elif notification.type == "update":
         click.echo(f"{account_name} edited a post")
     else:
-        click.secho(f"Unknown notification type: '{notification.type}'", err=True, fg="yellow")
+        click.secho(
+            f"Unknown notification type: '{notification.type}'", err=True, fg="yellow"
+        )
         click.secho("Please report an issue to toot.", err=True, fg="yellow")
 
 
