@@ -1,7 +1,7 @@
 from typing import Optional
 import click
 from toot import api, config
-from toot.entities import Data
+from toot.entities import Data, Instance, from_dict
 from toot.output import print_diags
 from toot.cli import cli
 
@@ -21,10 +21,11 @@ from toot.cli import cli
 )
 def diag(files: bool, server: bool):
     """Display useful information for diagnosing problems"""
-    instance_dict: Optional[Data] = None
+    instance: Optional[Instance] = None
     if server:
         _, app = config.get_active_user_app()
         if app:
-            instance_dict = api.get_instance(app.base_url).json()
+            response = api.get_instance(app.base_url)
+            instance = from_dict(Instance, response.json())
 
-    print_diags(instance_dict, files)
+    print_diags(instance, files)

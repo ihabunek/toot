@@ -1,3 +1,4 @@
+import platform
 import click
 import os
 import re
@@ -7,6 +8,7 @@ import unicodedata
 import warnings
 
 from bs4 import BeautifulSoup
+from importlib.metadata import version
 from typing import Any, Dict, Generator, List, Optional
 from urllib.parse import urlparse, urlencode, quote, unquote
 
@@ -147,3 +149,18 @@ def urlencode_url(url: str) -> str:
     encoded_url = parsed_url._replace(path=encoded_path, params=encoded_query).geturl()
 
     return encoded_url
+
+
+def get_distro_name() -> Optional[str]:
+    """Attempt to get linux distro name from platform (requires python 3.10+)"""
+    try:
+        return platform.freedesktop_os_release()["PRETTY_NAME"]  # type: ignore
+    except Exception:
+        pass
+
+
+def get_version(name):
+    try:
+        return version(name)
+    except Exception:
+        return None

@@ -1,3 +1,5 @@
+import json
+from os import path
 import click
 import platform
 import re
@@ -5,13 +7,11 @@ import shutil
 import textwrap
 import typing as t
 
-from datetime import datetime, timezone
-from importlib.metadata import version
 from wcwidth import wcswidth
 
 from toot import __version__, config, settings
 from toot.entities import Account, Data, Instance, Notification, Poll, Status, List
-from toot.utils import get_text, html_to_paragraphs
+from toot.utils import get_distro_name, get_text, get_version, html_to_paragraphs
 from toot.wcstring import wc_wrap
 
 
@@ -330,79 +330,78 @@ def format_account_name(account: Account) -> str:
         return acct
 
 
-def print_diags(instance_dict: t.Optional[Data], include_files: bool):
-    click.echo(f'{green("## Toot Diagnostics")}')
+def print_diags(instance: t.Optional[Instance], include_files: bool):
+    click.echo("## Toot Diagnostics")
     click.echo()
+    click.echo(f"toot {__version__}")
+    click.echo(f"Python {platform.python_version()}")
+    click.echo(platform.platform())
 
-    now = datetime.now(timezone.utc)
-    click.echo(f'{green("Current Date/Time:")} {now.strftime("%Y-%m-%d %H:%M:%S %Z")}')
+    distro = get_distro_name()
+    if distro:
+        click.echo(distro)
 
-    click.echo(f'{green("Toot version:")} {__version__}')
-    click.echo(f'{green("Platform:")} {platform.platform()}')
-
-    # print distro - only call if available (python 3.10+)
-    fd_os_release = getattr(platform, "freedesktop_os_release", None)  # novermin
-    if callable(fd_os_release):  # novermin
-        try:
-            name = platform.freedesktop_os_release()['PRETTY_NAME']
-            click.echo(f'{green("Distro:")} {name}')
-        except:  # noqa
-            pass
-
-    click.echo(f'{green("Python version:")} {platform.python_version()}')
     click.echo()
+    click.secho(bold("Dependencies:"))
 
-    click.echo(green("Dependency versions:"))
-
-    deps = sorted(['beautifulsoup4', 'click', 'requests', 'tomlkit', 'urwid', 'wcwidth',
-            'pillow', 'term-image', 'urwidgets', 'flake8', 'pytest', 'setuptools',
-            'vermin', 'typing-extensions'])
+    deps = [
+        "beautifulsoup4",
+        "click",
+        "pillow",
+        "requests",
+        "setuptools",
+        "term-image",
+        "tomlkit",
+        "typing-extensions",
+        "urwid",
+        "urwidgets",
+        "wcwidth",
+    ]
 
     for dep in deps:
-        try:
-            ver = version(dep)
-        except:  # noqa
-            ver = yellow("not installed")
+        version = get_version(dep) or yellow("not installed")
+        click.echo(f" * {dep}: {version}")
 
-        click.echo(f" * {dep}: {ver}")
+    if instance:
+        click.echo()
+        click.echo(bold("Server:"))
+        click.echo(instance.title)
+        click.echo(instance.uri)
+        click.echo(f"version {instance.version}")
+
     click.echo()
 
-    click.echo(f'{green("Settings file path:")} {settings.get_settings_path()}')
-    click.echo(f'{green("Config file path:")} {config.get_config_file_path()}')
+    settings_path = settings.get_settings_path()
+    if path.exists(settings_path):
+        click.echo(f"Settings file: {settings_path}")
+        if include_files:
+            with open(settings_path, "r") as f:
+                click.echo("\n```toml")
+                click.echo(f.read().strip())
+                click.echo("```\n")
+    else:
+        click.echo(f'Settings file: {yellow("not found")}')
 
-    if instance_dict:
-        click.echo(f'{green("Server URI:")} {instance_dict.get("uri")}')
-        click.echo(f'{green("Server version:")} {instance_dict.get("version")}')
-
-    if include_files:
-        click.echo(f'{green("Settings file contents:")}')
-        try:
-            with open(settings.get_settings_path(), 'r') as f:
-                print("```toml")
-                print(f.read())
-                print("```")
-        except:  # noqa
-            click.echo(f'{yellow("Could not open settings file")}')
-            click.echo()
-
-        click.echo(f'{green("Config file contents:")}')
-        click.echo("```json")
-        try:
-            with open(config.get_config_file_path(), 'r') as f:
-                for line in f:
-                    # Do not output client secret or access token lines
-                    if "client_" in line or "token" in line:
-                        click.echo(f'{yellow("***CONTENTS REDACTED***")}')
-                    else:
-                        click.echo(line, nl=False)
-                click.echo()
-
-        except:  # noqa
-            click.echo(f'{yellow("Could not open config file")}')
-        click.echo("```")
+    config_path = config.get_config_file_path()
+    if path.exists(config_path):
+        click.echo(f"Config file: {config_path}")
+        if include_files:
+            with open(config_path, "r") as f:
+                content = json.load(f)
+                for app in content.get("apps", {}).values():
+                    app["client_id"] = "*****"
+                    app["client_secret"] = "*****"
+                for user in content.get("users", {}).values():
+                    user["access_token"] = "*****"
+                click.echo("\n```json")
+                click.echo(json.dumps(content, indent=4))
+                click.echo("```\n")
+    else:
+        click.echo(f'Config file: {yellow("not found")}')
 
 
 # Shorthand functions for coloring output
+
 
 def blue(text: t.Any) -> str:
     return click.style(text, fg="blue")
