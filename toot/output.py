@@ -1,19 +1,14 @@
-import json
-from os import path
-import click
-import platform
 import re
 import shutil
 import textwrap
 import typing as t
 
+import click
 from wcwidth import wcswidth
 
-from toot import __version__, config, settings
-from toot.entities import Account, Data, Instance, Notification, Poll, Status, List
-from toot.utils import get_distro_name, get_text, get_version, html_to_paragraphs
+from toot.entities import Account, Instance, List, Notification, Poll, Status
+from toot.utils import get_text, html_to_paragraphs
 from toot.wcstring import wc_wrap
-
 
 DEFAULT_WIDTH = 80
 
@@ -328,76 +323,6 @@ def format_account_name(account: Account) -> str:
         return f"{green(account.display_name)} {acct}"
     else:
         return acct
-
-
-def print_diags(instance: t.Optional[Instance], include_files: bool):
-    click.echo("## Toot Diagnostics")
-    click.echo()
-    click.echo(f"toot {__version__}")
-    click.echo(f"Python {platform.python_version()}")
-    click.echo(platform.platform())
-
-    distro = get_distro_name()
-    if distro:
-        click.echo(distro)
-
-    click.echo()
-    click.secho(bold("Dependencies:"))
-
-    deps = [
-        "beautifulsoup4",
-        "click",
-        "pillow",
-        "requests",
-        "setuptools",
-        "term-image",
-        "tomlkit",
-        "typing-extensions",
-        "urwid",
-        "urwidgets",
-        "wcwidth",
-    ]
-
-    for dep in deps:
-        version = get_version(dep) or yellow("not installed")
-        click.echo(f" * {dep}: {version}")
-
-    if instance:
-        click.echo()
-        click.echo(bold("Server:"))
-        click.echo(instance.title)
-        click.echo(instance.uri)
-        click.echo(f"version {instance.version}")
-
-    click.echo()
-
-    settings_path = settings.get_settings_path()
-    if path.exists(settings_path):
-        click.echo(f"Settings file: {settings_path}")
-        if include_files:
-            with open(settings_path, "r") as f:
-                click.echo("\n```toml")
-                click.echo(f.read().strip())
-                click.echo("```\n")
-    else:
-        click.echo(f'Settings file: {yellow("not found")}')
-
-    config_path = config.get_config_file_path()
-    if path.exists(config_path):
-        click.echo(f"Config file: {config_path}")
-        if include_files:
-            with open(config_path, "r") as f:
-                content = json.load(f)
-                for app in content.get("apps", {}).values():
-                    app["client_id"] = "*****"
-                    app["client_secret"] = "*****"
-                for user in content.get("users", {}).values():
-                    user["access_token"] = "*****"
-                click.echo("\n```json")
-                click.echo(json.dumps(content, indent=4))
-                click.echo("```\n")
-    else:
-        click.echo(f'Config file: {yellow("not found")}')
 
 
 # Shorthand functions for coloring output
