@@ -8,7 +8,7 @@ from typing import BinaryIO, List, Optional
 from urllib.parse import urlparse, urlencode, quote
 
 from toot import App, User, http, CLIENT_NAME, CLIENT_WEBSITE
-from toot.exceptions import ConsoleError
+from toot.exceptions import ApiError, ConsoleError
 from toot.utils import drop_empty_values, str_bool, str_bool_nullable
 
 
@@ -77,8 +77,28 @@ def _tag_action(app, user, tag_name, action) -> Response:
     return http.post(app, user, url)
 
 
-def create_app(base_url):
-    url = f"{base_url}/api/v1/apps"
+def _status_toggle_action(app, user, status_id, action, data=None):
+    url = '/api/v1/statuses/{}/{}'.format(status_id, action)
+
+    try:
+        response = http.post(app, user, url).json()
+    except ApiError as e:
+        # For "toggle" operations, Mastodon returns unhelpful
+        # 422: "Validation failed: Status has already been taken"
+        # responses when you try to bookmark a status already
+        # bookmarked, or favourite a status already favourited
+        # so we just swallow those errors here
+        if str(e) == "Validation failed: Status has already been taken":
+            response = None
+        else:
+            # not the error we expected; re-raise the exception
+            raise e
+    finally:
+        return response
+
+
+def create_app(domain, scheme='https'):
+    url = f"{scheme}://{domain}/api/v1/apps"
 
     json = {
         'client_name': CLIENT_NAME,
@@ -334,38 +354,40 @@ def delete_status(app, user, status_id):
 
 
 def favourite(app, user, status_id):
-    return _status_action(app, user, status_id, 'favourite')
+    return _status_toggle_action(app, user, status_id, 'favourite')
 
 
 def unfavourite(app, user, status_id):
-    return _status_action(app, user, status_id, 'unfavourite')
+    return _status_toggle_action(app, user, status_id, 'unfavourite')
 
 
 def reblog(app, user, status_id, visibility="public"):
-    return _status_action(app, user, status_id, 'reblog', data={"visibility": visibility})
+    return _status_toggle_action(app, user, status_id, 'reblog', data={"visibility": visibility})
 
 
 def unreblog(app, user, status_id):
-    return _status_action(app, user, status_id, 'unreblog')
+    return _status_toggle_action(app, user, status_id, 'unreblog')
 
 
 def pin(app, user, status_id):
-    return _status_action(app, user, status_id, 'pin')
+    return _status_toggle_action(app, user, status_id, 'pin')
 
 
 def unpin(app, user, status_id):
-    return _status_action(app, user, status_id, 'unpin')
+    return _status_toggle_action(app, user, status_id, 'unpin')
 
 
 def bookmark(app, user, status_id):
-    return _status_action(app, user, status_id, 'bookmark')
+    return _status_toggle_action(app, user, status_id, 'bookmark')
 
 
 def unbookmark(app, user, status_id):
-    return _status_action(app, user, status_id, 'unbookmark')
+    return _status_toggle_action(app, user, status_id, 'unbookmark')
 
 
 def translate(app, user, status_id):
+    # don't use status_toggle_action for translate as this is
+    # not toggling anything server-side; it's a read only operation.
     return _status_action(app, user, status_id, 'translate')
 
 
