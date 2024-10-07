@@ -5,24 +5,26 @@ from itertools import chain
 from typing import Optional
 
 from toot import api
+from toot.async_api import accounts
 from toot.cli.validators import validate_instance
 from toot.entities import Instance, Status, from_dict, Account
 from toot.exceptions import ApiError, ConsoleError
 from toot.output import print_account, print_instance, print_search_results, print_status, print_timeline
-from toot.cli import InstanceParamType, cli, get_context, json_option, pass_context, Context
+from toot.cli import AsyncContext, InstanceParamType, async_cmd, async_pass_context, cli, get_context, json_option, pass_context, Context
 
 
 @cli.command()
 @json_option
-@pass_context
-def whoami(ctx: Context, json: bool):
+@async_cmd
+@async_pass_context
+async def whoami(ctx: AsyncContext, json: bool):
     """Display logged in user details"""
-    response = api.verify_credentials(ctx.app, ctx.user)
+    response = await accounts.verify_credentials(ctx)
 
     if json:
-        click.echo(response.text)
+        click.echo(await response.text())
     else:
-        account = from_dict(Account, response.json())
+        account = from_dict(Account, await response.json())
         print_account(account)
 
 

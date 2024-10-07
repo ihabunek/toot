@@ -1,3 +1,7 @@
+import asyncio
+from dataclasses import dataclass
+from aiohttp import ClientSession
+import aiohttp
 import click
 import logging
 import os
@@ -85,8 +89,16 @@ CONTEXT = dict(
     default_map=get_default_map(),
 )
 
-
 class Context(t.NamedTuple):
+    app: t.Optional[App]
+    user: t.Optional[User] = None
+    color: bool = False
+    debug: bool = False
+
+
+@dataclass(frozen=True)
+class AsyncContext():
+    session: ClientSession
     app: t.Optional[App]
     user: t.Optional[User] = None
     color: bool = False
@@ -129,11 +141,39 @@ class InstanceParamType(StringParamType):
         ]
 
 
+
 def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[P, R]":
     """Pass the toot Context as first argument."""
     @wraps(f)
     def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> R:
         return f(get_context(), *args, **kwargs)
+
+    return wrapped
+
+
+def async_cmd(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
+
+
+def async_pass_context(f: "t.Callable[te.Concatenate[AsyncContext, P], t.Awaitable[R]]") -> "t.Callable[P, t.Awaitable[R]]":
+    """Pass the toot Context as first argument."""
+    @wraps(f)
+    async def wrapped(*args: "P.args", **kwargs: "P.kwargs") -> R:
+        ctx = get_context()
+
+        base_url = ctx.app.base_url
+        headers = {"Authorization": f"Bearer {ctx.user.access_token}"}
+
+        async with aiohttp.ClientSession(base_url=base_url, headers=headers) as session:
+            async_ctx = AsyncContext(session, ctx.app, ctx.user, ctx.color, ctx.debug)
+            try:
+                return await f(async_ctx, *args, **kwargs)
+            finally:
+                await session.close()
 
     return wrapped
 
