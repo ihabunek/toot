@@ -549,7 +549,7 @@ def _add_mime_type(file):
     return (filename, file, mime_type)
 
 
-def search(app, user, query, resolve=False, type=None):
+def search(app, user, query, resolve=False, type=None, offset=None, limit=None):
     """
     Perform a search.
     https://docs.joinmastodon.org/methods/search/#v2
@@ -557,7 +557,9 @@ def search(app, user, query, resolve=False, type=None):
     params = drop_empty_values({
         "q": query,
         "resolve": str_bool(resolve),
-        "type": type
+        "type": type,
+        "offset": int(offset) if offset else None,
+        "limit": int(limit) if limit else None
     })
 
     return http.get(app, user, "/api/v2/search", params)
