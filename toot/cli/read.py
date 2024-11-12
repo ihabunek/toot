@@ -82,6 +82,8 @@ def instance(instance: Optional[str], json: bool):
 )
 @click.option("-o", "--offset", type=int, help="Return results starting from (default 0)")
 @click.option("-l", "--limit", type=int, help="Maximum number of results to return, per type. (default 20, max 40)")
+@click.option("--min-id", help="Return results newer than this ID.")
+@click.option("--max-id", help="Return results older than this ID.")
 @json_option
 @pass_context
 def search(
@@ -91,10 +93,12 @@ def search(
     type: Optional[str],
     offset: Optional[int],
     limit: Optional[int],
+    min_id: Optional[str],
+    max_id: Optional[str],
     json: bool
 ):
     """Search for content in accounts, statuses and hashtags."""
-    response = api.search(ctx.app, ctx.user, query, resolve, type, offset, limit)
+    response = api.search(ctx.app, ctx.user, query, resolve, type, offset, limit, min_id, max_id)
     if json:
         click.echo(response.text)
     else:
