@@ -558,8 +558,8 @@ def search(app, user, query, resolve=False, type=None, offset=None, limit=None):
         "q": query,
         "resolve": str_bool(resolve),
         "type": type,
-        "offset": int(offset) if offset else None,
-        "limit": int(limit) if limit else None
+        "offset": offset,
+        "limit": limit,
     })
 
     return http.get(app, user, "/api/v2/search", params)
