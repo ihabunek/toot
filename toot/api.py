@@ -430,12 +430,12 @@ def _timeline_generator(app, user, path, params=None):
 
 def _notification_timeline_generator(app, user, path, params=None):
     for batch in _timeline_generator(app, user, path, params):
-        yield [n["status"] for n in batch if n["status"]]
+        yield [n["status"] for n in batch if n.get("status")]
 
 
 def _conversation_timeline_generator(app, user, path, params=None):
     for batch in _timeline_generator(app, user, path, params):
-        yield [c["last_status"] for c in batch if c["last_status"]]
+        yield [c["last_status"] for c in batch if c.get("last_status")]
 
 
 def home_timeline_generator(app, user, limit=20):
