@@ -363,7 +363,7 @@ class TUI(urwid.Frame):
                 acct = f'@{self.user.username}@{self.user.instance}'
                 self.account = api.find_account(self.app, self.user, acct)
                 return api.following(self.app, self.user, self.account["id"])
-            except ApiError:
+            except Exception:
                 # not supported by all Mastodon servers so fail silently if necessary
                 return []
 
