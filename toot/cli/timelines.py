@@ -2,12 +2,12 @@ import sys
 import click
 
 from toot import api
-from toot.cli import InstanceParamType, cli, get_context, pass_context, Context
+from toot.cli import InstanceParamType, cli, get_context, pass_context, Context, json_option
 from typing import Optional
 from toot.cli.validators import validate_instance
 
 from toot.entities import Notification, Status, from_dict
-from toot.output import print_notifications, print_timeline
+from toot.output import print_notifications, print_timeline, print_warning
 
 
 @cli.command()
@@ -123,12 +123,14 @@ def bookmarks(
     "--mentions", "-m", is_flag=True,
     help="Show only mentions"
 )
+@json_option
 @pass_context
 def notifications(
     ctx: Context,
     clear: bool,
     reverse: bool,
-    mentions: int,
+    mentions: bool,
+    json: bool,
 ):
     """Show notifications"""
     if clear:
@@ -142,17 +144,22 @@ def notifications(
         # https://docs.joinmastodon.org/methods/notifications/
         exclude = ["follow", "favourite", "reblog", "poll", "follow_request"]
 
-    notifications = api.get_notifications(ctx.app, ctx.user, exclude_types=exclude)
+    response = api.get_notifications(ctx.app, ctx.user, exclude_types=exclude)
 
-    if not notifications:
-        click.echo("You have no notifications")
+    if json:
+        if reverse:
+            print_warning("--reverse is not supported alongside --json, ignoring")
+        click.echo(response.text)
         return
 
+    notifications = [from_dict(Notification, n) for n in response.json()]
     if reverse:
         notifications = reversed(notifications)
 
-    notifications = [from_dict(Notification, n) for n in notifications]
-    print_notifications(notifications)
+    if notifications:
+        print_notifications(notifications)
+    else:
+        click.echo("You have no notifications")
 
 
 def _show_timeline(generator, reverse, once):

@@ -697,9 +697,9 @@ def verify_credentials(app, user) -> Response:
     return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
-def get_notifications(app, user, types=[], exclude_types=[], limit=20):
+def get_notifications(app, user, types=[], exclude_types=[], limit=20) -> Response:
     params = {"types[]": types, "exclude_types[]": exclude_types, "limit": limit}
-    return http.get(app, user, '/api/v1/notifications', params).json()
+    return http.get(app, user, '/api/v1/notifications', params)
 
 
 def clear_notifications(app, user):
