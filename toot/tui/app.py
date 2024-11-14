@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from toot import api, config, __version__, settings
 from toot import App, User
 from toot.cli import get_default_visibility
-from toot.exceptions import ApiError
 from toot.utils.datetime import parse_datetime
 
 from .compose import StatusComposer
