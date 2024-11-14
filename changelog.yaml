@@ -1,3 +1,11 @@
+0.47.0:
+  date: 2024-11-14
+  changes:
+    - "Add `toot tui --show-display-names` option to show display names instead of account names (#501)"
+    - "Add missing descriptions for notification types (#502)"
+    - "Fix bug in paging timelines where limit parameter was sent twice (#505)"
+    - "TUI: Fix exception when loading followed accounts when server does not support it (#504)"
+
 0.46.0:
   date: 2024-11-14
   changes:
