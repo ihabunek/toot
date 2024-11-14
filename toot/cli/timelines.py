@@ -2,8 +2,8 @@ import sys
 import click
 
 from toot import api
-from toot.cli import InstanceParamType, cli, get_context, pass_context, Context, json_option
-from typing import Optional
+from toot.cli import NOTIFICATION_TYPE_CHOICES, InstanceParamType, cli, get_context, pass_context, Context, json_option
+from typing import Optional, Tuple
 from toot.cli.validators import validate_instance
 
 from toot.entities import Notification, Status, from_dict
@@ -120,8 +120,20 @@ def bookmarks(
     help="Reverse the order of the shown notifications (newest on top)"
 )
 @click.option(
+    "--type", "-t", "types",
+    type=click.Choice(NOTIFICATION_TYPE_CHOICES),
+    multiple=True,
+    help="Types to include in the result, can be specified multiple times"
+)
+@click.option(
+    "--exclude-type", "-e", "exclude_types",
+    type=click.Choice(NOTIFICATION_TYPE_CHOICES),
+    multiple=True,
+    help="Types to exclude in the result, can be specified multiple times"
+)
+@click.option(
     "--mentions", "-m", is_flag=True,
-    help="Show only mentions"
+    help="Show only mentions (same as --type mention, overrides --type, DEPRECATED)"
 )
 @json_option
 @pass_context
@@ -130,6 +142,8 @@ def notifications(
     clear: bool,
     reverse: bool,
     mentions: bool,
+    types: Tuple[str],
+    exclude_types: Tuple[str],
     json: bool,
 ):
     """Show notifications"""
@@ -138,13 +152,11 @@ def notifications(
         click.secho("✓ Notifications cleared", fg="green")
         return
 
-    exclude = []
     if mentions:
-        # Filter everything except mentions
-        # https://docs.joinmastodon.org/methods/notifications/
-        exclude = ["follow", "favourite", "reblog", "poll", "follow_request"]
+        print_warning("`--mentions` option is deprecated in favour of `--type mentions`")
+        types = ("mention",)
 
-    response = api.get_notifications(ctx.app, ctx.user, exclude_types=exclude)
+    response = api.get_notifications(ctx.app, ctx.user, types=types, exclude_types=exclude_types)
 
     if json:
         if reverse:
