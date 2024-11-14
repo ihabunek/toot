@@ -87,7 +87,7 @@ class Timeline(urwid.Columns):
         return urwid.ListBox(walker)
 
     def build_list_item(self, status):
-        item = StatusListItem(status, self.tui.options.relative_datetimes)
+        item = StatusListItem(status, self.tui.options)
         urwid.connect_signal(item, "click", lambda *args:
             self.tui.show_context_menu(status))
         return urwid.AttrMap(item, None, focus_map={
@@ -593,14 +593,14 @@ class StatusDetails(urwid.Pile):
 
 
 class StatusListItem(SelectableColumns):
-    def __init__(self, status, relative_datetimes):
+    def __init__(self, status, options):
         edited_at = status.original.edited_at
 
         # TODO: hacky implementation to avoid creating conflicts for existing
         # pull requests, refactor when merged.
         created_at = (
             time_ago(status.created_at).ljust(3, " ")
-            if relative_datetimes
+            if options.relative_datetimes
             else status.created_at.strftime("%Y-%m-%d %H:%M")
         )
 
@@ -610,6 +610,10 @@ class StatusListItem(SelectableColumns):
         is_reblog = ("dim", "♺") if status.reblog else " "
         is_reply = ("dim", "⤶ ") if status.original.in_reply_to else "  "
 
+        display_name = status.original.author.display_name
+        account_name = status.original.account
+        name = display_name if display_name and options.show_display_names else account_name
+
         return super().__init__([
             ("pack", SelectableText(("status_list_timestamp", created_at), wrap="clip")),
             ("pack", urwid.Text(("status_list_timestamp", edited_flag))),
@@ -618,7 +622,7 @@ class StatusListItem(SelectableColumns):
             ("pack", urwid.Text(" ")),
             ("pack", urwid.Text(reblogged)),
             ("pack", urwid.Text(" ")),
-            urwid.Text(("status_list_account", status.original.account), wrap="clip"),
+            urwid.Text(("status_list_account", name), wrap="clip"),
             ("pack", urwid.Text(is_reply)),
             ("pack", urwid.Text(is_reblog)),
             ("pack", urwid.Text(" ")),

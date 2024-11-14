@@ -45,6 +45,12 @@ COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
     type=click.Choice(IMAGE_FORMAT_CHOICES),
     help="Image output format; support varies across terminals. Default: block"
 )
+@click.option(
+    "--show-display-names",
+    is_flag=True,
+    default=False,
+    help="Show display names instead of account names in the list view."
+)
 @pass_context
 def tui(
     ctx: Context,
@@ -54,7 +60,8 @@ def tui(
     relative_datetimes: bool,
     cache_size: Optional[int],
     default_visibility: Optional[str],
-    image_format: Optional[str]
+    image_format: Optional[str],
+    show_display_names: bool,
 ):
     """Launches the toot terminal user interface"""
     if colors is None:
@@ -68,6 +75,7 @@ def tui(
         default_visibility=default_visibility,
         always_show_sensitive=always_show_sensitive,
         image_format=image_format,
+        show_display_names=show_display_names,
     )
     tui = TUI.create(ctx.app, ctx.user, options)
     tui.run()

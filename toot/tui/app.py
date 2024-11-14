@@ -40,6 +40,7 @@ class TuiOptions(NamedTuple):
     cache_size: int
     default_visibility: Optional[str]
     image_format: Optional[str]
+    show_display_names: bool
 
 
 class Header(urwid.WidgetWrap):
@@ -97,12 +98,12 @@ class TUI(urwid.Frame):
     screen: urwid.BaseScreen
 
     @staticmethod
-    def create(app: App, user: User, args: TuiOptions):
+    def create(app: App, user: User, options: TuiOptions):
         """Factory method, sets up TUI and an event loop."""
         screen = TuiScreen()
-        screen.set_terminal_properties(args.colors)
+        screen.set_terminal_properties(options.colors)
 
-        tui = TUI(app, user, screen, args)
+        tui = TUI(app, user, screen, options)
 
         palette = PALETTE.copy()
         overrides = settings.get_setting("tui.palette", dict, {})
