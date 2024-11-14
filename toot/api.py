@@ -419,26 +419,23 @@ def _get_next_url(headers) -> Optional[str]:
 
 
 def _timeline_generator(app, user, path, params=None):
+    if params:
+        path += f"?{urlencode(params)}"
+
     while path:
-        response = http.get(app, user, path, params)
+        response = http.get(app, user, path)
         yield response.json()
         path = _get_next_path(response.headers)
 
 
 def _notification_timeline_generator(app, user, path, params=None):
-    while path:
-        response = http.get(app, user, path, params)
-        notification = response.json()
-        yield [n["status"] for n in notification if n["status"]]
-        path = _get_next_path(response.headers)
+    for batch in _timeline_generator(app, user, path, params):
+        yield [n["status"] for n in batch if n["status"]]
 
 
 def _conversation_timeline_generator(app, user, path, params=None):
-    while path:
-        response = http.get(app, user, path, params)
-        conversation = response.json()
-        yield [c["last_status"] for c in conversation if c["last_status"]]
-        path = _get_next_path(response.headers)
+    for batch in _timeline_generator(app, user, path, params):
+        yield [c["last_status"] for c in batch if c["last_status"]]
 
 
 def home_timeline_generator(app, user, limit=20):
@@ -491,22 +488,25 @@ def timeline_list_generator(app, user, list_id, limit=20):
 
 
 def _anon_timeline_generator(url, params=None):
+    if params:
+        url += f"?{urlencode(params)}"
+
     while url:
-        response = http.anon_get(url, params)
+        response = http.anon_get(url)
         yield response.json()
         url = _get_next_url(response.headers)
 
 
 def anon_public_timeline_generator(base_url, local=False, limit=20):
-    query = urlencode({"local": str_bool(local), "limit": limit})
-    url = f"{base_url}/api/v1/timelines/public?{query}"
-    return _anon_timeline_generator(url)
+    params = {"local": str_bool(local), "limit": limit}
+    url = f"{base_url}/api/v1/timelines/public"
+    return _anon_timeline_generator(url, params)
 
 
 def anon_tag_timeline_generator(base_url, hashtag, local=False, limit=20):
-    query = urlencode({"local": str_bool(local), "limit": limit})
-    url = f"{base_url}/api/v1/timelines/tag/{quote(hashtag)}?{query}"
-    return _anon_timeline_generator(url)
+    query = {"local": str_bool(local), "limit": limit}
+    url = f"{base_url}/api/v1/timelines/tag/{quote(hashtag)}"
+    return _anon_timeline_generator(url, query)
 
 
 def get_media(app: App, user: User, id: str):
