@@ -294,14 +294,24 @@ def print_notification_header(notification: Notification):
 
     if notification.type == "follow":
         click.echo(f"{account_name} now follows you")
+    elif notification.type == "follow_request":
+        click.echo(f"{account_name} requested to follow you")
     elif notification.type == "mention":
         click.echo(f"{account_name} mentioned you")
     elif notification.type == "reblog":
-        click.echo(f"{account_name} reblogged your status")
+        click.echo(f"{account_name} boosted your status")
     elif notification.type == "favourite":
         click.echo(f"{account_name} favourited your status")
     elif notification.type == "update":
         click.echo(f"{account_name} edited a post")
+    elif notification.type == "status":
+        click.echo(f"{account_name} posted a status")
+    elif notification.type == "poll":
+        click.echo("A poll you participated in has ended")
+    elif notification.type == "admin.sign_up":
+        click.echo(f"{account_name} has signed up")
+    elif notification.type == "admin.report":
+        click.echo(f"{account_name} filed a report")
     else:
         click.secho(
             f"Unknown notification type: '{notification.type}'", err=True, fg="yellow"
