@@ -101,7 +101,7 @@ def test_post_scheduled_in(app, user, run):
         result = run(cli.post.post, text, "--scheduled-in", scheduled_in)
         assert_ok(result)
 
-        dttm = datetime.utcnow() + delta
+        dttm = datetime.now(timezone.utc) + delta
         assert result.stdout.startswith(f"Toot scheduled for: {str(dttm)[:16]}")
         datetimes.append(dttm)
 
