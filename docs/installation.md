@@ -8,7 +8,7 @@ toot is packaged for various platforms. If possible use your OS's package manage
 <details>
     <summary>Packaging status</summary>
     <a href="https://repology.org/project/toot/versions" style="display: block; margin-top: 2rem">
-        <img src="https://repology.org/badge/vertical-allrepos/toot.svg" alt="Packaging status" />
+        <img src="https://repology.org/badge/vertical-allrepos/toot.svg?columns=4" alt="Packaging status" />
     </a>
 </details>
 
