@@ -1,3 +1,9 @@
+0.47.1:
+  date: 2024-11-27
+  changes:
+    - "Fix last post ID not being stored when using --json, which broke --reply-last"
+    - "Don't set default post visibility to public, let the server decide instead"
+
 0.47.0:
   date: 2024-11-14
   changes:
