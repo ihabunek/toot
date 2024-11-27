@@ -44,7 +44,6 @@ from toot.utils.datetime import parse_datetime
     help="Post visibility: " + "; "
       .join("{} = {}".format(visibility, description)
       for visibility, caption, description in VISIBILITY_OPTIONS),
-    default=VISIBILITY_CHOICES[0],
     type=click.Choice(VISIBILITY_CHOICES),
 )
 @click.option(
