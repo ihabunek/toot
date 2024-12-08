@@ -61,7 +61,9 @@ def login_cli(base_url: str, email: str, password: str):
     Does NOT support two factor authentication, may not work on instances
     other than Mastodon, mostly useful for scripting.
     """
-    app = get_or_create_app(base_url)
+    # blank `redirect_uri` will end up being OOB in the config but if
+    # we're doing a direct login, it doesn't matter.
+    app = get_or_create_app(base_url, '')
     login_username_password(app, email, password)
 
     click.secho("✓ Successfully logged in.", fg="green")
@@ -77,7 +79,8 @@ you need to paste here.""".replace("\n", " ")
 
 @cli.command()
 @instance_option
-@click.option("--redirect", "-r", "redirect_uri", help="Redirect URI to use instead of OOB", prompt=True, default="urn:ietf:wg:oauth:2.0:oob")
+@click.option("--redirect", "-r", "redirect_uri", help="Redirect URI to use instead of OOB",
+              prompt=True, default="urn:ietf:wg:oauth:2.0:oob")
 def login(base_url: str, redirect_uri: str):
     """Log into an instance using your browser (recommended)"""
     app = get_or_create_app(base_url, redirect_uri)
