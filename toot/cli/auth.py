@@ -77,9 +77,11 @@ you need to paste here.""".replace("\n", " ")
 
 @cli.command()
 @instance_option
-def login(base_url: str):
+@click.option("--redirect", "-r", "redirect_uri", help="Redirect URI to use instead of OOB", prompt=True, default="urn:ietf:wg:oauth:2.0:oob")
+def login(base_url: str, redirect_uri: str):
     """Log into an instance using your browser (recommended)"""
-    app = get_or_create_app(base_url)
+    app = get_or_create_app(base_url, redirect_uri)
+    # `redirect_uri` is now stored in `app` for future use / saving.
     url = api.get_browser_login_url(app)
 
     click.echo(click.wrap_text(LOGIN_EXPLANATION))

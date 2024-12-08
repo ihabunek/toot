@@ -87,10 +87,17 @@ def get_user_app(user_id: str):
     return extract_user_app(load_config(), user_id)
 
 
-def load_app(instance: str) -> Optional[App]:
+def load_app(instance: str, redirect_uri: str) -> Optional[App]:
     config = load_config()
     if instance in config['apps']:
-        return App(**config['apps'][instance])
+        a = App(**config['apps'][instance])
+        # Not sure about this bit - if an app was stored without a `redirect_uri`, should
+        # loading update it to OOB (the previous default) or to the requested `redirect_uri`?
+        # Stick to OOB for now because presumably if we've saved the app, the login must
+        # have worked with OOB and there's no need for a `redirect_uri` update.  Maybe?
+        if a.redirect_uri == "":
+            a.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
+        return a
 
 
 def load_user(user_id: str, throw=False):
