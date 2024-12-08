@@ -69,6 +69,11 @@ def extract_user_app(config, user_id: str):
         return None, None
 
     app_data = config['apps'][instance]
+
+    # Handle a missing `redirect_uri`
+    if 'redirect_uri' not in app_data:
+        app_data['redirect_uri'] = 'urn:ietf:wg:oauth:2.0:oob'
+
     return User(**user_data), App(**app_data)
 
 
@@ -97,6 +102,8 @@ def load_app(instance: str, redirect_uri: str) -> Optional[App]:
         # have worked with OOB and there's no need for a `redirect_uri` update.  Maybe?
         if a.redirect_uri == "":
             a.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
+        if a.redirect_uri != redirect_uri:
+            a.redirect_uri = redirect_uri
         return a
 
 
