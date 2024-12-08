@@ -77,12 +77,12 @@ def _tag_action(app, user, tag_name, action) -> Response:
     return http.post(app, user, url)
 
 
-def create_app(base_url):
+def create_app(base_url, redirect_uri):
     url = f"{base_url}/api/v1/apps"
 
     json = {
         'client_name': CLIENT_NAME,
-        'redirect_uris': 'urn:ietf:wg:oauth:2.0:oob',
+        'redirect_uris': redirect_uri,
         'scopes': SCOPES,
         'website': CLIENT_WEBSITE,
     }
@@ -157,7 +157,7 @@ def fetch_app_token(app):
         "client_id": app.client_id,
         "client_secret": app.client_secret,
         "grant_type": "client_credentials",
-        "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+        "redirect_uri": app.redirect_uri,
         "scope": "read write"
     }
 
@@ -183,7 +183,7 @@ def get_browser_login_url(app: App) -> str:
     """Returns the URL for manual log in via browser"""
     return "{}/oauth/authorize/?{}".format(app.base_url, urlencode({
         "response_type": "code",
-        "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+        "redirect_uri": app.redirect_uri,
         "scope": SCOPES,
         "client_id": app.client_id,
     }))
@@ -197,7 +197,7 @@ def request_access_token(app: App, authorization_code: str):
         'client_id': app.client_id,
         'client_secret': app.client_secret,
         'code': authorization_code,
-        'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
+        'redirect_uri': app.redirect_uri,
     }
 
     return http.anon_post(url, data=data, allow_redirects=False).json()

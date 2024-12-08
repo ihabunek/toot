@@ -45,6 +45,7 @@ def test_extract_active_user_app(sample_config):
     assert app.base_url == 'https://bar.social'
     assert app.client_id == 'ghi'
     assert app.client_secret == 'jkl'
+    assert app.redirect_uri == 'urn:ietf:wg:oauth:2.0:oob'
 
 
 def test_extract_active_when_no_active_user(sample_config):
