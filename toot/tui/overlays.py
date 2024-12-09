@@ -349,7 +349,7 @@ class Account(urwid.ListBox):
                 for line in widgetlist:
                     yield (line)
 
-                if field["verified_at"]:
+                if 'verified_at' in field and field["verified_at"]:
                     yield urwid.Text(("success", "✓ Verified"))
 
         yield urwid.Divider()
