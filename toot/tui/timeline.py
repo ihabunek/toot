@@ -338,9 +338,9 @@ class Timeline(urwid.Columns):
                 pass
         if img:
             try:
-                status.placeholders[placeholder_index]._set_original_widget(
-                    graphics_widget(img, image_format=self.tui.options.image_format, corner_radius=10,
-                                    colors=self.tui.options.colors))
+                status.placeholders[placeholder_index].original_widget = graphics_widget(
+                    img, image_format=self.tui.options.image_format, corner_radius=10, colors=self.tui.options.colors
+                )
 
             except IndexError:
                 # ignore IndexErrors.
