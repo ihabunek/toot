@@ -58,7 +58,7 @@ class CheckBox(urwid.AttrWrap):
 
     def get_state(self):
         """Return the state of the checkbox."""
-        return self.button._state
+        return self.button.get_state()
 
 
 class RadioButton(urwid.AttrWrap):
