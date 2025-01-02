@@ -210,7 +210,6 @@ class TUI(urwid.Frame):
                     self.loop.set_alarm_in(0, lambda *args: done_callback(result))
             except Exception as ex:
                 exception = ex
-                logger.exception(exception)
                 self.loop.set_alarm_in(0, lambda *args: _error_callback(exception))
 
         # TODO: replace by `self.loop.event_loop.run_in_executor` at some point
