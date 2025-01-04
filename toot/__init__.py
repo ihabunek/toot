@@ -17,6 +17,7 @@ class App(NamedTuple):
     base_url: str
     client_id: str
     client_secret: str
+    redirect_uri: str
 
 
 class User(NamedTuple):
