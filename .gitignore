@@ -17,3 +17,4 @@
 /toot-*.tar.gz
 /venv/
 debug.log
+/uv.lock
