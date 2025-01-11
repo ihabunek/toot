@@ -14,7 +14,7 @@ import typing as t
 from dataclasses import dataclass, is_dataclass
 from datetime import date, datetime
 from functools import lru_cache
-from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Literal, NamedTuple, Optional, Type, TypeVar, Union
 from typing import get_args, get_origin, get_type_hints
 
 from toot.utils import get_text
@@ -311,6 +311,25 @@ class Notification:
     account: Account
     status: Optional[Status]
     report: Optional[Report]
+
+
+@dataclass
+class NotificationPolicySummary:
+    pending_requests_count: int
+    pending_notifications_count: int
+
+
+@dataclass
+class NotificationPolicy:
+    """
+    https://docs.joinmastodon.org/entities/NotificationPolicy/
+    """
+    for_not_following: str
+    for_not_followers: str
+    for_new_accounts: str
+    for_private_mentions: str
+    for_limited_accounts: str
+    summary: NotificationPolicySummary
 
 
 @dataclass

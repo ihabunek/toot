@@ -360,3 +360,7 @@ def green(text: t.Any) -> str:
 
 def yellow(text: t.Any) -> str:
     return click.style(text, fg="yellow")
+
+
+def red(text: t.Any) -> str:
+    return click.style(text, fg="red")

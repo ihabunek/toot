@@ -697,13 +697,49 @@ def verify_credentials(app, user) -> Response:
     return http.get(app, user, '/api/v1/accounts/verify_credentials')
 
 
-def get_notifications(app, user, types=[], exclude_types=[], limit=20) -> Response:
-    params = {"types[]": types, "exclude_types[]": exclude_types, "limit": limit}
+def get_notification(app, user, id) -> Response:
+    return http.get(app, user, f"/api/v1/notifications/{id}")
+
+
+def get_notifications(
+    app,
+    user,
+    types=[],
+    exclude_types=[],
+    limit=20,
+    max_id=None,
+    min_id=None,
+    since_id=None,
+) -> Response:
+    params = drop_empty_values({
+        "types[]": types,
+        "exclude_types[]": exclude_types,
+        "limit": limit,
+        "max_id": max_id,
+        "min_id": min_id,
+        "since_id": since_id,
+    })
     return http.get(app, user, '/api/v1/notifications', params)
 
 
 def clear_notifications(app, user):
-    http.post(app, user, '/api/v1/notifications/clear')
+    return http.post(app, user, '/api/v1/notifications/clear')
+
+
+def dismiss_notification(app, user, notification_id):
+    return http.post(app, user, f'/api/v1/notifications/{notification_id}/dismiss')
+
+
+def get_notifications_unread_count(app, user):
+    return http.get(app, user, '/api/v1/notifications/unread_count')
+
+
+def get_notifications_policy(app, user):
+    return http.get(app, user, '/api/v2/notifications/policy')
+
+
+def set_notifications_policy(app, user, payload):
+    return http.patch(app, user, '/api/v2/notifications/policy', json=payload)
 
 
 def get_instance(base_url: str) -> Response:
