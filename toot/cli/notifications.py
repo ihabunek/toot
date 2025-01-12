@@ -1,4 +1,3 @@
-import json as pyjson
 from typing import Dict, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
@@ -171,25 +170,33 @@ def list(
     json: bool,
 ):
     """Show notifications"""
-    response = api.get_notifications(
-        ctx.app,
-        ctx.user,
-        types=types,
-        exclude_types=exclude_types,
-        limit=limit,
-        max_id=max_id,
-        min_id=min_id,
-        since_id=since_id,
-    )
-    if json:
-        if reverse:
-            print_warning("--reverse is not supported alongside --json, ignoring")
+    # response = api.get_notifications(
+    #     ctx.app,
+    #     ctx.user,
+    #     types=types,
+    #     exclude_types=exclude_types,
+    #     limit=limit,
+    #     max_id=max_id,
+    #     min_id=min_id,
+    #     since_id=since_id,
+    # )
+    # if json:
+    #     if reverse:
+    #         print_warning("--reverse is not supported alongside --json, ignoring")
 
-        if pager:
-            print_warning("--pager is not supported alongside --json, ignoring")
+    #     if pager:
+    #         print_warning("--pager is not supported alongside --json, ignoring")
 
-        click.echo(response.text)
+    #     click.echo(response.text)
+    #     return
+
+    if pager:
+        npager = notification_pager(ctx, types, exclude_types, limit, max_id, min_id, since_id)
+        for page in npager:
+            print(f"{len(page)=}")
         return
+
+
 
     notifications = from_dict_list(Notification, response.json())
     if reverse:
@@ -211,15 +218,33 @@ def list(
         click.echo("You have no notifications")
 
 
-def _get_paging_params(response: Response, link_name: str) -> Optional[Dict[str, str]]:
-    link = response.links.get(link_name)
-    if link:
-        query = parse_qs(urlparse(link["url"]).query)
-        params = {}
-        for field in ["max_id", "min_id", "since_id"]:
-            if field in query:
-                params[field] = query[field][0]
-        return params
+def notification_pager(
+    ctx: Context,
+    types: Tuple[str],
+    exclude_types: Tuple[str],
+    limit: int,
+    max_id: str,
+    min_id: str,
+    since_id: str,
+):
+    while True:
+        print(f"{max_id=}")
+        response = api.get_notifications(
+            ctx.app,
+            ctx.user,
+            types=types,
+            exclude_types=exclude_types,
+            limit=limit,
+            max_id=max_id,
+            min_id=min_id,
+            since_id=since_id,
+        )
+        notifications = from_dict_list(Notification, response.json())
+        if notifications:
+            yield notifications
+        else:
+            break
+        max_id = max(n.id for n in notifications)
 
 
 @notifications.command()
