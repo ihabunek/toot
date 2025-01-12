@@ -1,8 +1,10 @@
+from urllib.parse import urlencode, urlparse
+
 from requests import Request, Session
 from requests.exceptions import RequestException
 
 from toot import __version__
-from toot.exceptions import NotFoundError, ApiError
+from toot.exceptions import ApiError, NotFoundError
 from toot.logging import log_request, log_request_exception, log_response
 
 
@@ -63,6 +65,23 @@ def get(app, user, path, params=None, headers=None):
     response = send_request(request)
 
     return process_response(response)
+
+
+def get_paged(app, user, path, params=None, headers=None):
+    if params:
+        path += f"?{urlencode(params)}"
+
+    while path:
+        response = get(app, user, path, params, headers)
+        yield response
+        path = _next_path(response)
+
+
+def _next_path(response):
+    next_link = response.links.get("next")
+    if next_link:
+        next_url = urlparse(next_link["url"])
+        return "?".join([next_url.path, next_url.query])
 
 
 def anon_get(url, params=None):
