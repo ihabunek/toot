@@ -188,12 +188,7 @@ def list(
         if pager:
             print_warning("--pager is not supported alongside --json, ignoring")
 
-        meta = pyjson.dumps({
-            "prev": _get_paging_params(response, "prev"),
-            "next": _get_paging_params(response, "next"),
-        })
-
-        click.echo(f"""{{"meta": {meta}, "data": {response.text}}}""")
+        click.echo(response.text)
         return
 
     notifications = from_dict_list(Notification, response.json())
