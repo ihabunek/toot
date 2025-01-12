@@ -7,7 +7,7 @@ from toot.wcstring import wc_wrap, trunc, pad, fit_text
 from toot.tui.utils import LRUCache
 from PIL import Image
 from collections import namedtuple
-from toot.utils import urlencode_url
+from toot.utils import batched, urlencode_url
 
 
 def test_pad():
@@ -319,3 +319,15 @@ def test_urlencode_url():
     assert urlencode_url("https://www.example.com") == "https://www.example.com"
     assert urlencode_url("https://www.example.com/url%20with%20spaces") == "https://www.example.com/url%20with%20spaces"
 
+
+def test_batched():
+    assert list(batched("", 2)) == []
+    assert list(batched("a", 2)) == [["a"]]
+    assert list(batched("ab", 2)) == [["a", "b"]]
+    assert list(batched("abc", 2)) == [["a", "b"], ["c"]]
+    assert list(batched("abcd", 2)) == [["a", "b"], ["c", "d"]]
+    assert list(batched("abcde", 2)) == [["a", "b"], ["c", "d"], ["e"]]
+    assert list(batched("abcdef", 2)) == [["a", "b"], ["c", "d"], ["e", "f"]]
+
+    with pytest.raises(ValueError):
+        list(batched("foo", 0))

@@ -9,7 +9,8 @@ import warnings
 
 from bs4 import BeautifulSoup
 from importlib.metadata import version
-from typing import Any, Dict, Generator, List, Optional
+from itertools import islice
+from typing import Any, Dict, Generator, Iterable, List, Optional, TypeVar
 from urllib.parse import urlparse, urlencode, quote, unquote
 
 
@@ -164,3 +165,19 @@ def get_version(name):
         return version(name)
     except Exception:
         return None
+
+
+T = TypeVar("T")
+
+def batched(iterable: Iterable[T], n: int) -> Generator[List[T], None, None]:
+    """Batch data from the iterable into lists of length n. The last batch may
+    be shorter than n."""
+    if n < 1:
+        raise ValueError("n must be positive")
+    iterator = iter(iterable)
+    while True:
+        batch = list(islice(iterator, n))
+        if batch:
+            yield batch
+        else:
+            break
