@@ -17,6 +17,8 @@ from functools import lru_cache
 from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar, Union
 from typing import get_args, get_origin, get_type_hints
 
+from requests import Response
+
 from toot.utils import get_text
 from toot.utils.datetime import parse_datetime
 
@@ -497,6 +499,21 @@ def from_dict(cls: Type[T], data: Data) -> T:
     return cls(**dict(_fields()))
 
 
+def from_dict_list(cls: Type[T], data: t.List[Data]) -> t.List[T]:
+    """Convert a list of nested dicts into a list of `cls` instances."""
+    return [from_dict(cls, x) for x in data]
+
+
+def from_response(cls: Type[T], response: Response) -> T:
+    """Convert a nested dict extracted from response body into an instance of `cls`."""
+    return from_dict(cls, response.json())
+
+
+def from_response_list(cls: Type[T], response: Response) -> t.List[T]:
+    """Convert a list of nested dicts extracted from response body into a list of `cls` instances."""
+    return from_dict_list(cls, response.json())
+
+
 @lru_cache
 def _get_fields(cls: type) -> t.List[Field]:
     hints = get_type_hints(cls)
@@ -508,10 +525,6 @@ def _get_fields(cls: type) -> t.List[Field]:
         )
         for field in dataclasses.fields(cls)
     ]
-
-
-def from_dict_list(cls: Type[T], data: t.List[Data]) -> t.List[T]:
-    return [from_dict(cls, x) for x in data]
 
 
 def _get_default_value(field: dataclasses.Field):
