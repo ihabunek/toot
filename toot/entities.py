@@ -19,7 +19,7 @@ from typing import get_args, get_origin, get_type_hints
 
 from requests import Response
 
-from toot.utils import get_text
+from toot.utils import batched, get_text
 from toot.utils.datetime import parse_datetime
 
 # Generic data class instance
@@ -512,6 +512,19 @@ def from_response(cls: Type[T], response: Response) -> T:
 def from_response_list(cls: Type[T], response: Response) -> t.List[T]:
     """Convert a list of nested dicts extracted from response body into a list of `cls` instances."""
     return from_dict_list(cls, response.json())
+
+def from_responses_batched(
+    responses: t.Iterable[Response],
+    cls: Type[T],
+    page_size: int,
+) -> t.Generator[t.List[T], None, None]:
+    def _gen():
+        for response in responses:
+            statuses = from_dict_list(cls, response.json())
+            for status in statuses:
+                yield status
+
+    yield from batched(_gen(), page_size)
 
 
 @lru_cache

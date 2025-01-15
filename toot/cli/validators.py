@@ -91,3 +91,9 @@ def validate_cache_size(ctx: click.Context, param: str, value: Optional[str]) ->
     elif size < 1:
         raise click.BadParameter("Cache size too small: 1MB minimum.")
     return size
+
+
+def validate_positive(_ctx: click.Context, _param: click.Parameter, value: Optional[int]):
+    if value is not None and value <= 0:
+        raise click.BadParameter("must be greater than 0")
+    return value
