@@ -37,7 +37,7 @@ def list(ctx: Context, json: bool):
 @pass_context
 def accounts(ctx: Context, title: str, id: Optional[str], json: bool):
     """List the accounts in a list"""
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     response = api.get_list_accounts(ctx.app, ctx.user, list_id)
 
     if json:
@@ -72,7 +72,7 @@ def create(ctx: Context, title: str, replies_policy: str, json: bool):
 @pass_context
 def delete(ctx: Context, title: str, id: Optional[str], json: bool):
     """Delete a list"""
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     response = api.delete_list(ctx.app, ctx.user, list_id)
     if json:
         click.echo(response.text)
@@ -88,7 +88,7 @@ def delete(ctx: Context, title: str, id: Optional[str], json: bool):
 @pass_context
 def add(ctx: Context, title: str, account: str, id: Optional[str], json: bool):
     """Add an account to a list"""
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     found_account = api.find_account(ctx.app, ctx.user, account)
 
     try:
@@ -121,7 +121,7 @@ def add(ctx: Context, title: str, account: str, id: Optional[str], json: bool):
 @pass_context
 def remove(ctx: Context, title: str, account: str, id: Optional[str], json: bool):
     """Remove an account from a list"""
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     found_account = api.find_account(ctx.app, ctx.user, account)
     response = api.remove_accounts_from_list(ctx.app, ctx.user, list_id, [found_account["id"]])
     if json:
@@ -140,7 +140,7 @@ def remove(ctx: Context, title: str, account: str, id: Optional[str], json: bool
 def list_accounts(ctx: Context, title: str, id: Optional[str]):
     """List the accounts in a list"""
     print_warning("`toot list_accounts` is deprecated in favour of `toot lists accounts`")
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     response = api.get_list_accounts(ctx.app, ctx.user, list_id)
     print_list_accounts(response)
 
@@ -168,7 +168,7 @@ def list_create(ctx: Context, title: str, replies_policy: str):
 def list_delete(ctx: Context, title: str, id: Optional[str]):
     """Delete a list"""
     print_warning("`toot list_delete` is deprecated in favour of `toot lists delete`")
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     api.delete_list(ctx.app, ctx.user, list_id)
     click.secho(f"✓ List \"{title if title else id}\" deleted.", fg="green")
 
@@ -181,7 +181,7 @@ def list_delete(ctx: Context, title: str, id: Optional[str]):
 def list_add(ctx: Context, title: str, account: str, id: Optional[str]):
     """Add an account to a list"""
     print_warning("`toot list_add` is deprecated in favour of `toot lists add`")
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     found_account = api.find_account(ctx.app, ctx.user, account)
 
     try:
@@ -211,13 +211,13 @@ def list_add(ctx: Context, title: str, account: str, id: Optional[str]):
 def list_remove(ctx: Context, title: Optional[str], account: str, id: Optional[str]):
     """Remove an account from a list"""
     print_warning("`toot list_remove` is deprecated in favour of `toot lists remove`")
-    list_id = _get_list_id(ctx, title, id)
+    list_id = get_list_id(ctx, title, id)
     found_account = api.find_account(ctx.app, ctx.user, account)
     api.remove_accounts_from_list(ctx.app, ctx.user, list_id, [found_account["id"]])
     click.secho(f"✓ Removed account \"{account}\"", fg="green")
 
 
-def _get_list_id(ctx: Context, title: Optional[str], list_id: Optional[str]):
+def get_list_id(ctx: Context, title: Optional[str], list_id: Optional[str]):
     if not list_id and not title:
         raise click.ClickException("Please specify list title or ID")
 

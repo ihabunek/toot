@@ -7,6 +7,7 @@ from requests import Response
 
 from toot import api, http
 from toot.cli import Context, cli, json_option, pass_context
+from toot.cli.lists import get_list_id
 from toot.cli.validators import validate_instance, validate_positive
 from toot.entities import (
     Account,
@@ -160,13 +161,13 @@ def link(
 
 
 @timelines.command()
-@click.argument("list_name_or_id")
+@click.argument("list_name")
 @common_timeline_options
 @json_option
 @pass_context
 def list(
     ctx: Context,
-    list_name_or_id: str,
+    list_name: str,
     min_id: Optional[str],
     max_id: Optional[str],
     since_id: Optional[str],
@@ -176,7 +177,7 @@ def list(
     json: bool,
 ):
     """View statuses in the given list timeline."""
-    list_id = _get_list_id(ctx, list_name_or_id)
+    list_id = get_list_id(ctx, list_name, None)
     path = f"/api/v1/timelines/list/{list_id}"
 
     params = {
@@ -388,13 +389,3 @@ def _print_paged(responses: Iterable[Response], page_size: int, clear: bool):
 
     if not printed_any:
         click.echo("No statuses found")
-
-
-def _get_list_id(ctx: Context, value: Optional[str]) -> Optional[str]:
-    if not value:
-        return None
-
-    lists = api.get_lists(ctx.app, ctx.user)
-    for list in lists:
-        if list["id"] == value or list["title"] == value:
-            return list["id"]
