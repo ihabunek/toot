@@ -72,7 +72,7 @@ def get_paged(app, user, path, params=None, headers=None):
         path += f"?{urlencode(params)}"
 
     while path:
-        response = get(app, user, path, params, headers)
+        response = get(app, user, path, headers=headers)
         yield response
         path = _next_path(response)
 
