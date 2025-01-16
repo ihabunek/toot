@@ -91,6 +91,22 @@ def anon_get(url, params=None):
     return process_response(response)
 
 
+def anon_get_paged(url, params=None):
+    if params:
+        url += f"?{urlencode(params)}"
+
+    while url:
+        response = anon_get(url)
+        yield response
+        url = _next_url(response)
+
+
+def _next_url(response):
+    next_link = response.links.get("next")
+    if next_link:
+        return next_link["url"]
+
+
 def post(app, user, path, headers=None, files=None, data=None, json=None, allow_redirects=True):
     url = app.base_url + path
 
