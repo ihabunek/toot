@@ -111,7 +111,7 @@ def test_post_scheduled_in(app, user, run):
     assert len(scheduled) == 8
 
     for expected, status in zip(datetimes, scheduled):
-        actual = datetime.strptime(status["scheduled_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        actual = datetime.strptime(status["scheduled_at"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         delta = expected - actual
         assert delta.total_seconds() < 5
 
