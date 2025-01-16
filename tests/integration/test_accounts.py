@@ -84,7 +84,7 @@ def test_following_not_found(run):
     assert result.stderr.strip() == "Error: Account not found"
 
 
-def test_following_json(app: App, user: User, user_id, run_json):
+def test_following_json(app: App, user: User, run_json):
     friend = register_account(app)
 
     result = run_json(cli.accounts.following, user.username, "--json")

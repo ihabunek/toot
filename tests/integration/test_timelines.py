@@ -8,18 +8,17 @@ from toot.entities import from_dict, Status
 from tests.integration.conftest import TOOT_TEST_BASE_URL, assert_ok, register_account
 
 
-# TODO: If fixture is not overridden here, tests fail, not sure why, figure it out
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def user(app):
     return register_account(app)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def other_user(app):
     return register_account(app)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def friend_user(app, user):
     friend = register_account(app)
     friend_account = api.find_account(app, user, friend.username)
@@ -27,7 +26,7 @@ def friend_user(app, user):
     return friend
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def friend_list(app, user, friend_user):
     friend_account = api.find_account(app, user, friend_user.username)
     list = api.create_list(app, user, str(uuid4())).json()
@@ -105,6 +104,100 @@ def test_timelines(app, user, other_user, friend_user, friend_list, run):
     assert status3.id in result.stdout
 
     result = run(cli.timelines.timeline, "--account", other_user.username)
+    assert_ok(result)
+    assert status1.id not in result.stdout
+    assert status2.id in result.stdout
+    assert status3.id not in result.stdout
+
+
+def test_timelines_v2(app, user, other_user, friend_user, friend_list, run):
+    status1 = _post_status(app, user, "#foo")
+    status2 = _post_status(app, other_user, "#bar")
+    status3 = _post_status(app, friend_user, "#foo #bar")
+
+    # Home timeline
+    def test_home():
+        result = run(cli.timelines_v2.home)
+        assert_ok(result)
+        assert status1.id in result.stdout
+        assert status2.id not in result.stdout
+        assert status3.id in result.stdout
+    run_with_retries(test_home)
+
+    # Public timeline
+    result = run(cli.timelines_v2.public)
+    assert_ok(result)
+    assert status1.id in result.stdout
+    assert status2.id in result.stdout
+    assert status3.id in result.stdout
+
+    # Anon public timeline
+    result = run(cli.timelines_v2.public, "--instance", TOOT_TEST_BASE_URL)
+    assert_ok(result)
+    assert status1.id in result.stdout
+    assert status2.id in result.stdout
+    assert status3.id in result.stdout
+
+    # Tag timeline
+    result = run(cli.timelines_v2.tag, "foo")
+    assert_ok(result)
+    assert status1.id in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id in result.stdout
+
+    result = run(cli.timelines_v2.tag, "bar")
+    assert_ok(result)
+    assert status1.id not in result.stdout
+    assert status2.id in result.stdout
+    assert status3.id in result.stdout
+
+    result = run(cli.timelines_v2.tag, "foo", "--all", "bar")
+    assert_ok(result)
+    assert status1.id not in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id in result.stdout
+
+    result = run(cli.timelines_v2.tag, "foo", "--any", "bar")
+    assert_ok(result)
+    assert status1.id in result.stdout
+    assert status2.id in result.stdout
+    assert status3.id in result.stdout
+
+    result = run(cli.timelines_v2.tag, "foo", "--none", "bar")
+    assert_ok(result)
+    assert status1.id in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id not in result.stdout
+
+    # Anon tag timeline
+    result = run(cli.timelines_v2.tag, "--instance", TOOT_TEST_BASE_URL, "foo")
+    assert_ok(result)
+    assert status1.id in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id in result.stdout
+
+    # List timeline (by list name)
+    result = run(cli.timelines_v2.list, friend_list["title"])
+    assert_ok(result)
+    assert status1.id not in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id in result.stdout
+
+    # List timeline (by list ID)
+    result = run(cli.timelines_v2.list, friend_list["id"])
+    assert_ok(result)
+    assert status1.id not in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id in result.stdout
+
+    # Account timeline
+    result = run(cli.timelines_v2.account, friend_user.username)
+    assert_ok(result)
+    assert status1.id not in result.stdout
+    assert status2.id not in result.stdout
+    assert status3.id in result.stdout
+
+    result = run(cli.timelines_v2.account, other_user.username)
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id in result.stdout

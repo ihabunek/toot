@@ -65,6 +65,16 @@ def common_timeline_options(func):
     return wrapper
 
 
+instance_option = click.option(
+    "-i",
+    "--instance",
+    callback=validate_instance,
+    help="""Domain or base URL of the instance, e.g. 'mastodon.social' or
+         'https://mastodon.social'. If not given will display timeline of the
+         logged in server.""",
+)
+
+
 @cli.group()
 def timelines():
     """Show various timelines"""
@@ -161,13 +171,13 @@ def link(
 
 
 @timelines.command()
-@click.argument("list_name")
+@click.argument("list_name_or_id")
 @common_timeline_options
 @json_option
 @pass_context
 def list(
     ctx: Context,
-    list_name: str,
+    list_name_or_id: str,
     min_id: Optional[str],
     max_id: Optional[str],
     since_id: Optional[str],
@@ -177,7 +187,7 @@ def list(
     json: bool,
 ):
     """View statuses in the given list timeline."""
-    list_id = get_list_id(ctx, list_name, None)
+    list_id = get_list_id(ctx, list_name_or_id, list_name_or_id)
     path = f"/api/v1/timelines/list/{list_id}"
 
     params = {
@@ -192,14 +202,7 @@ def list(
 
 @timelines.command()
 @common_timeline_options
-@click.option(
-    "-i",
-    "--instance",
-    callback=validate_instance,
-    help="""Domain or base URL of the instance, e.g. 'mastodon.social' or
-         'https://mastodon.social'. If not given will display timeline of the
-         logged in server.""",
-)
+@instance_option
 @click.option(
     "--local",
     is_flag=True,
@@ -255,6 +258,7 @@ def public(
 
 @timelines.command()
 @common_timeline_options
+@instance_option
 @click.argument("tag_name")
 @click.option(
     "--local",
@@ -277,23 +281,24 @@ def public(
 @click.option(
     "--any",
     multiple=True,
-    help="Return statuses that contain any of these additional tags"
+    help="Return statuses that contain any of these additional tags (can be specified multiple times)",
 )
 @click.option(
     "--all",
     multiple=True,
-    help="Return statuses that contain all of these additional tags"
+    help="Return statuses that contain all of these additional tags (can be specified multiple times)",
 )
 @click.option(
     "--none",
     multiple=True,
-    help="Return statuses that contain none of these additional tags"
+    help="Return statuses that contain none of these additional tags (can be specified multiple times)",
 )
 @json_option
 @pass_context
 def tag(
     ctx: Context,
     tag_name: str,
+    instance: Optional[str],
     min_id: Optional[str],
     max_id: Optional[str],
     since_id: Optional[str],
@@ -323,7 +328,11 @@ def tag(
         "none[]": none or None,
     }
 
-    _show_timeline(ctx, path, params, json, pager, clear, limit)
+    if instance:
+        url = f"{instance}{path}"
+        _show_anon_timeline(url, params, json, pager, clear, limit)
+    else:
+        _show_timeline(ctx, path, params, json, pager, clear, limit)
 
 
 def _show_timeline(ctx, path, params, json, pager, clear, limit):
