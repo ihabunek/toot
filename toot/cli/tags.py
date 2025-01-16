@@ -8,7 +8,7 @@ from toot import api, http
 from toot.cli import Context, cli, json_option, pass_context
 from toot.cli.validators import validate_positive
 from toot.entities import Status, Tag, from_dict, from_response_list, from_responses_batched
-from toot.output import green, print_tag_list, print_timeline, yellow
+from toot.output import get_continue, green, print_tag_list, print_timeline, yellow
 from toot.utils import drop_empty_values, str_bool_nullable
 
 
@@ -235,13 +235,3 @@ def timeline(
             click.secho("There may be more results. Increase the --limit or use --pager to see the rest.", dim=True)
     else:
         click.echo("No statuses found containing the given tag")
-
-
-def get_continue():
-    click.secho(f"Press {green('Space')} or {green('Enter')} to continue, {yellow('Esc')} or {yellow('q')} to break.")
-    while True:
-        char = click.getchar()
-        if char == ' ' or char == '\r':
-            return True
-        if char == '\x1b' or char == 'q':
-            return False

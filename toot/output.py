@@ -29,6 +29,16 @@ def print_warning(text: str):
     click.secho(f"Warning: {text}", fg="yellow", err=True)
 
 
+def get_continue():
+    click.secho(f"Press {green('Space')} or {green('Enter')} to continue, {yellow('Esc')} or {yellow('q')} to break.")
+    while True:
+        char = click.getchar()
+        if char == ' ' or char == '\r':
+            return True
+        if char == '\x1b' or char == 'q':
+            return False
+
+
 def print_instance(instance: Instance):
     width = get_width()
     click.echo(instance_to_text(instance, width))
