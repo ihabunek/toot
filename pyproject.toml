@@ -56,7 +56,6 @@ dev = [
     "mypy",
     "pyright",
     "pyyaml",
-    "textual-dev",
     "twine",
     "types-beautifulsoup4",
     "vermin",
