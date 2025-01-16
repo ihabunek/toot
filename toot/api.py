@@ -38,6 +38,10 @@ def find_account(app, user, account_name):
     raise ConsoleError("Account not found")
 
 
+def lookup(app, user, acct):
+    return http.get(app, user, "/api/v1/accounts/lookup", {"acct": acct})
+
+
 def _account_action(app, user, account, action) -> Response:
     url = f"/api/v1/accounts/{account}/{action}"
     return http.post(app, user, url)

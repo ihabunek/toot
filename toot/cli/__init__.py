@@ -192,4 +192,5 @@ from toot.cli import read  # noqa
 from toot.cli import statuses  # noqa
 from toot.cli import tags  # noqa
 from toot.cli import timelines  # noqa
+from toot.cli import timelines_v2  # noqa
 from toot.cli import tui  # noqa
