@@ -2,6 +2,7 @@
   date: TBA
   changes:
     - "BREAKING: Remove deprecated commands: `tags_followed`, `tags_follow`, and `tags tags_unfollow`. Use `tags followed`, `tags follow`, and `tags tags unfollow` instead."
+    - "BREAKING: Remove deprecated `lists` command for listing lists in favour of `lists list`"
 
 0.47.1:
   date: 2024-11-27

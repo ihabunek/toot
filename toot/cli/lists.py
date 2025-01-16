@@ -3,30 +3,14 @@ from typing import Optional
 
 import click
 
-from toot import api, config
+from toot import api
 from toot.cli import Context, cli, json_option, pass_context
 from toot.entities import List, from_dict_list
 from toot.output import print_list_accounts, print_lists, print_warning
 
-
-@cli.group(invoke_without_command=True)
-@click.pass_context
-def lists(ctx: click.Context):
-    """Display and manage lists"""
-    if ctx.invoked_subcommand is None:
-        print_warning("`toot lists` is deprecated in favour of `toot lists list`.\n" +
-                      "Run `toot lists -h` to see other list-related commands.")
-
-        user, app = config.get_active_user_app()
-        if not user or not app:
-            raise click.ClickException("This command requires you to be logged in.")
-
-        data = api.get_lists(app, user)
-        lists = from_dict_list(List, data)
-        if lists:
-            print_lists(lists)
-        else:
-            click.echo("You have no lists defined.")
+@cli.group()
+def lists():
+    pass
 
 
 @lists.command()
