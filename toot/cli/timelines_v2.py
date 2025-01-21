@@ -1,5 +1,6 @@
 from functools import wraps
-from typing import Iterable, Optional, Tuple
+import shutil
+from typing import Iterable, List, Optional, Tuple
 from urllib.parse import quote
 
 import click
@@ -12,11 +13,12 @@ from toot.cli.validators import validate_instance, validate_positive
 from toot.entities import (
     Account,
     Status,
+    from_dict_list,
     from_response,
     from_response_list,
     from_responses_batched,
 )
-from toot.output import get_continue, print_timeline
+from toot.output import get_continue, get_max_width, get_terminal_height, get_terminal_width, print_timeline, status_lines
 from toot.utils import drop_empty_values, str_bool_nullable
 
 
@@ -46,17 +48,14 @@ def common_timeline_options(func):
     @click.option(
         "-p",
         "--pager",
-        help="Page the results, optionally define how many results to show per page",
-        type=int,
-        callback=validate_positive,
-        is_flag=False,
-        flag_value=10,
+        help="Page the results",
+        is_flag=True,
     )
     @click.option(
         "-c",
-        "--clear",
+        "--clear/--no-clear",
         help="Clear the screen before printing. If paged, clear before each page.",
-        is_flag=True,
+        default=True,
     )
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -92,7 +91,7 @@ def account(
     max_id: Optional[str],
     since_id: Optional[str],
     limit: Optional[int],
-    pager: Optional[int],
+    pager: bool,
     clear: bool,
     json: bool,
 ):
@@ -120,7 +119,7 @@ def home(
     max_id: Optional[str],
     since_id: Optional[str],
     limit: Optional[int],
-    pager: Optional[int],
+    pager: bool,
     clear: bool,
     json: bool,
 ):
@@ -148,7 +147,7 @@ def link(
     max_id: Optional[str],
     since_id: Optional[str],
     limit: Optional[int],
-    pager: Optional[int],
+    pager: bool,
     clear: bool,
     json: bool,
 ):
@@ -170,19 +169,19 @@ def link(
     _show_timeline(ctx, path, params, json, pager, clear, limit)
 
 
-@timelines.command()
+@timelines.command("list")
 @click.argument("list_name_or_id")
 @common_timeline_options
 @json_option
 @pass_context
-def list(
+def list_cmd(
     ctx: Context,
     list_name_or_id: str,
     min_id: Optional[str],
     max_id: Optional[str],
     since_id: Optional[str],
     limit: Optional[int],
-    pager: Optional[int],
+    pager: bool,
     clear: bool,
     json: bool,
 ):
@@ -230,7 +229,7 @@ def public(
     max_id: Optional[str],
     since_id: Optional[str],
     limit: Optional[int],
-    pager: Optional[int],
+    pager: bool,
     clear: bool,
     local: Optional[bool],
     remote: Optional[bool],
@@ -303,7 +302,7 @@ def tag(
     max_id: Optional[str],
     since_id: Optional[str],
     limit: Optional[int],
-    pager: Optional[int],
+    pager: bool,
     clear: bool,
     local: Optional[bool],
     remote: Optional[bool],
@@ -381,18 +380,33 @@ def _print_single(response: Response, clear: bool, limit: Optional[int]):
                 dim=True,
             )
     else:
-        click.echo("No statuses found containing the given tag")
+        click.echo("No statuses found")
 
 
 def _print_paged(responses: Iterable[Response], page_size: int, clear: bool):
+    width = get_max_width()
+    height = get_terminal_height()
+    separator = "─" * width
+
+    def _page_generator():
+        batch_lines: List[str] = []
+        for response in responses:
+            statuses = from_dict_list(Status, response.json())
+            for status in statuses:
+                lines = [separator] + list(status_lines(status))
+                if len(batch_lines) + len(lines) > height - 2 and batch_lines:
+                    yield "\n".join(batch_lines) + "\n" + separator
+                    batch_lines = []
+                batch_lines.extend(lines)
+
     first = True
     printed_any = False
-    for page in from_responses_batched(responses, Status, page_size):
+    for page in _page_generator():
         if not first and not get_continue():
             break
         if clear:
             click.clear()
-        print_timeline(page)
+        click.echo(page)
         first = False
         printed_any = True
 

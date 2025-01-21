@@ -21,6 +21,10 @@ def get_terminal_width() -> int:
     return shutil.get_terminal_size().columns
 
 
+def get_terminal_height() -> int:
+    return shutil.get_terminal_size().lines
+
+
 def get_width() -> int:
     return min(get_terminal_width(), get_max_width())
 
