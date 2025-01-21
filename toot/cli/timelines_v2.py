@@ -1,5 +1,4 @@
 from functools import wraps
-import shutil
 from typing import Iterable, List, Optional, Tuple
 from urllib.parse import quote
 
@@ -9,16 +8,15 @@ from requests import Response
 from toot import api, http
 from toot.cli import Context, cli, json_option, pass_context
 from toot.cli.lists import get_list_id
-from toot.cli.validators import validate_instance, validate_positive
+from toot.cli.validators import validate_instance
 from toot.entities import (
     Account,
     Status,
     from_dict_list,
     from_response,
     from_response_list,
-    from_responses_batched,
 )
-from toot.output import get_continue, get_max_width, get_terminal_height, get_terminal_width, print_timeline, status_lines
+from toot.output import get_continue, get_max_width, get_terminal_height, print_timeline, status_lines
 from toot.utils import drop_empty_values, str_bool_nullable
 
 
@@ -46,10 +44,11 @@ def common_timeline_options(func):
              (limit and max may depend on your server)""",
     )
     @click.option(
-        "-p",
-        "--pager",
+        "-p/ ",
+        "--pager/--no-pager",
         help="Page the results",
         is_flag=True,
+        default=True,
     )
     @click.option(
         "-c",
