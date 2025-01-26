@@ -48,13 +48,11 @@ def common_timeline_options(func):
         "--pager/--no-pager",
         help="Page the results",
         is_flag=True,
-        default=True,
     )
     @click.option(
         "-c",
         "--clear/--no-clear",
         help="Clear the screen before printing. If paged, clear before each page.",
-        default=True,
     )
     @wraps(func)
     def wrapper(*args, **kwargs):
