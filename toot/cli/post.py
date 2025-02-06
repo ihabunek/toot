@@ -13,7 +13,7 @@ from toot.cli import DURATION_EXAMPLES, VISIBILITY_CHOICES
 from toot.tui.constants import VISIBILITY_OPTIONS  # move to top-level ?
 
 from toot.cli.validators import validate_duration, validate_language
-from toot.entities import MediaAttachment, from_dict
+from toot.entities import MediaAttachment, Status, from_dict, from_response
 from toot.utils import EOF_KEY, delete_tmp_status_file, editor_input, multiline_input
 from toot.utils.datetime import parse_datetime
 
@@ -121,6 +121,21 @@ from toot.utils.datetime import parse_datetime
     type=AccountParamType(),
     help="The account to use, overrides the active account.",
 )
+@click.option(
+    "-q",
+    "--quote-author",
+    help="When replying to a status, prepend the author's username to the start of the message",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "-Q",
+    "--quote-all",
+    help="""When replying to a status, prepend the author's username and the
+         username of all mentioned accounts to the start of the message""",
+    is_flag=True,
+    default=False,
+)
 @json_option
 @pass_context
 def post(
@@ -133,6 +148,9 @@ def post(
     sensitive: bool,
     spoiler_text: Optional[str],
     reply_to: Optional[str],
+    reply_last: bool,
+    quote_author: bool,
+    quote_all: bool,
     language: Optional[str],
     editor: Optional[str],
     scheduled_at: Optional[str],
@@ -144,7 +162,6 @@ def post(
     poll_hide_totals: bool,
     json: bool,
     using: str,
-    reply_last: bool,
 ):
     """Post a new status"""
     if len(media) > 4:
@@ -159,11 +176,13 @@ def post(
 
     media_ids = _upload_media(app, user, media, descriptions, thumbnails)
     status_text = _get_status_text(text, editor, media)
-    scheduled_at = _get_scheduled_at(scheduled_at, scheduled_in)
-    reply_to = _get_reply_to(app, user, reply_to, reply_last)
 
     if not status_text and not media_ids:
         raise click.ClickException("You must specify either text or media to post.")
+
+    reply_to_id = _get_reply_to(app, user, reply_to, reply_last)
+    scheduled_at = _get_scheduled_at(scheduled_at, scheduled_in)
+    status_text = _prepend_quoted_accounts(app, user, status_text, reply_to_id, quote_author, quote_all)
 
     response = api.post_status(
         app,
@@ -173,7 +192,7 @@ def post(
         media_ids=media_ids,
         sensitive=sensitive,
         spoiler_text=spoiler_text,
-        in_reply_to_id=reply_to,
+        in_reply_to_id=reply_to_id,
         language=language,
         scheduled_at=scheduled_at,
         content_type=content_type,
@@ -243,6 +262,20 @@ def _get_status_text(text, editor, media):
             text = multiline_input()
 
     return text
+
+
+def _prepend_quoted_accounts(app, user, status_text, reply_to_id, quote_author, quote_all):
+    if not reply_to_id or not (quote_author and quote_all):
+        return status_text
+
+    response = api.fetch_status(app, user, reply_to_id)
+    response.raise_for_status()
+    status = from_response(Status, response)
+
+    quotes = [status.account.acct]
+    if quote_all:
+        quotes += [m.acct for m in status.mentions]
+    return " ".join(f"@{q}" for q in quotes) + " " + status_text
 
 
 def _get_scheduled_at(scheduled_at, scheduled_in):
