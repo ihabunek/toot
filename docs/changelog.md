@@ -11,6 +11,10 @@ which is now marked as deprecated. The reason for this change is that
 various timelines require different options and having separate commands
 makes them easier to implement and use.
 
+New timeline commands include new paging logic which will print as many
+statuses as can fit on your screen at once, and clear the screen before
+printing the next batch. See help for `--pager` and `--clear` options.
+
 
 * BREAKING: Remove deprecated commands: `tags_followed`, `tags_follow`, and
   `tags tags_unfollow`. Use `tags followed`, `tags follow`, and `tags tags
