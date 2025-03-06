@@ -1,5 +1,5 @@
 0.48.0:
-  date: TBA
+  date: 2025-03-06
   description: |
     This release adds a new set of commands for working with timelines under
     `toot timelines` (note the plural). These will replace `toot timeline`
