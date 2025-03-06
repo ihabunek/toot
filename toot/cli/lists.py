@@ -11,6 +11,7 @@ from toot.output import print_list_accounts, print_lists, print_warning
 
 @cli.group()
 def lists():
+    """Show and manage your lists"""
     pass
 
 
