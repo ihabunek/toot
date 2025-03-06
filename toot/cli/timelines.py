@@ -49,7 +49,7 @@ def timeline(
     once: bool,
     count: int,
 ):
-    """Show recent items in a timeline
+    """Show timelines (deprecated, use `toot timelines` instead)
 
     By default shows the home timeline.
     """

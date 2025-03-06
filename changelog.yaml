@@ -1,8 +1,17 @@
 0.48.0:
   date: TBA
+  description: |
+    This release adds a new set of commands for working with timelines under
+    `toot timelines` (note the plural). These will replace `toot timeline`
+    which is now marked as deprecated. The reason for this change is that
+    various timelines require different options and having separate commands
+    makes them easier to implement and use.
   changes:
     - "BREAKING: Remove deprecated commands: `tags_followed`, `tags_follow`, and `tags tags_unfollow`. Use `tags followed`, `tags follow`, and `tags tags unfollow` instead."
     - "BREAKING: Remove deprecated `lists` command for listing lists in favour of `lists list`"
+    - "Add `toot timelines` commands  and mark `toot timeline` as deprecated"
+    - "Improve datetime parsing, improves compatibility with snac2 (#523)"
+    - "TUI: Fix urwid deprecations (thanks Aleksei Stepanov)"
 
 0.47.1:
   date: 2024-11-27

@@ -23,9 +23,7 @@ for version in data.keys():
     print()
 
     if "description" in data[version]:
-        description = data[version]["description"].strip()
-        for line in textwrap.wrap(description, 80):
-            print(line)
+        print(textwrap.dedent(data[version]["description"]))
         print()
 
     for c in changes:
