@@ -12,7 +12,6 @@ import subprocess
 import sys
 import textwrap
 import yaml
-import toot
 
 from datetime import date
 from os import path
@@ -43,8 +42,8 @@ if not isinstance(release_date, date):
 commit_message = f"toot {version}\n\n"
 
 if description:
-    lines = textwrap.wrap(description.strip(), 72)
-    commit_message += "\n".join(lines) + "\n\n"
+    commit_message += textwrap.dedent(description)
+    commit_message += "\n\n"
 
 for c in changes:
     lines = textwrap.wrap(c, 70)
