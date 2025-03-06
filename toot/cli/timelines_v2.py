@@ -341,7 +341,7 @@ def _show_timeline(ctx, path, params, json, pager, clear, limit):
 
     if pager:
         responses = http.get_paged(ctx.app, ctx.user, path, params)
-        _print_paged(responses, pager, clear)
+        _print_paged(responses, clear)
         return
 
     response = http.get(ctx.app, ctx.user, path, params)
@@ -358,7 +358,7 @@ def _show_anon_timeline(url, params, json, pager, clear, limit):
 
     if pager:
         responses = http.anon_get_paged(url, params)
-        _print_paged(responses, pager, clear)
+        _print_paged(responses, clear)
         return
 
     response = http.anon_get(url, params)
@@ -380,7 +380,7 @@ def _print_single(response: Response, clear: bool, limit: Optional[int]):
         click.echo("No statuses found")
 
 
-def _print_paged(responses: Iterable[Response], page_size: int, clear: bool):
+def _print_paged(responses: Iterable[Response], clear: bool):
     width = get_max_width()
     height = get_terminal_height()
     separator = "─" * width
@@ -395,6 +395,9 @@ def _print_paged(responses: Iterable[Response], page_size: int, clear: bool):
                     yield "\n".join(batch_lines) + "\n" + separator
                     batch_lines = []
                 batch_lines.extend(lines)
+
+        if batch_lines:
+            yield "\n".join(batch_lines) + "\n" + separator
 
     first = True
     printed_any = False
