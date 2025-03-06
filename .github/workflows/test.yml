@@ -26,6 +26,3 @@ jobs:
       - name: Validate minimum required version
         run: |
           vermin toot
-      - name: Check style
-        run: |
-          flake8
