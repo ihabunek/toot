@@ -8,7 +8,7 @@ def find_instance(base_url: str) -> Instance:
     try:
         instance = api.get_instance(base_url).json()
         return from_dict(Instance, instance)
-    except Exception:
+    except ApiError:
         raise ConsoleError(f"Instance not found at {base_url}")
 
 
