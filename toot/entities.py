@@ -513,6 +513,7 @@ def from_response_list(cls: Type[T], response: Response) -> t.List[T]:
     """Convert a list of nested dicts extracted from response body into a list of `cls` instances."""
     return from_dict_list(cls, response.json())
 
+
 def from_responses_batched(
     responses: t.Iterable[Response],
     cls: Type[T],

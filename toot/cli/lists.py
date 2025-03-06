@@ -8,6 +8,7 @@ from toot.cli import Context, cli, json_option, pass_context
 from toot.entities import List, from_dict_list
 from toot.output import print_list_accounts, print_lists, print_warning
 
+
 @cli.group()
 def lists():
     pass

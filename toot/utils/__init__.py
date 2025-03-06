@@ -169,6 +169,7 @@ def get_version(name):
 
 T = TypeVar("T")
 
+
 def batched(iterable: Iterable[T], n: int) -> Generator[List[T], None, None]:
     """Batch data from the iterable into lists of length n. The last batch may
     be shorter than n."""
