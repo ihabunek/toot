@@ -156,11 +156,11 @@ class TUI(urwid.Frame):
         super().__init__(self.body, header=self.header, footer=self.footer)
 
     def run(self):
+        self.loop.set_alarm_in(0, lambda *args: self.async_load_account())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_instance())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_preferences())
         self.loop.set_alarm_in(0, lambda *args: self.async_load_timeline(
             is_initial=True, timeline_name="home"))
-        self.loop.set_alarm_in(0, lambda *args: self.async_load_followed_accounts())
         self.loop.run()
         self.executor.shutdown(wait=False)
 
@@ -357,12 +357,22 @@ class TUI(urwid.Frame):
 
         return self.run_in_thread(_load_preferences, done_callback=_done)
 
+    def async_load_account(self):
+        def _load_account():
+            return api.verify_credentials(self.app, self.user).json()
+
+        def _done_account(account):
+            self.account = account
+            self.loop.set_alarm_in(0, lambda *_: self.async_load_followed_accounts())
+
+        self.run_in_thread(_load_account, done_callback=_done_account)
+
     def async_load_followed_accounts(self):
         def _load_accounts():
             try:
-                acct = f'@{self.user.username}@{self.user.instance}'
-                self.account = api.find_account(self.app, self.user, acct)
-                return api.following(self.app, self.user, self.account["id"])
+                if self.account:
+                    return api.following(self.app, self.user, self.account["id"])
+                return []
             except Exception:
                 # not supported by all Mastodon servers so fail silently if necessary
                 return []
@@ -549,11 +559,12 @@ class TUI(urwid.Frame):
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_personal_timeline(self):
-        account_name = f"{self.user.username}@{self.user.instance}"
-
-        self.timeline_generator = api.account_timeline_generator(
-            self.app, self.user, account_name, reblogs=True, limit=40)
-        promise = self.async_load_timeline(is_initial=True, timeline_name=f"personal {account_name}")
+        if not self.account:
+            return
+        self.timeline_generator = api.account_timeline_generator_by_id(
+            self.app, self.user, self.account["id"], reblogs=True, limit=40)
+        promise = self.async_load_timeline(
+            is_initial=True, timeline_name=f"personal {self.user.username}")
         promise.add_done_callback(lambda *args: self.close_overlay())
 
     def goto_list_timeline(self, list_item):

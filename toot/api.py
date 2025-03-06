@@ -486,6 +486,12 @@ def account_timeline_generator(app, user, account_name: str, replies=False, rebl
     return _timeline_generator(app, user, path, params)
 
 
+def account_timeline_generator_by_id(app, user, account_id: str, replies=False, reblogs=False, limit=20):
+    path = f"/api/v1/accounts/{account_id}/statuses"
+    params = {"limit": limit, "exclude_replies": not replies, "exclude_reblogs": not reblogs}
+    return _timeline_generator(app, user, path, params)
+
+
 def timeline_list_generator(app, user, list_id, limit=20):
     path = f"/api/v1/timelines/list/{list_id}"
     return _timeline_generator(app, user, path, {'limit': limit})
