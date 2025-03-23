@@ -209,6 +209,10 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("e", "E"):
+            self._emit("save", status)
+            return
+
+        if key in ("e", "E"):
             if status.is_mine:
                 self.tui.async_edit(status)
             return
@@ -221,11 +225,26 @@ class Timeline(urwid.Columns):
             self.tui.show_media(status)
             return
 
-        if key in ("q", "Q"):
-            self._emit("close")
+        if key in ("n", "N"):
+            if self.tui.can_translate:
+                self.tui.async_translate(self, status)
             return
 
-        if key == "esc" and self.is_thread:
+        if key in ("i", "I"):
+            self.tui.show_links(status)
+            return
+
+        if key in ("o", "O"):
+            self.tui.async_toggle_bookmark(self, status)
+            return
+
+        if key in ("p", "P"):
+            poll = status.original.data.get("poll")
+            if poll and not poll["expired"]:
+                self.tui.show_poll(status)
+            return
+
+        if key in ("q", "Q"):
             self._emit("close")
             return
 
@@ -236,19 +255,6 @@ class Timeline(urwid.Columns):
         if key in ("s", "S"):
             status.original.show_sensitive = True
             self.refresh_status_details()
-            return
-
-        if key in ("o", "O"):
-            self.tui.async_toggle_bookmark(self, status)
-            return
-
-        if key in ("i", "I"):
-            self.tui.show_links(status)
-            return
-
-        if key in ("n", "N"):
-            if self.tui.can_translate:
-                self.tui.async_translate(self, status)
             return
 
         if key in ("t", "T"):
@@ -266,22 +272,16 @@ class Timeline(urwid.Columns):
                 self.tui.clear_screen()
             return
 
-        if key in ("e", "E"):
-            self._emit("save", status)
+        if key in ("y", "Y"):
+            self.tui.copy_status(status)
             return
 
         if key in ("z", "Z"):
             self.tui.show_status_zoom(self.status_details)
             return
 
-        if key in ("p", "P"):
-            poll = status.original.data.get("poll")
-            if poll and not poll["expired"]:
-                self.tui.show_poll(status)
-            return
-
-        if key in ("y", "Y"):
-            self.tui.copy_status(status)
+        if key == "esc" and self.is_thread:
+            self._emit("close")
             return
 
         return super().keypress(size, key)
