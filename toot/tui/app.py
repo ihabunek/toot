@@ -582,7 +582,9 @@ class TUI(urwid.Frame):
         media_viewer = self.options.media_viewer
         if media_viewer:
             try:
-                subprocess.run([media_viewer] + urls)
+                command = media_viewer.split()
+                command.extend(urls)
+                subprocess.run(command)
             except FileNotFoundError:
                 self.footer.set_error_message(f"Media viewer not found: '{media_viewer}'")
             except Exception as ex:
