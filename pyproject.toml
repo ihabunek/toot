@@ -35,11 +35,6 @@ images = [
     "term-image>=0.7.2",
 ]
 
-# Required to display rich text in the TUI
-richtext = [
-    "urwidgets>=0.2,<0.3"
-]
-
 test = [
     "flake8",
     "pytest",
