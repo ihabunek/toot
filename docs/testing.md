@@ -54,3 +54,31 @@ foreman start
 
 https://docs-develop.pleroma.social/backend/development/setting_up_pleroma_dev/
 
+## Sharkey
+
+Testing toot on [Sharkey](https://activitypub.software/TransFem-org/Sharkey/)
+
+Requires:
+* postgresql
+* redis
+* node + pnpm
+
+```sh
+git clone https://activitypub.software/TransFem-org/Sharkey.git
+cd Sharkey
+git submodule update --init
+
+cp .config/example.yml .config/default.yml
+vim .config/default.yml
+    # Edit these keys:
+    # * db - put in your database credentials
+    # * setupPassword - set any password, we'll use "toot"
+
+createdb sharkey
+pnpm install --frozen-lockfile
+pnpm build
+pnpm migrate
+pnpm dev
+```
+
+Now sharkey should be started. Visit localhost:3000 and create an admin account using `setupPassword` defined in the config file.
