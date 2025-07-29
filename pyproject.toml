@@ -7,14 +7,13 @@ name = "toot"
 authors = [{ name="Ivan Habunek", email="ivan@habunek.com" }]
 description = "Mastodon CLI client"
 readme = "README.rst"
-license = { file="LICENSE" }
+license = "GPL-3.0-only"
 requires-python = ">=3.8"
 dynamic = ["version"]
 
 classifiers = [
     "Environment :: Console :: Curses",
     "Environment :: Console",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
 ]
