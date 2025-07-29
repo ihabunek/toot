@@ -35,27 +35,6 @@ images = [
     "term-image>=0.7.2",
 ]
 
-test = [
-    "flake8",
-    "pytest",
-    "pytest-xdist[psutil]",
-    "setuptools",
-    "vermin",
-    "typing-extensions",
-    "pillow>=9.5.0",
-]
-
-dev = [
-    "build",
-    "flake8",
-    "mypy",
-    "pyright",
-    "pyyaml",
-    "twine",
-    "types-beautifulsoup4",
-    "vermin",
-]
-
 [project.urls]
 "Homepage" = "https://toot.bezdomni.net"
 "Source" = "https://github.com/ihabunek/toot/"
@@ -76,3 +55,25 @@ packages=[
 
 [tool.pyright]
 pythonVersion = "3.8"
+
+[dependency-groups]
+test = [
+    "flake8",
+    "pytest",
+    "pytest-xdist[psutil]",
+    "setuptools",
+    "vermin",
+    "typing-extensions",
+    "pillow>=9.5.0",
+]
+
+dev = [
+    "build",
+    "flake8",
+    "mypy",
+    "pyright",
+    "pyyaml",
+    "twine",
+    "types-beautifulsoup4",
+    "vermin",
+]
