@@ -57,23 +57,18 @@ packages=[
 pythonVersion = "3.8"
 
 [dependency-groups]
-test = [
-    "flake8",
-    "pytest",
-    "pytest-xdist[psutil]",
-    "setuptools",
-    "vermin",
-    "typing-extensions",
-    "pillow>=9.5.0",
-]
-
 dev = [
     "build",
     "flake8",
     "mypy",
+    "pillow>=9.5.0",
     "pyright",
+    "pytest",
+    "pytest-xdist[psutil]",
     "pyyaml",
+    "setuptools",
     "twine",
     "types-beautifulsoup4",
+    "typing-extensions",
     "vermin",
 ]
