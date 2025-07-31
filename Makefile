@@ -1,3 +1,5 @@
+PYTEST = $(shell which pytest pytest-3 )
+
 .PHONY: clean publish test docs
 
 dist:
@@ -7,7 +9,7 @@ publish :
 	twine upload dist/*.tar.gz dist/*.whl
 
 test:
-	pytest -v
+	test -e "$(PYTEST)" && $(PYTEST) -v # run pytest if found
 	flake8
 	vermin toot
 
