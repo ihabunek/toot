@@ -1,3 +1,12 @@
+0.49.0:
+  date: 2025-07-31
+  changes:
+    - "**BREAKING**: Requires Python 3.9"
+    - "TUI: Fix missing pin/unpin timeline shortcut - new shortcut is P"
+    - "TUI: Upgrade to Urwid 3, fix compatibility issues (thanks doomsxday)"
+    - "TUI: Allow `--media-viewer` option to include options, e.g. `eog -f` (thanks AbeEstrada)"
+    - "TUI: Fix compatibility with pleroma (thanks rakoo)"
+
 0.48.1:
   date: 2025-03-06
   changes:
