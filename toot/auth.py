@@ -12,22 +12,22 @@ def find_instance(base_url: str) -> Instance:
         raise ConsoleError(f"Instance not found at {base_url}")
 
 
-def register_app(domain: str, base_url: str) -> App:
+def register_app(domain: str, base_url: str, redirect_uri: str) -> App:
     try:
-        response = api.create_app(base_url)
+        response = api.create_app(base_url, redirect_uri)
     except ApiError:
         raise ConsoleError("Registration failed.")
 
-    app = App(domain, base_url, response['client_id'], response['client_secret'])
+    app = App(domain, base_url, response['client_id'], response['client_secret'], redirect_uri)
     config.save_app(app)
 
     return app
 
 
-def get_or_create_app(base_url: str) -> App:
+def get_or_create_app(base_url: str, redirect_uri: str) -> App:
     instance = find_instance(base_url)
     domain = _get_instance_domain(instance)
-    return config.load_app(domain) or register_app(domain, base_url)
+    return config.load_app(domain, redirect_uri) or register_app(domain, base_url, redirect_uri)
 
 
 def create_user(app: App, access_token: str) -> User:
@@ -53,8 +53,8 @@ def login_username_password(app: App, email: str, password: str) -> User:
 def login_auth_code(app: App, authorization_code: str) -> User:
     try:
         response = api.request_access_token(app, authorization_code)
-    except Exception:
-        raise ConsoleError("Login failed")
+    except Exception as e:
+        raise ConsoleError("Login failed", e)
 
     return create_user(app, response["access_token"])
 
