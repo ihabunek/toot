@@ -11,37 +11,43 @@ Start it by running `toot tui`.
 
 ## Keyboard shortcuts
 
-Pressing `H` will bring up the help screen where all keyboard shortcuts are
+Pressing `h` will bring up the help screen where all keyboard shortcuts are
 listed.
 
 **Navigation**
 
-* `Arrow keys` or `H/J/K/L` to move around and scroll content
+* `Arrow keys` or `h/j/k/l` to move around and scroll content
 * `PageUp` and `PageDown` to scroll content
 * `Enter` or `Space` to activate buttons and menu options
-* `Esc` or `Q` to go back, close overlays and menus
+* `Esc` or `q` to go back, close overlays, such as menus and this help text
 
 **General**
 
-* `Q` - quit toot
-* `G` - go to - switch timelines
-* `P` - save/unsave (pin) current timeline
+* `q` - quit toot
+* `g` - go to - switch timelines
+* `P` - pin/unpin current timeline
 * `,` - refresh current timeline
-* `H` - show this help
+* `?` - show this help
 
 **Status**
 
 These commands are applied to the currently focused status.
 
-* `B` - Boost/unboost status
-* `C` - Compose new status
-* `F` - Favourite/unfavourite status
-* `K` - Bookmark/unbookmark status
-* `N` - Translate status if possible (toggle)
-* `R` - Reply to current status
-* `S` - Show text marked as sensitive
-* `T` - Show status thread (replies)
-* `L` - Show the status links
-* `U` - Show the status data in JSON as received from the server
-* `V` - Open status in default browser
-* `Z` - Open status in scrollable popup window
+* `a` - Show account
+* `b` - Boost/unboost status
+* `c` - Compose a new status
+* `d` - Delete status
+* `e` - Edit status
+* `f` - Favourite/unfavourite status
+* `i` - Show the status links
+* `m` - Show media in image viewer
+* `n` - Translate status if possible (toggle)
+* `o` - Bookmark/unbookmark status
+* `p` - Vote on a poll
+* `r` - Reply to status
+* `s` - Show text marked as sensitive
+* `t` - Show status thread (replies)
+* `u` - Show the status data in JSON as received from the server
+* `v` - Open status in default browser
+* `y` - Copy status to clipboard
+* `z` - Open status in scrollable popup window
