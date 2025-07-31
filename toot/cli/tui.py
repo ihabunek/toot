@@ -25,7 +25,7 @@ COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
              using --color, and 1 if using --no-color."""
 )
 @click.option(
-    "-s", "--cache-size",
+    "--cache-size",
     callback=validate_cache_size,
     help="""Specify the image cache maximum size in megabytes. Default: 10MB.
       Minimum: 1MB."""
