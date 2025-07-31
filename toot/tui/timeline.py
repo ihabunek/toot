@@ -209,16 +209,16 @@ class Timeline(urwid.Columns):
             return
 
         if key in ("e", "E"):
-            self._emit("save", status)
-            return
-
-        if key in ("e", "E"):
             if status.is_mine:
                 self.tui.async_edit(status)
             return
 
         if key in ("f", "F"):
             self.tui.async_toggle_favourite(self, status)
+            return
+
+        if key in ("i", "I"):
+            self.tui.show_links(status)
             return
 
         if key in ("m", "M"):
@@ -230,18 +230,18 @@ class Timeline(urwid.Columns):
                 self.tui.async_translate(self, status)
             return
 
-        if key in ("i", "I"):
-            self.tui.show_links(status)
-            return
-
         if key in ("o", "O"):
             self.tui.async_toggle_bookmark(self, status)
             return
 
-        if key in ("p", "P"):
+        if key == "p":
             poll = status.original.data.get("poll")
             if poll and not poll["expired"]:
                 self.tui.show_poll(status)
+            return
+
+        if key == "P":
+            self._emit("save", status)
             return
 
         if key in ("q", "Q"):
