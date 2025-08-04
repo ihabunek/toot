@@ -466,6 +466,12 @@ def bookmark_timeline_generator(app, user, limit=20):
     return _timeline_generator(app, user, path, params)
 
 
+def favourite_timeline_generator(app, user, limit=20):
+    path = '/api/v1/favourites'
+    params = {'limit': limit}
+    return _timeline_generator(app, user, path, params)
+
+
 def notification_timeline_generator(app, user, limit=20):
     # exclude all but mentions and statuses
     exclude_types = ["follow", "favourite", "reblog", "poll", "follow_request"]
