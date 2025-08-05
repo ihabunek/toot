@@ -169,11 +169,12 @@ json_option = click.option(
 @click.group(context_settings=CONTEXT)
 @click.option("-w", "--max-width", type=int, default=80, help="Maximum width for content rendered by toot")
 @click.option("--debug/--no-debug", default=False, help="Log debug info to stderr")
+@click.option("--verbose", is_flag=True, help="Log verbose info")
 @click.option("--color/--no-color", default=sys.stdout.isatty(), help="Use ANSI color in output")
 @click.option("--as", "as_user", type=AccountParamType(), help="The account to use, overrides the active account.")
 @click.version_option(__version__, message="%(prog)s v%(version)s")
 @click.pass_context
-def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, as_user: str):
+def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, verbose: bool, as_user: str):
     """Toot is a Mastodon CLI"""
     ctx.obj = TootObj(color, debug, as_user)
     ctx.color = color

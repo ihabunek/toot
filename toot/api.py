@@ -735,8 +735,13 @@ def get_lists(app, user):
     return http.get(app, user, "/api/v1/lists").json()
 
 
-def get_poll(app, user, poll_id):
-    return http.get(app, user, f"/api/v1/polls/{poll_id}").json()
+def get_poll(app, user, poll_id) -> Response:
+    return http.get(app, user, f"/api/v1/polls/{poll_id}")
+
+
+def vote_poll(app, user, poll_id, choices) -> Response:
+    json = {"choices": choices}
+    return http.post(app, user, f"/api/v1/polls/{poll_id}/votes", json=json)
 
 
 def get_list_accounts(app, user, list_id):
