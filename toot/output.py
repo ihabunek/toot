@@ -245,6 +245,11 @@ def html_lines(html: str, width: int) -> t.Generator[str, None, None]:
         first = False
 
 
+def print_poll(poll: Poll):
+    for line in poll_lines(poll):
+        print(line)
+
+
 def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
     for idx, option in enumerate(poll.options):
         perc = (

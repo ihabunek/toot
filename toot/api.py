@@ -735,6 +735,10 @@ def get_lists(app, user):
     return http.get(app, user, "/api/v1/lists").json()
 
 
+def get_poll(app, user, poll_id):
+    return http.get(app, user, f"/api/v1/polls/{poll_id}").json()
+
+
 def get_list_accounts(app, user, list_id):
     path = f"/api/v1/lists/{list_id}/accounts"
     return _get_response_list(app, user, path)

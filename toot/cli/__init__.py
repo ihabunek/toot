@@ -187,6 +187,7 @@ from toot.cli import accounts  # noqa
 from toot.cli import auth  # noqa
 from toot.cli import diag  # noqa
 from toot.cli import lists  # noqa
+from toot.cli import polls  # noqa
 from toot.cli import post  # noqa
 from toot.cli import read  # noqa
 from toot.cli import statuses  # noqa
