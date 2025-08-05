@@ -48,7 +48,8 @@ packages=[
     "toot.cli",
     "toot.tui",
     "toot.tui.richtext",
-    "toot.utils"
+    "toot.utils",
+    "urwidgets",
 ]
 
 [tool.setuptools_scm]
