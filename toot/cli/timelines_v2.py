@@ -111,6 +111,32 @@ def account(
 @common_timeline_options
 @json_option
 @pass_context
+def favourites(
+    ctx: Context,
+    min_id: Optional[str],
+    max_id: Optional[str],
+    since_id: Optional[str],
+    limit: Optional[int],
+    pager: bool,
+    clear: bool,
+    json: bool,
+):
+    """View favourited statuses."""
+    path = "/api/v1/favourites"
+    params = {
+        "min_id": min_id,
+        "max_id": max_id,
+        "since_id": since_id,
+        "limit": limit,
+    }
+
+    _show_timeline(ctx, path, params, json, pager, clear, limit)
+
+
+@timelines.command()
+@common_timeline_options
+@json_option
+@pass_context
 def home(
     ctx: Context,
     min_id: Optional[str],

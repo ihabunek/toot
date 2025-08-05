@@ -112,30 +112,6 @@ def bookmarks(
 
 @cli.command()
 @click.option(
-    "--reverse", "-r", is_flag=True,
-    help="Reverse the order of the shown timeline (new posts at the bottom)"
-)
-@click.option(
-    "--once", "-1", is_flag=True,
-    help="Only show the first <count> toots, do not prompt to continue"
-)
-@click.option(
-    "--count", "-c", type=int, default=10,
-    help="Number of posts per page (max 20)"
-)
-@pass_context
-def favourites(
-    ctx: Context,
-    reverse: bool,
-    once: bool,
-    count: int,
-):
-    """Show recent statuses in a timeline"""
-    generator = api.favourite_timeline_generator(ctx.app, ctx.user, limit=count)
-    _show_timeline(generator, reverse, once)
-
-@cli.command()
-@click.option(
     "--clear", is_flag=True,
     help="Dismiss all notifications and exit"
 )
