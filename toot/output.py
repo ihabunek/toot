@@ -44,12 +44,8 @@ def get_continue():
 
 
 def print_instance(instance: Instance):
-    width = get_width()
-    click.echo(instance_to_text(instance, width))
-
-
-def instance_to_text(instance: Instance, width: int) -> str:
-    return "\n".join(instance_lines(instance, width))
+    for line in instance_lines(instance, get_width()):
+        click.echo(line)
 
 
 def instance_lines(instance: Instance, width: int) -> t.Generator[str, None, None]:
@@ -190,15 +186,11 @@ def print_search_results(results):
 
 
 def print_status(status: Status) -> None:
-    width = get_width()
-    click.echo(status_to_text(status, width))
+    for line in status_lines(status, get_width()):
+        click.echo(line)
 
 
-def status_to_text(status: Status, width: int) -> str:
-    return "\n".join(status_lines(status))
-
-
-def status_lines(status: Status) -> t.Generator[str, None, None]:
+def status_lines(status: Status, width: int) -> t.Generator[str, None, None]:
     width = get_width()
     status_id = status.id
     in_reply_to_id = status.in_reply_to_id

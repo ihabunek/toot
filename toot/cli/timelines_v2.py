@@ -16,7 +16,7 @@ from toot.entities import (
     from_response,
     from_response_list,
 )
-from toot.output import get_continue, get_max_width, get_terminal_height, print_timeline, status_lines
+from toot.output import get_continue, get_terminal_height, get_width, print_timeline, status_lines
 from toot.utils import drop_empty_values, str_bool_nullable
 
 
@@ -408,7 +408,7 @@ def _print_single(response: Response, clear: bool, limit: Optional[int]):
 
 
 def _print_paged(responses: Iterable[Response], clear: bool):
-    width = get_max_width()
+    width = get_width()
     height = get_terminal_height()
     separator = "─" * width
 
@@ -417,7 +417,7 @@ def _print_paged(responses: Iterable[Response], clear: bool):
         for response in responses:
             statuses = from_dict_list(Status, response.json())
             for status in statuses:
-                lines = [separator] + list(status_lines(status))
+                lines = [separator] + list(status_lines(status, width))
                 if len(batch_lines) + len(lines) > height - 2 and batch_lines:
                     yield "\n".join(batch_lines) + "\n" + separator
                     batch_lines = []
