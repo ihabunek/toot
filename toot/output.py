@@ -34,12 +34,14 @@ def print_warning(text: str):
 
 
 def get_continue():
-    click.secho(f"Press {green('Space')} or {green('Enter')} to continue, {yellow('Esc')} or {yellow('q')} to break.")
+    click.secho(
+        f"Press {green('Space')} or {green('Enter')} to continue, {yellow('Esc')} or {yellow('q')} to break."
+    )
     while True:
         char = click.getchar()
-        if char == ' ' or char == '\r':
+        if char == " " or char == "\r":
             return True
-        if char == '\x1b' or char == 'q':
+        if char == "\x1b" or char == "q":
             return False
 
 
@@ -224,7 +226,8 @@ def status_lines(status: Status, width: int) -> t.Generator[str, None, None]:
                 yield line
 
     if status.poll:
-        yield from poll_lines(status.poll)
+        yield ""
+        yield from poll_lines(status.poll, width)
 
     reblogged_by_acct = f"@{reblogged_by.acct}" if reblogged_by else None
     yield ""
@@ -246,11 +249,11 @@ def html_lines(html: str, width: int) -> t.Generator[str, None, None]:
 
 
 def print_poll(poll: Poll):
-    for line in poll_lines(poll):
+    for line in poll_lines(poll, get_width()):
         print(line)
 
 
-def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
+def poll_lines(poll: Poll, width: int) -> t.Generator[str, None, None]:
     for idx, option in enumerate(poll.options):
         perc = (
             round(100 * option.votes_count / poll.votes_count)
@@ -259,13 +262,16 @@ def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
         )
 
         if poll.voted and poll.own_votes and idx in poll.own_votes:
-            voted_for = yellow(" ✓")
+            voted_for = bold(" ✓ Your vote")
         else:
             voted_for = ""
 
-        yield f"{option.title} - {perc}% {voted_for}"
+        yield f"{option.title} {voted_for}"
 
-    poll_footer = f"Poll · {poll.votes_count} votes"
+        yield render_poll_bar(f"{perc}% ({option.votes_count})", width, perc)
+        yield ""
+
+    poll_footer = f"Poll {poll.id} · {poll.votes_count} votes"
 
     if poll.expired:
         poll_footer += " · Closed"
@@ -274,8 +280,13 @@ def poll_lines(poll: Poll) -> t.Generator[str, None, None]:
         expires_at = poll.expires_at.strftime("%Y-%m-%d %H:%M")
         poll_footer += f" · Closes on {expires_at}"
 
-    yield ""
-    yield poll_footer
+    yield dim(poll_footer)
+
+
+def render_poll_bar(text: str, width: int, perc: int):
+    text = text.ljust(width)
+    offset = perc * width // 100
+    return click.style(text[:offset], fg="bright_white", bg="blue") + text[offset:].strip()
 
 
 def print_timeline(items: t.Iterable[Status]):
