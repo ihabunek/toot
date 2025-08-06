@@ -105,7 +105,7 @@ def testing_env():
 
 @pytest.fixture(scope="session")
 def runner():
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture
