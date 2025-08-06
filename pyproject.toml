@@ -57,6 +57,10 @@ packages=[
 [tool.pyright]
 pythonVersion = "3.8"
 
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
 [dependency-groups]
 dev = [
     "build",
