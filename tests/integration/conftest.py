@@ -159,4 +159,8 @@ def posted_status_id(out):
 
 def assert_ok(result: Result):
     if result.exit_code != 0:
-        raise AssertionError(f"Command failed with exit code {result.exit_code}\nStderr: {result.stderr}")
+        raise AssertionError(
+            f"Command failed with exit code {result.exit_code}\n"
+            f"stderr: {result.stderr}\n"
+            f"exception: {result.exception}"
+        )
