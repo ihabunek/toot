@@ -117,7 +117,7 @@ def test_timelines_v2(app, user, other_user, friend_user, friend_list, run):
 
     # Home timeline
     def test_home():
-        result = run(cli.timelines_v2.home)
+        result = run(cli.timelines_v2.home, "--no-pager")
         assert_ok(result)
         assert status1.id in result.stdout
         assert status2.id not in result.stdout
@@ -125,79 +125,79 @@ def test_timelines_v2(app, user, other_user, friend_user, friend_list, run):
     run_with_retries(test_home)
 
     # Public timeline
-    result = run(cli.timelines_v2.public)
+    result = run(cli.timelines_v2.public, "--no-pager")
     assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
     # Anon public timeline
-    result = run(cli.timelines_v2.public, "--instance", TOOT_TEST_BASE_URL)
+    result = run(cli.timelines_v2.public, "--no-pager", "--instance", TOOT_TEST_BASE_URL)
     assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
     # Tag timeline
-    result = run(cli.timelines_v2.tag, "foo")
+    result = run(cli.timelines_v2.tag, "foo", "--no-pager")
     assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
-    result = run(cli.timelines_v2.tag, "bar")
+    result = run(cli.timelines_v2.tag, "bar", "--no-pager")
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
-    result = run(cli.timelines_v2.tag, "foo", "--all", "bar")
+    result = run(cli.timelines_v2.tag, "foo", "--all", "bar", "--no-pager")
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
-    result = run(cli.timelines_v2.tag, "foo", "--any", "bar")
+    result = run(cli.timelines_v2.tag, "foo", "--any", "bar", "--no-pager")
     assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id in result.stdout
     assert status3.id in result.stdout
 
-    result = run(cli.timelines_v2.tag, "foo", "--none", "bar")
+    result = run(cli.timelines_v2.tag, "foo", "--none", "bar", "--no-pager")
     assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id not in result.stdout
     assert status3.id not in result.stdout
 
     # Anon tag timeline
-    result = run(cli.timelines_v2.tag, "--instance", TOOT_TEST_BASE_URL, "foo")
+    result = run(cli.timelines_v2.tag, "--instance", TOOT_TEST_BASE_URL, "foo", "--no-pager")
     assert_ok(result)
     assert status1.id in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     # List timeline (by list name)
-    result = run(cli.timelines_v2.list, friend_list["title"])
+    result = run(cli.timelines_v2.list_cmd, friend_list["title"], "--no-pager")
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     # List timeline (by list ID)
-    result = run(cli.timelines_v2.list, friend_list["id"])
+    result = run(cli.timelines_v2.list_cmd, friend_list["id"], "--no-pager")
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
     # Account timeline
-    result = run(cli.timelines_v2.account, friend_user.username)
+    result = run(cli.timelines_v2.account, friend_user.username, "--no-pager")
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id not in result.stdout
     assert status3.id in result.stdout
 
-    result = run(cli.timelines_v2.account, other_user.username)
+    result = run(cli.timelines_v2.account, other_user.username, "--no-pager")
     assert_ok(result)
     assert status1.id not in result.stdout
     assert status2.id in result.stdout
@@ -274,9 +274,11 @@ def test_notifications(app, user, other_user, run):
 
 
 def test_notifications_follow(app, user, friend_user, run_as):
-    result = run_as(friend_user, cli.timelines.notifications)
-    assert_ok(result)
-    assert f"@{user.username} now follows you" in result.stdout
+    def test_follows_you():
+        result = run_as(friend_user, cli.timelines.notifications)
+        assert_ok(result)
+        assert f"@{user.username} now follows you" in result.stdout
+    run_with_retries(test_follows_you)
 
     result = run_as(friend_user, cli.timelines.notifications, "--mentions")
     assert_ok(result)

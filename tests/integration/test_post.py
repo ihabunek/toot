@@ -397,4 +397,4 @@ def test_reply_last_fails_if_no_last_id(app, user, run: Run):
 def test_reply_last_and_reply_to_are_exclusive(app, user, run: Run):
     result = run(cli.post.post, "one", "--reply-last", "--reply-to", "123")
     assert result.exit_code == 1
-    assert result.stderr.strip() == f"Error: --reply-last and --reply-to are mutually exclusive"
+    assert result.stderr.strip() == "Error: --reply-last and --reply-to are mutually exclusive"
