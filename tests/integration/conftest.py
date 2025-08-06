@@ -164,3 +164,12 @@ def assert_ok(result: Result):
             f"stderr: {result.stderr}\n"
             f"exception: {result.exception}"
         )
+
+
+def assert_error(result: Result, error: str):
+    assert result.exit_code != 0
+    assert error in strip_ansi(result.stderr)
+
+
+def strip_ansi(string: str):
+    return re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", string)

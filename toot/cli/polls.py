@@ -1,4 +1,3 @@
-import json as pyjson
 from typing import Tuple
 
 import click

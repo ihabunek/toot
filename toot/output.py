@@ -262,11 +262,11 @@ def poll_lines(poll: Poll, width: int) -> t.Generator[str, None, None]:
         )
 
         if poll.voted and poll.own_votes and idx in poll.own_votes:
-            voted_for = bold(" ✓ Your vote")
+            voted_for = bold("  ✓ Your vote")
         else:
             voted_for = ""
 
-        yield f"{option.title} {voted_for}"
+        yield f"{option.title}{voted_for}"
 
         yield render_poll_bar(f"{perc}% ({option.votes_count})", width, perc)
         yield ""
