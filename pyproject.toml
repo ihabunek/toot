@@ -67,6 +67,7 @@ dev = [
     "flake8",
     "mypy",
     "pillow>=9.5.0",
+    "pudb>=2025.1",
     "pyright",
     "pytest",
     "pytest-xdist[psutil]",
