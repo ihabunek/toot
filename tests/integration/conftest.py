@@ -78,22 +78,22 @@ def app(base_url):
     return create_app(base_url)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def user(app):
     return register_account(app)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def friend(app):
     return register_account(app)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def user_id(app, user):
     return api.find_account(app, user, user.username)["id"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def friend_id(app, user, friend):
     return api.find_account(app, user, friend.username)["id"]
 
