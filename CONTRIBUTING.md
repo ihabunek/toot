@@ -65,17 +65,27 @@ you submit will be published under the [toot license](LICENSE).
 
 #### Setting up a dev environment
 
-Check out toot (or a fork) and install it into a virtual environment.
+Using [uv](https://docs.astral.sh/uv/) simplifies setting up a dev environment
+by managing the python virtual environments:
 
 ```
 git clone git@github.com:ihabunek/toot.git
 cd toot
-python3 -m venv _env
-source _env/bin/activate
-pip install --editable ".[dev,test]"
+uv run toot
 ```
 
-While the virtual env is active, you can run `./_env/bin/toot` to
+If you don't wish to use a third party tool you can do this manually:
+
+```
+git clone git@github.com:ihabunek/toot.git
+cd toot
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install --group dev --editable .
+```
+
+While the virtual env is active, you can run `python3 -m toot` to
 execute the one you checked out. This allows you to make changes and
 test them.
 
