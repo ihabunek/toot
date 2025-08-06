@@ -50,6 +50,10 @@ Start the server:
 foreman start
 ```
 
+The server should now be live at: http://localhost:3000/
+
+You can view any emails sent by Mastodon at: http://localhost:3000/letter_opener/
+
 ## Pleroma
 
 https://docs-develop.pleroma.social/backend/development/setting_up_pleroma_dev/
