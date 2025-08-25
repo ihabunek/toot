@@ -14,7 +14,8 @@ Relevant links which will be referenced below:
 
 ## Code of conduct
 
-Please be kind and patient. Toot is governed by one human with a full time job.
+Please be kind and patient. Toot is maintained by one human with a full time
+job.
 
 ## I have a question
 
@@ -35,13 +36,14 @@ First check you're using the
 [latest version](https://github.com/ihabunek/toot/releases/) of toot and verify
 the bug is present in this version.
 
-Search Github issues to check the bug hasn't already been reported.
+Search [Github issues](https://github.com/ihabunek/toot/issues) to check the bug
+hasn't already been reported.
 
 To report a bug open an
 [issue on Github](https://github.com/ihabunek/toot/issues) or send an
 email to the [mailing list](https://lists.sr.ht/~ihabunek/toot-discuss).
 
-* Run `toot diag` and include its contents in the bug report.
+* Run `toot env` and include its contents in the bug report.
 * Explain the behavior you would expect and the actual behavior.
 * Please provide as much context as possible and describe the reproduction steps
   that someone else can follow to recreate the issue on their own.
@@ -65,22 +67,31 @@ you submit will be published under the [toot license](LICENSE).
 
 #### Setting up a dev environment
 
-Using [uv](https://docs.astral.sh/uv/) simplifies setting up a dev environment
-by managing the python virtual environments:
+Check out toot (or a fork):
 
 ```
 git clone git@github.com:ihabunek/toot.git
 cd toot
+```
+
+Using [uv](https://docs.astral.sh/uv/) simplifies setting up a python virtual
+environment and running toot so you can just run:
+
+```
 uv run toot
 ```
 
 If you don't wish to use a third party tool you can do this manually:
 
 ```
-git clone git@github.com:ihabunek/toot.git
-cd toot
 python3 -m venv .venv
+
+# On Linux/Mac
 source .venv/bin/activate
+
+# On Windows
+.venv\bin\activate.bat
+
 pip install --upgrade pip
 pip install --group dev --editable .
 ```
@@ -93,7 +104,7 @@ test them.
 
 Please put some effort into breaking your contribution up into a series of well
 formed commits. If you're unsure what this means, there is a good guide
-available at https://cbea.ms/git-commit/.
+available at [https://cbea.ms/git-commit/](https://cbea.ms/git-commit/).
 
 Rules for commits:
 
@@ -112,7 +123,7 @@ Rules for commit messages:
 * use the body to explain what and why vs. how
 
 For a more detailed explanation with examples see the guide at
-https://cbea.ms/git-commit/
+[https://cbea.ms/git-commit/](https://cbea.ms/git-commit/)
 
 If you use vim to write your commit messages, it will already enforce some of
 these rules for you.
@@ -141,11 +152,11 @@ patch(es) to [the mailing list](https://lists.sr.ht/~ihabunek/toot-discuss).
 
 If sending to the mailing list, patches should be sent using `git send-email`.
 If you're unsure how to do this, there is a good guide at
-https://git-send-email.io/.
+[https://git-send-email.io/](https://git-send-email.io/).
 
 ---
 
 Parts of this guide were taken from the following sources:
 
-* https://contributing.md/
-* https://cbea.ms/git-commit/
+* [https://contributing.md/](https://contributing.md/)
+* [https://cbea.ms/git-commit/](https://cbea.ms/git-commit/)

@@ -57,7 +57,7 @@ it hasn't, [open a new issue](https://github.com/ihabunek/toot/issues).
 
 Your request will be reviewed to see if it's a good fit for toot. Implementing
 requested features depends on the available time and energy of the maintainer
-and other contributors.
+and other contributors. Be patient.
 
 ### Contributing code
 
@@ -67,24 +67,38 @@ you submit will be published under the [toot license](LICENSE).
 
 #### Setting up a dev environment
 
-Check out toot (or a fork) and install it into a virtual environment.
+Check out toot (or a fork):
 
-```bash
+```
 git clone git@github.com:ihabunek/toot.git
 cd toot
-python3 -m venv _env
-
-# On Linux/Mac
-source _env/bin/activate
-
-# On Windows
-_env\bin\activate.bat
-
-pip install --editable ".[dev,test]"
 ```
 
-While the virtual env is active, running `toot` will execute the one you checked
-out. This allows you to make changes and test them.
+Using [uv](https://docs.astral.sh/uv/) simplifies setting up a python virtual
+environment and running toot so you can just run:
+
+```
+uv run toot
+```
+
+If you don't wish to use a third party tool you can do this manually:
+
+```
+python3 -m venv .venv
+
+# On Linux/Mac
+source .venv/bin/activate
+
+# On Windows
+.venv\bin\activate.bat
+
+pip install --upgrade pip
+pip install --group dev --editable .
+```
+
+While the virtual env is active, you can run `python3 -m toot` to
+execute the one you checked out. This allows you to make changes and
+test them.
 
 #### Crafting good commits
 
