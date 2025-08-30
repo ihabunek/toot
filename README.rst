@@ -16,12 +16,13 @@ Toot is a CLI and TUI tool for interacting with Mastodon instances from the comm
 Resources
 ---------
 
+* Installation instructions: https://toot.bezdomni.net/installation.html
 * Homepage: https://github.com/ihabunek/toot
 * Issues: https://github.com/ihabunek/toot/issues
 * Documentation: https://toot.bezdomni.net/
 * Mailing list for discussion, support and patches:
   https://lists.sr.ht/~ihabunek/toot-discuss
-* Informal discussion: #toot IRC channel on `libera.chat <https://libera.chat/>`_
+* Informal discussion: `#toot` IRC channel on `libera.chat <https://libera.chat/>`_
 
 Features
 --------
