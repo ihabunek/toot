@@ -143,13 +143,14 @@ def drop_empty_values(data: Dict[Any, Any]) -> Dict[Any, Any]:
 
 def urlencode_url(url: str) -> str:
     parsed_url = urlparse(url)
+    SAFE_CHARS = "-._~()'!*:@,;?/"
 
     # unencode before encoding, to prevent double-urlencoding
     encoded_path = quote(unquote(parsed_url.path), safe="-._~()'!*:@,;+&=/")
     if parsed_url.query:
         query_pairs = parse_qsl(parsed_url.query, keep_blank_values=True)
         encoded_query = "&".join(
-            f"{quote(unquote(k), safe="-._~()'!*:@,;?/")}={quote(unquote(v), safe="-._~()'!*:@,;?/")}"
+            f"{quote(unquote(k), safe=SAFE_CHARS)}={quote(unquote(v), safe=SAFE_CHARS)}"
             for k, v in query_pairs
         )
     else:
