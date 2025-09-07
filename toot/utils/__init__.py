@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from importlib.metadata import version
 from itertools import islice
 from typing import Any, Dict, Generator, Iterable, List, Optional, TypeVar
-from urllib.parse import urlparse, urlencode, quote, unquote
+from urllib.parse import urlparse, unquote, quote, urlunparse, parse_qsl
 
 
 def str_bool(b: bool) -> str:
@@ -72,7 +72,7 @@ def format_content(content: str) -> Generator[str, None, None]:
         first = False
 
 
-EOF_KEY = "Ctrl-Z" if os.name == 'nt' else "Ctrl-D"
+EOF_KEY = "Ctrl-Z" if os.name == "nt" else "Ctrl-D"
 
 
 def multiline_input() -> str:
@@ -146,8 +146,15 @@ def urlencode_url(url: str) -> str:
 
     # unencode before encoding, to prevent double-urlencoding
     encoded_path = quote(unquote(parsed_url.path), safe="-._~()'!*:@,;+&=/")
-    encoded_query = urlencode({k: quote(unquote(v), safe="-._~()'!*:@,;?/") for k, v in parsed_url.params})
-    encoded_url = parsed_url._replace(path=encoded_path, params=encoded_query).geturl()
+    if parsed_url.query:
+        query_pairs = parse_qsl(parsed_url.query, keep_blank_values=True)
+        encoded_query = "&".join(
+            f"{quote(unquote(k), safe="-._~()'!*:@,;?/")}={quote(unquote(v), safe="-._~()'!*:@,;?/")}"
+            for k, v in query_pairs
+        )
+    else:
+        encoded_query = parsed_url.query
+    encoded_url = urlunparse(parsed_url._replace(path=encoded_path, query=encoded_query))
 
     return encoded_url
 
