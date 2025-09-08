@@ -405,7 +405,16 @@ class TUI(urwid.Frame):
 
         for a in post_attachments + reblog_attachments:
             url = a["remote_url"] or a["url"]
-            links.append((url, a["description"] if a["description"] else url))
+            url = url.strip()
+            description = a["description"] if a["description"] else url
+            # Sanitize: remove newlines, collapse multiple spaces
+            sanitized_desc = ' '.join(description.replace('\n', ' ').replace('\r', ' ').split())
+            # Truncate to 120 chars with ellipsis if needed
+            if len(sanitized_desc) > 120:
+                truncated_desc = sanitized_desc[:117] + "..."
+            else:
+                truncated_desc = sanitized_desc
+            links.append((url, truncated_desc))
 
         def _clear(*args):
             self.clear_screen()
