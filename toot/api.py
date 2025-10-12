@@ -593,6 +593,18 @@ def search(
     return http.get(app, user, "/api/v2/search", params)
 
 
+def accept_follow_request(app, user, account):
+    return http.post(app, user, f"/api/v1/follow_requests/{account}/authorize")
+
+
+def reject_follow_request(app, user, account):
+    return http.post(app, user, f"/api/v1/follow_requests/{account}/reject")
+
+
+def list_follow_requests(app, user):
+    return _get_response_list(app, user, "/api/v1/follow_requests")
+
+
 def follow(app, user, account):
     return _account_action(app, user, account, 'follow')
 
