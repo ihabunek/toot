@@ -1,22 +1,23 @@
-import click
 import json as pyjson
 
+import click
+
 from toot import api
-from toot.cli import cli, json_option, Context, pass_context
+from toot.cli import Context, cli, json_option, pass_context
 from toot.output import print_acct_list
 
 
-@cli.group(name="follow_request")
-def follow_request():
+@cli.group()
+def follow_requests():
     """Manage follow requests"""
     pass
 
 
-@follow_request.command(name="accept")
+@follow_requests.command()
 @click.argument("account")
 @json_option
 @pass_context
-def accept_follow_request(ctx: Context, account: str, json: bool):
+def accept(ctx: Context, account: str, json: bool):
     """Accept follow request from an account"""
     found_account = api.find_account(ctx.app, ctx.user, account)
     response = api.accept_follow_request(ctx.app, ctx.user, found_account["id"])
@@ -26,11 +27,11 @@ def accept_follow_request(ctx: Context, account: str, json: bool):
         click.secho(f"✓ {account} is now following you", fg="green")
 
 
-@follow_request.command(name="reject")
+@follow_requests.command()
 @click.argument("account")
 @json_option
 @pass_context
-def reject_follow_request(ctx: Context, account: str, json: bool):
+def reject(ctx: Context, account: str, json: bool):
     """Reject follow request from an account"""
     found_account = api.find_account(ctx.app, ctx.user, account)
     response = api.reject_follow_request(ctx.app, ctx.user, found_account["id"])
@@ -40,10 +41,10 @@ def reject_follow_request(ctx: Context, account: str, json: bool):
         click.secho(f"✓ follow request from {account} rejected", fg="green")
 
 
-@follow_request.command(name="list")
+@follow_requests.command()
 @json_option
 @pass_context
-def list_follow_requests(ctx: Context, json: bool):
+def list(ctx: Context, json: bool):
     """List follow requests"""
     requests = api.list_follow_requests(ctx.app, ctx.user)
     if json:
