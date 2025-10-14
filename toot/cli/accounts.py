@@ -1,6 +1,7 @@
 import click
 import json as pyjson
 
+from copy import copy
 from typing import BinaryIO, Optional
 
 from toot import api
@@ -9,7 +10,7 @@ from toot.cli.validators import validate_language
 from toot.output import print_acct_list
 
 
-@cli.command(name="update_account")
+@cli.command()
 @click.option("--display-name", help="The display name to use for the profile.")
 @click.option("--note", help="The account bio.")
 @click.option(
@@ -104,6 +105,12 @@ def update_account(
         click.echo(response.text)
     else:
         click.secho("✓ Account updated", fg="green")
+
+
+# Make alias in snake case to keep BC
+update_account_alias = copy(update_account)
+update_account_alias.hidden = True
+cli.add_command(update_account_alias, name="update_account")
 
 
 @cli.command()

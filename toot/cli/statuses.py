@@ -1,3 +1,4 @@
+from copy import copy
 import click
 
 from toot import api
@@ -129,7 +130,7 @@ def unbookmark(ctx: Context, status_id: str, json: bool):
         click.secho("✓ Status unbookmarked", fg="green")
 
 
-@cli.command(name="reblogged_by")
+@cli.command()
 @click.argument("status_id")
 @json_option
 @pass_context
@@ -146,3 +147,9 @@ def reblogged_by(ctx: Context, status_id: str, json: bool):
             print_table(headers, rows)
         else:
             click.echo("This status is not reblogged by anyone")
+
+
+# Make alias in snake case to keep BC
+reblogged_by_alias = copy(reblogged_by)
+reblogged_by_alias.hidden = True
+cli.add_command(reblogged_by_alias, name="reblogged_by")
