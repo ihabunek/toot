@@ -280,7 +280,7 @@ class TUI(urwid.Frame):
         timeline.refresh_status_details()
         self.refresh_footer(timeline)
 
-    def async_load_timeline(self, is_initial, timeline_name=None, local=None):
+    def async_load_timeline(self, is_initial, timeline_name=None, local=None, last_read_id=None):
         """Asynchronously load a list of statuses."""
 
         def _load_statuses():
@@ -298,6 +298,14 @@ class TUI(urwid.Frame):
             """Process initial batch of statuses, construct a Timeline."""
             self.timeline = self.build_timeline(timeline_name, statuses, local)
             self.timeline.refresh_status_details()  # Draw first status
+
+            if last_read_id:
+                status = next((s for s in self.timeline.statuses if s.id == last_read_id), None)
+                if status:
+                    self.timeline.focus_status(status)
+                else:
+                    self.timeline.focus_status(self.timeline.statuses[-1])
+
             self.refresh_footer(self.timeline)
             self.body = self.timeline
 
@@ -841,6 +849,12 @@ class TUI(urwid.Frame):
                 or self.timeline.name.startswith("\N{clipboard}")):
             return
 
+        last_read_id = None
+        if self.timeline:
+            last_read = self.timeline.get_focused_status()
+            if last_read:
+                last_read_id = last_read.id
+
         if self.timeline.name.startswith("#"):
             self.timeline_generator = api.tag_timeline_generator(
                 self.app, self.user, self.timeline.name[1:], limit=40)
@@ -862,7 +876,11 @@ class TUI(urwid.Frame):
                 self.timeline_generator = api.home_timeline_generator(
                     self.app, self.user, limit=40)
 
-        self.async_load_timeline(is_initial=True, timeline_name=self.timeline.name)
+        self.async_load_timeline(
+            is_initial=True,
+            timeline_name=self.timeline.name,
+            last_read_id=last_read_id
+        )
 
     # --- Keys -----------------------------------------------------------------
 
