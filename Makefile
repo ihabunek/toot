@@ -19,7 +19,7 @@ coverage:
 
 clean :
 	find . -name "*pyc" | xargs rm -rf $1
-	rm -rf build dist MANIFEST htmlcov bundle toot*.tar.gz toot*.pyz
+	rm -rf build dist book MANIFEST htmlcov bundle toot*.tar.gz toot*.pyz
 
 changelog:
 	./scripts/generate_changelog > CHANGELOG.md
