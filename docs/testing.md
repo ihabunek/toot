@@ -1,5 +1,9 @@
 # Running toot tests
 
+toot has a series of integration tests to make sure it works with different Mastodon-compatible servers. This makes it a bit harder to run tests because we need a local instance to run the tests agains.
+
+**Please, never run tests against a live instance!**
+
 ## Mastodon
 
 Clone mastodon repo and check out the tag you want to test:
