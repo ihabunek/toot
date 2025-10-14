@@ -187,6 +187,7 @@ def cli(ctx: click.Context, max_width: int, color: bool, debug: bool, verbose: b
 from toot.cli import accounts  # noqa
 from toot.cli import auth  # noqa
 from toot.cli import diag  # noqa
+from toot.cli import follow_requests  # noqa
 from toot.cli import lists  # noqa
 from toot.cli import polls  # noqa
 from toot.cli import post  # noqa
