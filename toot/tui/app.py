@@ -105,7 +105,7 @@ class TUI(urwid.Frame):
         tui = TUI(app, user, screen, options)
 
         palette = PALETTE.copy()
-        overrides = settings.get_setting("tui.palette", dict, {})
+        overrides = settings.get_setting("commands.tui.palette", dict, {})
         for name, styles in overrides.items():
             palette.append(tuple([name] + styles))
 
