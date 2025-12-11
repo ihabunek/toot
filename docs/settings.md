@@ -62,7 +62,7 @@ arguments. This works well with image viewers like `feh` which accept URLs as
 arguments.
 
 ```toml
-[tui]
+[commands.tui]
 media_viewer = "feh"
 ```
 
@@ -73,7 +73,7 @@ TUI uses Urwid which provides several color modes. See
 for more details.
 
 By default, TUI operates in 16-color mode which can be changed by setting the
-`color` setting in the `[tui]` section to one of the following values:
+`color` setting in the `[commands.tui]` section to one of the following values:
 
 * `1` (monochrome)
 * `16` (default)
@@ -82,7 +82,7 @@ By default, TUI operates in 16-color mode which can be changed by setting the
 * `16777216` (24 bit)
 
 TUI defines a list of colors which can be customized, currently they can be seen
-[in the source code](https://github.com/ihabunek/toot/blob/master/toot/tui/constants.py). They can be overridden in the `[tui.palette]` section.
+[in the source code](https://github.com/ihabunek/toot/blob/master/toot/tui/constants.py). They can be overridden in the `[commands.tui.palette]` section.
 
 Each color is defined as a list of upto 5 values:
 
@@ -98,7 +98,7 @@ to an empty string.
 For example, to change the button colors in 16 color mode:
 
 ```toml
-[tui.palette]
+[commands.tui.palette]
 button = ["dark red,bold", ""]
 button_focused = ["light gray", "green"]
 ```
@@ -106,10 +106,10 @@ button_focused = ["light gray", "green"]
 In monochrome mode:
 
 ```toml
-[tui]
+[commands.tui]
 colors = 1
 
-[tui.palette]
+[commands.tui.palette]
 button = ["", "", "bold"]
 button_focused = ["", "", "italics"]
 ```
@@ -117,10 +117,10 @@ button_focused = ["", "", "italics"]
 In 256 color mode:
 
 ```toml
-[tui]
+[commands.tui]
 colors = 256
 
-[tui.palette]
+[commands.tui.palette]
 button = ["", "", "", "#aaa", "#bbb"]
 button_focused = ["", "", "", "#aaa", "#bbb"]
 ```
