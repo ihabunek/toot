@@ -11,6 +11,9 @@
 # http://urwid.org/manual/displayattributes.html#using-display-attributes
 
 PALETTE = [
+    # Default
+    ('default', 'white', 'black'),
+
     # Components
     ('button', 'white', 'black'),
     ('button_focused', 'light gray', 'dark magenta', 'bold,underline'),
