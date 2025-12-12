@@ -22,7 +22,7 @@ jobs:
           uv sync
       - name: Run tests
         run: |
-          uv run pytest
+          uv run --all-extras pytest
       - name: Validate minimum required version
         run: |
-          uv run vermin --no-tips toot
+          uv run --all-extras vermin --no-tips toot
