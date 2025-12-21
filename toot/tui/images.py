@@ -94,7 +94,7 @@ try:
         # "<" means left-justify the image
 
 except ImportError:
-    from urwid.raw_display import Screen
+    from urwid.display.raw import Screen
     TuiScreen = Screen
 
     def image_support_enabled():

@@ -20,7 +20,7 @@ from toot.tui.widgets import SelectableText, SelectableColumns, RoundedLineBox
 
 
 logger = logging.getLogger("toot")
-screen = urwid.raw_display.Screen()
+screen = urwid.display.raw.Screen()
 
 
 class Timeline(urwid.Columns):

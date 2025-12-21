@@ -72,7 +72,7 @@ def parse_content_links(content):
     return parser.links[:]
 
 
-def copy_to_clipboard(screen: urwid.raw_display.Screen, text: str):
+def copy_to_clipboard(screen: urwid.display.raw.Screen, text: str):
     """ copy text to clipboard using OSC 52
     This escape sequence is documented
     here https://iterm2.com/documentation-escape-codes.html
