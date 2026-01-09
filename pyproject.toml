@@ -55,11 +55,11 @@ packages=[
 [tool.setuptools_scm]
 
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py39"
 
 [dependency-groups]
 dev = [
