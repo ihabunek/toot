@@ -46,3 +46,21 @@ bundle:
 		--output toot-`git describe`.pyz bundle \
 		--compress
 	echo "Bundle created: toot-`git describe`.pyz"
+
+
+# TODO: add more rules for more shells
+.PHONY: install-shell-completion
+install-shell-completion: install-bash-completion
+	@echo "See docs/shell_completion.md for Fish and Zsh completions"
+
+.PHONY: install-bash-completion
+install-bash-completion:
+	if test -d /etc/bash_completion.d; then \
+		$(MAKE) bash-completion && \
+		cp bash-completion /etc/bash_completion.d/toot; \
+	fi
+
+# TODO: encode dependencies instead (on bundle?)
+.PHONY: bash-completion
+bash-completion:
+	_TOOT_COMPLETE=bash_source toot > $@.tmp && mv -f $@.tmp $@
