@@ -320,6 +320,8 @@ def test_cache_miss_doesnt_eject():
 def test_urlencode_url():
     assert urlencode_url("https://www.example.com") == "https://www.example.com"
     assert urlencode_url("https://www.example.com/url%20with%20spaces") == "https://www.example.com/url%20with%20spaces"
+    # https://toot.cafe/@slightlyoff/115165318335242370
+    assert urlencode_url("https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/imagecapture/image_capture.cc;l=1576") == "https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/imagecapture/image_capture.cc;l=1576"
 
 
 def test_batched():
