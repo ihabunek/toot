@@ -144,3 +144,8 @@ def delete_user(user: User):
 def activate_user(user: User):
     with edit_config() as config:
         config['active_user'] = user_id(user)
+
+
+def set_dismiss_tui_deprecation_notice(value: bool):
+    with edit_config() as config:
+        config['dismiss_tui_deprecation_notice'] = value

@@ -1,6 +1,8 @@
 import click
+import time
 
 from typing import Optional
+from toot import config
 from toot.cli import TUI_COLORS, VISIBILITY_CHOICES, IMAGE_FORMAT_CHOICES, Context, cli, pass_context
 from toot.cli.validators import validate_tui_colors, validate_cache_size
 from toot.tui.app import TUI, TuiOptions
@@ -67,6 +69,8 @@ def tui(
     if colors is None:
         colors = 16 if ctx.color else 1
 
+    maybe_show_warning()
+
     options = TuiOptions(
         colors=colors,
         media_viewer=media_viewer,
@@ -79,3 +83,30 @@ def tui(
     )
     tui = TUI.create(ctx.app, ctx.user, options)
     tui.run()
+
+
+def maybe_show_warning():
+    config_data = config.load_config()
+    if config_data.get("dismiss_tui_deprecation_notice", False):
+        return
+
+    click.secho("DEPRECATION WARNING", fg="red")
+    click.echo("`toot tui` has been deprecated and will be removed in a future release")
+    click.echo()
+    click.echo("Read more about why it was deprecated and discuss here:")
+    click.echo("    https://github.com/ihabunek/toot/discussions/566")
+    click.echo()
+    click.echo("Check out the replacement Mastodon TUI project here:")
+    click.echo("    https://codeberg.org/ihabunek/tooi")
+    click.echo()
+    value = click.prompt(
+        "Type 'dismiss' to permanently dismiss this warning or press Enter to continue.",
+        default="",
+        show_default=False,
+        prompt_suffix="\n:",
+    )
+
+    if value.lower() == "dismiss":
+        config.set_dismiss_tui_deprecation_notice(True)
+        click.echo("Warning dismissed")
+        time.sleep(0.5)
