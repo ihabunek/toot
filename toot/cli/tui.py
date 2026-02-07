@@ -5,7 +5,6 @@ from typing import Optional
 from toot import config
 from toot.cli import TUI_COLORS, VISIBILITY_CHOICES, IMAGE_FORMAT_CHOICES, Context, cli, pass_context
 from toot.cli.validators import validate_tui_colors, validate_cache_size
-from toot.tui.app import TUI, TuiOptions
 
 COLOR_OPTIONS = ", ".join(TUI_COLORS.keys())
 
@@ -66,6 +65,9 @@ def tui(
     show_display_names: bool,
 ):
     """Launches the toot terminal user interface"""
+    # Imported here to avoid loading TUI libs when running CLI commands
+    from toot.tui.app import TUI, TuiOptions
+
     if colors is None:
         colors = 16 if ctx.color else 1
 
