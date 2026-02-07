@@ -2,7 +2,7 @@ from copy import copy
 import click
 
 from toot import api
-from toot.cli import cli, json_option, Context, pass_context
+from toot.cli import TootCommand, cli, json_option, Context, pass_context
 from toot.cli import VISIBILITY_CHOICES
 from toot.output import print_table
 
@@ -45,8 +45,7 @@ def unfavourite(ctx: Context, status_id: str, json: bool):
     else:
         click.secho("✓ Status unfavourited", fg="green")
 
-
-@cli.command()
+@cli.command(cls=TootCommand, aliases=["boost"])
 @click.argument("status_id")
 @click.option(
     "--visibility", "-v",

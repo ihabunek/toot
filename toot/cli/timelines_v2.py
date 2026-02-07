@@ -6,7 +6,7 @@ import click
 from requests import Response
 
 from toot import api, http
-from toot.cli import Context, cli, json_option, pass_context
+from toot.cli import Context, TootCommand, TootGroup, cli, json_option, pass_context
 from toot.cli.lists import get_list_id
 from toot.cli.validators import validate_instance
 from toot.entities import (
@@ -72,7 +72,7 @@ instance_option = click.option(
 )
 
 
-@cli.group()
+@cli.group(cls=TootGroup, aliases=["tl"])
 def timelines():
     """Show various timelines"""
 

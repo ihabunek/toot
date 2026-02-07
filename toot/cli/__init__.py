@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import typing as t
+from gettext import gettext as _
 
 from click.shell_completion import CompletionItem
 from click.types import StringParamType
@@ -129,6 +130,50 @@ class InstanceParamType(StringParamType):
         ]
 
 
+class TootCommand(click.Command):
+    """Extends Command to allow for command aliases"""
+    def __init__(self, *args, **kwargs):
+        self.aliases = kwargs.pop("aliases", [])
+        super().__init__(*args, **kwargs)
+
+
+class TootGroup(click.Group):
+    """Extends Group to print command aliases when printing help."""
+    def __init__(self, *args, **kwargs):
+        self.aliases = kwargs.pop("aliases", [])
+        super().__init__(*args, **kwargs)
+
+    def format_commands(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        commands = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            # What is this, the tool lied about a command.  Ignore it
+            if cmd is None:
+                continue
+            if cmd.hidden:
+                continue
+
+            commands.append((subcommand, cmd))
+
+        # allow for 3 times the default spacing
+        if len(commands):
+            limit = formatter.width - 6 - max(len(cmd[0]) for cmd in commands)
+
+            rows = []
+            for subcommand, cmd in commands:
+                help = cmd.get_short_help_str(limit)
+
+                if (isinstance(cmd, TootCommand) or isinstance(cmd, TootGroup)) and cmd.aliases:
+                    joined = ",".join(cmd.aliases)
+                    subcommand = f"{subcommand},{joined}"
+
+                rows.append((subcommand, help))
+
+            if rows:
+                with formatter.section(_("Commands")):
+                    formatter.write_dl(rows)
+
+
 def pass_context(f: "t.Callable[te.Concatenate[Context, P], R]") -> "t.Callable[P, R]":
     """Pass the toot Context as first argument."""
     @wraps(f)
@@ -166,7 +211,7 @@ json_option = click.option(
 )
 
 
-@click.group(context_settings=CONTEXT)
+@click.group(context_settings=CONTEXT, cls=TootGroup)
 @click.option("-w", "--max-width", type=int, default=80, help="Maximum width for content rendered by toot")
 @click.option("--debug/--no-debug", default=False, help="Log debug info to stderr")
 @click.option("--verbose", is_flag=True, help="Log verbose info")
