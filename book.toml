@@ -1,7 +1,6 @@
 [book]
 authors = ["Ivan Habunek"]
 language = "en"
-multilingual = false
 src = "docs"
 title = "toot"
 
