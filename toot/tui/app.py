@@ -29,6 +29,7 @@ urwid.set_encoding('UTF-8')
 
 
 DEFAULT_MAX_TOOT_CHARS = 500
+DEFAULT_PALETTE_KEY = 'default'
 
 
 class TuiOptions(NamedTuple):
@@ -105,7 +106,7 @@ class TUI(urwid.Frame):
         tui = TUI(app, user, screen, options)
 
         palette = PALETTE.copy()
-        overrides = settings.get_setting("tui.palette", dict, {})
+        overrides = settings.get_setting("commands.tui.palette", dict, {})
         for name, styles in overrides.items():
             palette.append(tuple([name] + styles))
 
@@ -116,6 +117,9 @@ class TUI(urwid.Frame):
             unhandled_input=tui.unhandled_input,
             screen=screen,
         )
+        for name, *styles in palette:
+            if name == DEFAULT_PALETTE_KEY:
+                loop.screen.register_palette_entry(None, *styles)
         tui.loop = loop
 
         return tui
