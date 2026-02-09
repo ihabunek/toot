@@ -334,6 +334,8 @@ def print_notification_header(notification: Notification):
         click.echo(f"{account_name} has signed up")
     elif notification.type == "admin.report":
         click.echo(f"{account_name} filed a report")
+    elif notification.type == "quote":
+        click.echo(f"{account_name} quoted you")
     else:
         click.secho(
             f"Unknown notification type: '{notification.type}'", err=True, fg="yellow"
