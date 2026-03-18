@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import unicodedata
 import warnings
+import readline
 
 from bs4 import BeautifulSoup
 from importlib.metadata import version
