@@ -22,21 +22,6 @@ from toot.utils import drop_empty_values, str_bool_nullable
 
 def common_timeline_options(func):
     @click.option(
-        "--min-id",
-        help="""All results returned will be lesser than this ID. In effect,
-             sets an upper bound on results.""",
-    )
-    @click.option(
-        "--max-id",
-        help="""All results returned will be greater than this ID. In effect,
-             sets a lower bound on results.""",
-    )
-    @click.option(
-        "--since-id",
-        help="""Returns results immediately newer than this ID. In effect,
-             sets a cursor at this ID and paginates forward.""",
-    )
-    @click.option(
         "-l",
         "--limit",
         type=int,
@@ -62,6 +47,27 @@ def common_timeline_options(func):
     return wrapper
 
 
+min_option = click.option(
+    "--min-id",
+    help="""All results returned will be lesser than this ID. In effect,
+        sets an upper bound on results.""",
+)
+
+
+max_option = click.option(
+    "--max-id",
+    help="""All results returned will be greater than this ID. In effect,
+        sets a lower bound on results.""",
+)
+
+
+since_option = click.option(
+    "--since-id",
+    help="""Returns results immediately newer than this ID. In effect,
+        sets a cursor at this ID and paginates forward.""",
+)
+
+
 instance_option = click.option(
     "-i",
     "--instance",
@@ -80,6 +86,9 @@ def timelines():
 @timelines.command()
 @click.argument("account_name")
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @json_option
 @pass_context
 def account(
@@ -109,6 +118,9 @@ def account(
 
 @timelines.command()
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @json_option
 @pass_context
 def favourites(
@@ -135,6 +147,9 @@ def favourites(
 
 @timelines.command()
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @json_option
 @pass_context
 def home(
@@ -162,6 +177,9 @@ def home(
 @timelines.command()
 @click.argument("link_url")
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @json_option
 @pass_context
 def link(
@@ -196,6 +214,9 @@ def link(
 @timelines.command("list")
 @click.argument("list_name_or_id")
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @json_option
 @pass_context
 def list_cmd(
@@ -225,6 +246,9 @@ def list_cmd(
 
 @timelines.command()
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @instance_option
 @click.option(
     "--local",
@@ -281,6 +305,9 @@ def public(
 
 @timelines.command()
 @common_timeline_options
+@min_option
+@max_option
+@since_option
 @instance_option
 @click.argument("tag_name")
 @click.option(
@@ -349,6 +376,41 @@ def tag(
         "any[]": any or None,
         "all[]": all or None,
         "none[]": none or None,
+    }
+
+    if instance:
+        url = f"{instance}{path}"
+        _show_anon_timeline(url, params, json, pager, clear, limit)
+    else:
+        _show_timeline(ctx, path, params, json, pager, clear, limit)
+
+
+@timelines.command()
+@common_timeline_options
+@instance_option
+@click.option(
+    "-o",
+    "--offset",
+    type=int,
+    default=0,
+    help="Number of initial results to skip",
+)
+@json_option
+@pass_context
+def trending(
+    ctx: Context,
+    instance: Optional[str],
+    offset: Optional[str],
+    limit: Optional[int],
+    pager: bool,
+    clear: bool,
+    json: bool,
+):
+    """View trending statuses."""
+    path = "/api/v1/trends/statuses"
+    params = {
+        "offset": offset,
+        "limit": limit,
     }
 
     if instance:
