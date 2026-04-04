@@ -1,3 +1,9 @@
+0.52.1:
+  date: 2026-04-04
+  changes:
+    - "Improve text input for wide characters (thanks @izkluxcvy)"
+    - "TUI: preserve focused status when refreshing timeline (thanks @AbeEstrada)"
+
 0.52.0:
   date: 2026-04-04
   changes:
