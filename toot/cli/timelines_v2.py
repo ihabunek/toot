@@ -22,6 +22,21 @@ from toot.utils import drop_empty_values, str_bool_nullable
 
 def common_timeline_options(func):
     @click.option(
+        "--min-id",
+        help="""All results returned will be lesser than this ID. In effect,
+             sets an upper bound on results.""",
+    )
+    @click.option(
+        "--max-id",
+        help="""All results returned will be greater than this ID. In effect,
+             sets a lower bound on results.""",
+    )
+    @click.option(
+        "--since-id",
+        help="""Returns results immediately newer than this ID. In effect,
+             sets a cursor at this ID and paginates forward.""",
+    )
+    @click.option(
         "-l",
         "--limit",
         type=int,
@@ -47,27 +62,6 @@ def common_timeline_options(func):
     return wrapper
 
 
-min_option = click.option(
-    "--min-id",
-    help="""All results returned will be lesser than this ID. In effect,
-        sets an upper bound on results.""",
-)
-
-
-max_option = click.option(
-    "--max-id",
-    help="""All results returned will be greater than this ID. In effect,
-        sets a lower bound on results.""",
-)
-
-
-since_option = click.option(
-    "--since-id",
-    help="""Returns results immediately newer than this ID. In effect,
-        sets a cursor at this ID and paginates forward.""",
-)
-
-
 instance_option = click.option(
     "-i",
     "--instance",
@@ -86,9 +80,6 @@ def timelines():
 @timelines.command()
 @click.argument("account_name")
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @json_option
 @pass_context
 def account(
@@ -118,9 +109,6 @@ def account(
 
 @timelines.command()
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @json_option
 @pass_context
 def favourites(
@@ -147,9 +135,6 @@ def favourites(
 
 @timelines.command()
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @json_option
 @pass_context
 def home(
@@ -177,9 +162,6 @@ def home(
 @timelines.command()
 @click.argument("link_url")
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @json_option
 @pass_context
 def link(
@@ -214,9 +196,6 @@ def link(
 @timelines.command("list")
 @click.argument("list_name_or_id")
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @json_option
 @pass_context
 def list_cmd(
@@ -246,9 +225,6 @@ def list_cmd(
 
 @timelines.command()
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @instance_option
 @click.option(
     "--local",
@@ -305,9 +281,6 @@ def public(
 
 @timelines.command()
 @common_timeline_options
-@min_option
-@max_option
-@since_option
 @instance_option
 @click.argument("tag_name")
 @click.option(
@@ -386,7 +359,6 @@ def tag(
 
 
 @timelines.command()
-@common_timeline_options
 @instance_option
 @click.option(
     "-o",
@@ -394,6 +366,25 @@ def tag(
     type=int,
     default=0,
     help="Number of initial results to skip",
+)
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    help="""Number of results to fetch per request. [default: 20] [max: 40].
+         (limit and max may depend on your server)""",
+)
+@click.option(
+    "-p/ ",
+    "--pager/--no-pager",
+    help="Page the results",
+    default=True,
+)
+@click.option(
+    "-c",
+    "--clear/--no-clear",
+    help="Clear the screen before printing. If paged, clear before each page.",
+    default=True,
 )
 @json_option
 @pass_context
