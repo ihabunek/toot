@@ -6,7 +6,10 @@ import subprocess
 import tempfile
 import unicodedata
 import warnings
-import readline
+
+# Importing readline improves input()
+# See: https://docs.python.org/3/library/functions.html#input
+import readline  # noqa
 
 from bs4 import BeautifulSoup
 from importlib.metadata import version
