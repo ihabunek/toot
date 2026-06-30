@@ -8,7 +8,7 @@ from wcwidth import wcswidth
 
 from toot.entities import Account, Instance, List, Notification, Poll, Status
 from toot.utils import get_text, html_to_paragraphs
-from toot.wcstring import wc_wrap
+from toot.wcstring import pad, wc_wrap
 
 DEFAULT_WIDTH = 80
 
@@ -138,13 +138,13 @@ def print_lists(lists: t.List[List]):
 
 
 def print_table(headers: t.List[str], data: t.List[t.List[str]]):
-    widths = [[len(cell) for cell in row] for row in data + [headers]]
+    widths = [[wcswidth(cell) for cell in row] for row in data + [headers]]
     widths = [max(width) for width in zip(*widths)]
 
     def print_row(row):
         for idx, cell in enumerate(row):
             width = widths[idx]
-            click.echo(cell.ljust(width), nl=False)
+            click.echo(pad(cell, width), nl=False)
             click.echo("  ", nl=False)
         click.echo()
 
