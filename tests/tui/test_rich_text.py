@@ -43,3 +43,15 @@ def test_html_to_widgets():
     assert bar_embed.embedded == []
     assert bar_embed.attrib == [(None, 4), ("b", 3), (None, 1), ("i", 3)]
     assert bar_embed.text == "foo bar baz"
+
+
+def test_html_to_widgets_anchor_without_href():
+    # GoToSocial strips href from anchors with non-http schemes,
+    # which used to crash render_anchor with a KeyError (#549)
+    html = '<p>see <a rel="nofollow">gemini://example.org/capsule</a></p>'
+
+    [paragraph] = html_to_widgets(html)
+    assert isinstance(paragraph, Pile)
+
+    [(embed, _)] = paragraph.contents
+    assert embed.text == "see gemini://example.org/capsule"
