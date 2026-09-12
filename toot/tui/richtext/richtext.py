@@ -249,7 +249,8 @@ def render_anchor(tag) -> Tuple:
     if not markups:
         return (tag.name, "")
 
-    href = tag.attrs["href"]
+    # sanitizers may strip href from anchors with non-http schemes (#549)
+    href = tag.attrs.get("href")
     title, attrib_list = decompose_tagmarkup(markups)
     if not attrib_list:
         attrib_list = [tag]
