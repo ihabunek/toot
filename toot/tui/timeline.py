@@ -60,7 +60,7 @@ class Timeline(urwid.Columns):
 
         super().__init__([
             ("weight", 40, self.status_list),
-            ("weight", 0, urwid.AttrWrap(urwid.SolidFill("│"), "columns_divider")),
+            ("weight", 0, urwid.AttrMap(urwid.SolidFill("│"), "columns_divider")),
             ("weight", 60, status_widget),
         ])
 
@@ -509,7 +509,7 @@ class StatusDetails(urwid.Pile):
         application = status.data.get("application") or {}
         application = application.get("name")
 
-        yield ("pack", urwid.AttrWrap(urwid.Divider("-"), "dim"))
+        yield ("pack", urwid.AttrMap(urwid.Divider("-"), "dim"))
 
         translated_from = (
             language_name(status.original.translated_from)

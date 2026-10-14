@@ -44,7 +44,8 @@ class StatusSource(urwid.Padding):
 class StatusZoom(urwid.ListBox):
     """Opens status in scrollable popup window"""
     def __init__(self, status_details):
-        ll = list(filter(lambda x: getattr(x, "rows", None), status_details.widget_list))
+        widgets = [w for w, _ in status_details.contents]
+        ll = list(filter(lambda x: getattr(x, "rows", None), widgets))
         walker = urwid.SimpleFocusListWalker(ll)
         super().__init__(walker)
 
