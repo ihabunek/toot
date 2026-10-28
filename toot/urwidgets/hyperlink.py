@@ -210,19 +210,23 @@ class HyperlinkCanvas(urwid.Canvas):
     ) -> Generator[List[Tuple[DisplayAttribute, Optional[str], bytes]], None, None]:
         # There can only be one line since wrap="ellipsis" and the text was checked
         # to not contain "\n".
+        # The line is read without *attr*, which is applied below per run as
+        # `urwid.TextCanvas.content()` applies it: urwid after 4.2.5 places an unmapped
+        # attribute over the map's `None` entry, so the link run would not be an `_Attr`.
         content_line = next(
-            self._uw_text_canv.content(trim_left, trim_top, cols, rows, attr)
+            self._uw_text_canv.content(trim_left, trim_top, cols, rows)
         )
+        is_link = isinstance(content_line[0][0], _Attr)
+        if is_link:
+            content_line[0] = (content_line[0][0].attr, *content_line[0][1:])
+        if attr:
+            content_line = [(attr.get(a, a), cs, text) for a, cs, text in content_line]
 
-        if isinstance(content_line[0][0], _Attr):
+        if is_link:
             hyperlink_text, *padding = content_line
-            link_attr = hyperlink_text[0].attr
             yield [
                 (None, "U", START % (self._uw_id, self._uw_uri)),
-                (
-                    attr.get(link_attr, link_attr) if attr else link_attr,
-                    *hyperlink_text[1:],
-                ),
+                hyperlink_text,
                 (None, "U", END),
                 *padding,  # if any
             ]
