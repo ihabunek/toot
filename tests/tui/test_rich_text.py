@@ -1,4 +1,4 @@
-from urwid import Divider, Filler, Pile
+from urwid import AttrMap, Divider, Filler, Pile, Text
 from toot.tui.richtext import url_to_widget
 from toot.urwidgets import Hyperlink, TextEmbed
 
@@ -20,6 +20,16 @@ def test_url_to_widget():
     assert link_widget.attrib == "link"
     assert link_widget.text == url
     assert link_widget.uri == url
+
+    # The link keeps its escapes under an attribute map, and its text run is mapped
+    # as urwid maps the same attribute on a plain Text.
+    attr_map = {None: "bg", "link": "focus"}
+    size = (len(url) + 2,)
+    [[start, text, end, padding]] = AttrMap(link_widget, attr_map).render(size).content()
+    [plain] = AttrMap(Text(("link", url)), attr_map).render(size).content()
+    assert start[:2] == end[:2] == (None, "U")
+    assert url.encode() in start[2]
+    assert [text, padding] == plain
 
 
 def test_html_to_widgets():
