@@ -9,7 +9,12 @@ import warnings
 
 # Importing readline improves input()
 # See: https://docs.python.org/3/library/functions.html#input
-import readline  # noqa
+try:
+    import readline  # noqa
+except ImportError:
+    # readline is not available on all platforms (e.g. Windows);
+    # input() still works without it, just with fewer niceties.
+    pass
 
 from bs4 import BeautifulSoup
 from importlib.metadata import version
