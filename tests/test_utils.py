@@ -367,3 +367,19 @@ def dt_tuple(dt: datetime):
         dt.second,
         offset.total_seconds()
     )
+
+
+def test_utils_importable_without_readline():
+    """toot.utils must import on platforms without readline (e.g. Windows)."""
+    import subprocess
+
+    code = (
+        "import sys; sys.modules['readline'] = None;"
+        " import toot.utils; print('ok')"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.strip() == "ok"
